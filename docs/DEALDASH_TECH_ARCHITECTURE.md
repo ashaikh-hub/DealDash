@@ -547,3 +547,13 @@ Detail: `SUBSCRIPTION_LICENSING_ENTITLEMENT.md`.
 - Database guards: append-only triggers (analytics, AI), finance-document freeze trigger, invoice-line guard, allocation no-delete, CHECKs
   for every new vocabulary.
 - Shared UI: `packages/app-shell/src/{visibility,billing,ai}`; dictionaries `packages/localization/src/dictionaries.phase45.ts`.
+
+## Addendum (Oct 2026) — Market / country configuration architecture
+
+`MarketService` (master, lifecycle, availability, market resolution), `MarketConfigService` (effective-dated tax / invoice / settlement /
+policy versions with second-approver approval, providers, validation register, resolvers) and `MarketReadinessService` (activation gate)
+live in the global PlatformModule next to the existing CountryService, ScopeService and EntitlementService. Hooks into existing code (no
+redesign): `EntitlementService.requireProduct` (market availability), Live Deal submission, `PricingService.resolve` (market-aware pricing
+and tax), `CommercialService` (campaign market, ledger-currency guard), `InvoicingService` (tax rules per line, invoice configuration at
+issue), `BillingEventService` (market of the billed party), AI governance (AI availability per market). Configuration:
+`markets` (available statuses, default market, default pricing markets, campaign ledger currencies).

@@ -10,6 +10,10 @@ import { EntitlementService } from './entitlement.service';
 import { HierarchyService } from './hierarchy.service';
 import { AdminPlatformController, OrgStructureController } from './platform.controllers';
 import { ScopeService } from './scope.service';
+import { MarketConfigService } from './markets/market-config.service';
+import { MarketReadinessService } from './markets/market-readiness.service';
+import { MarketService } from './markets/market.service';
+import { AdminMarketsController, OrgMarketsController } from './markets/markets.controller';
 
 /**
  * Shared platform foundation: business account structure (legal entities, organization units), scoped role assignments with
@@ -18,7 +22,7 @@ import { ScopeService } from './scope.service';
  */
 @Global()
 @Module({
-  controllers: [OrgStructureController, AdminPlatformController],
+  controllers: [OrgStructureController, AdminPlatformController, AdminMarketsController, OrgMarketsController],
   providers: [
     ScopeService,
     AccessScopeService,
@@ -28,6 +32,9 @@ import { ScopeService } from './scope.service';
     ContractService,
     CountryService,
     CampaignVersionService,
+    MarketService,
+    MarketConfigService,
+    MarketReadinessService,
     // the financial state the entitlement engine reads: contract lifecycle + holds + receivables (Phase 5)
     { provide: FINANCIAL_STATUS_PROVIDER, useClass: ReceivablesFinancialStatusProvider },
   ],
@@ -41,6 +48,9 @@ import { ScopeService } from './scope.service';
     ContractService,
     CountryService,
     CampaignVersionService,
+    MarketService,
+    MarketConfigService,
+    MarketReadinessService,
   ],
 })
 export class PlatformModule {}

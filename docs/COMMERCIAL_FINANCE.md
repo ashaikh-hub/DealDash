@@ -150,3 +150,9 @@ partial payments and unallocated credit; aging, disputes and statements; purchas
 approved-rate-only multi-currency; reconciliation by business account, legal entity, product, campaign, funding party, merchant, sponsor
 and currency; quotation expiry, rejection and modification requests; a receivables-aware financial status (overdue drives PAST_DUE only
 when switched on). Case closure invoices continue to work as before.
+
+## Market extension (Oct 2026)
+
+Campaign pricing and tax are now market-aware (see `docs/MARKET_COUNTRY_CONFIGURATION.md`): the commercial case records its market, the
+quotation snapshot records the market and the tax rule version, market-neutral / default pricing applies only in approved markets, and the
+campaign funding ledger accepts SAR only (other currencies are refused, never converted).

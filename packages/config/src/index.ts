@@ -145,6 +145,8 @@ export const CONFIG_KEYS = {
   // Phase 5: billing and finance, governed AI
   FINANCE_BILLING: 'finance.billing',
   AI_GOVERNANCE: 'ai.governance',
+  // Market / country configuration (pre-Stage-7 hardening)
+  MARKETS: 'markets',
 } as const;
 
 /**
@@ -647,6 +649,17 @@ export const CONFIG_DEFAULTS: Record<ConfigKey, unknown> = {
     commercialTreatment: 'INCLUDED_FEATURE',
     /** Business agents need this contract feature; the customer agent does not. */
     businessFeature: 'AI_COPILOT',
+  },
+  // ---- Markets: the market (country) drives tax, currency, invoicing, payments, settlement, product availability and launch state.
+  markets: {
+    /** Market and product statuses under which businesses may create new campaigns / exposure. */
+    availableStatuses: ['PILOT', 'ACTIVE'],
+    /** Market of a business with no legal entity, contract market or branch country yet (explicit, never a guess). */
+    defaultMarket: 'SA',
+    /** Markets where the platform default campaign pricing is approved; other markets need market-specific pricing. */
+    defaultPricingMarkets: ['SA'],
+    /** Ledger currencies the campaign funding ledger supports today (the general ledger is SAR-only; no full multi-currency GL). */
+    campaignLedgerCurrencies: ['SAR'],
   },
   // Rewards: no point-to-SAR value is configured or shown anywhere (RW-07). Expiry is off until decided (VK-17).
   'rewards.rules': {

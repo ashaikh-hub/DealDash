@@ -554,3 +554,15 @@ Migration `20261231000000_phase4_phase5_visibility_finance_ai` (additive; applie
 - `NotificationType` + ALERT.
 
 Money stays integer minor units (legacy `*Halalas` names = minor units). The general ledger remains SAR-only (documented constraint).
+
+## Addendum (Oct 2026) — Market / country configuration data model
+
+Migration `20270101000000_market_country_configuration` (additive; dev database backed up and migrated, no reset).
+- `CountryConfiguration` extended as the market master: regionCode, isoAlpha3, status, defaultLanguage, supportedCurrencies,
+  billing / settlement / tax currency, currencyDecimals, roundingRule, timezone, callingCode, formatting, launchDate, effectiveFrom / To,
+  version, approvalStatus + pending lifecycle fields, created / approved by, dealdashLegalEntityId, supportContact (`enabled` kept, derived).
+- New: `MarketRegion`, `MarketProduct`, `TaxRule`, `InvoiceConfig`, `SettlementRule`, `MarketProvider`, `MarketPolicy`,
+  `MarketValidationItem`. Approved tax / invoice / settlement / policy rows are frozen by trigger (only closing or retiring); validation
+  items are never deleted; CHECKs for every vocabulary and for secret references.
+- Extended: `CommercialCase.market`, `CommercialBillingEvent.market`, `FinanceDocument.market` + `invoiceConfigId` (frozen once issued),
+  `InvoiceLine.taxRuleId` / `taxRuleVersion` / `taxableItem`, `FxRate.isManualOverride` / `overrideReason`.

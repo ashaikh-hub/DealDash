@@ -278,3 +278,31 @@ Founder clarifications recorded with the approval:
    implementation names; they must not be used in new user-facing or business-facing development.
 4. **TR-01** (Watch & Earn player timing test) stays a monitored reliability item; it is not a regression unless it reproduces consistently.
 5. Stage 7 is not to be started until separately instructed.
+
+## Market / country configuration hardening (2026-10-09, awaiting founder approval)
+
+Built on top of the frozen Phases 1–5 without redesigning them (details: `docs/MARKET_COUNTRY_CONFIGURATION.md`).
+
+### Stage 7 prerequisites (what Stage 7 must consume, not rebuild)
+- Authorized countries: COUNTRY scope on role assignments (existing ScopeService) and `MarketService.visibleCodes / assertScope`.
+- Market of a partner, legal entity, campaign: `MarketService.resolveMarket / marketOfCampaign`; a campaign never spans markets.
+- Product availability per market: `MarketService.requireAvailable` (already called by the commercial gate, Live Deals and AI).
+- Market pricing and tax: `PricingService.resolve` (market-aware) and `MarketConfigService.resolveTax`.
+- Invoice, settlement, providers, policies: `MarketConfigService` resolvers; partner finance scope is the Phase 5 legal-entity scope.
+- Partner-facing market view: `GET /v1/orgs/:orgId/markets`.
+- Validation items for partner programmes go into the market validation register.
+## Founder approval (2026-10-09) — MARKET / COUNTRY CONFIGURATION: FOUNDER APPROVED AND FROZEN
+
+The Market / Country Configuration architecture is approved and frozen as the founder-approved baseline: Global → Region → Country /
+Market hierarchy, market lifecycle, product availability by market, effective-dated tax, invoice, currency, payment and settlement
+configuration, legal entity / contract market scope, market-specific pricing, KYB/KYC readiness, privacy / consent / residency, provider
+configuration, the Market Admin workspace, the activation gate, the market validation register (VALIDATE-KSA / UAE / QATAR / PAKISTAN),
+RBAC / scope, audit / versioning and the Arabic / RTL handoff.
+
+Founder rules recorded with the approval:
+1. Stage 7 does not redesign this architecture.
+2. Stage 7 consumes the shared Market / Country framework (MarketService, MarketConfigService, MarketReadinessService, COUNTRY scope).
+3. No country-specific tax, currency, provider, pricing, invoice or settlement rule is hard-coded in the Partner Portal.
+4. Effective dating and historical financial / configuration records are preserved.
+5. A market cannot become ACTIVE unless its mandatory readiness configuration is complete.
+6. Stage 7 is not started until separately instructed.

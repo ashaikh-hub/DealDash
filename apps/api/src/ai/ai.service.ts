@@ -22,6 +22,7 @@ import { HotDiscoveryService } from '../hot-deals/hot-discovery.service';
 import { ReservationsService } from '../hot-deals/reservations.service';
 import { DiscoveryService } from '../live-deals/discovery.service';
 import { EntitlementService } from '../platform/entitlement.service';
+import { MarketService } from '../platform/markets/market.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SystemConfigService } from '../system-config/system-config.service';
 import { AlertsService } from '../visibility/alerts.service';
@@ -185,6 +186,7 @@ export class AiService {
     private readonly receivables: ReceivablesService,
     private readonly reconciliation: ReconciliationService,
     private readonly moduleRef: ModuleRef,
+    private readonly markets: MarketService,
     @Inject(AI_PROVIDER) private readonly provider: AiProvider,
   ) {}
 
@@ -244,6 +246,8 @@ export class AiService {
         `Your contract does not include ${g.businessFeature}`,
         403,
       );
+    // AI must also be switched on in the business's market (product availability is per country)
+    await this.markets.requireAvailable(m.organizationId, 'AI_ASSISTANT');
     return { organizationId: m.organizationId, autonomy };
   }
 

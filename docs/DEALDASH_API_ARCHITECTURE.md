@@ -467,3 +467,12 @@ OpenAPI regenerated (`pnpm api:contract`, 502+ paths). All state-changing calls 
 
 New error codes: ALERT_RULE_INVALID, TARGET_INVALID, DOCUMENT_IMMUTABLE, PO_REQUIRED, PO_INSUFFICIENT, FX_RATE_REQUIRED, QUOTATION_EXPIRED,
 OVERPAYMENT, AI_NOT_ENTITLED, AI_AUTONOMY_EXCEEDED, AI_APPROVAL_REQUIRED, AI_TOOL_DENIED. Another tenant's resource is always 404.
+
+## Addendum (Oct 2026) — Market / country configuration API
+
+`/v1/admin/markets` (permissions `admin.markets.read / manage / approve`, scope-aware for market-scoped administrators): list, regions,
+master create / update, readiness, lifecycle request and approve / reject, products, tax rules (+ resolve), invoice configurations,
+settlement rules, policies, providers, validation register, configuration approve / retire, audit history. Business: `GET
+/v1/orgs/:orgId/markets`. The legacy `/v1/admin/platform/countries` endpoints remain (compatible) but cannot open or close a market.
+New error codes: MARKET_PRODUCT_UNAVAILABLE, MARKET_NOT_READY, MARKET_TRANSITION_INVALID, MARKET_CONFIG_INVALID,
+MARKET_CURRENCY_NOT_SUPPORTED, INVOICE_REQUIRED_FIELDS_MISSING. Details: `docs/MARKET_COUNTRY_CONFIGURATION.md` §15.

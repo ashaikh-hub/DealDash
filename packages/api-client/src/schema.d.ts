@@ -3540,6 +3540,374 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/markets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminMarketsController_list_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/markets/regions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminMarketsController_regions_v1"];
+        put?: never;
+        post: operations["AdminMarketsController_upsertRegion_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/markets/validations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminMarketsController_validations_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/markets/validations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["AdminMarketsController_updateValidation_v1"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/markets/config/{kind}/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminMarketsController_approveConfig_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/markets/config/{kind}/{id}/retire": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminMarketsController_retireConfig_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/markets/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminMarketsController_get_v1"];
+        put?: never;
+        post: operations["AdminMarketsController_upsert_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/markets/{code}/readiness": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminMarketsController_getReadiness_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/markets/{code}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminMarketsController_transition_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/markets/{code}/status/{decision}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminMarketsController_decide_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/markets/{code}/products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminMarketsController_products_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/markets/{code}/products/{product}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["AdminMarketsController_setProduct_v1"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/markets/{code}/config/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminMarketsController_listConfig_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/markets/{code}/tax-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminMarketsController_draftTax_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/markets/{code}/tax-rules/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminMarketsController_resolveTax_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/markets/{code}/invoice-configs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminMarketsController_draftInvoice_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/markets/{code}/settlement-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminMarketsController_draftSettlement_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/markets/{code}/policies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminMarketsController_draftPolicy_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/markets/{code}/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminMarketsController_providers_v1"];
+        put?: never;
+        post: operations["AdminMarketsController_addProvider_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/markets/{code}/providers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["AdminMarketsController_updateProvider_v1"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/markets/{code}/validations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminMarketsController_createValidation_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/markets/{code}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminMarketsController_history_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/orgs/{orgId}/markets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OrgMarketsController_list_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/loyalty/rules": {
         parameters: {
             query?: never;
@@ -8172,7 +8540,7 @@ export interface components {
                         /** Format: uuid */
                         branchId: string | null;
                     }[];
-                    permissions: ("customer.profile.read" | "customer.profile.write" | "customer.saved.manage" | "customer.reservations.manage" | "customer.vouchers.manage" | "customer.rewards.manage" | "merchant.profile.read" | "merchant.profile.write" | "merchant.branch.read" | "merchant.branch.manage" | "merchant.staff.read" | "merchant.staff.manage" | "merchant.users.manage" | "merchant.deals.read" | "merchant.deals.manage" | "merchant.vouchers.manage" | "merchant.watch.manage" | "merchant.watch.read" | "merchant.redemptions.read" | "merchant.redemptions.perform" | "merchant.redemptions.reverse" | "merchant.insights.read" | "merchant.finance.read" | "merchant.finance.manage" | "merchant.support.manage" | "merchant.application.manage" | "merchant.agreement.sign" | "partner.profile.read" | "partner.profile.write" | "partner.users.manage" | "partner.campaigns.read" | "partner.campaigns.manage" | "partner.eligibility.read" | "partner.eligibility.manage" | "partner.merchants.read" | "partner.reports.read" | "partner.reports.export" | "partner.finance.read" | "partner.support.manage" | "partner.activity.read" | "admin.org.read" | "admin.org.manage" | "admin.merchants.review" | "admin.merchants.manage" | "admin.partners.review" | "admin.customers.read" | "admin.customers.manage" | "admin.campaigns.review" | "admin.payments.read" | "admin.refunds.manage" | "admin.settlements.manage" | "admin.rewards.manage" | "admin.risk.manage" | "admin.support.manage" | "admin.content.manage" | "admin.reports.read" | "admin.users.manage" | "admin.roles.manage" | "admin.config.read" | "admin.config.manage" | "admin.audit.read" | "admin.jobs.manage" | "admin.campaigns.control" | "admin.reservations.manage" | "admin.vouchers.lookup" | "admin.watch.read" | "admin.rewards.read" | "admin.rewards.request" | "merchant.commercial.read" | "merchant.commercial.prepare" | "merchant.commercial.accept" | "merchant.commercial.approve_internal" | "merchant.commercial.approve_finance" | "admin.finance.read" | "admin.finance.manage" | "admin.finance.pricing.manage" | "admin.finance.credit.manage" | "admin.finance.credit.approve" | "merchant.structure.read" | "merchant.structure.manage" | "merchant.access.manage" | "partner.structure.read" | "partner.structure.manage" | "partner.access.manage" | "admin.platform.read" | "admin.platform.manage" | "admin.contracts.manage" | "admin.master.read" | "admin.master.manage" | "admin.imports.manage" | "admin.integrations.manage" | "merchant.imports.manage" | "merchant.integrations.manage" | "partner.imports.manage" | "partner.integrations.manage" | "admin.loyalty.read" | "admin.loyalty.manage" | "admin.loyalty.approve" | "merchant.loyalty.manage" | "partner.loyalty.manage" | "admin.disputes.read" | "admin.disputes.manage" | "merchant.disputes.manage" | "partner.disputes.manage" | "merchant.activity.read" | "admin.conflicts.manage" | "admin.subscriptions.read" | "admin.subscriptions.manage" | "admin.subscriptions.approve" | "merchant.subscription.read" | "merchant.subscription.manage" | "partner.subscription.read" | "partner.subscription.manage" | "merchant.performance.read" | "merchant.targets.manage" | "merchant.alerts.manage" | "partner.performance.read" | "partner.targets.manage" | "partner.alerts.manage" | "admin.analytics.read" | "admin.alerts.manage" | "admin.operations.read" | "admin.finance.approve" | "partner.finance.manage" | "customer.ai.use" | "merchant.ai.use" | "merchant.ai.approve" | "partner.ai.use" | "partner.ai.approve" | "admin.ai.use" | "admin.ai.manage")[];
+                    permissions: ("customer.profile.read" | "customer.profile.write" | "customer.saved.manage" | "customer.reservations.manage" | "customer.vouchers.manage" | "customer.rewards.manage" | "merchant.profile.read" | "merchant.profile.write" | "merchant.branch.read" | "merchant.branch.manage" | "merchant.staff.read" | "merchant.staff.manage" | "merchant.users.manage" | "merchant.deals.read" | "merchant.deals.manage" | "merchant.vouchers.manage" | "merchant.watch.manage" | "merchant.watch.read" | "merchant.redemptions.read" | "merchant.redemptions.perform" | "merchant.redemptions.reverse" | "merchant.insights.read" | "merchant.finance.read" | "merchant.finance.manage" | "merchant.support.manage" | "merchant.application.manage" | "merchant.agreement.sign" | "partner.profile.read" | "partner.profile.write" | "partner.users.manage" | "partner.campaigns.read" | "partner.campaigns.manage" | "partner.eligibility.read" | "partner.eligibility.manage" | "partner.merchants.read" | "partner.reports.read" | "partner.reports.export" | "partner.finance.read" | "partner.support.manage" | "partner.activity.read" | "admin.org.read" | "admin.org.manage" | "admin.merchants.review" | "admin.merchants.manage" | "admin.partners.review" | "admin.customers.read" | "admin.customers.manage" | "admin.campaigns.review" | "admin.payments.read" | "admin.refunds.manage" | "admin.settlements.manage" | "admin.rewards.manage" | "admin.risk.manage" | "admin.support.manage" | "admin.content.manage" | "admin.reports.read" | "admin.users.manage" | "admin.roles.manage" | "admin.config.read" | "admin.config.manage" | "admin.audit.read" | "admin.jobs.manage" | "admin.campaigns.control" | "admin.reservations.manage" | "admin.vouchers.lookup" | "admin.watch.read" | "admin.rewards.read" | "admin.rewards.request" | "merchant.commercial.read" | "merchant.commercial.prepare" | "merchant.commercial.accept" | "merchant.commercial.approve_internal" | "merchant.commercial.approve_finance" | "admin.finance.read" | "admin.finance.manage" | "admin.finance.pricing.manage" | "admin.finance.credit.manage" | "admin.finance.credit.approve" | "merchant.structure.read" | "merchant.structure.manage" | "merchant.access.manage" | "partner.structure.read" | "partner.structure.manage" | "partner.access.manage" | "admin.platform.read" | "admin.platform.manage" | "admin.contracts.manage" | "admin.master.read" | "admin.master.manage" | "admin.imports.manage" | "admin.integrations.manage" | "merchant.imports.manage" | "merchant.integrations.manage" | "partner.imports.manage" | "partner.integrations.manage" | "admin.loyalty.read" | "admin.loyalty.manage" | "admin.loyalty.approve" | "merchant.loyalty.manage" | "partner.loyalty.manage" | "admin.disputes.read" | "admin.disputes.manage" | "merchant.disputes.manage" | "partner.disputes.manage" | "merchant.activity.read" | "admin.conflicts.manage" | "admin.subscriptions.read" | "admin.subscriptions.manage" | "admin.subscriptions.approve" | "merchant.subscription.read" | "merchant.subscription.manage" | "partner.subscription.read" | "partner.subscription.manage" | "merchant.performance.read" | "merchant.targets.manage" | "merchant.alerts.manage" | "partner.performance.read" | "partner.targets.manage" | "partner.alerts.manage" | "admin.analytics.read" | "admin.alerts.manage" | "admin.operations.read" | "admin.finance.approve" | "partner.finance.manage" | "customer.ai.use" | "merchant.ai.use" | "merchant.ai.approve" | "partner.ai.use" | "partner.ai.approve" | "admin.ai.use" | "admin.ai.manage" | "admin.markets.read" | "admin.markets.manage" | "admin.markets.approve")[];
                 };
             };
             meta: {
@@ -8248,7 +8616,7 @@ export interface components {
                     /** Format: uuid */
                     branchId: string | null;
                 }[];
-                permissions: ("customer.profile.read" | "customer.profile.write" | "customer.saved.manage" | "customer.reservations.manage" | "customer.vouchers.manage" | "customer.rewards.manage" | "merchant.profile.read" | "merchant.profile.write" | "merchant.branch.read" | "merchant.branch.manage" | "merchant.staff.read" | "merchant.staff.manage" | "merchant.users.manage" | "merchant.deals.read" | "merchant.deals.manage" | "merchant.vouchers.manage" | "merchant.watch.manage" | "merchant.watch.read" | "merchant.redemptions.read" | "merchant.redemptions.perform" | "merchant.redemptions.reverse" | "merchant.insights.read" | "merchant.finance.read" | "merchant.finance.manage" | "merchant.support.manage" | "merchant.application.manage" | "merchant.agreement.sign" | "partner.profile.read" | "partner.profile.write" | "partner.users.manage" | "partner.campaigns.read" | "partner.campaigns.manage" | "partner.eligibility.read" | "partner.eligibility.manage" | "partner.merchants.read" | "partner.reports.read" | "partner.reports.export" | "partner.finance.read" | "partner.support.manage" | "partner.activity.read" | "admin.org.read" | "admin.org.manage" | "admin.merchants.review" | "admin.merchants.manage" | "admin.partners.review" | "admin.customers.read" | "admin.customers.manage" | "admin.campaigns.review" | "admin.payments.read" | "admin.refunds.manage" | "admin.settlements.manage" | "admin.rewards.manage" | "admin.risk.manage" | "admin.support.manage" | "admin.content.manage" | "admin.reports.read" | "admin.users.manage" | "admin.roles.manage" | "admin.config.read" | "admin.config.manage" | "admin.audit.read" | "admin.jobs.manage" | "admin.campaigns.control" | "admin.reservations.manage" | "admin.vouchers.lookup" | "admin.watch.read" | "admin.rewards.read" | "admin.rewards.request" | "merchant.commercial.read" | "merchant.commercial.prepare" | "merchant.commercial.accept" | "merchant.commercial.approve_internal" | "merchant.commercial.approve_finance" | "admin.finance.read" | "admin.finance.manage" | "admin.finance.pricing.manage" | "admin.finance.credit.manage" | "admin.finance.credit.approve" | "merchant.structure.read" | "merchant.structure.manage" | "merchant.access.manage" | "partner.structure.read" | "partner.structure.manage" | "partner.access.manage" | "admin.platform.read" | "admin.platform.manage" | "admin.contracts.manage" | "admin.master.read" | "admin.master.manage" | "admin.imports.manage" | "admin.integrations.manage" | "merchant.imports.manage" | "merchant.integrations.manage" | "partner.imports.manage" | "partner.integrations.manage" | "admin.loyalty.read" | "admin.loyalty.manage" | "admin.loyalty.approve" | "merchant.loyalty.manage" | "partner.loyalty.manage" | "admin.disputes.read" | "admin.disputes.manage" | "merchant.disputes.manage" | "partner.disputes.manage" | "merchant.activity.read" | "admin.conflicts.manage" | "admin.subscriptions.read" | "admin.subscriptions.manage" | "admin.subscriptions.approve" | "merchant.subscription.read" | "merchant.subscription.manage" | "partner.subscription.read" | "partner.subscription.manage" | "merchant.performance.read" | "merchant.targets.manage" | "merchant.alerts.manage" | "partner.performance.read" | "partner.targets.manage" | "partner.alerts.manage" | "admin.analytics.read" | "admin.alerts.manage" | "admin.operations.read" | "admin.finance.approve" | "partner.finance.manage" | "customer.ai.use" | "merchant.ai.use" | "merchant.ai.approve" | "partner.ai.use" | "partner.ai.approve" | "admin.ai.use" | "admin.ai.manage")[];
+                permissions: ("customer.profile.read" | "customer.profile.write" | "customer.saved.manage" | "customer.reservations.manage" | "customer.vouchers.manage" | "customer.rewards.manage" | "merchant.profile.read" | "merchant.profile.write" | "merchant.branch.read" | "merchant.branch.manage" | "merchant.staff.read" | "merchant.staff.manage" | "merchant.users.manage" | "merchant.deals.read" | "merchant.deals.manage" | "merchant.vouchers.manage" | "merchant.watch.manage" | "merchant.watch.read" | "merchant.redemptions.read" | "merchant.redemptions.perform" | "merchant.redemptions.reverse" | "merchant.insights.read" | "merchant.finance.read" | "merchant.finance.manage" | "merchant.support.manage" | "merchant.application.manage" | "merchant.agreement.sign" | "partner.profile.read" | "partner.profile.write" | "partner.users.manage" | "partner.campaigns.read" | "partner.campaigns.manage" | "partner.eligibility.read" | "partner.eligibility.manage" | "partner.merchants.read" | "partner.reports.read" | "partner.reports.export" | "partner.finance.read" | "partner.support.manage" | "partner.activity.read" | "admin.org.read" | "admin.org.manage" | "admin.merchants.review" | "admin.merchants.manage" | "admin.partners.review" | "admin.customers.read" | "admin.customers.manage" | "admin.campaigns.review" | "admin.payments.read" | "admin.refunds.manage" | "admin.settlements.manage" | "admin.rewards.manage" | "admin.risk.manage" | "admin.support.manage" | "admin.content.manage" | "admin.reports.read" | "admin.users.manage" | "admin.roles.manage" | "admin.config.read" | "admin.config.manage" | "admin.audit.read" | "admin.jobs.manage" | "admin.campaigns.control" | "admin.reservations.manage" | "admin.vouchers.lookup" | "admin.watch.read" | "admin.rewards.read" | "admin.rewards.request" | "merchant.commercial.read" | "merchant.commercial.prepare" | "merchant.commercial.accept" | "merchant.commercial.approve_internal" | "merchant.commercial.approve_finance" | "admin.finance.read" | "admin.finance.manage" | "admin.finance.pricing.manage" | "admin.finance.credit.manage" | "admin.finance.credit.approve" | "merchant.structure.read" | "merchant.structure.manage" | "merchant.access.manage" | "partner.structure.read" | "partner.structure.manage" | "partner.access.manage" | "admin.platform.read" | "admin.platform.manage" | "admin.contracts.manage" | "admin.master.read" | "admin.master.manage" | "admin.imports.manage" | "admin.integrations.manage" | "merchant.imports.manage" | "merchant.integrations.manage" | "partner.imports.manage" | "partner.integrations.manage" | "admin.loyalty.read" | "admin.loyalty.manage" | "admin.loyalty.approve" | "merchant.loyalty.manage" | "partner.loyalty.manage" | "admin.disputes.read" | "admin.disputes.manage" | "merchant.disputes.manage" | "partner.disputes.manage" | "merchant.activity.read" | "admin.conflicts.manage" | "admin.subscriptions.read" | "admin.subscriptions.manage" | "admin.subscriptions.approve" | "merchant.subscription.read" | "merchant.subscription.manage" | "partner.subscription.read" | "partner.subscription.manage" | "merchant.performance.read" | "merchant.targets.manage" | "merchant.alerts.manage" | "partner.performance.read" | "partner.targets.manage" | "partner.alerts.manage" | "admin.analytics.read" | "admin.alerts.manage" | "admin.operations.read" | "admin.finance.approve" | "partner.finance.manage" | "customer.ai.use" | "merchant.ai.use" | "merchant.ai.approve" | "partner.ai.use" | "partner.ai.approve" | "admin.ai.use" | "admin.ai.manage" | "admin.markets.read" | "admin.markets.manage" | "admin.markets.approve")[];
                 csrfToken: string;
             };
             meta: {
@@ -8565,7 +8933,7 @@ export interface components {
                             /** Format: uuid */
                             branchId: string | null;
                         }[];
-                        permissions: ("customer.profile.read" | "customer.profile.write" | "customer.saved.manage" | "customer.reservations.manage" | "customer.vouchers.manage" | "customer.rewards.manage" | "merchant.profile.read" | "merchant.profile.write" | "merchant.branch.read" | "merchant.branch.manage" | "merchant.staff.read" | "merchant.staff.manage" | "merchant.users.manage" | "merchant.deals.read" | "merchant.deals.manage" | "merchant.vouchers.manage" | "merchant.watch.manage" | "merchant.watch.read" | "merchant.redemptions.read" | "merchant.redemptions.perform" | "merchant.redemptions.reverse" | "merchant.insights.read" | "merchant.finance.read" | "merchant.finance.manage" | "merchant.support.manage" | "merchant.application.manage" | "merchant.agreement.sign" | "partner.profile.read" | "partner.profile.write" | "partner.users.manage" | "partner.campaigns.read" | "partner.campaigns.manage" | "partner.eligibility.read" | "partner.eligibility.manage" | "partner.merchants.read" | "partner.reports.read" | "partner.reports.export" | "partner.finance.read" | "partner.support.manage" | "partner.activity.read" | "admin.org.read" | "admin.org.manage" | "admin.merchants.review" | "admin.merchants.manage" | "admin.partners.review" | "admin.customers.read" | "admin.customers.manage" | "admin.campaigns.review" | "admin.payments.read" | "admin.refunds.manage" | "admin.settlements.manage" | "admin.rewards.manage" | "admin.risk.manage" | "admin.support.manage" | "admin.content.manage" | "admin.reports.read" | "admin.users.manage" | "admin.roles.manage" | "admin.config.read" | "admin.config.manage" | "admin.audit.read" | "admin.jobs.manage" | "admin.campaigns.control" | "admin.reservations.manage" | "admin.vouchers.lookup" | "admin.watch.read" | "admin.rewards.read" | "admin.rewards.request" | "merchant.commercial.read" | "merchant.commercial.prepare" | "merchant.commercial.accept" | "merchant.commercial.approve_internal" | "merchant.commercial.approve_finance" | "admin.finance.read" | "admin.finance.manage" | "admin.finance.pricing.manage" | "admin.finance.credit.manage" | "admin.finance.credit.approve" | "merchant.structure.read" | "merchant.structure.manage" | "merchant.access.manage" | "partner.structure.read" | "partner.structure.manage" | "partner.access.manage" | "admin.platform.read" | "admin.platform.manage" | "admin.contracts.manage" | "admin.master.read" | "admin.master.manage" | "admin.imports.manage" | "admin.integrations.manage" | "merchant.imports.manage" | "merchant.integrations.manage" | "partner.imports.manage" | "partner.integrations.manage" | "admin.loyalty.read" | "admin.loyalty.manage" | "admin.loyalty.approve" | "merchant.loyalty.manage" | "partner.loyalty.manage" | "admin.disputes.read" | "admin.disputes.manage" | "merchant.disputes.manage" | "partner.disputes.manage" | "merchant.activity.read" | "admin.conflicts.manage" | "admin.subscriptions.read" | "admin.subscriptions.manage" | "admin.subscriptions.approve" | "merchant.subscription.read" | "merchant.subscription.manage" | "partner.subscription.read" | "partner.subscription.manage" | "merchant.performance.read" | "merchant.targets.manage" | "merchant.alerts.manage" | "partner.performance.read" | "partner.targets.manage" | "partner.alerts.manage" | "admin.analytics.read" | "admin.alerts.manage" | "admin.operations.read" | "admin.finance.approve" | "partner.finance.manage" | "customer.ai.use" | "merchant.ai.use" | "merchant.ai.approve" | "partner.ai.use" | "partner.ai.approve" | "admin.ai.use" | "admin.ai.manage")[];
+                        permissions: ("customer.profile.read" | "customer.profile.write" | "customer.saved.manage" | "customer.reservations.manage" | "customer.vouchers.manage" | "customer.rewards.manage" | "merchant.profile.read" | "merchant.profile.write" | "merchant.branch.read" | "merchant.branch.manage" | "merchant.staff.read" | "merchant.staff.manage" | "merchant.users.manage" | "merchant.deals.read" | "merchant.deals.manage" | "merchant.vouchers.manage" | "merchant.watch.manage" | "merchant.watch.read" | "merchant.redemptions.read" | "merchant.redemptions.perform" | "merchant.redemptions.reverse" | "merchant.insights.read" | "merchant.finance.read" | "merchant.finance.manage" | "merchant.support.manage" | "merchant.application.manage" | "merchant.agreement.sign" | "partner.profile.read" | "partner.profile.write" | "partner.users.manage" | "partner.campaigns.read" | "partner.campaigns.manage" | "partner.eligibility.read" | "partner.eligibility.manage" | "partner.merchants.read" | "partner.reports.read" | "partner.reports.export" | "partner.finance.read" | "partner.support.manage" | "partner.activity.read" | "admin.org.read" | "admin.org.manage" | "admin.merchants.review" | "admin.merchants.manage" | "admin.partners.review" | "admin.customers.read" | "admin.customers.manage" | "admin.campaigns.review" | "admin.payments.read" | "admin.refunds.manage" | "admin.settlements.manage" | "admin.rewards.manage" | "admin.risk.manage" | "admin.support.manage" | "admin.content.manage" | "admin.reports.read" | "admin.users.manage" | "admin.roles.manage" | "admin.config.read" | "admin.config.manage" | "admin.audit.read" | "admin.jobs.manage" | "admin.campaigns.control" | "admin.reservations.manage" | "admin.vouchers.lookup" | "admin.watch.read" | "admin.rewards.read" | "admin.rewards.request" | "merchant.commercial.read" | "merchant.commercial.prepare" | "merchant.commercial.accept" | "merchant.commercial.approve_internal" | "merchant.commercial.approve_finance" | "admin.finance.read" | "admin.finance.manage" | "admin.finance.pricing.manage" | "admin.finance.credit.manage" | "admin.finance.credit.approve" | "merchant.structure.read" | "merchant.structure.manage" | "merchant.access.manage" | "partner.structure.read" | "partner.structure.manage" | "partner.access.manage" | "admin.platform.read" | "admin.platform.manage" | "admin.contracts.manage" | "admin.master.read" | "admin.master.manage" | "admin.imports.manage" | "admin.integrations.manage" | "merchant.imports.manage" | "merchant.integrations.manage" | "partner.imports.manage" | "partner.integrations.manage" | "admin.loyalty.read" | "admin.loyalty.manage" | "admin.loyalty.approve" | "merchant.loyalty.manage" | "partner.loyalty.manage" | "admin.disputes.read" | "admin.disputes.manage" | "merchant.disputes.manage" | "partner.disputes.manage" | "merchant.activity.read" | "admin.conflicts.manage" | "admin.subscriptions.read" | "admin.subscriptions.manage" | "admin.subscriptions.approve" | "merchant.subscription.read" | "merchant.subscription.manage" | "partner.subscription.read" | "partner.subscription.manage" | "merchant.performance.read" | "merchant.targets.manage" | "merchant.alerts.manage" | "partner.performance.read" | "partner.targets.manage" | "partner.alerts.manage" | "admin.analytics.read" | "admin.alerts.manage" | "admin.operations.read" | "admin.finance.approve" | "partner.finance.manage" | "customer.ai.use" | "merchant.ai.use" | "merchant.ai.approve" | "partner.ai.use" | "partner.ai.approve" | "admin.ai.use" | "admin.ai.manage" | "admin.markets.read" | "admin.markets.manage" | "admin.markets.approve")[];
                     };
                 };
             };
@@ -8801,9 +9169,32 @@ export interface components {
             isSignatory: boolean;
         };
         SettlementDto: {
-            bankName: string;
-            iban: string;
-            accountHolderName: string;
+            code: string;
+            /** Format: uuid */
+            legalEntityId?: string | null;
+            product?: string | null;
+            /** Format: uuid */
+            organizationId?: string | null;
+            /** Format: uuid */
+            contractId?: string | null;
+            currency: string;
+            /** @enum {string} */
+            frequency: "DAILY" | "WEEKLY" | "BIWEEKLY" | "MONTHLY" | "ON_DEMAND";
+            cycleDays?: number;
+            minimumMinor?: number;
+            destinationRef?: string | null;
+            payableTreatment?: string;
+            sponsorTreatment?: string;
+            feeBps?: number | null;
+            /** @enum {string} */
+            reconciliationMethod?: "STATEMENT_MATCH" | "PER_TRANSACTION" | "BATCH_TOTAL";
+            holdDays?: number;
+            disputeTreatment?: string;
+            /** Format: date-time */
+            effectiveFrom: string;
+            /** Format: date-time */
+            effectiveTo?: string | null;
+            validationCode?: string | null;
         };
         DocumentAttachDto: {
             requirementCode: string;
@@ -19966,6 +20357,172 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        RegionDto: {
+            code: string;
+            nameEn: string;
+            nameAr: string;
+            sortOrder?: number;
+        };
+        ValidationUpdateDto: {
+            /** @enum {string} */
+            status?: "OPEN" | "IN_REVIEW" | "RESOLVED" | "ACCEPTED_RISK" | "NOT_APPLICABLE";
+            decision?: string | null;
+            evidenceRef?: string | null;
+            /** Format: uuid */
+            ownerUserId?: string | null;
+            ownerTeam?: string | null;
+            /** Format: date-time */
+            effectiveDate?: string | null;
+            /** Format: date-time */
+            reviewDate?: string | null;
+            blocksActivation?: boolean;
+        };
+        RetireDto: {
+            reason: string;
+            /** Format: date-time */
+            at?: string;
+        };
+        MasterDto: {
+            nameEn: string;
+            nameAr: string;
+            regionCode?: string | null;
+            isoAlpha3?: string | null;
+            currency: string;
+            supportedCurrencies?: string[];
+            billingCurrency?: string | null;
+            settlementCurrency?: string | null;
+            taxCurrency?: string | null;
+            currencyDecimals?: number;
+            /** @enum {string} */
+            roundingRule?: "HALF_UP" | "HALF_EVEN" | "DOWN" | "UP";
+            languages: string[];
+            defaultLanguage?: string;
+            timezone?: string;
+            callingCode?: string | null;
+            formatting?: {
+                [key: string]: unknown;
+            };
+            /** Format: date-time */
+            launchDate?: string | null;
+            /** Format: uuid */
+            dealdashLegalEntityId?: string | null;
+            supportContact?: {
+                /** Format: email */
+                email?: string;
+                phone?: string;
+                hours?: string;
+            };
+        };
+        TransitionDto: {
+            /** @enum {string} */
+            status: "PLANNED" | "CONFIGURING" | "TESTING" | "PILOT" | "ACTIVE" | "SUSPENDED" | "CLOSED";
+            reason: string;
+        };
+        DecisionDto: {
+            /** Format: uuid */
+            quotationId: string;
+            /** @enum {string} */
+            decision: "APPROVED" | "REJECTED";
+            reason?: string;
+        };
+        ProductDto: {
+            /** @enum {string} */
+            status: "DISABLED" | "CONFIGURING" | "TESTING" | "PILOT" | "ACTIVE" | "SUSPENDED";
+            notes?: string | null;
+        };
+        TaxDto: {
+            code: string;
+            /** Format: uuid */
+            legalEntityId?: string | null;
+            /** @enum {string} */
+            taxType: "VAT" | "GST" | "SALES_TAX" | "WITHHOLDING" | "DIGITAL_SERVICES" | "OTHER";
+            rateBps: number;
+            inclusive?: boolean;
+            applicability: string[];
+            exempt?: boolean;
+            exemptionReason?: string | null;
+            registrationRef?: string | null;
+            /** @enum {string} */
+            roundingRule?: "HALF_UP" | "HALF_EVEN" | "DOWN" | "UP";
+            taxCurrency?: string | null;
+            /** Format: date-time */
+            effectiveFrom: string;
+            /** Format: date-time */
+            effectiveTo?: string | null;
+            validationCode?: string | null;
+            notes?: string | null;
+        };
+        InvoiceDto: {
+            /** @enum {string} */
+            documentKind: "TAX_INVOICE" | "INVOICE" | "COMMERCIAL_INVOICE" | "PROFORMA_INVOICE" | "CREDIT_NOTE" | "DEBIT_NOTE";
+            /** Format: uuid */
+            legalEntityId?: string | null;
+            prefix: string;
+            sequenceKey?: string;
+            languages: string[];
+            requiredFields?: string[];
+            qrRequired?: boolean;
+            eInvoiceProvider?: string | null;
+            /** @enum {string} */
+            validationStatus?: "CONFIGURED" | "VALIDATION_REQUIRED" | "VALIDATED";
+            validationCode?: string | null;
+            /** Format: date-time */
+            effectiveFrom: string;
+            /** Format: date-time */
+            effectiveTo?: string | null;
+            notes?: string | null;
+        };
+        PolicyDto: {
+            /** @enum {string} */
+            category: "REFUND_EXPIRY" | "KYB" | "PRIVACY_CONSENT" | "LEGAL_TERMS" | "SUPPORT" | "RESTRICTION";
+            key: string;
+            product?: string | null;
+            value: {
+                [key: string]: unknown;
+            };
+            required?: boolean;
+            validationCode?: string | null;
+            /** Format: date-time */
+            effectiveFrom?: string | null;
+            /** Format: date-time */
+            effectiveTo?: string | null;
+        };
+        ProviderDto: {
+            /** @enum {string} */
+            capability: "PAYMENT" | "SMS_OTP" | "EMAIL" | "PUSH" | "VIDEO" | "STORAGE_CDN" | "MAPS" | "E_INVOICING" | "KYB" | "IDENTITY" | "ANALYTICS";
+            providerCode: string;
+            /** @enum {string|null} */
+            method?: "CARD" | "WALLET" | "BANK_TRANSFER" | "LOCAL_METHOD" | null;
+            currency?: string | null;
+            merchantAccountRef?: string | null;
+            refundSupported?: boolean[];
+            credentialRef?: string | null;
+            webhookRef?: string | null;
+            /** @enum {string} */
+            environment?: "MOCK" | "SANDBOX" | "PRODUCTION";
+            priority?: number;
+            isFallback?: boolean;
+            /** @enum {string} */
+            status?: "DISABLED" | "CONFIGURING" | "TESTING" | "ACTIVE" | "SUSPENDED";
+            /** Format: date-time */
+            effectiveFrom?: string | null;
+            /** Format: date-time */
+            effectiveTo?: string | null;
+            notes?: string | null;
+        };
+        ValidationCreateDto: {
+            code: string;
+            topic: string;
+            description: string;
+            product?: string | null;
+            /** Format: uuid */
+            ownerUserId?: string | null;
+            ownerTeam?: string | null;
+            blocksActivation?: boolean;
+            /** Format: date-time */
+            reviewDate?: string | null;
+            sourceRef?: string | null;
+        };
         RuleListResponse: {
             data: {
                 /** Format: uuid */
@@ -20139,13 +20696,6 @@ export interface components {
              * @default null
              */
             effectiveUntil: string | null;
-        };
-        DecisionDto: {
-            /** Format: uuid */
-            quotationId: string;
-            /** @enum {string} */
-            decision: "APPROVED" | "REJECTED";
-            reason?: string;
         };
         AllocationDto: {
             /** Format: uuid */
@@ -23529,6 +24079,8 @@ export interface components {
             source: string;
             /** Format: date-time */
             rateDate: string;
+            isManualOverride?: boolean;
+            overrideReason?: string | null;
         };
         AskDto: {
             message: string;
@@ -29810,6 +30362,561 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["CountryResponse"];
                 };
+            };
+        };
+    };
+    AdminMarketsController_list_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminMarketsController_regions_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminMarketsController_upsertRegion_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegionDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminMarketsController_validations_v1: {
+        parameters: {
+            query?: {
+                market?: string;
+                status?: "OPEN" | "IN_REVIEW" | "RESOLVED" | "ACCEPTED_RISK" | "NOT_APPLICABLE";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminMarketsController_updateValidation_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ValidationUpdateDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminMarketsController_approveConfig_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminMarketsController_retireConfig_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RetireDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminMarketsController_get_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminMarketsController_upsert_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MasterDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminMarketsController_getReadiness_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminMarketsController_transition_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransitionDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminMarketsController_decide_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+                decision: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecisionDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminMarketsController_products_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminMarketsController_setProduct_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+                product: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProductDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminMarketsController_listConfig_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+                kind: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminMarketsController_draftTax_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaxDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminMarketsController_resolveTax_v1: {
+        parameters: {
+            query: {
+                item: string;
+                legalEntityId?: string;
+                at?: string;
+            };
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminMarketsController_draftInvoice_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvoiceDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminMarketsController_draftSettlement_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SettlementDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminMarketsController_draftPolicy_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PolicyDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminMarketsController_providers_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminMarketsController_addProvider_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProviderDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminMarketsController_updateProvider_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProviderDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminMarketsController_createValidation_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ValidationCreateDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminMarketsController_history_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    OrgMarketsController_list_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

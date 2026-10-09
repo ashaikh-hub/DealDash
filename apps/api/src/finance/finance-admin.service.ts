@@ -273,7 +273,7 @@ export class FinanceAdminService {
     const c = await this.prisma.commercialCase.findUnique({ where: { id: caseId } });
     if (!c) throw AppError.notFound();
     if (c.status === 'CLOSED') throw new AppError('INVALID_STATE', 'This case is closed', 409);
-    const p = await this.pricing.resolve(c.ownerOrganizationId, c.product);
+    const p = await this.pricing.resolve(c.ownerOrganizationId, c.product, new Date(), c.market);
     if (!p.unusedTreatment) throw AppError.validation('The applicable agreement does not state a treatment for unused funding');
     await this.prisma.$transaction(async (tx) => {
       await tx.commercialCase.update({ where: { id: caseId }, data: { unusedTreatment: p.unusedTreatment } });

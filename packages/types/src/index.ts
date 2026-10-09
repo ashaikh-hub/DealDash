@@ -298,6 +298,10 @@ export const PERMISSION_CODES = [
   'partner.ai.approve',
   'admin.ai.use',
   'admin.ai.manage',
+  // Market / country configuration (pre-Stage-7 hardening)
+  'admin.markets.read',
+  'admin.markets.manage',
+  'admin.markets.approve',
 ] as const;
 export type PermissionCode = (typeof PERMISSION_CODES)[number];
 
@@ -416,6 +420,7 @@ export const ROLE_PERMISSIONS: Record<RoleCode, readonly PermissionCode[]> = {
 
   DEALDASH_SUPER_ADMIN: p('admin.'),
   DEALDASH_OPERATIONS: [
+    'admin.markets.read',
     'admin.org.read',
     'admin.merchants.review',
     'admin.partners.review',
@@ -441,6 +446,7 @@ export const ROLE_PERMISSIONS: Record<RoleCode, readonly PermissionCode[]> = {
     'admin.ai.use',
   ],
   DEALDASH_MERCHANT_MANAGEMENT: [
+    'admin.markets.read',
     'admin.analytics.read',
     'admin.ai.use',
     'admin.disputes.read',
@@ -461,6 +467,7 @@ export const ROLE_PERMISSIONS: Record<RoleCode, readonly PermissionCode[]> = {
     'admin.support.manage',
   ],
   DEALDASH_PARTNER_MANAGEMENT: [
+    'admin.markets.read',
     'admin.analytics.read',
     'admin.operations.read',
     'admin.master.read',
@@ -507,8 +514,13 @@ export const ROLE_PERMISSIONS: Record<RoleCode, readonly PermissionCode[]> = {
     'admin.subscriptions.approve',
     'admin.disputes.read',
     'admin.disputes.manage',
+    // tax, invoice and settlement configuration per market (a second person approves)
+    'admin.markets.read',
+    'admin.markets.manage',
+    'admin.markets.approve',
   ],
   DEALDASH_RISK_COMPLIANCE: [
+    'admin.markets.read',
     'admin.org.read',
     'admin.customers.read',
     'admin.merchants.review',
@@ -639,6 +651,12 @@ export const ERROR_CODES = {
   AI_AUTONOMY_EXCEEDED: 'AI_AUTONOMY_EXCEEDED',
   AI_APPROVAL_REQUIRED: 'AI_APPROVAL_REQUIRED',
   AI_TOOL_DENIED: 'AI_TOOL_DENIED',
+  MARKET_PRODUCT_UNAVAILABLE: 'MARKET_PRODUCT_UNAVAILABLE',
+  MARKET_NOT_READY: 'MARKET_NOT_READY',
+  MARKET_TRANSITION_INVALID: 'MARKET_TRANSITION_INVALID',
+  MARKET_CONFIG_INVALID: 'MARKET_CONFIG_INVALID',
+  MARKET_CURRENCY_NOT_SUPPORTED: 'MARKET_CURRENCY_NOT_SUPPORTED',
+  INVOICE_REQUIRED_FIELDS_MISSING: 'INVOICE_REQUIRED_FIELDS_MISSING',
   INTERNAL: 'INTERNAL',
 } as const;
 export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];
@@ -794,3 +812,4 @@ export * from './subscription';
 export * from './visibility';
 export * from './billing';
 export * from './ai';
+export * from './markets';

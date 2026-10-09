@@ -60,7 +60,7 @@ export class BillingEventService {
         });
     const legalEntityId = input.legalEntityId ?? contract?.legalEntityId ?? null;
     const billingLegalEntityId = await this.billingParty(db, input.organizationId, contract);
-    const le = billingLegalEntityId ? await db.legalEntity.findUnique({ where: { id: billingLegalEntityId }, select: { currency: true } }) : null;
+    const le = billingLegalEntityId ? await db.legalEntity.findUnique({ where: { id: billingLegalEntityId }, select: { currency: true, country: true } }) : null;
     const currency = input.currency ?? contract?.currency ?? le?.currency ?? 'SAR';
     const account = await db.businessAccount.findFirst({ where: { organizationId: input.organizationId, currency }, select: { id: true } });
     try {
@@ -84,6 +84,8 @@ export class BillingEventService {
           unitRateMinor: input.unitRateMinor ?? null,
           amountMinor: input.amountMinor ?? null,
           currency,
+          // the billed party's market: its tax, invoice and currency rules apply
+          market: le?.country ?? contract?.market ?? null,
           occurredAt: at,
           billingCategory: category,
           eventType: input.eventType,

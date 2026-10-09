@@ -75,6 +75,8 @@ export const fxRateSchema = z.object({
     .regex(/^[0-9]+(\.[0-9]{1,10})?$/, 'A positive decimal with up to 10 places'),
   source: z.string().trim().min(2).max(80),
   rateDate: iso,
+  isManualOverride: z.boolean().optional(),
+  overrideReason: z.string().trim().max(500).nullable().optional(),
 });
 
 export const billingRunSchema = z.object({

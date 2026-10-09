@@ -297,6 +297,12 @@ export const NAV_BY_AUDIENCE: Record<Audience, readonly NavItem[]> = {
       requiresAny: ['admin.ai.use'],
     },
     {
+      key: 'markets',
+      labelKey: 'nav.markets',
+      href: '/markets',
+      requiresAny: ['admin.markets.read'],
+    },
+    {
       key: 'operations',
       labelKey: 'nav.operations',
       href: '/operations',

@@ -81,4 +81,12 @@ describe('permission-aware navigation (UI hint only)', () => {
     // partner portal screens are Stage 7 (the partner APIs exist now)
     expect(keys('partner', 'PARTNER_ADMIN')).not.toEqual(expect.arrayContaining(['performance']));
   });
+
+  it('shows Markets to DealDash roles that can read market configuration', () => {
+    expect(keys('admin', 'DEALDASH_SUPER_ADMIN')).toContain('markets');
+    expect(keys('admin', 'DEALDASH_FINANCE')).toContain('markets');
+    expect(keys('admin', 'DEALDASH_OPERATIONS')).toContain('markets');
+    expect(keys('admin', 'DEALDASH_MARKETING_OPS')).not.toContain('markets');
+    expect(keys('merchant', 'MERCHANT_OWNER')).not.toContain('markets');
+  });
 });

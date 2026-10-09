@@ -1,6 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import { CONFIG_KEYS } from '@dealdash/config';
-import type { ApprovalStep, CommercialProduct, PricingComponent, UnusedTreatment } from '@dealdash/types';
+import {
+  TAXABLE_ITEM_OF_PRODUCT,
+  type ApprovalStep,
+  type CommercialProduct,
+  type PricingComponent,
+  type UnusedTreatment,
+} from '@dealdash/types';
+import { AppError } from '../common/errors';
+import { MarketConfigService } from '../platform/markets/market-config.service';
+import { MarketService } from '../platform/markets/market.service';
 import type { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { SystemConfigService } from '../system-config/system-config.service';
@@ -12,6 +21,10 @@ export interface ResolvedPricing extends PricingContext {
   versionKey: string;
   versionId: string | null;
   unusedTreatment: UnusedTreatment | null;
+  /** The market whose pricing and tax applied, and the tax rule (id + version) used, if any. */
+  market?: string | null;
+  taxRuleId?: string;
+  taxRuleVersion?: number;
 }
 
 interface DefaultPricing {
@@ -32,13 +45,28 @@ export class PricingService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: SystemConfigService,
+    // optional so the development fixtures (which build this service by hand) keep working
+    @Optional() private readonly markets?: MarketService,
+    @Optional() private readonly marketConfig?: MarketConfigService,
   ) {}
 
-  async resolve(organizationId: string, product: CommercialProduct, now = new Date()): Promise<ResolvedPricing> {
+  /**
+   * Market-aware: an agreement for the campaign's market wins over a market-neutral one at the same scope; market-neutral agreements
+   * and the platform default apply only in markets where that pricing is approved (`markets.defaultPricingMarkets`). Pricing for one
+   * country never silently prices another. Tax comes from the market's own approved tax rule for the campaign's taxable item (else a
+   * market-specific agreement's rate, else "not configured"); another country's tax is never used.
+   */
+  async resolve(
+    organizationId: string,
+    product: CommercialProduct,
+    now = new Date(),
+    market?: string | null,
+  ): Promise<ResolvedPricing> {
     const org = await this.prisma.organization.findUnique({
       where: { id: organizationId },
       select: { type: true },
     });
+    const mkt = market ?? (this.markets ? await this.markets.resolveMarket(organizationId) : null);
     const rows = await this.prisma.pricingAgreement.findMany({
       where: {
         status: 'ACTIVE',
@@ -47,44 +75,90 @@ export class PricingService {
           { scope: 'ENTITY_TYPE', entityType: org?.type ?? '__none__' },
           { scope: 'GLOBAL' },
         ],
-        AND: [{ OR: [{ product: null }, { product }] }],
+        AND: [
+          { OR: [{ product: null }, { product }] },
+          { OR: [{ market: null }, ...(mkt ? [{ market: mkt }] : [])] },
+        ],
       },
       include: {
         versions: {
-          where: { effectiveFrom: { lte: now }, OR: [{ effectiveTo: null }, { effectiveTo: { gt: now } }] },
+          where: {
+            effectiveFrom: { lte: now },
+            OR: [{ effectiveTo: null }, { effectiveTo: { gt: now } }],
+          },
           orderBy: { version: 'desc' },
           take: 1,
         },
       },
     });
     const rank = { ORGANIZATION: 0, ENTITY_TYPE: 1, GLOBAL: 2 } as const;
+    const s = this.markets ? await this.markets.settings() : null;
+    const neutralAllowed = !mkt || !s || s.defaultPricingMarkets.includes(mkt);
     const best = rows
-      .filter((r) => r.versions.length)
-      .sort((a, b) => rank[a.scope] - rank[b.scope] || a.priority - b.priority)[0];
+      .filter((r) => r.versions.length && (r.market !== null || neutralAllowed))
+      .sort(
+        (a, b) =>
+          rank[a.scope] - rank[b.scope] ||
+          Number(b.market !== null) - Number(a.market !== null) ||
+          a.priority - b.priority,
+      )[0];
     const def = await this.config.get<DefaultPricing>(CONFIG_KEYS.COMMERCIAL_DEFAULT_PRICING);
+    const marketRow =
+      mkt && best?.market
+        ? await this.prisma.countryConfiguration.findUnique({
+            where: { code: mkt },
+            select: { currency: true },
+          })
+        : null;
+    // the market's own tax rule for this campaign's taxable item
+    const rule =
+      mkt && this.marketConfig
+        ? await this.marketConfig.resolveTax(mkt, TAXABLE_ITEM_OF_PRODUCT[product] ?? 'OTHER', {
+            at: now,
+          })
+        : null;
+    const taxOf = (agreementTax: number | null, agreementIsMarketSpecific: boolean) =>
+      rule
+        ? rule.exempt
+          ? 0
+          : rule.rateBps
+        : agreementIsMarketSpecific || !this.markets
+          ? agreementTax
+          : null;
+    const ruleRef = rule ? { taxRuleId: rule.id, taxRuleVersion: rule.version } : {};
     if (best) {
       const v = best.versions[0]!;
       const comps = (v.components as unknown as Record<string, PricingComponent[]>)[product];
       return {
         components: comps ?? def.products[product] ?? [],
-        taxBps: v.taxBps,
-        currency: def.currency,
+        taxBps: taxOf(v.taxBps, best.market !== null || neutralAllowed),
+        currency: marketRow?.currency ?? def.currency,
         source: 'AGREEMENT',
         reference: v.reference ?? best.name,
         versionKey: `A:${v.id}`,
         versionId: v.id,
         unusedTreatment: v.unusedTreatment ?? def.unusedTreatment,
+        market: mkt,
+        ...ruleRef,
       };
     }
+    if (!neutralAllowed)
+      throw new AppError(
+        'PRICING_NOT_AVAILABLE',
+        `No campaign pricing is configured for ${mkt}: DealDash must set market pricing before campaigns can be priced there`,
+        409,
+      );
     return {
       components: def.products[product] ?? [],
-      taxBps: def.taxBps,
+      taxBps: taxOf(def.taxBps, true),
       currency: def.currency,
       source: 'DEFAULT',
       reference: null,
       versionKey: `D:${def.version}`,
       versionId: null,
       unusedTreatment: def.unusedTreatment,
+      market: mkt,
+      ...ruleRef,
     };
   }
 

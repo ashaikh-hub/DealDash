@@ -8,6 +8,7 @@ import {
 } from '@dealdash/types';
 import type { Prisma, PrismaClient } from '../generated/prisma/client';
 import { seedCategories } from '../live-deals/categories.service';
+import { ensureMarketDefaults } from './markets';
 
 type Db = PrismaClient | Prisma.TransactionClient;
 
@@ -109,4 +110,7 @@ export async function seedCatalog(db: Db) {
     update: {},
     create: { kind: 'MERCHANT', ...AGREEMENT_V1, placeholder: true, active: true },
   });
+
+  // Market master defaults and product availability for every configured market (idempotent).
+  await ensureMarketDefaults(db);
 }

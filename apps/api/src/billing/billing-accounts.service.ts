@@ -503,9 +503,13 @@ export class BillingAccountsService {
       rate: string;
       source: string;
       rateDate: string;
+      isManualOverride?: boolean;
+      overrideReason?: string | null;
     },
     meta: RequestMeta,
   ) {
+    // a manual override of the source rate is allowed only with a reason (still maker-checker approved and audited)
+    if (b.isManualOverride && !(b.overrideReason ?? '').trim()) throw AppError.validation('A manual override needs a reason', 'overrideReason');
     if (!/^[0-9]+(\.[0-9]{1,10})?$/.test(b.rate) || Number(b.rate) <= 0)
       throw AppError.validation('A rate is a positive decimal (up to 10 places)', 'rate');
     if (b.baseCurrency === b.quoteCurrency)
@@ -519,6 +523,8 @@ export class BillingAccountsService {
           source: b.source,
           rateDate: new Date(b.rateDate),
           createdByUserId: actor.userId,
+          isManualOverride: b.isManualOverride ?? false,
+          overrideReason: b.overrideReason ?? null,
         },
       });
       await this.audit.record({

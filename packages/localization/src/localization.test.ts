@@ -8,7 +8,19 @@ import { arStage6, enStage6 } from './dictionaries.stage6';
 import { arPlatform, enPlatform } from './dictionaries.platform';
 import { arSubscription, enSubscription } from './dictionaries.subscription';
 import { arPhase45, enPhase45 } from './dictionaries.phase45';
+import { arMarkets, enMarkets } from './dictionaries.markets';
 import {
+  INVOICE_CONFIG_KINDS,
+  MARKET_POLICY_KEYS,
+  MARKET_PRODUCTS,
+  MARKET_PRODUCT_STATUSES,
+  MARKET_STATUSES,
+  MARKET_VALIDATION_STATUSES,
+  PROVIDER_CAPABILITIES,
+  READINESS_CHECKS,
+  READINESS_STATES,
+  TAXABLE_ITEMS,
+  TAX_TYPES,
   AI_AGENTS,
   AI_EVAL_CASES,
   AI_STATEMENT_KINDS,
@@ -359,6 +371,37 @@ describe('dictionary layering', () => {
     // the forecast label says it is an estimate in both languages
     expect(enPhase45['vis.forecastLabel']).toMatch(/estimate/i);
     expect(arPhase45['vis.forecastLabel']).toContain('تقدير');
+  });
+
+  it('Market configuration copy never overrides an earlier key, matches in both languages and covers every market vocabulary', () => {
+    const earlier = { ...enStage2, ...enStage3, ...enStage4, ...enStage5, ...enStage6, ...enCommercial, ...enPlatform, ...enSubscription, ...enPhase45 };
+    expect(Object.keys(enMarkets).filter((k) => k in earlier)).toEqual([]);
+    expect(Object.keys(arMarkets).sort()).toEqual(Object.keys(enMarkets).sort());
+    const vars = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
+    for (const key of Object.keys(enMarkets)) {
+      const e = enMarkets[key as keyof typeof enMarkets];
+      const a = arMarkets[key as keyof typeof arMarkets];
+      expect(e.trim(), key).not.toBe('');
+      expect(containsArabic(a), key).toBe(true);
+      expect(vars(a), key).toEqual(vars(e));
+      // no tax rate, statutory claim or "Hot Deal" wording in the copy
+      expect(`${e} ${a}`, key).not.toMatch(/hot deal|\d+\s?%|guaranteed/i);
+    }
+    const need = (prefix: string, values: readonly string[]) => {
+      for (const v of values) expect(enMarkets, `${prefix}.${v}`).toHaveProperty([`${prefix}.${v}`]);
+    };
+    need('mkt.state', MARKET_STATUSES);
+    need('mkt.pstate', MARKET_PRODUCT_STATUSES);
+    need('mkt.product', MARKET_PRODUCTS);
+    need('mkt.item', TAXABLE_ITEMS);
+    need('mkt.taxTypeName', TAX_TYPES);
+    need('mkt.docKind', INVOICE_CONFIG_KINDS);
+    need('mkt.cap', PROVIDER_CAPABILITIES);
+    need('mkt.valstate', MARKET_VALIDATION_STATUSES);
+    need('mkt.checkName', READINESS_CHECKS);
+    need('mkt.ready', READINESS_STATES);
+    need('mkt.pcat', Object.keys(MARKET_POLICY_KEYS));
+    need('mkt.pkey', Object.values(MARKET_POLICY_KEYS).flat());
   });
 
   it('formats an amount in any configured currency with Western digits', () => {

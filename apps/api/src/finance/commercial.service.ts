@@ -27,6 +27,7 @@ import { EntitlementService } from '../platform/entitlement.service';
 import { BillingEventService } from '../subscription/billing-event.service';
 import { SystemConfigService } from '../system-config/system-config.service';
 import { PricingService, type ResolvedPricing } from './pricing.service';
+import { MarketService } from '../platform/markets/market.service';
 import {
   amendmentDelta,
   calculateQuote,
@@ -75,6 +76,7 @@ export class CommercialService {
     // optional so the development fixtures (which build this service by hand) keep working without the subscription engine
     @Optional() private readonly systemConfig?: SystemConfigService,
     @Optional() private readonly billingEvents?: BillingEventService,
+    @Optional() private readonly markets?: MarketService,
   ) {}
 
   // ---------------------------------------------------------------- numbering (statutory formats are configuration / VALIDATE-KSA)
@@ -275,10 +277,17 @@ export class CommercialService {
     content: unknown,
     subjectId: string | null,
     override?: Partial<Economics>,
-  ): Promise<CommercialPreview & { hash: string; economics: Economics; pricingRaw: ResolvedPricing }> {
+  ): Promise<CommercialPreview & { hash: string; economics: Economics; pricingRaw: ResolvedPricing; market: string | null }> {
     const adapter = this.registry.get(product);
     const economics = { ...(await adapter.economics(organizationId, content, subjectId)), ...(override ?? {}) };
-    const pricing = await this.pricing.resolve(economics.ownerOrganizationId, product);
+    // the campaign's market (its branches' country, else the business's market) decides pricing and tax; never another country's
+    const market = this.markets ? await this.markets.marketOfCampaign(economics.ownerOrganizationId, content) : null;
+    const pricing = await this.pricing.resolve(economics.ownerOrganizationId, product, new Date(), market);
+    if (this.markets) {
+      const ledger = (await this.markets.settings()).campaignLedgerCurrencies;
+      if (!ledger.includes(pricing.currency))
+        throw new AppError('MARKET_CURRENCY_NOT_SUPPORTED', `Campaign funding in ${pricing.currency} is not supported yet (the campaign ledger supports ${ledger.join(', ')})`, 409);
+    }
     const { lines, totals } = calculateQuote(economics, pricing);
     const funding = await this.fundingOf(economics, lines, totals, Boolean(adapter.managedFunding), adapter.fundingKind);
     const workflow = await this.pricing.workflow(
@@ -308,6 +317,7 @@ export class CommercialService {
       hash: economicsHash(economics, pricing.versionKey),
       economics,
       pricingRaw: pricing,
+      market,
     };
   }
 
@@ -365,6 +375,7 @@ export class CommercialService {
             contractId,
             billingTrigger: billing?.trigger ?? null,
             billingModel: billing?.model ?? null,
+            market: p.market,
           },
         }));
       const version = (current?.version ?? 0) + 1;
@@ -389,6 +400,9 @@ export class CommercialService {
             reference: p.pricing.reference,
             components: p.pricingRaw.components,
             taxBps: p.pricingRaw.taxBps,
+            market: p.market,
+            taxRuleId: p.pricingRaw.taxRuleId ?? null,
+            taxRuleVersion: p.pricingRaw.taxRuleVersion ?? null,
             workflow: p.workflow,
             fundingRequirements: p.fundingRequirements,
           } as unknown as Prisma.InputJsonValue,
@@ -407,6 +421,7 @@ export class CommercialService {
           currentQuotationId: q.id,
           ownerOrganizationId: e.ownerOrganizationId,
           fulfilmentOrganizationId: e.fulfilmentOrganizationId,
+          market: p.market,
           maxCashHalalas: p.totals.maxCashPayableToDealDashHalalas + p.totals.maxSponsorLiabilityHalalas,
           benefitCommitmentHalalas: p.totals.maxMerchantBenefitCommitmentHalalas,
           ...(keepAccepted ? {} : { acceptedQuotationId: null, status: 'AWAITING_ACCEPTANCE' as const }),
@@ -854,7 +869,9 @@ export class CommercialService {
   /** The contract must include the product, and the organization must be inside its campaign limit (backend enforced). */
   async assertEntitled(product: CommercialProduct, subjectId: string) {
     const subject = await this.registry.get(product).load(subjectId);
-    await this.entitlements.requireProduct(subject.organizationId, ENTITLEMENT_PRODUCT_OF[product]);
+    // the product must be in the contract AND open in the campaign's market (never inherited from another country)
+    const market = this.markets ? await this.markets.marketOfCampaign(subject.organizationId, subject.content) : null;
+    await this.entitlements.requireProduct(subject.organizationId, ENTITLEMENT_PRODUCT_OF[product], { market });
     // a suspended / ended agreement, an elapsed grace or a financial hold refuses NEW paid exposure (issued customer rights are untouched)
     await this.entitlements.requireNewExposure(subject.organizationId, 'ACTIVATE_CAMPAIGN');
     const open = await this.prisma.commercialCase.count({

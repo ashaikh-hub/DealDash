@@ -3,8 +3,11 @@ import { CONFIG_KEYS } from '@dealdash/config';
 import {
   EDITABLE_DOCUMENT_STATUSES,
   OPEN_RECEIVABLE_STATUSES,
+  TAXABLE_ITEM_OF_EVENT,
+  validationPrefixOf,
   type BillingCollection,
 } from '@dealdash/types';
+import { MarketConfigService, taxOf } from '../platform/markets/market-config.service';
 import { AuditService } from '../audit/audit.service';
 import { AppError } from '../common/errors';
 import type { Actor, RequestMeta } from '../common/request-context';
@@ -64,6 +67,7 @@ export class InvoicingService {
     private readonly accounts: BillingAccountsService,
     private readonly config: SystemConfigService,
     @Inject(EMAIL_PROVIDER) private readonly email: EmailProvider,
+    private readonly marketConfig: MarketConfigService,
   ) {}
 
   async settings(): Promise<BillingConfig> {
@@ -127,12 +131,8 @@ export class InvoicingService {
     }
   }
 
-  /** Tax rate for a country (configuration; statutory treatment is VALIDATE-KSA / market validation). null = not configured. */
-  private async taxBps(db: Db, country: string): Promise<number | null> {
-    const c = await db.countryConfiguration.findUnique({ where: { code: country } });
-    const p = (c?.taxProfile ?? {}) as { vatBps?: number; status?: string };
-    return typeof p.vatBps === 'number' && p.status === 'CONFIGURED' ? p.vatBps : null;
-  }
+  /** The kinds of invoice configuration that govern a finance document type. */
+  private static readonly CONFIG_KIND: Record<string, string> = { INVOICE: 'INVOICE', TAX_INVOICE: 'TAX_INVOICE', PROFORMA_INVOICE: 'PROFORMA_INVOICE', CREDIT_NOTE: 'CREDIT_NOTE', DEBIT_NOTE: 'DEBIT_NOTE' };
 
   // ---------------------------------------------------------------- billing run
   /**
@@ -235,11 +235,13 @@ export class InvoicingService {
     events: BillingEventRow[],
     now: Date,
   ): Promise<string> {
+    // the billed legal entity's market: its own approved tax rules apply (never another country's)
+    const market = acc.country;
     return this.prisma.$transaction(async (tx) => {
-      const tax = await this.taxBps(tx, acc.country);
       const lines: Prisma.InvoiceLineCreateManyDocumentInput[] = [];
       let n = 1;
       let fx: { id: string; rate: string; base: string } | null = null;
+      let taxed = 0;
       for (const e of events) {
         let amount = e.amountMinor ?? 0;
         let unit = e.unitRateMinor;
@@ -250,8 +252,18 @@ export class InvoicingService {
           unit = unit === null ? null : convertMinor(unit, r.rate);
         }
         const name = LINE_NAME[e.eventType] ?? [e.eventType, e.eventType];
-        const lineTax = tax === null ? 0 : Math.round((amount * tax) / 10_000);
+        // effective-dated tax rule at the time the charge arose; the line keeps the rule id + version for ever
+        const item = TAXABLE_ITEM_OF_EVENT[e.eventType] ?? 'OTHER';
+        const rule = await this.marketConfig.resolveTax(market, item, { legalEntityId: acc.legalEntityId, at: e.occurredAt }, tx);
+        const t = rule ? taxOf(amount, rule) : { netMinor: amount, taxMinor: 0 };
+        if (rule) taxed++;
+        const tax = rule ? (rule.exempt ? 0 : rule.rateBps) : null;
+        const lineTax = t.taxMinor;
+        amount = t.netMinor;
         lines.push({
+          taxRuleId: rule?.id ?? null,
+          taxRuleVersion: rule?.version ?? null,
+          taxableItem: item,
           lineNo: n++,
           kind: 'CHARGE',
           description: name[0],
@@ -274,10 +286,12 @@ export class InvoicingService {
       const subtotal = lines.reduce((s, l) => s + l.amountMinor, 0);
       const taxTotal = lines.reduce((s, l) => s + (l.taxMinor ?? 0), 0);
       const contracts = [...new Set(events.map((e) => e.contractId).filter(Boolean))];
+      const taxStatus = taxed === 0 ? 'TAX_NOT_CONFIGURED_VALIDATE' : taxed < lines.length ? 'TAX_PARTIALLY_CONFIGURED_VALIDATE' : 'TAX_CONFIGURED';
       const d = await tx.financeDocument.create({
         data: {
           number: `DRAFT-${crypto.randomUUID()}`,
-          type: tax === null ? 'INVOICE' : 'TAX_INVOICE',
+          type: taxed === 0 ? 'INVOICE' : 'TAX_INVOICE',
+          market,
           status: 'DRAFT',
           businessAccountId: acc.id,
           organizationId: acc.organizationId,
@@ -295,8 +309,11 @@ export class InvoicingService {
           periodEnd: events[events.length - 1]!.occurredAt,
           sourceKind: 'BILLING_RUN',
           statutory: {
-            status: tax === null ? 'TAX_NOT_CONFIGURED_VALIDATE' : 'TAX_CONFIGURED',
-            taxBps: tax,
+            status: taxStatus,
+            market,
+            // rule ids + versions are on each line; a later rate change never rewrites this document
+            taxRules: [...new Set(lines.filter((l) => l.taxRuleId).map((l) => `${l.taxRuleId}@${l.taxRuleVersion}`))],
+            ...(taxStatus === 'TAX_CONFIGURED' ? {} : { validationCode: `${validationPrefixOf(market)}-TAX` }),
           } as Prisma.InputJsonValue,
           createdByUserId: actor?.userId ?? null,
           invoiceLines: { createMany: { data: lines } },
@@ -401,11 +418,34 @@ export class InvoicingService {
           );
         poId = r.po.id;
       }
-      const number = await this.commercial.nextNumber(
-        tx,
-        d.type.toLowerCase(),
-        this.prefix(d.type),
-      );
+      // the market / legal entity invoice configuration in force decides numbering and required fields (none: platform defaults)
+      const market = d.market ?? acc.country;
+      const kind = InvoicingService.CONFIG_KIND[d.type];
+      const ic = kind ? await this.marketConfig.resolveInvoiceConfig(market, kind, { legalEntityId: d.legalEntityId }, tx) : null;
+      if (ic?.requiredFields.length) {
+        const le = d.legalEntityId ? await tx.legalEntity.findUnique({ where: { id: d.legalEntityId } }) : null;
+        const has: Record<string, boolean> = {
+          legalName: !!(acc.name || le?.legalName),
+          registeredAddress: Object.keys((acc.billingAddress as object) ?? {}).length > 0 || Object.keys((le?.address as object) ?? {}).length > 0,
+          taxId: !!(acc.taxId || le?.taxNumber),
+          invoiceContactEmail: !!(acc.invoiceContact as { email?: string }).email,
+          purchaseOrder: !!poId,
+        };
+        const missing = ic.requiredFields.filter((f) => !has[f]);
+        if (missing.length) throw new AppError('INVOICE_REQUIRED_FIELDS_MISSING', `This market's invoice requires: ${missing.join(', ')}`, 422);
+      }
+      const number = ic ? await this.commercial.nextNumber(tx, ic.sequenceKey, ic.prefix) : await this.commercial.nextNumber(tx, d.type.toLowerCase(), this.prefix(d.type));
+      if (ic || !d.market)
+        await tx.financeDocument.update({
+          where: { id },
+          data: {
+            market,
+            invoiceConfigId: ic?.id ?? null,
+            ...(ic
+              ? { statutory: { ...((d.statutory as object) ?? {}), invoiceConfig: { id: ic.id, version: ic.version, prefix: ic.prefix, languages: ic.languages, qrRequired: ic.qrRequired, eInvoiceProvider: ic.eInvoiceProvider, validationStatus: ic.validationStatus, validationCode: ic.validationCode } } as Prisma.InputJsonValue }
+              : {}),
+          },
+        });
       const issuedAt = new Date();
       const dueAt =
         d.type === 'CREDIT_NOTE' || d.type === 'PROFORMA_INVOICE' || d.type === 'RECEIPT'

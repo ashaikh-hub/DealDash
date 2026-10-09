@@ -14,6 +14,7 @@ import { AppError } from '../common/errors';
 import { keysetPage, Page } from '../common/pagination';
 import type { Actor, RequestMeta } from '../common/request-context';
 import { FilesService } from '../files/files.service';
+import { MarketService } from '../platform/markets/market.service';
 import { parseContent, statusFromDates } from './deal-content';
 import { DealCoreService, DEAL_INCLUDE, type DealRow } from './deal-core.service';
 import { DealEventsService } from './deal-events.service';
@@ -59,6 +60,7 @@ export class MerchantDealsService {
     private readonly eligibility: EligibilityService,
     private readonly events: DealEventsService,
     private readonly files: FilesService,
+    private readonly markets: MarketService,
   ) {}
 
   private get prisma() {
@@ -449,6 +451,8 @@ export class MerchantDealsService {
       if (issues.length) incomplete(issues);
       await this.core.validateReferences(organizationId, content);
       await this.core.requireActiveBranch(organizationId, content.branchIds);
+      // Live Deals must be open in the market of the deal's branches (a deal never spans markets)
+      await this.markets.requireAvailable(organizationId, 'LIVE_DEAL', { market: await this.markets.marketOfCampaign(organizationId, content) });
       const g = await this.guardrails.evaluate(content, trust);
       if (g.outcome === 'AUTO_PUBLISH') {
         const to = await this.prisma.$transaction((tx) =>
@@ -482,6 +486,8 @@ export class MerchantDealsService {
       if (issues.length) incomplete(issues);
       await this.core.validateReferences(organizationId, content);
       await this.core.requireActiveBranch(organizationId, content.branchIds);
+      // Live Deals must be open in the market of the deal's branches (a deal never spans markets)
+      await this.markets.requireAvailable(organizationId, 'LIVE_DEAL', { market: await this.markets.marketOfCampaign(organizationId, content) });
       const g = await this.guardrails.evaluate(content, trust);
       if (g.outcome === 'AUTO_PUBLISH') {
         await this.prisma.$transaction((tx) =>

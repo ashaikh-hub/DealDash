@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { MARKET_PRODUCTS } from '@dealdash/types';
 import type { CountryView } from '@dealdash/validation';
 import type { Prisma } from '../generated/prisma/client';
 import { AuditService } from '../audit/audit.service';
@@ -62,6 +63,11 @@ export class CountryService {
     const c = code.toUpperCase();
     if (!/^[A-Z]{2}$/.test(c)) throw AppError.validation('Use a two-letter country code', 'code');
     const before = await this.prisma.countryConfiguration.findUnique({ where: { code: c } });
+    // `enabled` follows the market lifecycle (PILOT / ACTIVE). This legacy endpoint cannot open or close a market around the
+    // activation gate: use Admin -> Markets (status change with readiness check and a second approver).
+    const openNow = before ? before.status === 'PILOT' || before.status === 'ACTIVE' : false;
+    if (b.enabled !== openNow)
+      throw new AppError('MARKET_TRANSITION_INVALID', 'Open or close a market through its lifecycle (Admin > Markets), not this flag', 409);
     const data = {
       nameEn: b.nameEn,
       nameAr: b.nameAr,
@@ -77,7 +83,13 @@ export class CountryService {
       settings: b.settings as Prisma.InputJsonValue,
     };
     const row = await this.prisma.$transaction(async (tx) => {
-      const r = await tx.countryConfiguration.upsert({ where: { code: c }, update: data, create: { code: c, ...data } });
+      const r = await tx.countryConfiguration.upsert({
+        where: { code: c },
+        update: data,
+        create: { code: c, ...data, status: 'PLANNED', supportedCurrencies: [b.currency], defaultLanguage: b.languages[0] ?? 'en', createdByUserId: actor.userId },
+      });
+      // a new market starts with every product switched off
+      if (!before) await tx.marketProduct.createMany({ data: MARKET_PRODUCTS.map((product) => ({ market: c, product, status: 'DISABLED' })), skipDuplicates: true });
       await this.audit.record(
         {
           action: before ? 'COUNTRY_CONFIG_UPDATED' : 'COUNTRY_CONFIG_CREATED',

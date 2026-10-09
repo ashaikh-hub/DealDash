@@ -420,3 +420,45 @@ Founder clarifications recorded with the approval:
    implementation names; they must not be used in new user-facing or business-facing development.
 4. **TR-01** (Watch & Earn player timing test) stays a monitored reliability item; it is not a regression unless it reproduces consistently.
 5. Stage 7 is not to be started until separately instructed.
+
+## Addendum (Oct 2026) — Build status: Market / country configuration (awaiting founder approval)
+
+Built on the frozen Phases 1–5 (extended, not redesigned): market master with lifecycle and maker-checker activation gate, region grouping,
+per-market product availability (enforced on campaign submission / activation, Live Deals and AI), effective-dated tax / invoice /
+settlement / policy configuration with second-approver approval and database-frozen versions, providers (references only), market-aware
+campaign pricing and tax, invoicing with per-line tax rule versions and market invoice configuration, central validation register (VK-01..25
+and the founder launch-readiness items mapped), readiness, market-scoped administration, audit history, Admin → Markets workspace (EN / AR,
+RTL, phone). Stage 7 not started. Details: `docs/MARKET_COUNTRY_CONFIGURATION.md`.
+
+**Verification (2026-10-09)**: API 777 / 777 (48 files; new `markets.e2e` 22); packages and apps all green (admin 92, merchant 104,
+customer 61, staff 34, localization 21, auth 8, app-shell 11, ui 14, validation 6, config 3, analytics 4, api-client 2, partner 3);
+TypeScript 24 / 24; ESLint 0 errors (64 pre-existing warnings in older API test files); builds: API and all five apps. Browser (Edge):
+Markets 19 / 19, Phase 4/5 59 / 59, Phase 3 32 / 32, subscription 31 / 31, Stage 2 30 / 30, Stage 3 98 / 98, Stage 5 99 / 99, Stage 4
+121 / 121 and Stage 6 88 / 88 on a fresh seed. Dev database backed up and migrated (no reset), no schema drift. TR-01 did not reproduce.
+
+**Fixed during the cycle**: secret-reference pattern case mismatch between API validation and the database CHECK; the market test now
+closes its test market (shared test database) instead of leaving it open.
+
+**Behaviour changes to note**: the legacy countries endpoint cannot toggle `enabled`; campaign pricing in markets other than SA needs
+market pricing (`PRICING_NOT_AVAILABLE`); campaigns priced in a non-SAR currency are refused (`MARKET_CURRENCY_NOT_SUPPORTED`) until a ledger
+decision; invoice tax now comes only from approved market tax rules (the old `taxProfile.vatBps` JSON is no longer read — no rule was ever
+configured there); market-neutral pricing-agreement tax applies only in approved default pricing markets.
+
+**Deferred / not built (explicit)**: payout execution consuming settlement rules (later stage; resolver ready); runtime routing of payments
+to real per-market providers (abstraction + selection ready, adapters are mocks); subscription / licence assignment is not gated by market
+product status (admin-governed; readiness reports it); no tax rate, statutory invoice format or legal position is seeded for any market.
+## Founder approval (2026-10-09) — MARKET / COUNTRY CONFIGURATION: FOUNDER APPROVED AND FROZEN
+
+The Market / Country Configuration architecture is approved and frozen as the founder-approved baseline: Global → Region → Country /
+Market hierarchy, market lifecycle, product availability by market, effective-dated tax, invoice, currency, payment and settlement
+configuration, legal entity / contract market scope, market-specific pricing, KYB/KYC readiness, privacy / consent / residency, provider
+configuration, the Market Admin workspace, the activation gate, the market validation register (VALIDATE-KSA / UAE / QATAR / PAKISTAN),
+RBAC / scope, audit / versioning and the Arabic / RTL handoff.
+
+Founder rules recorded with the approval:
+1. Stage 7 does not redesign this architecture.
+2. Stage 7 consumes the shared Market / Country framework (MarketService, MarketConfigService, MarketReadinessService, COUNTRY scope).
+3. No country-specific tax, currency, provider, pricing, invoice or settlement rule is hard-coded in the Partner Portal.
+4. Effective dating and historical financial / configuration records are preserved.
+5. A market cannot become ACTIVE unless its mandatory readiness configuration is complete.
+6. Stage 7 is not started until separately instructed.

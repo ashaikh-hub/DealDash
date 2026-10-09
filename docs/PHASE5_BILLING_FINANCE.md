@@ -69,3 +69,10 @@ Screens: merchant `/billing`; admin `/billing` (`packages/app-shell/src/billing/
 ## 10. Verification
 
 API: `apps/api/test/billing.e2e.test.ts` (19 tests: run and collections, drafts hidden, issue and event linkage, immutability, maker-checker, LE scope, contacts vs DealDash terms, partial payment and credit, notes, dispute, overdue and financial status, statements, write-off disabled, PO, FX, proforma, reconciliation, quotation decline / expiry, financial hold). Components and browser: see Phase 4 doc §9.
+
+## Market extension (Oct 2026)
+
+Invoicing now uses the billed party's market: tax from that market's approved, effective-dated tax rules (rule id + version on every line;
+no fallback to another country; otherwise "not configured" with the market's validation code) and, at issue, the market / legal-entity
+invoice configuration in force (number prefix and sequence, required fields, QR / e-invoicing settings recorded on the document). Documents
+keep their market and configuration for ever. FX manual overrides need a reason. Details: `docs/MARKET_COUNTRY_CONFIGURATION.md`.

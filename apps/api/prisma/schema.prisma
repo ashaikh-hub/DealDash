@@ -2399,32 +2399,32 @@ model LegalEntity {
 
 /// One per organisation and currency: the party to whom DealDash quotes, invoices and from whom it receives funds.
 model BusinessAccount {
-  id             String      @id @default(uuid(7)) @db.Uuid
-  organizationId String      @db.Uuid
-  legalEntityId  String      @db.Uuid
-  currency       String      @default("SAR")
-  fundingMode    FundingMode @default(PREPAID)
+  id               String      @id @default(uuid(7)) @db.Uuid
+  organizationId   String      @db.Uuid
+  legalEntityId    String      @db.Uuid
+  currency         String      @default("SAR")
+  fundingMode      FundingMode @default(PREPAID)
   /// ACTIVE | CREDIT_HOLD | FINANCIAL_HOLD | SUSPENDED | CLOSED
-  status         String      @default("ACTIVE")
-  createdAt      DateTime    @default(now())
+  status           String      @default("ACTIVE")
+  createdAt        DateTime    @default(now())
   /// Phase 5: the billing account. One default account per (organization, currency); other legal entities can have their own.
-  isDefault        Boolean   @default(true)
+  isDefault        Boolean     @default(true)
   name             String?
-  country          String    @default("SA")
-  billingAddress   Json      @default("{}")
+  country          String      @default("SA")
+  billingAddress   Json        @default("{}")
   /// Defaults to the legal entity's tax number; statutory validation is VALIDATE-KSA.
   taxId            String?
-  financeContact   Json      @default("{}")
-  invoiceContact   Json      @default("{}")
-  paymentTermsDays Int       @default(30)
+  financeContact   Json        @default("{}")
+  invoiceContact   Json        @default("{}")
+  paymentTermsDays Int         @default(30)
   /// PER_EVENT | MONTHLY | QUARTERLY | ANNUAL | ON_DEMAND
-  billingFrequency String    @default("MONTHLY")
+  billingFrequency String      @default("MONTHLY")
   /// INVOICE | BANK_TRANSFER | CARD | PREPAID_BALANCE | DIRECT_DEBIT
-  billingMethod    String    @default("INVOICE")
-  contractId       String?   @db.Uuid
-  poRequired       Boolean   @default(false)
+  billingMethod    String      @default("INVOICE")
+  contractId       String?     @db.Uuid
+  poRequired       Boolean     @default(false)
   lastBilledAt     DateTime?
-  updatedAt        DateTime  @default(now()) @updatedAt
+  updatedAt        DateTime    @default(now()) @updatedAt
 
   legalEntity LegalEntity @relation(fields: [legalEntityId], references: [id])
 
@@ -2517,6 +2517,8 @@ model CommercialCase {
   billingTrigger           String?
   maxCashHalalas           Int               @default(0)
   benefitCommitmentHalalas Int               @default(0)
+  /// The market (country) whose pricing, tax and commercial rules apply to this campaign (never inherited from another country).
+  market                   String?
   createdByUserId          String            @db.Uuid
   createdAt                DateTime          @default(now())
   updatedAt                DateTime          @updatedAt
@@ -2535,32 +2537,32 @@ model CommercialCase {
 }
 
 model Quotation {
-  id               String           @id @default(uuid(7)) @db.Uuid
-  caseId           String           @db.Uuid
-  version          Int
-  reference        String           @unique
-  status           QuotationStatus  @default(DRAFT)
+  id                      String           @id @default(uuid(7)) @db.Uuid
+  caseId                  String           @db.Uuid
+  version                 Int
+  reference               String           @unique
+  status                  QuotationStatus  @default(DRAFT)
   /// The economic inputs the calculation used (so the exact numbers can always be reproduced).
-  inputs           Json
+  inputs                  Json
   /// QuoteLine[]
-  lines            Json
+  lines                   Json
   /// QuoteTotals
-  totals           Json
-  pricingVersionId String?          @db.Uuid
-  pricingSnapshot  Json             @default("{}")
-  unusedTreatment  UnusedTreatment?
+  totals                  Json
+  pricingVersionId        String?          @db.Uuid
+  pricingSnapshot         Json             @default("{}")
+  unusedTreatment         UnusedTreatment?
   /// [{ role, organizationId }] whose acceptance is required.
-  requiredParties  Json             @default("[]")
+  requiredParties         Json             @default("[]")
   /// For an amendment: original, additional and revised commitments.
-  delta            Json?
-  createdByUserId  String           @db.Uuid
-  createdByName    String?
-  createdAt        DateTime         @default(now())
-  supersededAt     DateTime?
+  delta                   Json?
+  createdByUserId         String           @db.Uuid
+  createdByName           String?
+  createdAt               DateTime         @default(now())
+  supersededAt            DateTime?
   /// Phase 5: a quotation expires, can be rejected, or the business can ask for a change (each is recorded, never deleted).
   validUntil              DateTime?
   rejectedAt              DateTime?
-  rejectedByUserId        String?   @db.Uuid
+  rejectedByUserId        String?          @db.Uuid
   rejectionReason         String?
   modificationRequestedAt DateTime?
   modificationRequest     String?
@@ -2698,57 +2700,60 @@ model FinancePayment {
 }
 
 model FinanceDocument {
-  id                String                @id @default(uuid(7)) @db.Uuid
-  number            String                @unique
-  type              FinanceDocumentType
-  status            FinanceDocumentStatus @default(ISSUED)
-  businessAccountId String                @db.Uuid
-  organizationId    String                @db.Uuid
-  caseId            String?               @db.Uuid
-  relatedDocumentId String?               @db.Uuid
-  currency          String                @default("SAR")
-  subtotalHalalas   Int                   @default(0)
-  taxHalalas        Int                   @default(0)
-  totalHalalas      Int                   @default(0)
-  paidHalalas       Int                   @default(0)
-  lines             Json                  @default("[]")
-  issuedAt          DateTime              @default(now())
-  dueAt             DateTime?
+  id                     String                @id @default(uuid(7)) @db.Uuid
+  number                 String                @unique
+  type                   FinanceDocumentType
+  status                 FinanceDocumentStatus @default(ISSUED)
+  businessAccountId      String                @db.Uuid
+  organizationId         String                @db.Uuid
+  caseId                 String?               @db.Uuid
+  relatedDocumentId      String?               @db.Uuid
+  currency               String                @default("SAR")
+  subtotalHalalas        Int                   @default(0)
+  taxHalalas             Int                   @default(0)
+  totalHalalas           Int                   @default(0)
+  paidHalalas            Int                   @default(0)
+  lines                  Json                  @default("[]")
+  issuedAt               DateTime              @default(now())
+  dueAt                  DateTime?
   /// Statutory fields (tax invoice number, QR, e-invoicing UUID...) are configuration and VALIDATE-KSA: kept open here.
-  statutory         Json                  @default("{}")
-  notes             String?
-  createdByUserId   String?               @db.Uuid
-  createdAt         DateTime              @default(now())
+  statutory              Json                  @default("{}")
+  notes                  String?
+  createdByUserId        String?               @db.Uuid
+  createdAt              DateTime              @default(now())
   /// Phase 5: the legal entity billed, the contract and billing period, the currencies (transaction / billing / settlement / tax) and FX used.
-  legalEntityId          String?   @db.Uuid
-  contractId             String?   @db.Uuid
+  legalEntityId          String?               @db.Uuid
+  contractId             String?               @db.Uuid
   /// CAMPAIGN_CASE | BILLING_RUN | MANUAL | QUOTATION | STATEMENT | PAYMENT
-  sourceKind             String    @default("MANUAL")
-  quotationId            String?   @db.Uuid
+  sourceKind             String                @default("MANUAL")
+  quotationId            String?               @db.Uuid
   periodStart            DateTime?
   periodEnd              DateTime?
   transactionCurrency    String?
   settlementCurrency     String?
-  fxRateId               String?   @db.Uuid
+  fxRateId               String?               @db.Uuid
   fxRate                 String?
   taxCurrency            String?
   taxAmountInTaxCurrency Int?
   /// PO: its number, expiry and supporting file; an invoice keeps the PO it draws on.
-  purchaseOrderId        String?   @db.Uuid
+  purchaseOrderId        String?               @db.Uuid
   externalReference      String?
   expiresAt              DateTime?
-  fileId                 String?   @db.Uuid
-  approvedByUserId       String?   @db.Uuid
+  fileId                 String?               @db.Uuid
+  /// The market whose invoice rules applied and the invoice configuration (version) used at issue (frozen afterwards).
+  market                 String?
+  invoiceConfigId        String?               @db.Uuid
+  approvedByUserId       String?               @db.Uuid
   approvedAt             DateTime?
   sentAt                 DateTime?
   overdueAt              DateTime?
   disputedAt             DateTime?
-  disputeCaseId          String?   @db.Uuid
+  disputeCaseId          String?               @db.Uuid
   cancelledAt            DateTime?
   cancelReason           String?
   writtenOffAt           DateTime?
-  writtenOffByUserId     String?   @db.Uuid
-  updatedAt              DateTime  @default(now()) @updatedAt
+  writtenOffByUserId     String?               @db.Uuid
+  updatedAt              DateTime              @default(now()) @updatedAt
 
   invoiceLines InvoiceLine[]
   allocations  PaymentAllocation[]
@@ -2984,7 +2989,6 @@ model Contract {
   @@index([planVersionId])
 }
 
-
 model ContractEntitlement {
   id             String    @id @default(uuid(7)) @db.Uuid
   contractId     String    @db.Uuid
@@ -2997,25 +3001,24 @@ model ContractEntitlement {
   effectiveUntil DateTime?
 
   /// CONTRACT (typed in directly) | PLAN (fed by the plan version) | OVERRIDE (contract-specific, replaces the plan default) | ADDON (adds)
-  source          String   @default("CONTRACT")
+  source           String  @default("CONTRACT")
   /// Add-on id or amendment id that created the row.
-  sourceRef       String?
+  sourceRef        String?
   /// LIMIT rows: HARD (action blocked) | SOFT (warn / overage / approval)
-  mode            String   @default("HARD")
+  mode             String  @default("HARD")
   /// NONE | DAY | MONTH | YEAR | CONTRACT_TERM (period meters; resource counts use NONE)
-  period          String   @default("NONE")
-  warnPercents    Int[]    @default([80, 100])
+  period           String  @default("NONE")
+  warnPercents     Int[]   @default([80, 100])
   /// SOFT limits: WARN | OVERAGE_CHARGE | REQUIRE_APPROVAL
-  softAction      String   @default("WARN")
+  softAction       String  @default("WARN")
   overageRateMinor Int?
-  note            String?
+  note             String?
 
   contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
 
   @@index([contractId, kind, key])
   @@index([contractId, source])
 }
-
 
 /// One row per market. KSA is the only enabled market for the pilot. Tax, payment, settlement and legal content are configuration
 /// and VALIDATE-KSA; nothing Saudi-specific is hard-coded in code.
@@ -3035,6 +3038,260 @@ model CountryConfiguration {
   settings              Json     @default("{}")
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
+
+  /// ---- Market master (pre-Stage-7 hardening). The market, not the region, drives tax, currency, invoicing, payments, settlement,
+  /// regulation, product availability, legal wording and local providers. `enabled` is kept (= status PILOT or ACTIVE).
+  /// GLOBAL -> REGION (grouping only) -> MARKET
+  regionCode               String?
+  isoAlpha3                String?
+  /// PLANNED | CONFIGURING | TESTING | PILOT | ACTIVE | SUSPENDED | CLOSED
+  status                   String    @default("PLANNED")
+  defaultLanguage          String    @default("en")
+  supportedCurrencies      String[]  @default([])
+  /// Currency used to bill businesses / settle merchants / report tax in this market (null = the default currency).
+  billingCurrency          String?
+  settlementCurrency       String?
+  taxCurrency              String?
+  currencyDecimals         Int       @default(2)
+  /// HALF_UP | HALF_EVEN | DOWN | UP
+  roundingRule             String    @default("HALF_UP")
+  timezone                 String    @default("UTC")
+  callingCode              String?
+  /// { dateFormat, timeFormat, numerals: WESTERN, firstDayOfWeek ... }
+  formatting               Json      @default("{}")
+  launchDate               DateTime?
+  effectiveFrom            DateTime  @default(now())
+  effectiveTo              DateTime?
+  version                  Int       @default(1)
+  /// APPROVED | PENDING (a lifecycle change waiting for a second approver)
+  approvalStatus           String    @default("APPROVED")
+  pendingStatus            String?
+  pendingReason            String?
+  pendingRequestedByUserId String?   @db.Uuid
+  pendingRequestedAt       DateTime?
+  createdByUserId          String?   @db.Uuid
+  approvedByUserId         String?   @db.Uuid
+  approvedAt               DateTime?
+  /// The DealDash legal entity that contracts, invoices, collects, settles and is tax-registered in this market.
+  dealdashLegalEntityId    String?   @db.Uuid
+  /// { email, phone, hours } customer and business support contact for the market.
+  supportContact           Json      @default("{}")
+
+  @@index([regionCode])
+  @@index([status])
+}
+
+/// Grouping of markets for reporting and administration only (never a tax or regulatory authority).
+model MarketRegion {
+  code      String   @id
+  nameEn    String
+  nameAr    String
+  sortOrder Int      @default(100)
+  createdAt DateTime @default(now())
+}
+
+/// Product availability per market (a product being live in one country says nothing about another).
+model MarketProduct {
+  id              String   @id @default(uuid(7)) @db.Uuid
+  market          String
+  product         String
+  /// DISABLED | CONFIGURING | TESTING | PILOT | ACTIVE | SUSPENDED
+  status          String   @default("DISABLED")
+  effectiveFrom   DateTime @default(now())
+  notes           String?
+  updatedByUserId String?  @db.Uuid
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([market, product])
+}
+
+/// Effective-dated, versioned tax rule. Approved rules are never edited: a change is a new version, and documents keep the rule
+/// (id + version) they were issued with.
+model TaxRule {
+  id               String    @id @default(uuid(7)) @db.Uuid
+  market           String
+  /// null = every legal entity in the market
+  legalEntityId    String?   @db.Uuid
+  code             String
+  version          Int       @default(1)
+  /// VAT | GST | SALES_TAX | WITHHOLDING | DIGITAL_SERVICES | OTHER
+  taxType          String
+  rateBps          Int
+  inclusive        Boolean   @default(false)
+  /// TAXABLE_ITEMS this rule covers ('*' = all)
+  applicability    String[]  @default([])
+  exempt           Boolean   @default(false)
+  exemptionReason  String?
+  registrationRef  String?
+  roundingRule     String    @default("HALF_UP")
+  taxCurrency      String?
+  effectiveFrom    DateTime
+  effectiveTo      DateTime?
+  /// DRAFT | PENDING_APPROVAL | APPROVED | RETIRED
+  status           String    @default("DRAFT")
+  validationCode   String?
+  notes            String?
+  createdByUserId  String    @db.Uuid
+  approvedByUserId String?   @db.Uuid
+  approvedAt       DateTime?
+  createdAt        DateTime  @default(now())
+
+  @@unique([market, code, version])
+  @@index([market, status, effectiveFrom])
+}
+
+/// Invoice / e-invoice requirements per market (and optionally per legal entity) and document kind; effective-dated and versioned.
+model InvoiceConfig {
+  id               String    @id @default(uuid(7)) @db.Uuid
+  market           String
+  legalEntityId    String?   @db.Uuid
+  documentKind     String
+  version          Int       @default(1)
+  prefix           String
+  sequenceKey      String
+  languages        String[]  @default([])
+  requiredFields   String[]  @default([])
+  qrRequired       Boolean   @default(false)
+  eInvoiceProvider String?
+  /// CONFIGURED | VALIDATION_REQUIRED | VALIDATED
+  validationStatus String    @default("VALIDATION_REQUIRED")
+  validationCode   String?
+  effectiveFrom    DateTime
+  effectiveTo      DateTime?
+  status           String    @default("DRAFT")
+  notes            String?
+  createdByUserId  String    @db.Uuid
+  approvedByUserId String?   @db.Uuid
+  approvedAt       DateTime?
+  createdAt        DateTime  @default(now())
+
+  @@unique([market, documentKind, legalEntityId, version])
+  @@index([market, documentKind, status])
+}
+
+/// Settlement rules by market, legal entity, product, business agreement and currency (most specific match wins).
+model SettlementRule {
+  id                   String    @id @default(uuid(7)) @db.Uuid
+  market               String
+  legalEntityId        String?   @db.Uuid
+  product              String?
+  organizationId       String?   @db.Uuid
+  contractId           String?   @db.Uuid
+  code                 String
+  version              Int       @default(1)
+  currency             String
+  /// DAILY | WEEKLY | BIWEEKLY | MONTHLY | ON_DEMAND
+  frequency            String
+  cycleDays            Int       @default(0)
+  minimumMinor         Int       @default(0)
+  /// Reference only (bank / payout destination id in the secure store), never account numbers.
+  destinationRef       String?
+  payableTreatment     String    @default("NET_OF_FEES")
+  sponsorTreatment     String    @default("SEPARATE_LINE")
+  feeBps               Int?
+  /// STATEMENT_MATCH | PER_TRANSACTION | BATCH_TOTAL
+  reconciliationMethod String    @default("STATEMENT_MATCH")
+  holdDays             Int       @default(0)
+  disputeTreatment     String    @default("HOLD_DISPUTED_AMOUNT")
+  effectiveFrom        DateTime
+  effectiveTo          DateTime?
+  status               String    @default("DRAFT")
+  validationCode       String?
+  createdByUserId      String    @db.Uuid
+  approvedByUserId     String?   @db.Uuid
+  approvedAt           DateTime?
+  createdAt            DateTime  @default(now())
+
+  @@unique([market, code, version])
+  @@index([market, status])
+}
+
+/// Local providers per market (payments, OTP, email, push, video, storage, maps, e-invoicing, KYB / KYC, identity, analytics).
+/// Credentials are never stored here: only references (env:NAME / secret:NAME).
+model MarketProvider {
+  id                 String    @id @default(uuid(7)) @db.Uuid
+  market             String
+  capability         String
+  providerCode       String
+  /// PAYMENT only
+  method             String?
+  currency           String?
+  merchantAccountRef String?
+  refundSupported    Boolean?
+  credentialRef      String?
+  webhookRef         String?
+  /// MOCK | SANDBOX | PRODUCTION
+  environment        String    @default("MOCK")
+  priority           Int       @default(100)
+  isFallback         Boolean   @default(false)
+  /// DISABLED | CONFIGURING | TESTING | ACTIVE | SUSPENDED
+  status             String    @default("CONFIGURING")
+  effectiveFrom      DateTime  @default(now())
+  effectiveTo        DateTime?
+  version            Int       @default(1)
+  notes              String?
+  createdByUserId    String    @db.Uuid
+  updatedByUserId    String?   @db.Uuid
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([market, capability, status])
+}
+
+/// Reusable, versioned market policy settings: refund / expiry, KYB / KYC requirements, privacy / consent / residency, legal terms,
+/// support and local restrictions. Values are configuration; legal conclusions are validation items, never invented.
+model MarketPolicy {
+  id               String    @id @default(uuid(7)) @db.Uuid
+  market           String
+  category         String
+  key              String
+  /// '' = applies to every product
+  product          String    @default("")
+  version          Int       @default(1)
+  value            Json      @default("{}")
+  /// Mandatory for market activation
+  required         Boolean   @default(false)
+  validationCode   String?
+  effectiveFrom    DateTime  @default(now())
+  effectiveTo      DateTime?
+  status           String    @default("DRAFT")
+  createdByUserId  String    @db.Uuid
+  approvedByUserId String?   @db.Uuid
+  approvedAt       DateTime?
+  createdAt        DateTime  @default(now())
+
+  @@unique([market, category, key, product, version])
+  @@index([market, category, status])
+}
+
+/// One central market validation register (VALIDATE-KSA, VALIDATE-UAE, VALIDATE-QATAR, VALIDATE-PAKISTAN ...).
+model MarketValidationItem {
+  id               String    @id @default(uuid(7)) @db.Uuid
+  market           String
+  code             String
+  topic            String
+  description      String
+  product          String?
+  ownerUserId      String?   @db.Uuid
+  ownerTeam        String?
+  /// OPEN | IN_REVIEW | RESOLVED | ACCEPTED_RISK | NOT_APPLICABLE
+  status           String    @default("OPEN")
+  blocksActivation Boolean   @default(true)
+  evidenceRef      String?
+  decision         String?
+  effectiveDate    DateTime?
+  reviewDate       DateTime?
+  approvedByUserId String?   @db.Uuid
+  approvedAt       DateTime?
+  /// Where the item came from (e.g. a document section) so existing history is not lost.
+  sourceRef        String?
+  createdByUserId  String?   @db.Uuid
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@unique([market, code])
+  @@index([market, status])
 }
 
 // ================================================================ Shared platform, Phase 2: master data, provenance, imports, integrations
@@ -3556,24 +3813,24 @@ model OfferConflictFlag {
 
 /// A reusable commercial template (Merchant Starter, Growth, Business, Bank Enterprise, a Scheme licence ...). NOT a customer contract.
 model CommercialPlan {
-  id           String   @id @default(uuid(7)) @db.Uuid
-  code         String   @unique
-  nameEn       String
-  nameAr       String
-  descriptionEn String?
-  descriptionAr String?
+  id              String   @id @default(uuid(7)) @db.Uuid
+  code            String   @unique
+  nameEn          String
+  nameAr          String
+  descriptionEn   String?
+  descriptionAr   String?
   /// MERCHANT | BANK | SCHEME | CORPORATE | PARTNER
-  entityType   String
+  entityType      String
   /// The contract kind an agreement created from this plan gets.
-  contractKind String
-  isFree       Boolean  @default(false)
+  contractKind    String
+  isFree          Boolean  @default(false)
   /// Negotiated / custom: no fixed list price.
-  negotiated   Boolean  @default(false)
-  status       String   @default("ACTIVE")
-  sortOrder    Int      @default(100)
-  createdByUserId String? @db.Uuid
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  negotiated      Boolean  @default(false)
+  status          String   @default("ACTIVE")
+  sortOrder       Int      @default(100)
+  createdByUserId String?  @db.Uuid
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   versions CommercialPlanVersion[]
 
@@ -3582,37 +3839,37 @@ model CommercialPlan {
 
 /// The versioned, per-market snapshot of a plan. Published versions are immutable; a change is a new version.
 model CommercialPlanVersion {
-  id            String    @id @default(uuid(7)) @db.Uuid
-  planId        String    @db.Uuid
-  market        String
-  currency      String
-  version       Int
+  id                 String    @id @default(uuid(7)) @db.Uuid
+  planId             String    @db.Uuid
+  market             String
+  currency           String
+  version            Int
   /// DRAFT | PUBLISHED | RETIRED
-  status        String    @default("DRAFT")
-  effectiveFrom DateTime  @default(now())
-  effectiveUntil DateTime?
-  defaultCadence String   @default("MONTHLY")
+  status             String    @default("DRAFT")
+  effectiveFrom      DateTime  @default(now())
+  effectiveUntil     DateTime?
+  defaultCadence     String    @default("MONTHLY")
   /// [{ cadence, amountMinor, indicative? }]  (minor units of `currency`). Empty = negotiated.
-  prices        Json      @default("[]")
+  prices             Json      @default("[]")
   /// [{ code, amountMinor, indicative?, note? }]  setup, integration, API and similar one-off fees.
-  fees          Json      @default("[]")
+  fees               Json      @default("[]")
   /// { CODE: { amountMinor, cadence, indicative? } }  add-on prices of this plan.
-  addOnPrices   Json      @default("{}")
+  addOnPrices        Json      @default("{}")
   /// { products: string[], features: string[], limits: [{ key, value|null, mode, period, warnPercents, softAction, overageRateMinor }] }
-  entitlements  Json      @default("{}")
-  addOnCodes    String[]  @default([])
-  supportLevel  String?
-  trialDays     Int?
-  graceDays     Int?
-  enforcement   Json?
-  rules         Json      @default("{}")
+  entitlements       Json      @default("{}")
+  addOnCodes         String[]  @default([])
+  supportLevel       String?
+  trialDays          Int?
+  graceDays          Int?
+  enforcement        Json?
+  rules              Json      @default("{}")
   /// Reference ("indicative from ...") figures that are not list prices.
-  referencePricing Json   @default("{}")
-  developmentFixture Boolean @default(false)
-  createdByUserId String? @db.Uuid
-  publishedByUserId String? @db.Uuid
-  publishedAt   DateTime?
-  createdAt     DateTime  @default(now())
+  referencePricing   Json      @default("{}")
+  developmentFixture Boolean   @default(false)
+  createdByUserId    String?   @db.Uuid
+  publishedByUserId  String?   @db.Uuid
+  publishedAt        DateTime?
+  createdAt          DateTime  @default(now())
 
   plan      CommercialPlan @relation(fields: [planId], references: [id])
   contracts Contract[]
@@ -3623,45 +3880,45 @@ model CommercialPlanVersion {
 
 /// The market price book for usage, placement and transaction items (featured placement, commission, per qualified view ...).
 model PriceItem {
-  id       String   @id @default(uuid(7)) @db.Uuid
-  code     String   @unique
-  nameEn   String
-  nameAr   String
+  id        String   @id @default(uuid(7)) @db.Uuid
+  code      String   @unique
+  nameEn    String
+  nameAr    String
   /// A BILLING_CATEGORY (revenue classification).
-  category String
+  category  String
   /// EACH | PER_VIEW | PER_REDEMPTION | PERCENT | PER_CAMPAIGN | PER_MONTH | PER_YEAR | PER_REQUEST
-  unit     String   @default("EACH")
-  product  String?
+  unit      String   @default("EACH")
+  product   String?
   /// ACTIVE | INACTIVE (for example Play & Win stays inactive until activated)
-  status   String   @default("ACTIVE")
+  status    String   @default("ACTIVE")
   createdAt DateTime @default(now())
 
   versions PriceItemVersion[]
 }
 
 model PriceItemVersion {
-  id            String    @id @default(uuid(7)) @db.Uuid
-  itemId        String    @db.Uuid
-  market        String
-  currency      String
-  version       Int
+  id              String    @id @default(uuid(7)) @db.Uuid
+  itemId          String    @db.Uuid
+  market          String
+  currency        String
+  version         Int
   /// FIXED | PER_UNIT | PERCENT_BPS | TIERED
-  model         String
-  amountMinor   Int?
-  rateBps       Int?
-  tiers         Json?
-  minAmountMinor Int?
-  maxAmountMinor Int?
+  model           String
+  amountMinor     Int?
+  rateBps         Int?
+  tiers           Json?
+  minAmountMinor  Int?
+  maxAmountMinor  Int?
   /// A reference ("from") value or range rather than a mandatory price.
-  indicative    Boolean   @default(false)
-  rangeMin      Int?
-  rangeMax      Int?
-  effectiveFrom DateTime  @default(now())
-  effectiveUntil DateTime?
-  status        String    @default("PUBLISHED")
-  reference     String?
-  createdByUserId String? @db.Uuid
-  createdAt     DateTime  @default(now())
+  indicative      Boolean   @default(false)
+  rangeMin        Int?
+  rangeMax        Int?
+  effectiveFrom   DateTime  @default(now())
+  effectiveUntil  DateTime?
+  status          String    @default("PUBLISHED")
+  reference       String?
+  createdByUserId String?   @db.Uuid
+  createdAt       DateTime  @default(now())
 
   item PriceItem @relation(fields: [itemId], references: [id])
 
@@ -3670,17 +3927,17 @@ model PriceItemVersion {
 }
 
 model AddOnDefinition {
-  id            String   @id @default(uuid(7)) @db.Uuid
-  code          String   @unique
-  nameEn        String
-  nameAr        String
+  id                String   @id @default(uuid(7)) @db.Uuid
+  code              String   @unique
+  nameEn            String
+  nameAr            String
   /// [{ kind: PRODUCT | FEATURE | LIMIT, key, perUnit }]  what one unit of the add-on grants.
-  effect        Json
+  effect            Json
   /// Price book item used when the plan version carries no price for it.
-  priceItemCode String?
+  priceItemCode     String?
   eligiblePlanCodes String[] @default([])
-  status        String   @default("ACTIVE")
-  createdAt     DateTime @default(now())
+  status            String   @default("ACTIVE")
+  createdAt         DateTime @default(now())
 }
 
 /// A contract can cover several legal entities (the contracting entity stays on Contract).
@@ -3700,33 +3957,33 @@ model ContractLegalEntity {
 
 /// Upgrade, downgrade, add-on, renewal, pricing, entitlement, market addition and extension. Never a status.
 model ContractAmendment {
-  id              String    @id @default(uuid(7)) @db.Uuid
-  contractId      String    @db.Uuid
-  organizationId  String    @db.Uuid
+  id                  String    @id @default(uuid(7)) @db.Uuid
+  contractId          String    @db.Uuid
+  organizationId      String    @db.Uuid
   /// The contract version this amendment starts from; the new version is fromVersion + 1 once applied.
-  fromVersion     Int
-  type            String
+  fromVersion         Int
+  type                String
   /// PROPOSED | ACCEPTED | APPLIED | REJECTED | CANCELLED
-  status          String    @default("PROPOSED")
-  effectiveMode   String    @default("IMMEDIATE")
-  effectiveAt     DateTime
-  targetPlanVersionId String? @db.Uuid
+  status              String    @default("PROPOSED")
+  effectiveMode       String    @default("IMMEDIATE")
+  effectiveAt         DateTime
+  targetPlanVersionId String?   @db.Uuid
   /// What changes: entitlement rows, add-on, price, market, new end date ...
-  change          Json
+  change              Json
   /// Snapshots so the previous contract version is always reconstructable.
-  fromSnapshot    Json
-  toSnapshot      Json
+  fromSnapshot        Json
+  toSnapshot          Json
   /// Commercial impact shown before acceptance: price difference, entitlement differences, excess usage.
-  impact          Json
-  reason          String?
-  forced          Boolean   @default(false)
-  requestedByUserId String  @db.Uuid
-  requestedByOrg  Boolean   @default(false)
-  approvedByUserId String?  @db.Uuid
-  approvedAt      DateTime?
-  acceptanceId    String?   @db.Uuid
-  appliedAt       DateTime?
-  createdAt       DateTime  @default(now())
+  impact              Json
+  reason              String?
+  forced              Boolean   @default(false)
+  requestedByUserId   String    @db.Uuid
+  requestedByOrg      Boolean   @default(false)
+  approvedByUserId    String?   @db.Uuid
+  approvedAt          DateTime?
+  acceptanceId        String?   @db.Uuid
+  appliedAt           DateTime?
+  createdAt           DateTime  @default(now())
 
   contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
 
@@ -3737,32 +3994,32 @@ model ContractAmendment {
 
 /// An authorised acceptance of commercial terms (plan, price, term, billing, renewal, maximum exposure). Immutable.
 model ContractAcceptance {
-  id               String   @id @default(uuid(7)) @db.Uuid
-  reference        String   @unique
-  contractId       String   @db.Uuid
-  amendmentId      String?  @db.Uuid
-  organizationId   String   @db.Uuid
-  legalEntityId    String?  @db.Uuid
-  userId           String   @db.Uuid
-  userRole         String?
-  userName         String?
+  id                      String   @id @default(uuid(7)) @db.Uuid
+  reference               String   @unique
+  contractId              String   @db.Uuid
+  amendmentId             String?  @db.Uuid
+  organizationId          String   @db.Uuid
+  legalEntityId           String?  @db.Uuid
+  userId                  String   @db.Uuid
+  userRole                String?
+  userName                String?
   /// Set when DealDash Admin recorded it for an authorised party.
-  onBehalfAuthorizationId String? @db.Uuid
-  planVersionId    String?  @db.Uuid
-  pricingVersionKey String?
-  termsVersion     String
-  currency         String
-  acceptedAmountMinor Int   @default(0)
-  maxExposureMinor Int      @default(0)
-  effectiveFrom    DateTime
-  billingCadence   String
-  approvalRef      String?
+  onBehalfAuthorizationId String?  @db.Uuid
+  planVersionId           String?  @db.Uuid
+  pricingVersionKey       String?
+  termsVersion            String
+  currency                String
+  acceptedAmountMinor     Int      @default(0)
+  maxExposureMinor        Int      @default(0)
+  effectiveFrom           DateTime
+  billingCadence          String
+  approvalRef             String?
   /// Exactly what was shown (plan, base price, setup, add-ons, usage pricing, term, billing frequency, renewal, tax where configured).
-  terms            Json
-  language         String   @default("en")
-  createdAt        DateTime @default(now())
-  ip               String?
-  userAgent        String?
+  terms                   Json
+  language                String   @default("en")
+  createdAt               DateTime @default(now())
+  ip                      String?
+  userAgent               String?
 
   contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
 
@@ -3771,24 +4028,24 @@ model ContractAcceptance {
 }
 
 model ContractAddOn {
-  id            String    @id @default(uuid(7)) @db.Uuid
-  contractId    String    @db.Uuid
-  organizationId String   @db.Uuid
-  code          String
-  quantity      Int       @default(1)
-  priceMinor    Int       @default(0)
-  currency      String
-  cadence       String    @default("MONTHLY")
+  id                String    @id @default(uuid(7)) @db.Uuid
+  contractId        String    @db.Uuid
+  organizationId    String    @db.Uuid
+  code              String
+  quantity          Int       @default(1)
+  priceMinor        Int       @default(0)
+  currency          String
+  cadence           String    @default("MONTHLY")
   pricingVersionKey String?
-  startAt       DateTime
-  endAt         DateTime?
-  autoRenew     Boolean   @default(false)
+  startAt           DateTime
+  endAt             DateTime?
+  autoRenew         Boolean   @default(false)
   /// PROPOSED | ACTIVE | ENDED | CANCELLED
-  status        String    @default("PROPOSED")
-  approvedByUserId String? @db.Uuid
-  acceptanceId  String?   @db.Uuid
-  createdByUserId String  @db.Uuid
-  createdAt     DateTime  @default(now())
+  status            String    @default("PROPOSED")
+  approvedByUserId  String?   @db.Uuid
+  acceptanceId      String?   @db.Uuid
+  createdByUserId   String    @db.Uuid
+  createdAt         DateTime  @default(now())
 
   contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
 
@@ -3796,20 +4053,20 @@ model ContractAddOn {
 }
 
 model ContractTrial {
-  id             String    @id @default(uuid(7)) @db.Uuid
-  contractId     String    @db.Uuid
-  trialPlanVersionId String @db.Uuid
-  startAt        DateTime
-  endAt          DateTime
+  id                  String   @id @default(uuid(7)) @db.Uuid
+  contractId          String   @db.Uuid
+  trialPlanVersionId  String   @db.Uuid
+  startAt             DateTime
+  endAt               DateTime
   entitlementSnapshot Json
-  priceMinor     Int       @default(0)
-  currency       String
-  postTrialPlanCode String?
-  promotionId    String?   @db.Uuid
-  approvedByUserId String? @db.Uuid
+  priceMinor          Int      @default(0)
+  currency            String
+  postTrialPlanCode   String?
+  promotionId         String?  @db.Uuid
+  approvedByUserId    String?  @db.Uuid
   /// ACTIVE | CONVERTED | EXPIRED | CANCELLED
-  status         String    @default("ACTIVE")
-  createdAt      DateTime  @default(now())
+  status              String   @default("ACTIVE")
+  createdAt           DateTime @default(now())
 
   contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
 
@@ -3818,28 +4075,28 @@ model ContractTrial {
 }
 
 model ContractPromotion {
-  id               String    @id @default(uuid(7)) @db.Uuid
-  contractId       String    @db.Uuid
+  id                 String   @id @default(uuid(7)) @db.Uuid
+  contractId         String   @db.Uuid
   /// FREE_ONBOARDING PROMOTIONAL_PRICE SETUP_WAIVER CAMPAIGN_CREDIT TEMPORARY_UPGRADE ENTERPRISE_TRIAL
-  kind             String
+  kind               String
   /// The item the promotion applies to (a price item code, a plan fee code, or SUBSCRIPTION).
-  itemCode         String
+  itemCode           String
   originalPriceMinor Int?
-  promoPriceMinor  Int?
-  discountBps      Int?
-  waived           Boolean   @default(false)
-  creditMinor      Int?
-  currency         String
-  startAt          DateTime
-  endAt            DateTime
+  promoPriceMinor    Int?
+  discountBps        Int?
+  waived             Boolean  @default(false)
+  creditMinor        Int?
+  currency           String
+  startAt            DateTime
+  endAt              DateTime
   /// REVERT_TO_STANDARD | CONVERT_TO_PLAN | END
-  postPromotion    String    @default("REVERT_TO_STANDARD")
-  postPlanCode     String?
-  approvedByUserId String?   @db.Uuid
-  approvalRef      String?
-  status           String    @default("ACTIVE")
-  createdByUserId  String    @db.Uuid
-  createdAt        DateTime  @default(now())
+  postPromotion      String   @default("REVERT_TO_STANDARD")
+  postPlanCode       String?
+  approvedByUserId   String?  @db.Uuid
+  approvalRef        String?
+  status             String   @default("ACTIVE")
+  createdByUserId    String   @db.Uuid
+  createdAt          DateTime @default(now())
 
   contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
 
@@ -3849,21 +4106,21 @@ model ContractPromotion {
 
 /// A negotiated rate for one price item on one contract, versioned (never overwritten).
 model ContractRate {
-  id            String    @id @default(uuid(7)) @db.Uuid
-  contractId    String    @db.Uuid
-  itemCode      String
-  version       Int
-  model         String
-  amountMinor   Int?
-  rateBps       Int?
-  discountBps   Int?
-  waived        Boolean   @default(false)
-  currency      String
-  effectiveFrom DateTime  @default(now())
-  effectiveUntil DateTime?
-  approvalRef   String?
-  createdByUserId String  @db.Uuid
-  createdAt     DateTime  @default(now())
+  id              String    @id @default(uuid(7)) @db.Uuid
+  contractId      String    @db.Uuid
+  itemCode        String
+  version         Int
+  model           String
+  amountMinor     Int?
+  rateBps         Int?
+  discountBps     Int?
+  waived          Boolean   @default(false)
+  currency        String
+  effectiveFrom   DateTime  @default(now())
+  effectiveUntil  DateTime?
+  approvalRef     String?
+  createdByUserId String    @db.Uuid
+  createdAt       DateTime  @default(now())
 
   contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
 
@@ -3888,65 +4145,67 @@ model UsageMeter {
 
 /// One recorded usage fact. Idempotent: the same source event can never be recorded twice.
 model UsageEvent {
-  id             String   @id @default(uuid(7)) @db.Uuid
-  idempotencyKey String   @unique
-  organizationId String   @db.Uuid
-  legalEntityId  String?  @db.Uuid
-  contractId     String?  @db.Uuid
-  metricKey      String
-  quantity       Int      @default(1)
-  product        String?
-  feature        String?
-  market         String?
-  campaignId     String?  @db.Uuid
-  sourceType     String
-  sourceId       String
+  id                String   @id @default(uuid(7)) @db.Uuid
+  idempotencyKey    String   @unique
+  organizationId    String   @db.Uuid
+  legalEntityId     String?  @db.Uuid
+  contractId        String?  @db.Uuid
+  metricKey         String
+  quantity          Int      @default(1)
+  product           String?
+  feature           String?
+  market            String?
+  campaignId        String?  @db.Uuid
+  sourceType        String
+  sourceId          String
   pricingVersionKey String?
-  occurredAt     DateTime @default(now())
-  createdAt      DateTime @default(now())
+  occurredAt        DateTime @default(now())
+  createdAt         DateTime @default(now())
 
   @@index([organizationId, metricKey, occurredAt])
 }
 
 /// The standard commercial / billing event Phase 5 consumes (invoices, AR). Nothing here posts to the ledger.
 model CommercialBillingEvent {
-  id                 String   @id @default(uuid(7)) @db.Uuid
-  idempotencyKey     String   @unique
-  organizationId     String   @db.Uuid
+  id                   String    @id @default(uuid(7)) @db.Uuid
+  idempotencyKey       String    @unique
+  organizationId       String    @db.Uuid
   /// The business account (finance) reference when one exists.
-  businessAccountId  String?  @db.Uuid
-  legalEntityId      String?  @db.Uuid
+  businessAccountId    String?   @db.Uuid
+  legalEntityId        String?   @db.Uuid
   /// Who is billed: the contract's billing entity, else the contracting entity. Never a brand or a branch.
-  billingLegalEntityId String? @db.Uuid
-  contractId         String?  @db.Uuid
-  planCode           String?
-  planVersionId      String?  @db.Uuid
-  product            String?
-  feature            String?
-  campaignId         String?  @db.Uuid
+  billingLegalEntityId String?   @db.Uuid
+  contractId           String?   @db.Uuid
+  planCode             String?
+  planVersionId        String?   @db.Uuid
+  product              String?
+  feature              String?
+  campaignId           String?   @db.Uuid
   /// What triggered it in the product: a view id, a redemption id, an order id ...
-  sourceEventId      String?
-  pricingVersionKey  String?
-  quantity           Int      @default(1)
-  unit               String   @default("EACH")
-  unitRateMinor      Int?
-  amountMinor        Int?
-  currency           String
-  occurredAt         DateTime @default(now())
+  sourceEventId        String?
+  pricingVersionKey    String?
+  quantity             Int       @default(1)
+  unit                 String    @default("EACH")
+  unitRateMinor        Int?
+  amountMinor          Int?
+  currency             String
+  occurredAt           DateTime  @default(now())
   /// A BILLING_CATEGORY (revenue classification)
-  billingCategory    String
+  billingCategory      String
   /// A BILLING_EVENT_TYPE
-  eventType          String
+  eventType            String
   /// PENDING (waiting for Phase 5) | CONSUMED | VOID
-  status             String   @default("PENDING")
-  consumedAt         DateTime?
-  metadata           Json     @default("{}")
-  createdAt          DateTime @default(now())
+  status               String    @default("PENDING")
+  consumedAt           DateTime?
+  metadata             Json      @default("{}")
+  createdAt            DateTime  @default(now())
   /// Phase 5 (set once when consumed): how it is collected (INVOICE_DUE | PREPAID_DRAWDOWN | NETTED_FROM_PAYABLE | CAMPAIGN_CASE | NOT_BILLABLE),
   /// what settled it, and the invoice line it became.
-  collection         String?
-  settlementRef      String?
-  invoiceLineId      String?  @db.Uuid
+  collection           String?
+  settlementRef        String?
+  invoiceLineId        String?   @db.Uuid
+  /// Market of the billed party (its tax, invoice and currency rules apply).
+  market               String?
 
   @@index([organizationId, occurredAt])
   @@index([status, eventType])
@@ -3969,6 +4228,7 @@ model CommercialSignal {
   @@index([organizationId, createdAt])
   @@index([consumedAt, type])
 }
+
 // =====================================================================================================================================
 // Phase 4: visibility and operations
 // =====================================================================================================================================
@@ -4203,6 +4463,10 @@ model InvoiceLine {
   collection        String   @default("INVOICE_DUE")
   settledByRef      String?
   createdAt         DateTime @default(now())
+  /// The tax rule (id + version) applied when the line was written; a later rate change never rewrites it.
+  taxRuleId         String?  @db.Uuid
+  taxRuleVersion    Int?
+  taxableItem       String?
 
   document FinanceDocument @relation(fields: [documentId], references: [id], onDelete: Restrict)
 
@@ -4243,6 +4507,9 @@ model FxRate {
   approvedByUserId String?   @db.Uuid
   approvedAt       DateTime?
   createdAt        DateTime  @default(now())
+  /// A manual override of the feed / source rate (needs a reason; still maker-checker approved and audited).
+  isManualOverride Boolean   @default(false)
+  overrideReason   String?
 
   @@unique([baseCurrency, quoteCurrency, rateDate, source])
   @@index([baseCurrency, quoteCurrency, status, rateDate])
@@ -4282,19 +4549,19 @@ model AiInteraction {
 
 /// Every tool step of an interaction and every human decision on a draft. Append-only.
 model AiAction {
-  id               String   @id @default(uuid(7)) @db.Uuid
-  interactionId    String?  @db.Uuid
-  draftId          String?  @db.Uuid
-  tool             String
+  id             String   @id @default(uuid(7)) @db.Uuid
+  interactionId  String?  @db.Uuid
+  draftId        String?  @db.Uuid
+  tool           String
   /// READ | DRAFT | EXECUTE
-  tier             String
+  tier           String
   /// SUGGESTED | DRAFTED | HUMAN_APPROVED | SYSTEM_EXECUTED | REJECTED | DENIED
-  state            String
-  input            Json     @default("{}")
-  outputSummary    Json     @default("{}")
-  actorUserId      String   @db.Uuid
-  organizationId   String?  @db.Uuid
-  createdAt        DateTime @default(now())
+  state          String
+  input          Json     @default("{}")
+  outputSummary  Json     @default("{}")
+  actorUserId    String   @db.Uuid
+  organizationId String?  @db.Uuid
+  createdAt      DateTime @default(now())
 
   @@index([interactionId])
   @@index([draftId])

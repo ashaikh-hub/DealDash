@@ -9842,6 +9842,806 @@
         ]
       }
     },
+    "/v1/admin/markets": {
+      "get": {
+        "operationId": "AdminMarketsController_list_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-markets"
+        ]
+      }
+    },
+    "/v1/admin/markets/regions": {
+      "get": {
+        "operationId": "AdminMarketsController_regions_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-markets"
+        ]
+      },
+      "post": {
+        "operationId": "AdminMarketsController_upsertRegion_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-markets"
+        ]
+      }
+    },
+    "/v1/admin/markets/validations": {
+      "get": {
+        "operationId": "AdminMarketsController_validations_v1",
+        "parameters": [
+          {
+            "name": "market",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minLength": 2,
+              "maxLength": 2,
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "OPEN",
+                "IN_REVIEW",
+                "RESOLVED",
+                "ACCEPTED_RISK",
+                "NOT_APPLICABLE"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-markets"
+        ]
+      }
+    },
+    "/v1/admin/markets/validations/{id}": {
+      "put": {
+        "operationId": "AdminMarketsController_updateValidation_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValidationUpdateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-markets"
+        ]
+      }
+    },
+    "/v1/admin/markets/config/{kind}/{id}/approve": {
+      "post": {
+        "operationId": "AdminMarketsController_approveConfig_v1",
+        "parameters": [
+          {
+            "name": "kind",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-markets"
+        ]
+      }
+    },
+    "/v1/admin/markets/config/{kind}/{id}/retire": {
+      "post": {
+        "operationId": "AdminMarketsController_retireConfig_v1",
+        "parameters": [
+          {
+            "name": "kind",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RetireDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-markets"
+        ]
+      }
+    },
+    "/v1/admin/markets/{code}": {
+      "get": {
+        "operationId": "AdminMarketsController_get_v1",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-markets"
+        ]
+      },
+      "post": {
+        "operationId": "AdminMarketsController_upsert_v1",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MasterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-markets"
+        ]
+      }
+    },
+    "/v1/admin/markets/{code}/readiness": {
+      "get": {
+        "operationId": "AdminMarketsController_getReadiness_v1",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-markets"
+        ]
+      }
+    },
+    "/v1/admin/markets/{code}/status": {
+      "post": {
+        "operationId": "AdminMarketsController_transition_v1",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransitionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-markets"
+        ]
+      }
+    },
+    "/v1/admin/markets/{code}/status/{decision}": {
+      "post": {
+        "operationId": "AdminMarketsController_decide_v1",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "decision",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-markets"
+        ]
+      }
+    },
+    "/v1/admin/markets/{code}/products": {
+      "get": {
+        "operationId": "AdminMarketsController_products_v1",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-markets"
+        ]
+      }
+    },
+    "/v1/admin/markets/{code}/products/{product}": {
+      "put": {
+        "operationId": "AdminMarketsController_setProduct_v1",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "product",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-markets"
+        ]
+      }
+    },
+    "/v1/admin/markets/{code}/config/{kind}": {
+      "get": {
+        "operationId": "AdminMarketsController_listConfig_v1",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kind",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-markets"
+        ]
+      }
+    },
+    "/v1/admin/markets/{code}/tax-rules": {
+      "post": {
+        "operationId": "AdminMarketsController_draftTax_v1",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaxDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-markets"
+        ]
+      }
+    },
+    "/v1/admin/markets/{code}/tax-rules/resolve": {
+      "get": {
+        "operationId": "AdminMarketsController_resolveTax_v1",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "item",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minLength": 1,
+              "maxLength": 40,
+              "type": "string"
+            }
+          },
+          {
+            "name": "legalEntityId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "at",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-markets"
+        ]
+      }
+    },
+    "/v1/admin/markets/{code}/invoice-configs": {
+      "post": {
+        "operationId": "AdminMarketsController_draftInvoice_v1",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvoiceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-markets"
+        ]
+      }
+    },
+    "/v1/admin/markets/{code}/settlement-rules": {
+      "post": {
+        "operationId": "AdminMarketsController_draftSettlement_v1",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettlementDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-markets"
+        ]
+      }
+    },
+    "/v1/admin/markets/{code}/policies": {
+      "post": {
+        "operationId": "AdminMarketsController_draftPolicy_v1",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PolicyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-markets"
+        ]
+      }
+    },
+    "/v1/admin/markets/{code}/providers": {
+      "get": {
+        "operationId": "AdminMarketsController_providers_v1",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-markets"
+        ]
+      },
+      "post": {
+        "operationId": "AdminMarketsController_addProvider_v1",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProviderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-markets"
+        ]
+      }
+    },
+    "/v1/admin/markets/{code}/providers/{id}": {
+      "put": {
+        "operationId": "AdminMarketsController_updateProvider_v1",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProviderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-markets"
+        ]
+      }
+    },
+    "/v1/admin/markets/{code}/validations": {
+      "post": {
+        "operationId": "AdminMarketsController_createValidation_v1",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValidationCreateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-markets"
+        ]
+      }
+    },
+    "/v1/admin/markets/{code}/history": {
+      "get": {
+        "operationId": "AdminMarketsController_history_v1",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-markets"
+        ]
+      }
+    },
+    "/v1/orgs/{orgId}/markets": {
+      "get": {
+        "operationId": "OrgMarketsController_list_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "markets"
+        ]
+      }
+    },
     "/v1/admin/loyalty/rules": {
       "get": {
         "operationId": "AdminLoyaltyController_list_v1",
@@ -21562,7 +22362,10 @@
                         "partner.ai.use",
                         "partner.ai.approve",
                         "admin.ai.use",
-                        "admin.ai.manage"
+                        "admin.ai.manage",
+                        "admin.markets.read",
+                        "admin.markets.manage",
+                        "admin.markets.approve"
                       ]
                     }
                   }
@@ -22052,7 +22855,10 @@
                     "partner.ai.use",
                     "partner.ai.approve",
                     "admin.ai.use",
-                    "admin.ai.manage"
+                    "admin.ai.manage",
+                    "admin.markets.read",
+                    "admin.markets.manage",
+                    "admin.markets.approve"
                   ]
                 }
               },
@@ -23614,7 +24420,10 @@
                             "partner.ai.use",
                             "partner.ai.approve",
                             "admin.ai.use",
-                            "admin.ai.manage"
+                            "admin.ai.manage",
+                            "admin.markets.read",
+                            "admin.markets.manage",
+                            "admin.markets.approve"
                           ]
                         }
                       }
@@ -24766,24 +25575,117 @@
       "SettlementDto": {
         "type": "object",
         "properties": {
-          "bankName": {
+          "code": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 120
+            "minLength": 2,
+            "maxLength": 40
           },
-          "iban": {
-            "type": "string"
-          },
-          "accountHolderName": {
+          "legalEntityId": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 160
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
+          },
+          "product": {
+            "type": "string",
+            "maxLength": 40,
+            "nullable": true
+          },
+          "organizationId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
+          },
+          "contractId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
+          },
+          "currency": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3
+          },
+          "frequency": {
+            "type": "string",
+            "enum": [
+              "DAILY",
+              "WEEKLY",
+              "BIWEEKLY",
+              "MONTHLY",
+              "ON_DEMAND"
+            ]
+          },
+          "cycleDays": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 365
+          },
+          "minimumMinor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "destinationRef": {
+            "type": "string",
+            "maxLength": 120,
+            "nullable": true
+          },
+          "payableTreatment": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "sponsorTreatment": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "feeBps": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000,
+            "nullable": true
+          },
+          "reconciliationMethod": {
+            "type": "string",
+            "enum": [
+              "STATEMENT_MATCH",
+              "PER_TRANSACTION",
+              "BATCH_TOTAL"
+            ]
+          },
+          "holdDays": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 365
+          },
+          "disputeTreatment": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "effectiveFrom": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "effectiveTo": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "nullable": true
+          },
+          "validationCode": {
+            "type": "string",
+            "maxLength": 60,
+            "nullable": true
           }
         },
         "required": [
-          "bankName",
-          "iban",
-          "accountHolderName"
+          "code",
+          "currency",
+          "frequency",
+          "effectiveFrom"
         ]
       },
       "DocumentAttachDto": {
@@ -64478,6 +65380,733 @@
           "languages"
         ]
       },
+      "RegionDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 31
+          },
+          "nameEn": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 80
+          },
+          "nameAr": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 80
+          },
+          "sortOrder": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          }
+        },
+        "required": [
+          "code",
+          "nameEn",
+          "nameAr"
+        ]
+      },
+      "ValidationUpdateDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "OPEN",
+              "IN_REVIEW",
+              "RESOLVED",
+              "ACCEPTED_RISK",
+              "NOT_APPLICABLE"
+            ]
+          },
+          "decision": {
+            "type": "string",
+            "maxLength": 2000,
+            "nullable": true
+          },
+          "evidenceRef": {
+            "type": "string",
+            "maxLength": 300,
+            "nullable": true
+          },
+          "ownerUserId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
+          },
+          "ownerTeam": {
+            "type": "string",
+            "maxLength": 80,
+            "nullable": true
+          },
+          "effectiveDate": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "nullable": true
+          },
+          "reviewDate": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "nullable": true
+          },
+          "blocksActivation": {
+            "type": "boolean"
+          }
+        }
+      },
+      "RetireDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "MasterDto": {
+        "type": "object",
+        "properties": {
+          "nameEn": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 80
+          },
+          "nameAr": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 80
+          },
+          "regionCode": {
+            "type": "string",
+            "maxLength": 31,
+            "nullable": true
+          },
+          "isoAlpha3": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3,
+            "nullable": true
+          },
+          "currency": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3
+          },
+          "supportedCurrencies": {
+            "maxItems": 10,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 3
+            }
+          },
+          "billingCurrency": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3,
+            "nullable": true
+          },
+          "settlementCurrency": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3,
+            "nullable": true
+          },
+          "taxCurrency": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3,
+            "nullable": true
+          },
+          "currencyDecimals": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4
+          },
+          "roundingRule": {
+            "type": "string",
+            "enum": [
+              "HALF_UP",
+              "HALF_EVEN",
+              "DOWN",
+              "UP"
+            ]
+          },
+          "languages": {
+            "minItems": 1,
+            "maxItems": 6,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 5
+            }
+          },
+          "defaultLanguage": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 5
+          },
+          "timezone": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 60
+          },
+          "callingCode": {
+            "type": "string",
+            "pattern": "^\\+\\d{1,4}$",
+            "nullable": true
+          },
+          "formatting": {
+            "type": "object",
+            "additionalProperties": {}
+          },
+          "launchDate": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "nullable": true
+          },
+          "dealdashLegalEntityId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
+          },
+          "supportContact": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "string",
+                "format": "email",
+                "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+              },
+              "phone": {
+                "type": "string",
+                "maxLength": 30
+              },
+              "hours": {
+                "type": "string",
+                "maxLength": 120
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "nameEn",
+          "nameAr",
+          "currency",
+          "languages"
+        ]
+      },
+      "TransitionDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "PLANNED",
+              "CONFIGURING",
+              "TESTING",
+              "PILOT",
+              "ACTIVE",
+              "SUSPENDED",
+              "CLOSED"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "status",
+          "reason"
+        ]
+      },
+      "DecisionDto": {
+        "type": "object",
+        "properties": {
+          "quotationId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "decision": {
+            "type": "string",
+            "enum": [
+              "APPROVED",
+              "REJECTED"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "quotationId",
+          "decision"
+        ]
+      },
+      "ProductDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "DISABLED",
+              "CONFIGURING",
+              "TESTING",
+              "PILOT",
+              "ACTIVE",
+              "SUSPENDED"
+            ]
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 300,
+            "nullable": true
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "TaxDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 40
+          },
+          "legalEntityId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
+          },
+          "taxType": {
+            "type": "string",
+            "enum": [
+              "VAT",
+              "GST",
+              "SALES_TAX",
+              "WITHHOLDING",
+              "DIGITAL_SERVICES",
+              "OTHER"
+            ]
+          },
+          "rateBps": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000
+          },
+          "inclusive": {
+            "type": "boolean"
+          },
+          "applicability": {
+            "minItems": 1,
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 40
+            }
+          },
+          "exempt": {
+            "type": "boolean"
+          },
+          "exemptionReason": {
+            "type": "string",
+            "maxLength": 300,
+            "nullable": true
+          },
+          "registrationRef": {
+            "type": "string",
+            "maxLength": 80,
+            "nullable": true
+          },
+          "roundingRule": {
+            "type": "string",
+            "enum": [
+              "HALF_UP",
+              "HALF_EVEN",
+              "DOWN",
+              "UP"
+            ]
+          },
+          "taxCurrency": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3,
+            "nullable": true
+          },
+          "effectiveFrom": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "effectiveTo": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "nullable": true
+          },
+          "validationCode": {
+            "type": "string",
+            "maxLength": 60,
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 500,
+            "nullable": true
+          }
+        },
+        "required": [
+          "code",
+          "taxType",
+          "rateBps",
+          "applicability",
+          "effectiveFrom"
+        ]
+      },
+      "InvoiceDto": {
+        "type": "object",
+        "properties": {
+          "documentKind": {
+            "type": "string",
+            "enum": [
+              "TAX_INVOICE",
+              "INVOICE",
+              "COMMERCIAL_INVOICE",
+              "PROFORMA_INVOICE",
+              "CREDIT_NOTE",
+              "DEBIT_NOTE"
+            ]
+          },
+          "legalEntityId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
+          },
+          "prefix": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16
+          },
+          "sequenceKey": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 80
+          },
+          "languages": {
+            "minItems": 1,
+            "maxItems": 4,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 5
+            }
+          },
+          "requiredFields": {
+            "maxItems": 10,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 40
+            }
+          },
+          "qrRequired": {
+            "type": "boolean"
+          },
+          "eInvoiceProvider": {
+            "type": "string",
+            "maxLength": 60,
+            "nullable": true
+          },
+          "validationStatus": {
+            "type": "string",
+            "enum": [
+              "CONFIGURED",
+              "VALIDATION_REQUIRED",
+              "VALIDATED"
+            ]
+          },
+          "validationCode": {
+            "type": "string",
+            "maxLength": 60,
+            "nullable": true
+          },
+          "effectiveFrom": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "effectiveTo": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 500,
+            "nullable": true
+          }
+        },
+        "required": [
+          "documentKind",
+          "prefix",
+          "languages",
+          "effectiveFrom"
+        ]
+      },
+      "PolicyDto": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string",
+            "enum": [
+              "REFUND_EXPIRY",
+              "KYB",
+              "PRIVACY_CONSENT",
+              "LEGAL_TERMS",
+              "SUPPORT",
+              "RESTRICTION"
+            ]
+          },
+          "key": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 40
+          },
+          "product": {
+            "type": "string",
+            "maxLength": 40,
+            "nullable": true
+          },
+          "value": {
+            "type": "object",
+            "additionalProperties": {}
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "validationCode": {
+            "type": "string",
+            "maxLength": 60,
+            "nullable": true
+          },
+          "effectiveFrom": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "nullable": true
+          },
+          "effectiveTo": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "nullable": true
+          }
+        },
+        "required": [
+          "category",
+          "key",
+          "value"
+        ]
+      },
+      "ProviderDto": {
+        "type": "object",
+        "properties": {
+          "capability": {
+            "type": "string",
+            "enum": [
+              "PAYMENT",
+              "SMS_OTP",
+              "EMAIL",
+              "PUSH",
+              "VIDEO",
+              "STORAGE_CDN",
+              "MAPS",
+              "E_INVOICING",
+              "KYB",
+              "IDENTITY",
+              "ANALYTICS"
+            ]
+          },
+          "providerCode": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 60
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "CARD",
+              "WALLET",
+              "BANK_TRANSFER",
+              "LOCAL_METHOD",
+              null
+            ],
+            "nullable": true
+          },
+          "currency": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3,
+            "nullable": true
+          },
+          "merchantAccountRef": {
+            "type": "string",
+            "maxLength": 120,
+            "nullable": true
+          },
+          "refundSupported": {
+            "type": "array",
+            "items": {
+              "type": "boolean"
+            }
+          },
+          "credentialRef": {
+            "type": "string",
+            "maxLength": 130,
+            "nullable": true
+          },
+          "webhookRef": {
+            "type": "string",
+            "maxLength": 130,
+            "nullable": true
+          },
+          "environment": {
+            "type": "string",
+            "enum": [
+              "MOCK",
+              "SANDBOX",
+              "PRODUCTION"
+            ]
+          },
+          "priority": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000
+          },
+          "isFallback": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DISABLED",
+              "CONFIGURING",
+              "TESTING",
+              "ACTIVE",
+              "SUSPENDED"
+            ]
+          },
+          "effectiveFrom": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "nullable": true
+          },
+          "effectiveTo": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 500,
+            "nullable": true
+          }
+        },
+        "required": [
+          "capability",
+          "providerCode"
+        ]
+      },
+      "ValidationCreateDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 60
+          },
+          "topic": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 120
+          },
+          "description": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 2000
+          },
+          "product": {
+            "type": "string",
+            "maxLength": 40,
+            "nullable": true
+          },
+          "ownerUserId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
+          },
+          "ownerTeam": {
+            "type": "string",
+            "maxLength": 80,
+            "nullable": true
+          },
+          "blocksActivation": {
+            "type": "boolean"
+          },
+          "reviewDate": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "nullable": true
+          },
+          "sourceRef": {
+            "type": "string",
+            "maxLength": 200,
+            "nullable": true
+          }
+        },
+        "required": [
+          "code",
+          "topic",
+          "description"
+        ]
+      },
       "RuleListResponse": {
         "type": "object",
         "properties": {
@@ -65189,31 +66818,6 @@
           "name",
           "eventType",
           "maxAllocationPoints"
-        ]
-      },
-      "DecisionDto": {
-        "type": "object",
-        "properties": {
-          "quotationId": {
-            "type": "string",
-            "format": "uuid",
-            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-          },
-          "decision": {
-            "type": "string",
-            "enum": [
-              "APPROVED",
-              "REJECTED"
-            ]
-          },
-          "reason": {
-            "type": "string",
-            "maxLength": 500
-          }
-        },
-        "required": [
-          "quotationId",
-          "decision"
         ]
       },
       "AllocationDto": {
@@ -77924,6 +79528,14 @@
             "type": "string",
             "format": "date-time",
             "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "isManualOverride": {
+            "type": "boolean"
+          },
+          "overrideReason": {
+            "type": "string",
+            "maxLength": 500,
+            "nullable": true
           }
         },
         "required": [

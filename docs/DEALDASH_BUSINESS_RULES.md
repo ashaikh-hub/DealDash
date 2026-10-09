@@ -1174,3 +1174,20 @@ Full specification: `SUBSCRIPTION_LICENSING_ENTITLEMENT.md`. Rules in force:
   recommendation.
 - A7. Every interaction, tool call, draft, approval, execution and refusal is audited; usage is metered but not priced.
 - A8. Unsupported languages (e.g. Urdu) are answered in English with a note; no machine-translated financial text.
+
+## Addendum (Oct 2026) — Market / country configuration rules (awaiting approval)
+
+- MK1. The market (country), not the region, is the tax, currency, invoicing, payment, settlement, regulatory and launch authority.
+- MK2. A market moves PLANNED → CONFIGURING → TESTING → PILOT → ACTIVE (SUSPENDED, CLOSED); CLOSED is terminal. PILOT and ACTIVE need the
+  activation gate and a second administrator; ACTIVE needs every mandatory item configured and every blocking validation closed.
+- MK3. New exposure (campaign submission / activation, Live Deal submission, AI assistants) needs both the market and the product open
+  (PILOT / ACTIVE). Issued customer rights, redemptions, refunds and records are never affected by market or product status.
+- MK4. A campaign belongs to exactly one market (its branches' country); a campaign spanning markets is refused.
+- MK5. Tax comes only from the market's own approved, effective-dated rules; no fallback to another country. Documents keep the rule
+  version they were issued with; approved rules are never edited.
+- MK6. Pricing for one market never prices another: market-neutral and default pricing apply only where approved.
+- MK7. No uncontrolled conversion: campaign funding is SAR-only until a ledger decision; other currencies are refused, not converted.
+- MK8. Provider credentials are never stored in configuration (references only); mock adapters never satisfy launch readiness.
+- MK9. Legal, tax and regulatory conclusions are never encoded as rules: they are validation items until a decision with evidence is
+  recorded and approved. The §25 VALIDATE-KSA items (VK-01..VK-25) and the founder launch-readiness items now live in the market
+  validation register (source preserved).

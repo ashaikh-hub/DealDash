@@ -1,6 +1,6 @@
 import { Inject, Injectable, Optional } from '@nestjs/common';
 import { CONFIG_KEYS } from '@dealdash/config';
-import { IN_FORCE_LIFECYCLE, METRIC_OF_LIMIT, type FinancialStatus } from '@dealdash/types';
+import { IN_FORCE_LIFECYCLE, MARKET_PRODUCTS, METRIC_OF_LIMIT, type FinancialStatus } from '@dealdash/types';
 import { AppError } from '../common/errors';
 import { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
@@ -13,6 +13,7 @@ import {
   type FinancialStatusView,
 } from '../subscription/policy';
 import { SystemConfigService } from '../system-config/system-config.service';
+import { MarketService } from './markets/market.service';
 import type { EntitlementView } from '@dealdash/validation';
 
 interface DefaultPlan {
@@ -68,6 +69,7 @@ export class EntitlementService {
     private readonly prisma: PrismaService,
     private readonly config: SystemConfigService,
     @Optional() @Inject(FINANCIAL_STATUS_PROVIDER) private readonly financial?: FinancialStatusProvider,
+    @Optional() private readonly markets?: MarketService,
   ) {}
 
   // ---------------------------------------------------------------- resolution
@@ -232,10 +234,15 @@ export class EntitlementService {
   }
 
   // ---------------------------------------------------------------- the simple checks used across the product
-  async requireProduct(organizationId: string, product: string, opts: { legalEntityId?: string | null } = {}): Promise<void> {
-    const e = await this.effective(organizationId, new Date(), opts);
+  /**
+   * The contract must include the product AND the product must be open in the market where it is used (market product availability):
+   * being live in one country says nothing about another.
+   */
+  async requireProduct(organizationId: string, product: string, opts: { legalEntityId?: string | null; market?: string | null } = {}): Promise<void> {
+    const e = await this.effective(organizationId, new Date(), { legalEntityId: opts.legalEntityId });
     if (!e.products.includes(product))
       throw new AppError('ENTITLEMENT_REQUIRED', `Your contract does not include ${product}`, 403);
+    if (this.markets && (MARKET_PRODUCTS as readonly string[]).includes(product)) await this.markets.requireAvailable(organizationId, product, opts);
   }
 
   async requireFeature(organizationId: string, feature: string, opts: { legalEntityId?: string | null } = {}): Promise<void> {
