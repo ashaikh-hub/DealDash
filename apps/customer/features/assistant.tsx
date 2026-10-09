@@ -10,7 +10,11 @@ export function CustomerAssistantPage() {
   return (
     <RequireAuth>
       <div className="dd-stack" style={{ gap: 16 }}>
-        <AiAssistantPanel askPath="/v1/app/ai/ask" allowDrafting={false} examples={['ai.ex.deals', 'ai.ex.points', 'ai.ex.vouchers']} />
+        <AiAssistantPanel
+          askPath="/v1/app/ai/ask"
+          allowDrafting={false}
+          examples={['ai.ex.deals', 'ai.ex.points', 'ai.ex.vouchers']}
+        />
       </div>
     </RequireAuth>
   );

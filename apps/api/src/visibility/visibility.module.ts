@@ -10,7 +10,11 @@ import { MetricsService } from './metrics.service';
 import { OperationsCentreService } from './operations-centre.service';
 import { ReportingService } from './reporting.service';
 import { TargetsService } from './targets.service';
-import { AdminVisibilityController, NotificationPreferenceController, OrgVisibilityController } from './visibility.controllers';
+import {
+  AdminVisibilityController,
+  NotificationPreferenceController,
+  OrgVisibilityController,
+} from './visibility.controllers';
 
 /**
  * Phase 4: visibility and operations on the modular monolith (no Kafka, no extra infrastructure). Background passes:
@@ -20,9 +24,29 @@ import { AdminVisibilityController, NotificationPreferenceController, OrgVisibil
  */
 @Module({
   imports: [JobsModule, VouchersModule],
-  controllers: [OrgVisibilityController, NotificationPreferenceController, AdminVisibilityController],
-  providers: [AnalyticsProjector, MetricsService, ReportingService, TargetsService, AlertsService, EarlyWarningService, OperationsCentreService],
-  exports: [AnalyticsProjector, MetricsService, ReportingService, TargetsService, AlertsService, EarlyWarningService, OperationsCentreService],
+  controllers: [
+    OrgVisibilityController,
+    NotificationPreferenceController,
+    AdminVisibilityController,
+  ],
+  providers: [
+    AnalyticsProjector,
+    MetricsService,
+    ReportingService,
+    TargetsService,
+    AlertsService,
+    EarlyWarningService,
+    OperationsCentreService,
+  ],
+  exports: [
+    AnalyticsProjector,
+    MetricsService,
+    ReportingService,
+    TargetsService,
+    AlertsService,
+    EarlyWarningService,
+    OperationsCentreService,
+  ],
 })
 export class VisibilityModule implements OnModuleInit {
   constructor(
@@ -53,7 +77,9 @@ export class VisibilityModule implements OnModuleInit {
     const every = (type: string, ms: number) => {
       const enqueue = () => {
         const slot = Math.floor(Date.now() / ms);
-        void this.jobs.enqueue(type, {}, { idempotencyKey: `${type}:${slot}`, maxAttempts: 1 }).catch(() => undefined);
+        void this.jobs
+          .enqueue(type, {}, { idempotencyKey: `${type}:${slot}`, maxAttempts: 1 })
+          .catch(() => undefined);
       };
       enqueue();
       setInterval(enqueue, ms).unref();

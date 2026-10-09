@@ -445,3 +445,25 @@ Detail: `SUBSCRIPTION_LICENSING_ENTITLEMENT.md` §12. Contract regenerated (`pac
   `DOWNGRADE_BLOCKED`, `PLAN_NOT_AVAILABLE`, `PRICING_NOT_AVAILABLE`, `AMENDMENT_INVALID` (plus existing `APPROVAL_REQUIRED`,
   `COMMERCIAL_ACCEPTANCE_REQUIRED`, `VERSION_CONFLICT`, `INVALID_STATE`, `SCOPE_FORBIDDEN`).
 - Phase 5 interface (not an HTTP API yet): `BillingEventService.list / markConsumed`, `FINANCIAL_STATUS_PROVIDER`. Phase 4: `SignalService.list / markConsumed`.
+
+
+## Addendum (Oct 2026) — Phase 4 / Phase 5 API
+
+OpenAPI regenerated (`pnpm api:contract`, 502+ paths). All state-changing calls keep CSRF and idempotency keys.
+
+- **Visibility (business)** `/v1/orgs/:orgId/`: `performance/overview`, `performance/report`, `performance/campaigns/:product/:campaignId`,
+  `targets`, `targets/:id/archive`, `alerts`, `alerts/:id/(acknowledge|resolve)`, `alert-rules`, `alert-rules/:id`, `integration-health`.
+- **Personal**: `/v1/me/notification-preferences`.
+- **Visibility (DealDash)** `/v1/admin/visibility/`: `overview`, `report`, `campaigns/:product/:id`, `refresh`, `targets`, `alerts`,
+  `alerts/evaluate`, `alerts/:id/:action`, `alert-rules`, `command-centre`, `integrations`, `platform-health`, `customers`,
+  `customers/:userId/timeline`.
+- **Billing (business)** `/v1/orgs/:orgId/billing/`: `accounts`, `accounts/:id`, `accounts/:id/statement`, `documents`, `documents/:id`,
+  `documents/:id/dispute`, `receivables`, `purchase-orders`, `reconciliation`, `quotations/:caseId/decline`.
+- **Billing (DealDash)** `/v1/admin/billing/`: `accounts`, `accounts/:id`, `accounts/:id/status`, `accounts/:id/statement` (GET, POST to
+  issue), `run`, `documents`, `documents/:id`, `documents/:id/(issue|send|cancel|notes|write-off|dispute/resolve)`, `proforma`, `payments`,
+  `payments/:id/allocate`, `receivables`, `purchase-orders`, `fx-rates`, `fx-rates/:id/(approve|reject)`, `reconciliation`.
+- **AI**: `/v1/app/ai/ask` (customer); `/v1/orgs/:orgId/ai/ask`, `ai/drafts`, `ai/drafts/:id/(approve|reject)` (merchant / partner);
+  `/v1/admin/ai/ask`, `drafts`, `drafts/:id/:decision`, `interactions`, `interactions/:id`, `usage`, `governance`, `evaluations`.
+
+New error codes: ALERT_RULE_INVALID, TARGET_INVALID, DOCUMENT_IMMUTABLE, PO_REQUIRED, PO_INSUFFICIENT, FX_RATE_REQUIRED, QUOTATION_EXPIRED,
+OVERPAYMENT, AI_NOT_ENTITLED, AI_AUTONOMY_EXCEEDED, AI_APPROVAL_REQUIRED, AI_TOOL_DENIED. Another tenant's resource is always 404.

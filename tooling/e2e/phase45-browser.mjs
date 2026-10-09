@@ -34,6 +34,11 @@ if (!PASSWORD) throw new Error('Set SEED_USER_PASSWORD (the password you gave to
 mkdirSync(OUT, { recursive: true });
 
 const TAG = randomBytes(3).toString('hex');
+// the development API runs under `node --watch` and can restart a few times right after start: wait until it answers steadily
+for (let ok = 0, tries = 0; ok < 5 && tries < 120; tries++) {
+  ok = (await fetch(`${API}/v1/health`).then((r) => r.ok).catch(() => false)) ? ok + 1 : 0;
+  await new Promise((r) => setTimeout(r, 2000));
+}
 // development servers compile a route on first request; warm every route first so a compile never reloads a page mid-check
 for (const [base, paths] of [
   [MERCHANT, ['performance', 'billing', 'assistant']],

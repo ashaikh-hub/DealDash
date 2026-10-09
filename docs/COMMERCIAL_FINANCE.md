@@ -139,3 +139,14 @@ Tax rate and treatment of each charge; e-invoicing and tax invoice format and nu
 * `quote.calculator.unit.test.ts`: pricing, minimums, tax never invented, sponsor separation, non-cash benefit, unbounded cost, hash and amendment delta.
 * `commercial.e2e.test.ts` and `commercial-products.e2e.test.ts`: preview, acknowledgement, permanent record (database trigger), prepaid gate, utilisation and reversal, sponsors and on-behalf authorisation, third-party fulfilment merchant, maker-checker, credit and exposure, holds, reconciliation and closure, permissions, Vouchers and Watch & Earn adoption, no grandfathering.
 * UI: `apps/merchant/features/commercial.test.tsx`, `apps/admin/features/commercial.test.tsx`, localization test.
+
+
+## Phase 5 extension (Oct 2026)
+
+The commercial finance platform above is extended, not replaced, by Phase 5 (`docs/PHASE5_BILLING_FINANCE.md`): legal-entity billing
+accounts and finance scope; billing events collected exactly once (invoice, prepaid draw-down, netted from payable, campaign case);
+draft-only billing runs with maker-checker issue; issued documents immutable (database trigger) with credit / debit / adjustment notes;
+partial payments and unallocated credit; aging, disputes and statements; purchase orders; credit exposure including open receivables;
+approved-rate-only multi-currency; reconciliation by business account, legal entity, product, campaign, funding party, merchant, sponsor
+and currency; quotation expiry, rejection and modification requests; a receivables-aware financial status (overdue drives PAST_DUE only
+when switched on). Case closure invoices continue to work as before.

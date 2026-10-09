@@ -25,7 +25,9 @@ export const aiAdminAskSchema = aiAskSchema.extend({
 
 export const aiDecisionSchema = z.object({ reason: z.string().trim().max(500).optional() });
 
-export const aiDraftQuerySchema = z.object({ status: z.enum(['PENDING_APPROVAL', 'APPROVED', 'REJECTED', 'EXECUTED', 'EXPIRED']).optional() });
+export const aiDraftQuerySchema = z.object({
+  status: z.enum(['PENDING_APPROVAL', 'APPROVED', 'REJECTED', 'EXECUTED', 'EXPIRED']).optional(),
+});
 
 export const aiInteractionQuerySchema = z.object({
   organizationId: z.string().uuid().optional(),

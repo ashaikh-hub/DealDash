@@ -13,7 +13,11 @@ import { AiService } from './ai.service';
 @Module({
   imports: [VisibilityModule, BillingModule],
   controllers: [CustomerAiController, OrgAiController, AdminAiController],
-  providers: [AiService, AiEvalService, { provide: AI_PROVIDER, useFactory: () => new BuiltinAiProvider() }],
+  providers: [
+    AiService,
+    AiEvalService,
+    { provide: AI_PROVIDER, useFactory: () => new BuiltinAiProvider() },
+  ],
   exports: [AiService],
 })
 export class AiModule {}

@@ -31,7 +31,15 @@ export interface RawRow {
   currency: string;
 }
 
-export type GroupColumn = 'organizationId' | 'legalEntityId' | 'branchId' | 'campaignId' | 'country' | 'product' | 'day' | 'none';
+export type GroupColumn =
+  | 'organizationId'
+  | 'legalEntityId'
+  | 'branchId'
+  | 'campaignId'
+  | 'country'
+  | 'product'
+  | 'day'
+  | 'none';
 
 const hour = (d: Date) => new Date(Math.floor(d.getTime() / 3_600_000) * 3_600_000);
 
@@ -49,7 +57,9 @@ export class MetricsService {
 
   /** Recomputes the hourly buckets touched in the last N hours (idempotent: same input, same rows). */
   async aggregate(now = new Date()): Promise<number> {
-    const cfg = await this.config.get<{ reaggregateHours?: number }>(CONFIG_KEYS.VISIBILITY_ANALYTICS);
+    const cfg = await this.config.get<{ reaggregateHours?: number }>(
+      CONFIG_KEYS.VISIBILITY_ANALYTICS,
+    );
     const from = hour(new Date(now.getTime() - (cfg?.reaggregateHours ?? 48) * 3_600_000));
     const n = await this.prisma.$executeRaw(Prisma.sql`
       INSERT INTO "MetricAggregate" ("id", "bucket", "bucketStart", "name", "product", "organizationId", "legalEntityId", "branchId", "campaignId", "country", "currency", "count", "amountMinor", "points", "computedAt")
@@ -62,7 +72,11 @@ export class MetricsService {
       GROUP BY 3, 4, 5, 6, 7, 8, 9, 10, 11
       ON CONFLICT ("bucket", "bucketStart", "name", "organizationId", "legalEntityId", "branchId", "campaignId", "country", "currency")
       DO UPDATE SET "count" = EXCLUDED."count", "amountMinor" = EXCLUDED."amountMinor", "points" = EXCLUDED."points", "computedAt" = now()`);
-    await this.prisma.analyticsWatermark.upsert({ where: { source: 'aggregate' }, update: { cursorAt: now }, create: { source: 'aggregate', cursorAt: now } });
+    await this.prisma.analyticsWatermark.upsert({
+      where: { source: 'aggregate' },
+      update: { cursorAt: now },
+      create: { source: 'aggregate', cursorAt: now },
+    });
     return n;
   }
 
@@ -73,10 +87,18 @@ export class MetricsService {
   }
 
   private where(f: MetricFilter) {
-    const parts: Prisma.Sql[] = [Prisma.sql`a."bucket" = 'HOUR'`, Prisma.sql`a."bucketStart" >= ${hour(f.from)}`, Prisma.sql`a."bucketStart" < ${f.to}`];
+    const parts: Prisma.Sql[] = [
+      Prisma.sql`a."bucket" = 'HOUR'`,
+      Prisma.sql`a."bucketStart" >= ${hour(f.from)}`,
+      Prisma.sql`a."bucketStart" < ${f.to}`,
+    ];
     const list = (col: string, xs: string[] | null | undefined) => {
       if (xs === null || xs === undefined) return;
-      parts.push(xs.length ? Prisma.sql`${Prisma.raw(`a."${col}"`)} IN (${Prisma.join(xs)})` : Prisma.sql`false`);
+      parts.push(
+        xs.length
+          ? Prisma.sql`${Prisma.raw(`a."${col}"`)} IN (${Prisma.join(xs)})`
+          : Prisma.sql`false`,
+      );
     };
     list('organizationId', f.organizationIds);
     list('campaignId', f.campaignIds);
@@ -95,7 +117,12 @@ export class MetricsService {
   }
 
   /** Sums per event name, optionally grouped by one dimension column. */
-  async raw(f: MetricFilter, names: string[], group: GroupColumn = 'none', tz = 'Asia/Riyadh'): Promise<RawRow[]> {
+  async raw(
+    f: MetricFilter,
+    names: string[],
+    group: GroupColumn = 'none',
+    tz = 'Asia/Riyadh',
+  ): Promise<RawRow[]> {
     if (!names.length) return [];
     const g =
       group === 'none'
@@ -103,25 +130,53 @@ export class MetricsService {
         : group === 'day'
           ? Prisma.sql`to_char((a."bucketStart" AT TIME ZONE 'UTC') AT TIME ZONE ${tz}, 'YYYY-MM-DD')`
           : Prisma.raw(`a."${group}"`);
-    const rows = await this.prisma.$queryRaw<Array<{ g: string; name: string; c: bigint; amt: bigint; pts: bigint; cur: string }>>(Prisma.sql`
+    const rows = await this.prisma.$queryRaw<
+      Array<{ g: string; name: string; c: bigint; amt: bigint; pts: bigint; cur: string }>
+    >(Prisma.sql`
       SELECT ${g} AS g, a."name", SUM(a."count")::bigint AS c, SUM(a."amountMinor")::bigint AS amt, SUM(a."points")::bigint AS pts, MAX(a."currency") AS cur
       FROM "MetricAggregate" a
       WHERE ${this.where(f)} AND a."name" IN (${Prisma.join(names)})
       GROUP BY 1, 2`);
-    return rows.map((r) => ({ group: r.g ?? '', name: r.name, count: Number(r.c), amountMinor: Number(r.amt), points: Number(r.pts), currency: r.cur ?? '' }));
+    return rows.map((r) => ({
+      group: r.g ?? '',
+      name: r.name,
+      count: Number(r.c),
+      amountMinor: Number(r.amt),
+      points: Number(r.pts),
+      currency: r.cur ?? '',
+    }));
   }
 
   /** Distinct customers behind verified events (cannot be summed from hourly buckets). */
   async uniqueUsers(f: MetricFilter, names: string[]): Promise<number> {
-    const parts: Prisma.Sql[] = [Prisma.sql`e."occurredAt" >= ${f.from}`, Prisma.sql`e."occurredAt" < ${f.to}`, Prisma.sql`e."userId" IS NOT NULL`, Prisma.sql`e."name" IN (${Prisma.join(names)})`];
-    if (f.organizationIds) parts.push(f.organizationIds.length ? Prisma.sql`e."organizationId" IN (${Prisma.join(f.organizationIds.map((x) => Prisma.sql`${x}::uuid`))})` : Prisma.sql`false`);
-    if (f.campaignIds) parts.push(f.campaignIds.length ? Prisma.sql`e."campaignId" IN (${Prisma.join(f.campaignIds.map((x) => Prisma.sql`${x}::uuid`))})` : Prisma.sql`false`);
+    const parts: Prisma.Sql[] = [
+      Prisma.sql`e."occurredAt" >= ${f.from}`,
+      Prisma.sql`e."occurredAt" < ${f.to}`,
+      Prisma.sql`e."userId" IS NOT NULL`,
+      Prisma.sql`e."name" IN (${Prisma.join(names)})`,
+    ];
+    if (f.organizationIds)
+      parts.push(
+        f.organizationIds.length
+          ? Prisma.sql`e."organizationId" IN (${Prisma.join(f.organizationIds.map((x) => Prisma.sql`${x}::uuid`))})`
+          : Prisma.sql`false`,
+      );
+    if (f.campaignIds)
+      parts.push(
+        f.campaignIds.length
+          ? Prisma.sql`e."campaignId" IN (${Prisma.join(f.campaignIds.map((x) => Prisma.sql`${x}::uuid`))})`
+          : Prisma.sql`false`,
+      );
     if (f.branchAllowList) {
       const b = [...f.branchAllowList];
       const camps = f.visibleCampaignIds ?? [];
-      parts.push(Prisma.sql`(${b.length ? Prisma.sql`e."branchId" IN (${Prisma.join(b.map((x) => Prisma.sql`${x}::uuid`))})` : Prisma.sql`false`} OR (e."branchId" IS NULL AND ${camps.length ? Prisma.sql`e."campaignId" IN (${Prisma.join(camps.map((x) => Prisma.sql`${x}::uuid`))})` : Prisma.sql`false`}))`);
+      parts.push(
+        Prisma.sql`(${b.length ? Prisma.sql`e."branchId" IN (${Prisma.join(b.map((x) => Prisma.sql`${x}::uuid`))})` : Prisma.sql`false`} OR (e."branchId" IS NULL AND ${camps.length ? Prisma.sql`e."campaignId" IN (${Prisma.join(camps.map((x) => Prisma.sql`${x}::uuid`))})` : Prisma.sql`false`}))`,
+      );
     }
-    const r = await this.prisma.$queryRaw<Array<{ n: bigint }>>(Prisma.sql`SELECT COUNT(DISTINCT e."userId")::bigint AS n FROM "AnalyticsEvent" e WHERE ${Prisma.join(parts, ' AND ')}`);
+    const r = await this.prisma.$queryRaw<Array<{ n: bigint }>>(
+      Prisma.sql`SELECT COUNT(DISTINCT e."userId")::bigint AS n FROM "AnalyticsEvent" e WHERE ${Prisma.join(parts, ' AND ')}`,
+    );
     return Number(r[0]?.n ?? 0);
   }
 
@@ -154,7 +209,8 @@ export class MetricsService {
     const val = (k: string): number | null => {
       const d = METRICS[k as MetricKey] as MetricDef | undefined;
       if (!d) return null;
-      const pick = (r: RawRow | undefined) => (r ? (d.unit === 'MINOR' ? r.amountMinor : d.unit === 'POINTS' ? r.points : r.count) : 0);
+      const pick = (r: RawRow | undefined) =>
+        r ? (d.unit === 'MINOR' ? r.amountMinor : d.unit === 'POINTS' ? r.points : r.count) : 0;
       if (d.kind === 'COUNT' || d.kind === 'SUM') {
         const plus = (d.events ?? []).reduce((n, e) => n + pick(by.get(e)), 0);
         const minus = (d.minus ?? []).reduce((n, e) => n + pick(by.get(e)), 0);
@@ -174,39 +230,77 @@ export class MetricsService {
   }
 
   // ---------------------------------------------------------------- gauges (live state; never accumulated)
-  async gauges(keys: MetricKey[], scope: { organizationIds: string[] | null; campaignIds?: string[] | null }): Promise<Partial<Record<MetricKey, number | null>>> {
+  async gauges(
+    keys: MetricKey[],
+    scope: { organizationIds: string[] | null; campaignIds?: string[] | null },
+  ): Promise<Partial<Record<MetricKey, number | null>>> {
     const out: Partial<Record<MetricKey, number | null>> = {};
     const orgWhere = scope.organizationIds ? { organizationId: { in: scope.organizationIds } } : {};
-    const camp = (field = 'id') => (scope.campaignIds ? { [field]: { in: scope.campaignIds } } : {});
+    const camp = (field = 'id') =>
+      scope.campaignIds ? { [field]: { in: scope.campaignIds } } : {};
     const p = this.prisma;
     for (const k of keys) {
       if (METRICS[k].kind !== 'GAUGE') continue;
       switch (k) {
         case 'exclusive.inventory_remaining': {
-          const deals = await p.hotDeal.findMany({ where: { ...orgWhere, ...camp() }, select: { id: true } });
-          const r = await p.hotDealInventory.aggregate({ where: { dealId: { in: deals.map((d) => d.id) }, tracked: true }, _sum: { available: true } });
+          const deals = await p.hotDeal.findMany({
+            where: { ...orgWhere, ...camp() },
+            select: { id: true },
+          });
+          const r = await p.hotDealInventory.aggregate({
+            where: { dealId: { in: deals.map((d) => d.id) }, tracked: true },
+            _sum: { available: true },
+          });
           out[k] = r._sum.available ?? 0;
           break;
         }
         case 'exclusive.sponsor_utilization':
         case 'exclusive.merchant_benefit_utilization': {
           if (k === 'exclusive.merchant_benefit_utilization') {
-            const deals = await p.hotDeal.findMany({ where: { ...orgWhere, ...camp() }, select: { id: true } });
-            const r = await p.hotDealInventory.aggregate({ where: { dealId: { in: deals.map((d) => d.id) }, tracked: true }, _sum: { redeemed: true, total: true } });
-            out[k] = r._sum.total ? Math.round(((r._sum.redeemed ?? 0) * 10_000) / r._sum.total) : null;
+            const deals = await p.hotDeal.findMany({
+              where: { ...orgWhere, ...camp() },
+              select: { id: true },
+            });
+            const r = await p.hotDealInventory.aggregate({
+              where: { dealId: { in: deals.map((d) => d.id) }, tracked: true },
+              _sum: { redeemed: true, total: true },
+            });
+            out[k] = r._sum.total
+              ? Math.round(((r._sum.redeemed ?? 0) * 10_000) / r._sum.total)
+              : null;
             break;
           }
-          const cases = await p.commercialCase.findMany({ where: { product: 'EXCLUSIVE', ...(scope.organizationIds ? { ownerOrganizationId: { in: scope.organizationIds } } : {}), ...(scope.campaignIds ? { subjectId: { in: scope.campaignIds } } : {}) }, select: { commitments: { where: { kind: 'SPONSOR_FUNDING' } } } });
+          const cases = await p.commercialCase.findMany({
+            where: {
+              product: 'EXCLUSIVE',
+              ...(scope.organizationIds
+                ? { ownerOrganizationId: { in: scope.organizationIds } }
+                : {}),
+              ...(scope.campaignIds ? { subjectId: { in: scope.campaignIds } } : {}),
+            },
+            select: { commitments: { where: { kind: 'SPONSOR_FUNDING' } } },
+          });
           const ms = cases.flatMap((c) => c.commitments);
           const max = ms.reduce((n, m) => n + m.upfrontHalalas + m.usageMaxHalalas, 0);
-          out[k] = max ? Math.round((ms.reduce((n, m) => n + m.utilizedHalalas, 0) * 10_000) / max) : null;
+          out[k] = max
+            ? Math.round((ms.reduce((n, m) => n + m.utilizedHalalas, 0) * 10_000) / max)
+            : null;
           break;
         }
         case 'voucher.active':
-          out[k] = await p.voucherInstance.count({ where: { ...orgWhere, status: 'ACTIVE', ...(scope.campaignIds ? { voucherId: { in: scope.campaignIds } } : {}) } });
+          out[k] = await p.voucherInstance.count({
+            where: {
+              ...orgWhere,
+              status: 'ACTIVE',
+              ...(scope.campaignIds ? { voucherId: { in: scope.campaignIds } } : {}),
+            },
+          });
           break;
         case 'voucher.inventory_remaining': {
-          const vs = await p.voucher.findMany({ where: { ...orgWhere, ...camp() }, select: { totalQty: true, soldQty: true, heldQty: true } });
+          const vs = await p.voucher.findMany({
+            where: { ...orgWhere, ...camp() },
+            select: { totalQty: true, soldQty: true, heldQty: true },
+          });
           out[k] = vs.reduce((n, v) => n + Math.max(0, v.totalQty - v.soldQty - v.heldQty), 0);
           break;
         }
@@ -220,14 +314,23 @@ export class MetricsService {
             const pos = await this.ledger.merchantPosition(scope.organizationIds[0]!);
             out[k] = pos.heldHalalas + pos.settlementEligibleHalalas;
           } else {
-            const r = await p.merchantPayableEvent.aggregate({ where: { organizationId: scope.organizationIds[0]!, settlementId: { not: null } }, _sum: { amountHalalas: true } });
+            const r = await p.merchantPayableEvent.aggregate({
+              where: { organizationId: scope.organizationIds[0]!, settlementId: { not: null } },
+              _sum: { amountHalalas: true },
+            });
             out[k] = r._sum.amountHalalas ?? 0;
           }
           break;
         }
         case 'watch.remaining_budget': {
-          const r = await p.watchCampaign.aggregate({ where: { ...orgWhere, ...camp() }, _sum: { fundedHalalas: true, spentHalalas: true, unusedHalalas: true } });
-          out[k] = Math.max(0, (r._sum.fundedHalalas ?? 0) - (r._sum.spentHalalas ?? 0) - (r._sum.unusedHalalas ?? 0));
+          const r = await p.watchCampaign.aggregate({
+            where: { ...orgWhere, ...camp() },
+            _sum: { fundedHalalas: true, spentHalalas: true, unusedHalalas: true },
+          });
+          out[k] = Math.max(
+            0,
+            (r._sum.fundedHalalas ?? 0) - (r._sum.spentHalalas ?? 0) - (r._sum.unusedHalalas ?? 0),
+          );
           break;
         }
         case 'loyalty.points_remaining': {

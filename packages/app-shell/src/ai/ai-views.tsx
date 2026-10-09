@@ -476,7 +476,9 @@ export function AdminAiWorkspace({ canManage }: { canManage: boolean }) {
   return (
     <div className="dd-stack" style={{ gap: 16 }} data-testid="admin-ai">
       <h1 className="dd-title-xl">{t('ai.adminTitle')}</h1>
-      <div style={{ overflowX: 'auto', maxWidth: '100%' }}><Tabs tabs={tabs} value={tab} onChange={setTab} label={t('ai.adminTitle')} /></div>
+      <div style={{ overflowX: 'auto', maxWidth: '100%' }}>
+        <Tabs tabs={tabs} value={tab} onChange={setTab} label={t('ai.adminTitle')} />
+      </div>
       {tab === 'assistant' ? (
         <AiAssistantPanel
           askPath="/v1/admin/ai/ask"

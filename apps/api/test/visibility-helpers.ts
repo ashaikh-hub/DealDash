@@ -9,7 +9,8 @@ import type { TestApp } from './helpers';
 export async function projectSince(t: TestApp, since: Date) {
   const p = t.app.get(AnalyticsProjector);
   for (const source of p.sourceKeys())
-    await t.prisma.$executeRaw`INSERT INTO "AnalyticsWatermark" ("source", "cursorAt", "updatedAt") VALUES (${source}, ${since}, now())
+    await t.prisma
+      .$executeRaw`INSERT INTO "AnalyticsWatermark" ("source", "cursorAt", "updatedAt") VALUES (${source}, ${since}, now())
       ON CONFLICT ("source") DO UPDATE SET "cursorAt" = GREATEST("AnalyticsWatermark"."cursorAt", EXCLUDED."cursorAt")`;
   await p.catchUp();
   await t.app.get(MetricsService).aggregate();

@@ -1,9 +1,41 @@
-import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Post, Put, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
-import type { AlertChannel, AlertCode, AlertFrequency, MetricKey, PermissionCode, ReportDimension, TargetMetric } from '@dealdash/types';
-import { alertListQuerySchema, alertRuleSchema, notificationPreferenceSchema, periodQuerySchema, reportQuerySchema, targetCreateSchema, timelineQuerySchema } from '@dealdash/validation';
-import { Audiences, CurrentActor, Idempotent, Meta, RequirePermissions } from '../common/decorators';
+import type {
+  AlertChannel,
+  AlertCode,
+  AlertFrequency,
+  MetricKey,
+  PermissionCode,
+  ReportDimension,
+  TargetMetric,
+} from '@dealdash/types';
+import {
+  alertListQuerySchema,
+  alertRuleSchema,
+  notificationPreferenceSchema,
+  periodQuerySchema,
+  reportQuerySchema,
+  targetCreateSchema,
+  timelineQuerySchema,
+} from '@dealdash/validation';
+import {
+  Audiences,
+  CurrentActor,
+  Idempotent,
+  Meta,
+  RequirePermissions,
+} from '../common/decorators';
 import { AppError } from '../common/errors';
 import type { Actor, RequestMeta } from '../common/request-context';
 import { AlertsService, type RuleInput } from './alerts.service';
@@ -46,27 +78,52 @@ export class OrgVisibilityController {
 
   private perm(actor: Actor, kind: 'targets' | 'alerts' | 'performance'): PermissionCode {
     const partner = actor.membership?.organizationType === 'PARTNER';
-    const code = `${partner ? 'partner' : 'merchant'}.${kind === 'performance' ? 'performance.read' : `${kind}.manage`}` as PermissionCode;
+    const code =
+      `${partner ? 'partner' : 'merchant'}.${kind === 'performance' ? 'performance.read' : `${kind}.manage`}` as PermissionCode;
     if (!actor.permissions.has(code)) throw AppError.forbidden();
     return code;
   }
 
   @Get('performance/overview')
-  async overview(@Param('orgId', ParseUUIDPipe) orgId: string, @Query() q: PeriodDto, @CurrentActor() actor: Actor) {
+  async overview(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Query() q: PeriodDto,
+    @CurrentActor() actor: Actor,
+  ) {
     const a = await this.reporting.resolve(actor, orgId);
     const p = period(q);
     return this.reporting.overview(a, p.from, p.to);
   }
 
   @Get('performance/report')
-  async report(@Param('orgId', ParseUUIDPipe) orgId: string, @Query() q: ReportDto, @CurrentActor() actor: Actor) {
+  async report(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Query() q: ReportDto,
+    @CurrentActor() actor: Actor,
+  ) {
     const a = await this.reporting.resolve(actor, orgId);
     const p = period(q);
-    return this.reporting.report(a, { groupBy: q.groupBy as ReportDimension, metrics: q.metrics as MetricKey[], from: p.from, to: p.to, product: q.product, campaignId: q.campaignId, branchId: q.branchId, legalEntityId: q.legalEntityId, country: q.country });
+    return this.reporting.report(a, {
+      groupBy: q.groupBy as ReportDimension,
+      metrics: q.metrics as MetricKey[],
+      from: p.from,
+      to: p.to,
+      product: q.product,
+      campaignId: q.campaignId,
+      branchId: q.branchId,
+      legalEntityId: q.legalEntityId,
+      country: q.country,
+    });
   }
 
   @Get('performance/campaigns/:product/:campaignId')
-  async campaign(@Param('orgId', ParseUUIDPipe) orgId: string, @Param('product') product: string, @Param('campaignId', ParseUUIDPipe) campaignId: string, @Query() q: PeriodDto, @CurrentActor() actor: Actor) {
+  async campaign(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Param('product') product: string,
+    @Param('campaignId', ParseUUIDPipe) campaignId: string,
+    @Query() q: PeriodDto,
+    @CurrentActor() actor: Actor,
+  ) {
     const a = await this.reporting.resolve(actor, orgId);
     const p = period(q);
     return this.reporting.campaignPerformance(a, productOf(product), campaignId, p.from, p.to);
@@ -80,17 +137,33 @@ export class OrgVisibilityController {
 
   @Post('targets')
   @Idempotent()
-  async createTarget(@Param('orgId', ParseUUIDPipe) orgId: string, @Body() b: TargetDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async createTarget(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Body() b: TargetDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     const a = await this.reporting.resolve(actor, orgId);
     this.perm(actor, 'targets');
-    const t = await this.targets.create(actor, a, orgId, b as unknown as TargetInput & { metric: TargetMetric }, meta);
+    const t = await this.targets.create(
+      actor,
+      a,
+      orgId,
+      b as unknown as TargetInput & { metric: TargetMetric },
+      meta,
+    );
     return this.targets.progress(t);
   }
 
   @Post('targets/:id/archive')
   @Idempotent()
   @HttpCode(200)
-  async archiveTarget(@Param('orgId', ParseUUIDPipe) orgId: string, @Param('id', ParseUUIDPipe) id: string, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async archiveTarget(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     await this.reporting.resolve(actor, orgId);
     this.perm(actor, 'targets');
     await this.targets.archive(actor, orgId, id, meta);
@@ -98,21 +171,52 @@ export class OrgVisibilityController {
   }
 
   @Get('alerts')
-  async listAlerts(@Param('orgId', ParseUUIDPipe) orgId: string, @Query() q: AlertQueryDto, @CurrentActor() actor: Actor) {
+  async listAlerts(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Query() q: AlertQueryDto,
+    @CurrentActor() actor: Actor,
+  ) {
     const a = await this.reporting.resolve(actor, orgId);
-    const rows = await this.alerts.list({ organizationId: orgId, status: q.status, category: q.category });
+    const rows = await this.alerts.list({
+      organizationId: orgId,
+      status: q.status,
+      category: q.category,
+    });
     // a scoped member sees alerts about the branches / campaigns they can see, and organization-wide ones only with an org-wide grant
-    const visible = a.branchAllowList ? rows.filter((r) => (r.branchId && a.branchAllowList!.has(r.branchId)) || (r.campaignId && a.visibleCampaignIds?.includes(r.campaignId))) : rows;
-    return visible.map((r) => ({ ...r, actionAllowed: r.actionPermission ? actor.permissions.has(r.actionPermission as PermissionCode) : false }));
+    const visible = a.branchAllowList
+      ? rows.filter(
+          (r) =>
+            (r.branchId && a.branchAllowList!.has(r.branchId)) ||
+            (r.campaignId && a.visibleCampaignIds?.includes(r.campaignId)),
+        )
+      : rows;
+    return visible.map((r) => ({
+      ...r,
+      actionAllowed: r.actionPermission
+        ? actor.permissions.has(r.actionPermission as PermissionCode)
+        : false,
+    }));
   }
 
   @Post('alerts/:id/:action')
   @Idempotent()
   @HttpCode(200)
-  async actOnAlert(@Param('orgId', ParseUUIDPipe) orgId: string, @Param('id', ParseUUIDPipe) id: string, @Param('action') action: string, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async actOnAlert(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('action') action: string,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     await this.reporting.resolve(actor, orgId);
     if (action !== 'acknowledge' && action !== 'resolve') throw AppError.notFound();
-    return this.alerts.setStatus(actor, id, orgId, action === 'acknowledge' ? 'ACKNOWLEDGED' : 'RESOLVED', meta);
+    return this.alerts.setStatus(
+      actor,
+      id,
+      orgId,
+      action === 'acknowledge' ? 'ACKNOWLEDGED' : 'RESOLVED',
+      meta,
+    );
   }
 
   @Get('alert-rules')
@@ -123,18 +227,31 @@ export class OrgVisibilityController {
 
   @Post('alert-rules')
   @Idempotent()
-  async createRule(@Param('orgId', ParseUUIDPipe) orgId: string, @Body() b: RuleDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async createRule(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Body() b: RuleDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     const a = await this.reporting.resolve(actor, orgId);
     this.perm(actor, 'alerts');
-    if (a.branchAllowList) throw new AppError('SCOPE_FORBIDDEN', 'Alert rules need organization-wide access', 403);
+    if (a.branchAllowList)
+      throw new AppError('SCOPE_FORBIDDEN', 'Alert rules need organization-wide access', 403);
     return this.alerts.createRule(actor, orgId, b as unknown as RuleInput, meta);
   }
 
   @Put('alert-rules/:id')
-  async updateRule(@Param('orgId', ParseUUIDPipe) orgId: string, @Param('id', ParseUUIDPipe) id: string, @Body() b: RuleDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async updateRule(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: RuleDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     const a = await this.reporting.resolve(actor, orgId);
     this.perm(actor, 'alerts');
-    if (a.branchAllowList) throw new AppError('SCOPE_FORBIDDEN', 'Alert rules need organization-wide access', 403);
+    if (a.branchAllowList)
+      throw new AppError('SCOPE_FORBIDDEN', 'Alert rules need organization-wide access', 403);
     return this.alerts.updateRule(actor, orgId, id, b as unknown as RuleInput, meta);
   }
 
@@ -159,7 +276,15 @@ export class NotificationPreferenceController {
 
   @Put()
   set(@Body() b: PrefDto, @CurrentActor() actor: Actor) {
-    return this.alerts.setPreference(actor.userId, b as { category: string; channels: AlertChannel[]; frequency: AlertFrequency; muted: boolean });
+    return this.alerts.setPreference(
+      actor.userId,
+      b as {
+        category: string;
+        channels: AlertChannel[];
+        frequency: AlertFrequency;
+        muted: boolean;
+      },
+    );
   }
 }
 
@@ -180,7 +305,10 @@ export class AdminVisibilityController {
 
   @Get('overview')
   @RequirePermissions('admin.analytics.read')
-  async overview(@Query() q: PeriodDto & { organizationId?: string }, @CurrentActor() actor: Actor) {
+  async overview(
+    @Query() q: PeriodDto & { organizationId?: string },
+    @CurrentActor() actor: Actor,
+  ) {
     const a = await this.reporting.resolve(actor, q.organizationId ?? null);
     const p = period(q);
     return this.reporting.overview(a, p.from, p.to);
@@ -191,12 +319,27 @@ export class AdminVisibilityController {
   async report(@Query() q: ReportDto, @CurrentActor() actor: Actor) {
     const a = await this.reporting.resolve(actor, q.organizationId ?? null);
     const p = period(q);
-    return this.reporting.report(a, { groupBy: q.groupBy as ReportDimension, metrics: q.metrics as MetricKey[], from: p.from, to: p.to, product: q.product, campaignId: q.campaignId, branchId: q.branchId, legalEntityId: q.legalEntityId, country: q.country });
+    return this.reporting.report(a, {
+      groupBy: q.groupBy as ReportDimension,
+      metrics: q.metrics as MetricKey[],
+      from: p.from,
+      to: p.to,
+      product: q.product,
+      campaignId: q.campaignId,
+      branchId: q.branchId,
+      legalEntityId: q.legalEntityId,
+      country: q.country,
+    });
   }
 
   @Get('campaigns/:product/:campaignId')
   @RequirePermissions('admin.analytics.read')
-  async campaign(@Param('product') product: string, @Param('campaignId', ParseUUIDPipe) campaignId: string, @Query() q: PeriodDto, @CurrentActor() actor: Actor) {
+  async campaign(
+    @Param('product') product: string,
+    @Param('campaignId', ParseUUIDPipe) campaignId: string,
+    @Query() q: PeriodDto,
+    @CurrentActor() actor: Actor,
+  ) {
     const a = await this.reporting.resolve(actor, null);
     const p = period(q);
     return this.reporting.campaignPerformance(a, productOf(product), campaignId, p.from, p.to);
@@ -214,7 +357,10 @@ export class AdminVisibilityController {
 
   @Get('targets')
   @RequirePermissions('admin.analytics.read')
-  async targetsList(@Query('organizationId') organizationId: string | undefined, @CurrentActor() actor: Actor) {
+  async targetsList(
+    @Query('organizationId') organizationId: string | undefined,
+    @CurrentActor() actor: Actor,
+  ) {
     const a = await this.reporting.resolve(actor, organizationId ?? null);
     return this.targets.list(a, organizationId ?? null);
   }
@@ -222,7 +368,12 @@ export class AdminVisibilityController {
   @Get('alerts')
   @RequirePermissions('admin.operations.read')
   alertsList(@Query() q: AlertQueryDto) {
-    return this.alerts.list({ organizationId: q.organizationId ?? null, platform: q.platform !== 'false', status: q.status, category: q.category });
+    return this.alerts.list({
+      organizationId: q.organizationId ?? null,
+      platform: q.platform !== 'false',
+      status: q.status,
+      category: q.category,
+    });
   }
 
   @Post('alerts/evaluate')
@@ -240,9 +391,20 @@ export class AdminVisibilityController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.alerts.manage')
-  actOnAlert(@Param('id', ParseUUIDPipe) id: string, @Param('action') action: string, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  actOnAlert(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('action') action: string,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     if (action !== 'acknowledge' && action !== 'resolve') throw AppError.notFound();
-    return this.alerts.setStatus(actor, id, null, action === 'acknowledge' ? 'ACKNOWLEDGED' : 'RESOLVED', meta);
+    return this.alerts.setStatus(
+      actor,
+      id,
+      null,
+      action === 'acknowledge' ? 'ACKNOWLEDGED' : 'RESOLVED',
+      meta,
+    );
   }
 
   @Get('alert-rules')
@@ -255,12 +417,22 @@ export class AdminVisibilityController {
   @Idempotent()
   @RequirePermissions('admin.alerts.manage')
   createRule(@Body() b: RuleDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
-    return this.alerts.createRule(actor, null, b as unknown as RuleInput & { code: AlertCode }, meta);
+    return this.alerts.createRule(
+      actor,
+      null,
+      b as unknown as RuleInput & { code: AlertCode },
+      meta,
+    );
   }
 
   @Put('alert-rules/:id')
   @RequirePermissions('admin.alerts.manage')
-  updateRule(@Param('id', ParseUUIDPipe) id: string, @Body() b: RuleDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  updateRule(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: RuleDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.alerts.updateRule(actor, null, id, b as unknown as RuleInput, meta);
   }
 
@@ -291,6 +463,10 @@ export class AdminVisibilityController {
   @Get('customers/:userId/timeline')
   @RequirePermissions('admin.customers.read')
   timeline(@Param('userId', ParseUUIDPipe) userId: string, @Query() q: TimelineDto) {
-    return this.ops.customerTimeline(userId, { kinds: q.kinds, before: q.before ? new Date(q.before) : undefined, take: q.take });
+    return this.ops.customerTimeline(userId, {
+      kinds: q.kinds,
+      before: q.before ? new Date(q.before) : undefined,
+      take: q.take,
+    });
   }
 }

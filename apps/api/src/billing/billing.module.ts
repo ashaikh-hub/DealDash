@@ -19,8 +19,20 @@ import { ReconciliationService } from './reconciliation.service';
 @Module({
   imports: [FinanceModule, JobsModule],
   controllers: [OrgBillingController, AdminBillingController],
-  providers: [FinanceAccessService, BillingAccountsService, InvoicingService, ReceivablesService, ReconciliationService],
-  exports: [FinanceAccessService, BillingAccountsService, InvoicingService, ReceivablesService, ReconciliationService],
+  providers: [
+    FinanceAccessService,
+    BillingAccountsService,
+    InvoicingService,
+    ReceivablesService,
+    ReconciliationService,
+  ],
+  exports: [
+    FinanceAccessService,
+    BillingAccountsService,
+    InvoicingService,
+    ReceivablesService,
+    ReconciliationService,
+  ],
 })
 export class BillingModule implements OnModuleInit {
   constructor(
@@ -39,7 +51,14 @@ export class BillingModule implements OnModuleInit {
     });
     if (this.env.NODE_ENV === 'test' || process.env.JOB_WORKER_ENABLED === 'false') return;
     const ms = 3_600_000;
-    const enqueue = () => void this.jobs.enqueue('billing.daily', {}, { idempotencyKey: `billing.daily:${Math.floor(Date.now() / ms)}`, maxAttempts: 1 }).catch(() => undefined);
+    const enqueue = () =>
+      void this.jobs
+        .enqueue(
+          'billing.daily',
+          {},
+          { idempotencyKey: `billing.daily:${Math.floor(Date.now() / ms)}`, maxAttempts: 1 },
+        )
+        .catch(() => undefined);
     enqueue();
     setInterval(enqueue, ms).unref();
   }

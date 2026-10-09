@@ -4,11 +4,29 @@
  * Money is an integer in the minor unit of an explicit currency.
  */
 
-export const BILLING_ACCOUNT_STATUSES = ['ACTIVE', 'CREDIT_HOLD', 'FINANCIAL_HOLD', 'SUSPENDED', 'CLOSED'] as const;
+export const BILLING_ACCOUNT_STATUSES = [
+  'ACTIVE',
+  'CREDIT_HOLD',
+  'FINANCIAL_HOLD',
+  'SUSPENDED',
+  'CLOSED',
+] as const;
 export type BillingAccountStatus = (typeof BILLING_ACCOUNT_STATUSES)[number];
-export const BILLING_FREQUENCIES = ['PER_EVENT', 'MONTHLY', 'QUARTERLY', 'ANNUAL', 'ON_DEMAND'] as const;
+export const BILLING_FREQUENCIES = [
+  'PER_EVENT',
+  'MONTHLY',
+  'QUARTERLY',
+  'ANNUAL',
+  'ON_DEMAND',
+] as const;
 export type BillingFrequency = (typeof BILLING_FREQUENCIES)[number];
-export const BILLING_METHODS = ['INVOICE', 'BANK_TRANSFER', 'CARD', 'PREPAID_BALANCE', 'DIRECT_DEBIT'] as const;
+export const BILLING_METHODS = [
+  'INVOICE',
+  'BANK_TRANSFER',
+  'CARD',
+  'PREPAID_BALANCE',
+  'DIRECT_DEBIT',
+] as const;
 export type BillingMethod = (typeof BILLING_METHODS)[number];
 
 /** Configurable billing models (a contract or price item picks one; none is hard-coded as "the" model). */
@@ -40,7 +58,13 @@ export type BillingModel = (typeof BILLING_MODELS)[number];
  * How a billing event is collected. Only INVOICE_DUE creates a receivable through periodic invoicing; the others were already funded,
  * are netted at settlement, or are invoiced by the commercial-case closure: the same usage is never billed twice.
  */
-export const BILLING_COLLECTIONS = ['INVOICE_DUE', 'PREPAID_DRAWDOWN', 'NETTED_FROM_PAYABLE', 'CAMPAIGN_CASE', 'NOT_BILLABLE'] as const;
+export const BILLING_COLLECTIONS = [
+  'INVOICE_DUE',
+  'PREPAID_DRAWDOWN',
+  'NETTED_FROM_PAYABLE',
+  'CAMPAIGN_CASE',
+  'NOT_BILLABLE',
+] as const;
 export type BillingCollection = (typeof BILLING_COLLECTIONS)[number];
 
 export const FINANCE_DOCUMENT_KINDS = [
@@ -55,7 +79,11 @@ export const FINANCE_DOCUMENT_KINDS = [
   'STATEMENT',
 ] as const;
 export type FinanceDocumentKind = (typeof FINANCE_DOCUMENT_KINDS)[number];
-export const RECEIVABLE_DOCUMENT_TYPES: readonly FinanceDocumentKind[] = ['TAX_INVOICE', 'INVOICE', 'DEBIT_NOTE'];
+export const RECEIVABLE_DOCUMENT_TYPES: readonly FinanceDocumentKind[] = [
+  'TAX_INVOICE',
+  'INVOICE',
+  'DEBIT_NOTE',
+];
 
 export const FINANCE_DOCUMENT_STATUSES = [
   'DRAFT',
@@ -73,9 +101,18 @@ export const FINANCE_DOCUMENT_STATUSES = [
 ] as const;
 export type FinanceDocumentState = (typeof FINANCE_DOCUMENT_STATUSES)[number];
 /** Once a document leaves these states its amounts, lines and party never change (corrections are notes). */
-export const EDITABLE_DOCUMENT_STATUSES: readonly FinanceDocumentState[] = ['DRAFT', 'PENDING_APPROVAL'];
+export const EDITABLE_DOCUMENT_STATUSES: readonly FinanceDocumentState[] = [
+  'DRAFT',
+  'PENDING_APPROVAL',
+];
 /** States in which an amount is still owed. */
-export const OPEN_RECEIVABLE_STATUSES: readonly FinanceDocumentState[] = ['ISSUED', 'SENT', 'PARTIALLY_PAID', 'OVERDUE', 'DISPUTED'];
+export const OPEN_RECEIVABLE_STATUSES: readonly FinanceDocumentState[] = [
+  'ISSUED',
+  'SENT',
+  'PARTIALLY_PAID',
+  'OVERDUE',
+  'DISPUTED',
+];
 
 export const AGING_BUCKETS = ['CURRENT', 'D1_30', 'D31_60', 'D61_90', 'D90_PLUS'] as const;
 export type AgingBucket = (typeof AGING_BUCKETS)[number];
@@ -86,8 +123,23 @@ export const FX_RATE_STATUSES = ['PENDING_APPROVAL', 'APPROVED', 'REJECTED', 'RE
 
 /** Reconciliation flows per product, in order. */
 export const RECONCILIATION_FLOWS = {
-  WATCH: ['FUNDED', 'UTILIZED', 'POINTS_ISSUED', 'REWARDS_ALLOCATED', 'REWARDS_REDEEMED', 'EXPIRED', 'UNUSED'],
+  WATCH: [
+    'FUNDED',
+    'UTILIZED',
+    'POINTS_ISSUED',
+    'REWARDS_ALLOCATED',
+    'REWARDS_REDEEMED',
+    'EXPIRED',
+    'UNUSED',
+  ],
   EXCLUSIVE: ['SPONSOR_COMMITMENT', 'UTILIZED', 'REMAINING', 'RECONCILED'],
-  VOUCHER: ['CUSTOMER_CASH', 'VOUCHERS_ISSUED', 'REDEEMED', 'MERCHANT_PAYABLE', 'REFUNDED', 'SETTLED'],
+  VOUCHER: [
+    'CUSTOMER_CASH',
+    'VOUCHERS_ISSUED',
+    'REDEEMED',
+    'MERCHANT_PAYABLE',
+    'REFUNDED',
+    'SETTLED',
+  ],
   LOYALTY: ['FUNDED', 'ISSUED', 'REDEEMED', 'EXPIRED', 'REVERSED', 'REMAINING'],
 } as const;

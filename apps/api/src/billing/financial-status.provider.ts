@@ -2,7 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { CONFIG_KEYS } from '@dealdash/config';
 import { OPEN_RECEIVABLE_STATUSES, type FinancialStatus } from '@dealdash/types';
 import { PrismaService } from '../prisma/prisma.service';
-import { deriveFinancialStatus, type FinancialStatusProvider, type FinancialStatusView } from '../subscription/policy';
+import {
+  deriveFinancialStatus,
+  type FinancialStatusProvider,
+  type FinancialStatusView,
+} from '../subscription/policy';
 import { SystemConfigService } from '../system-config/system-config.service';
 
 const D = 86_400_000;
@@ -26,20 +30,32 @@ export class ReceivablesFinancialStatusProvider implements FinancialStatusProvid
     let status: FinancialStatus = base.status;
     let graceUntil = base.graceUntil;
 
-    const accounts = await this.prisma.businessAccount.findMany({ where: { organizationId, status: { not: 'ACTIVE' } }, select: { status: true } });
+    const accounts = await this.prisma.businessAccount.findMany({
+      where: { organizationId, status: { not: 'ACTIVE' } },
+      select: { status: true },
+    });
     if (accounts.some((a) => a.status === 'SUSPENDED')) {
       reasons.push('BILLING_ACCOUNT_SUSPENDED');
       status = 'SUSPENDED';
     }
-    if (accounts.some((a) => a.status === 'CREDIT_HOLD')) reasons.push('BILLING_ACCOUNT_CREDIT_HOLD');
+    if (accounts.some((a) => a.status === 'CREDIT_HOLD'))
+      reasons.push('BILLING_ACCOUNT_CREDIT_HOLD');
 
     const oldest = await this.prisma.financeDocument.findFirst({
-      where: { organizationId, type: { in: ['INVOICE', 'TAX_INVOICE', 'DEBIT_NOTE'] }, status: { in: [...OPEN_RECEIVABLE_STATUSES].filter((s) => s !== 'DISPUTED') as never }, dueAt: { lt: at } },
+      where: {
+        organizationId,
+        type: { in: ['INVOICE', 'TAX_INVOICE', 'DEBIT_NOTE'] },
+        status: { in: [...OPEN_RECEIVABLE_STATUSES].filter((s) => s !== 'DISPUTED') as never },
+        dueAt: { lt: at },
+      },
       orderBy: { dueAt: 'asc' },
       select: { dueAt: true },
     });
     if (oldest?.dueAt) {
-      const cfg = (await this.config.get<{ overdueGraceDays?: number; overdueDrivesPastDue?: boolean }>(CONFIG_KEYS.FINANCE_BILLING)) ?? {};
+      const cfg =
+        (await this.config.get<{ overdueGraceDays?: number; overdueDrivesPastDue?: boolean }>(
+          CONFIG_KEYS.FINANCE_BILLING,
+        )) ?? {};
       const until = new Date(oldest.dueAt.getTime() + (cfg.overdueGraceDays ?? 7) * D);
       const inGrace = until > at;
       reasons.push(inGrace ? 'INVOICES_OVERDUE_IN_GRACE' : 'INVOICES_OVERDUE_GRACE_ELAPSED');

@@ -1054,3 +1054,45 @@ current documentation now say **Exclusive Deal / Exclusive Deals** (Arabic: the 
 card badge reads EXCLUSIVE / حصري). The identifiers listed above remain as **LEGACY INTERNAL NAME — NOT USER FACING**; they are not an
 open product-name defect and are renamed only through a future controlled refactor. Lines that state the former name on purpose (this
 terminology rule) are the only remaining prose mentions.
+
+## Addendum (Oct 2026) — Phases 4 and 5: Visibility / Operations and Billing / Finance / AI (awaiting approval)
+
+The last two pre-Stage-7 shared-platform phases are built on the modular monolith (no Kafka, no microservices). Stage 7 has not started.
+
+- **Phase 4 — Visibility and operations** (`docs/PHASE4_VISIBILITY_OPERATIONS.md`): one governed analytics taxonomy projected from the
+  sources of truth (append-only, idempotent; engagement is never a verified outcome), hourly aggregates, hierarchical reporting
+  (Business → Country → Legal entity → Brand → Region → City → Branch → Campaign) enforced by role + scope + legal entity + entitlement,
+  targets with Target vs Actual, Expected-to-date and a forecast always labelled as an estimate, early-warning alerts for every risk in the
+  brief, configurable alert rules, personal notification preferences, escalation, actionable alerts that still go through RBAC /
+  maker-checker / acceptance, the Operations Command Centre, integration monitoring with staleness, a customer support timeline, and the
+  performance-to-finance linkage.
+- **Phase 5 — Billing and finance** (`docs/PHASE5_BILLING_FINANCE.md`): the same finance platform, now with legal-entity billing accounts
+  and finance scope, collection rules that bill each event exactly once, quotation expiry / rejection / modification requests, the full
+  document set with database-enforced immutability and maker-checker issue, receivables (partial payments, unallocated credit, aging,
+  disputes, statements), purchase orders, credit exposure including receivables, controlled multi-currency (approved FX only), and
+  reconciliation by business account, legal entity, product, campaign, funding party, merchant, sponsor and currency with product flow
+  checks. Overdue invoices are reported in the financial status; enforcement remains a Finance decision unless switched on.
+- **Phase 5 — Governed AI** (`docs/AI_AGENTS.md`): Agent → authorised tool → existing service as the requesting person → audit. Five agents
+  (Customer Best-Deal, Merchant Growth, Bank / Scheme / Partner foundation, Operations & Support, Admin / Finance), autonomy L0–L3 in the
+  MVP (L4 disabled, L5 refused), AI_COPILOT entitlement, grounding check, labelled statements, human approval before any execution,
+  append-only audit and usage metering (not priced), evaluation pack.
+- Screens (EN / AR, RTL, phone width): merchant Performance, Billing, Assistant; admin Command Centre, Analytics, Billing, AI governance;
+  customer Best-deal assistant. Partner portal screens remain Stage 7 (partner APIs exist).
+
+
+## Founder approval (2026-10-09) — PHASES 1–5: FOUNDER APPROVED AND FROZEN
+
+Phase 4 (Visibility / Operations) and Phase 5 (Billing / Finance / Governed AI) are approved and frozen as the founder-approved baseline,
+together with Phases 1–3 and the subscription / licensing / entitlement engine. The QA fixes and regression tests identified during final
+validation are part of the frozen baseline and must be preserved. Stage 7 has NOT started.
+
+Founder clarifications recorded with the approval:
+1. **Currency.** The Saudi MVP does not require a full multi-currency general ledger, and none is to be built now. The architecture must
+   keep supporting configurable transaction, billing and settlement currency and an approved FX rate / source / date where applicable, for
+   future Pakistan, Qatar, UAE, KSA and other market deployments (already in place: per-document currencies, `FxRate` with maker-checker).
+2. **VALIDATE-KSA launch-readiness items** (do not reopen Phase 4 or 5): Saudi tax invoice format / numbering; write-off treatment;
+   FX-rate source; AI data residency; AI consent wording; native Arabic review.
+3. **Legacy names.** Internal `HotDeal*` and `*Halalas` identifiers may remain only where already documented as legacy internal
+   implementation names; they must not be used in new user-facing or business-facing development.
+4. **TR-01** (Watch & Earn player timing test) stays a monitored reliability item; it is not a regression unless it reproduces consistently.
+5. Stage 7 is not to be started until separately instructed.

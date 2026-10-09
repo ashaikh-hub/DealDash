@@ -25,32 +25,70 @@ export class FinanceAccessService {
     private readonly scope: ScopeService,
   ) {}
 
-  async resolve(actor: Actor, orgId: string | null, mode: 'read' | 'manage'): Promise<FinanceAccess> {
+  async resolve(
+    actor: Actor,
+    orgId: string | null,
+    mode: 'read' | 'manage',
+  ): Promise<FinanceAccess> {
     if (actor.audience === 'admin') {
       const need: PermissionCode = mode === 'read' ? 'admin.finance.read' : 'admin.finance.manage';
       if (!actor.permissions.has(need)) throw AppError.forbidden();
-      return { admin: true, organizationId: orgId, legalEntityIds: null, canManage: actor.permissions.has('admin.finance.manage') };
+      return {
+        admin: true,
+        organizationId: orgId,
+        legalEntityIds: null,
+        canManage: actor.permissions.has('admin.finance.manage'),
+      };
     }
     const m = actor.membership;
-    if (!m || !orgId || m.organizationId !== orgId || (m.organizationType !== 'MERCHANT' && m.organizationType !== 'PARTNER')) throw AppError.notFound();
+    if (
+      !m ||
+      !orgId ||
+      m.organizationId !== orgId ||
+      (m.organizationType !== 'MERCHANT' && m.organizationType !== 'PARTNER')
+    )
+      throw AppError.notFound();
     const prefix = m.organizationType === 'PARTNER' ? 'partner' : 'merchant';
     const read = `${prefix}.finance.read` as PermissionCode;
     const manage = `${prefix}.finance.manage` as PermissionCode;
     const need = mode === 'read' ? read : manage;
     if (!actor.permissions.has(need)) throw AppError.forbidden();
-    if (m.branchId) throw new AppError('SCOPE_FORBIDDEN', 'Finance is not available to branch-level access', 403);
-    if (!m.scoped) return { admin: false, organizationId: orgId, legalEntityIds: null, canManage: actor.permissions.has(manage) };
-    const les = await this.prisma.legalEntity.findMany({ where: { organizationId: orgId }, select: { id: true } });
+    if (m.branchId)
+      throw new AppError('SCOPE_FORBIDDEN', 'Finance is not available to branch-level access', 403);
+    if (!m.scoped)
+      return {
+        admin: false,
+        organizationId: orgId,
+        legalEntityIds: null,
+        canManage: actor.permissions.has(manage),
+      };
+    const les = await this.prisma.legalEntity.findMany({
+      where: { organizationId: orgId },
+      select: { id: true },
+    });
     const allowed: string[] = [];
-    for (const le of les) if (await this.scope.can(actor, need, { organizationId: orgId, legalEntityId: le.id })) allowed.push(le.id);
-    if (!allowed.length) throw new AppError('SCOPE_FORBIDDEN', 'Your access does not cover any legal entity of this business', 403);
-    return { admin: false, organizationId: orgId, legalEntityIds: allowed, canManage: actor.permissions.has(manage) };
+    for (const le of les)
+      if (await this.scope.can(actor, need, { organizationId: orgId, legalEntityId: le.id }))
+        allowed.push(le.id);
+    if (!allowed.length)
+      throw new AppError(
+        'SCOPE_FORBIDDEN',
+        'Your access does not cover any legal entity of this business',
+        403,
+      );
+    return {
+      admin: false,
+      organizationId: orgId,
+      legalEntityIds: allowed,
+      canManage: actor.permissions.has(manage),
+    };
   }
 
   /** 404 unless the document / account belongs to what the caller may see. */
   assertSees(a: FinanceAccess, row: { organizationId: string; legalEntityId?: string | null }) {
     if (a.admin) return;
     if (row.organizationId !== a.organizationId) throw AppError.notFound();
-    if (a.legalEntityIds && (!row.legalEntityId || !a.legalEntityIds.includes(row.legalEntityId))) throw AppError.notFound();
+    if (a.legalEntityIds && (!row.legalEntityId || !a.legalEntityIds.includes(row.legalEntityId)))
+      throw AppError.notFound();
   }
 }

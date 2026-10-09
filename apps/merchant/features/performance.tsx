@@ -1,6 +1,13 @@
 'use client';
 
-import { AiAssistantPanel, AiDraftsList, BillingWorkspace, PerformanceWorkspace, RequirePermission, useAuth } from '@dealdash/app-shell';
+import {
+  AiAssistantPanel,
+  AiDraftsList,
+  BillingWorkspace,
+  PerformanceWorkspace,
+  RequirePermission,
+  useAuth,
+} from '@dealdash/app-shell';
 import { createTranslator } from '@dealdash/localization';
 import { useOrgId } from './deal-utils';
 
@@ -18,7 +25,13 @@ function PerformanceInner() {
   const { me } = useAuth();
   const perms = me?.permissions ?? [];
   if (!orgId) return null;
-  return <PerformanceWorkspace orgId={orgId} canTargets={perms.includes('merchant.targets.manage')} canAlerts={perms.includes('merchant.alerts.manage')} />;
+  return (
+    <PerformanceWorkspace
+      orgId={orgId}
+      canTargets={perms.includes('merchant.targets.manage')}
+      canAlerts={perms.includes('merchant.alerts.manage')}
+    />
+  );
 }
 
 /** Billing accounts, invoices and notes, receivables, purchase orders, statements and reconciliation. */
@@ -34,7 +47,12 @@ function BillingInner() {
   const orgId = useOrgId();
   const { me } = useAuth();
   if (!orgId) return null;
-  return <BillingWorkspace orgId={orgId} canManage={(me?.permissions ?? []).includes('merchant.finance.manage')} />;
+  return (
+    <BillingWorkspace
+      orgId={orgId}
+      canManage={(me?.permissions ?? []).includes('merchant.finance.manage')}
+    />
+  );
 }
 
 /** The Merchant Growth assistant: explains, recommends and drafts; a person approves before anything happens. */
@@ -55,7 +73,12 @@ function AssistantInner() {
   return (
     <div className="dd-stack" style={{ gap: 16 }}>
       <h1 className="dd-title-xl">{t('ai.agentName.MERCHANT_GROWTH')}</h1>
-      <AiAssistantPanel askPath={`/v1/orgs/${orgId}/ai/ask`} draftsBase={`/v1/orgs/${orgId}/ai/drafts`} canApprove={canApprove} examples={['ai.ex.performance', 'ai.ex.targets', 'ai.ex.plan']} />
+      <AiAssistantPanel
+        askPath={`/v1/orgs/${orgId}/ai/ask`}
+        draftsBase={`/v1/orgs/${orgId}/ai/drafts`}
+        canApprove={canApprove}
+        examples={['ai.ex.performance', 'ai.ex.targets', 'ai.ex.plan']}
+      />
       <AiDraftsList path={`/v1/orgs/${orgId}/ai/drafts`} canApprove={canApprove} />
     </div>
   );

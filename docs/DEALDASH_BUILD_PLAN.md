@@ -366,3 +366,57 @@ Deliverable at the end of the stage: the walking skeleton (G1).
   then completes at the end and shows the reward") failed once under parallel `turbo` load (2026-10-09) and passed in two isolated
   re-runs. Not a product regression unless it reproduces consistently; it is monitored in every full regression and stabilised at
   the test / runtime cause if it recurs (never hidden by re-running).
+
+## Addendum (Oct 2026) — Build status: Phases 4 and 5 (awaiting founder approval)
+
+Built: Phase 4 visibility / operations, Phase 5 billing / finance, governed AI foundation, screens (EN / AR, RTL, phone), docs.
+Stage 7 not started.
+
+**Verification (2026-10-09)**
+- API: 755 / 755 tests in 47 files (new: `visibility.e2e` 17, `billing.e2e` 19, `ai.e2e` 13).
+- Packages and apps: localization 20, auth 7, app-shell 11, merchant 104, admin 85, customer 61, staff 34, partner 3, ui 14, validation 6,
+  config 3, analytics 4, api-client 2.
+- ESLint: 0 errors (64 pre-existing `no-explicit-any` warnings in older API test files). TypeScript: 24 / 24. Builds: API and all five apps.
+- Browser (Edge): Phase 4/5 59 / 59, Phase 3 32 / 32, subscription 31 / 31, Stage 2 30 / 30, Stage 3 98 / 98, Stage 4 121 / 121
+  (fresh seed), Stage 5 99 / 99, Stage 6 88 / 88 (fresh seed).
+- Dev database migrated after a pg_dump backup (no reset); schema drift check empty.
+
+**TR-01 (Watch & Earn player timing test)**: did not reproduce in this cycle (customer suite 61 / 61 in the full run and in isolation).
+Still monitored; not treated as a regression.
+
+**Issues found and fixed during this cycle** (all covered by tests now): report group names returned bilingual objects that one screen
+rendered directly (crash) → localized label; a duplicated dictionary key made the invoice "Issued" column read "Document processed." →
+separate key + test; AI plan / trend / target wording mixed money minor units with counts → verified-outcome counts and money formatting;
+the task inbox status for resolved alerts used a value outside the allowed set → DONE; statements with a credit balance violated the
+non-negative total → total = amount due, signed closing kept in the statement data; a hook-defined component broke Fast Refresh →
+top-level component.
+
+**Legacy internal names (documented technical debt, no user-facing effect)**: `HotDeal*` models / `hot-*` modules and routes for Exclusive
+Deals; `*Halalas` column names (minor units in any currency); `FinanceDocument.lines` JSON on pre-Phase-5 case invoices (new documents use
+`InvoiceLine`). New code uses Exclusive / minor-unit naming.
+
+**Deferred / not in MVP (explicit)**: partner portal screens for performance, billing and the partner copilot (Stage 7; APIs exist);
+L4 bounded autonomy (architecture ready, disabled); L5 (never in MVP); hosted LLM provider (interface ready); Urdu answers; write-off
+(statutory confirmation); real email / push / SMS / payment / video / maps providers (mock adapters); multi-currency general ledger
+(GL stays SAR).
+
+**VALIDATE-KSA carried**: VAT / e-invoicing (ZATCA) format, numbering and QR on tax invoices; write-off and bad-debt treatment; FX rate
+source of record; proforma treatment; statement retention; AI data residency and consent wording; Arabic copy native review.
+
+
+## Founder approval (2026-10-09) — PHASES 1–5: FOUNDER APPROVED AND FROZEN
+
+Phase 4 (Visibility / Operations) and Phase 5 (Billing / Finance / Governed AI) are approved and frozen as the founder-approved baseline,
+together with Phases 1–3 and the subscription / licensing / entitlement engine. The QA fixes and regression tests identified during final
+validation are part of the frozen baseline and must be preserved. Stage 7 has NOT started.
+
+Founder clarifications recorded with the approval:
+1. **Currency.** The Saudi MVP does not require a full multi-currency general ledger, and none is to be built now. The architecture must
+   keep supporting configurable transaction, billing and settlement currency and an approved FX rate / source / date where applicable, for
+   future Pakistan, Qatar, UAE, KSA and other market deployments (already in place: per-document currencies, `FxRate` with maker-checker).
+2. **VALIDATE-KSA launch-readiness items** (do not reopen Phase 4 or 5): Saudi tax invoice format / numbering; write-off treatment;
+   FX-rate source; AI data residency; AI consent wording; native Arabic review.
+3. **Legacy names.** Internal `HotDeal*` and `*Halalas` identifiers may remain only where already documented as legacy internal
+   implementation names; they must not be used in new user-facing or business-facing development.
+4. **TR-01** (Watch & Earn player timing test) stays a monitored reliability item; it is not a regression unless it reproduces consistently.
+5. Stage 7 is not to be started until separately instructed.

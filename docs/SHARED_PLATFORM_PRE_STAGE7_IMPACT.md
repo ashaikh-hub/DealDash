@@ -242,3 +242,39 @@ Admin: **Operations** (Inbox, Cases with notes and evidence, Offer conflicts wit
 | Per-Legal-Entity finance scope | Phase 5 | Phase 5 billing (until then finance data needs an organization-wide grant) |
 
 **Defect found and fixed during the final verification.** The new end-to-end test for loyalty through the real product flows (`loyalty-events.e2e`) found that an active `QUALIFIED_VIEW` rule made a Watch & Earn qualifying view fail: loyalty points were recorded with the view's own source, which a database rule (one credit per view) reserves for the Watch & Earn reward, and fraud handling finds view rewards by it. Loyalty points for a view are now recorded as a generic event (`view:<id>`); a fraud verdict on a view also takes back the loyalty points earned from it. Voucher purchase and refund, voucher redemption, Exclusive redemption and its reversal were verified correct by the same test.
+
+## Phases 4 and 5 — completion status (2026-10-09, awaiting founder approval)
+
+| Phase | Scope | Status |
+|---|---|---|
+| 1 | Organization / unit / legal entity, scoped roles, contracts and entitlements | Approved, frozen |
+| 2 | Master data, ingestion, imports, integrations | Approved, frozen |
+| 3 | Operations, cases, evidence, loyalty governance | Approved, frozen |
+| Subscription | Licensing / entitlement engine (FD-24) | Approved, frozen |
+| 4 | Visibility / operations: analytics, reporting, targets, alerts, Command Centre, support timeline | Approved, frozen |
+| 5 | Billing / finance (legal-entity scope, invoicing, AR, PO, credit, FX, reconciliation) and governed AI agents | Approved, frozen |
+
+Details: `docs/PHASE4_VISIBILITY_OPERATIONS.md`, `docs/PHASE5_BILLING_FINANCE.md`, `docs/AI_AGENTS.md`,
+`docs/PHASE4_PHASE5_FIGMA_HANDOFF.md`, decisions in `docs/PHASE4_PHASE5_IMPACT.md`, verification and deferrals in
+`docs/DEALDASH_BUILD_PLAN.md` (Phases 4 and 5 addendum).
+
+What Stage 7 (partner portal) inherits: partner performance, targets, alerts, billing and the Partner Campaign copilot are available as
+APIs with partner permissions and scope; only the partner screens remain.
+
+
+## Founder approval (2026-10-09) — PHASES 1–5: FOUNDER APPROVED AND FROZEN
+
+Phase 4 (Visibility / Operations) and Phase 5 (Billing / Finance / Governed AI) are approved and frozen as the founder-approved baseline,
+together with Phases 1–3 and the subscription / licensing / entitlement engine. The QA fixes and regression tests identified during final
+validation are part of the frozen baseline and must be preserved. Stage 7 has NOT started.
+
+Founder clarifications recorded with the approval:
+1. **Currency.** The Saudi MVP does not require a full multi-currency general ledger, and none is to be built now. The architecture must
+   keep supporting configurable transaction, billing and settlement currency and an approved FX rate / source / date where applicable, for
+   future Pakistan, Qatar, UAE, KSA and other market deployments (already in place: per-document currencies, `FxRate` with maker-checker).
+2. **VALIDATE-KSA launch-readiness items** (do not reopen Phase 4 or 5): Saudi tax invoice format / numbering; write-off treatment;
+   FX-rate source; AI data residency; AI consent wording; native Arabic review.
+3. **Legacy names.** Internal `HotDeal*` and `*Halalas` identifiers may remain only where already documented as legacy internal
+   implementation names; they must not be used in new user-facing or business-facing development.
+4. **TR-01** (Watch & Earn player timing test) stays a monitored reliability item; it is not a regression unless it reproduces consistently.
+5. Stage 7 is not to be started until separately instructed.

@@ -132,3 +132,33 @@ analytics events and AI audit; immutability trigger on issued finance documents.
 
 VAT / e-invoicing format, tax invoice numbering, write-off permissibility, revenue recognition of prepaid consumption, FX accounting
 source, AI data processing and privacy consent, Urdu support — configuration placeholders, flagged VALIDATE-KSA / market items.
+
+
+## 8. Implementation outcome (2026-10-09)
+
+All decisions above were implemented as written, with these clarifications made during the build:
+- D5 overdue switch: config key `finance.billing.overdueDrivesPastDue` (default false); `quotationValidityDays` (default 14) added.
+- A legal entity is invoiced in its own currency; events in another currency wait (`FX_RATE_REQUIRED`) until an approved rate exists.
+- Statements of account store the amount due as the document total and keep the signed closing balance in the statement data.
+- The AI built-in provider classifies only; numbers come from tools (grounding check). Business AI requires AI_COPILOT, which no plan
+  includes; the dev seed grants it to development-fixture agreements only.
+- The partner UI for Phase 4/5 is Stage 7; the APIs are in place.
+Verification, fixes and deferrals: `docs/DEALDASH_BUILD_PLAN.md` (Phases 4 and 5 addendum).
+
+
+## Founder approval (2026-10-09) — PHASES 1–5: FOUNDER APPROVED AND FROZEN
+
+Phase 4 (Visibility / Operations) and Phase 5 (Billing / Finance / Governed AI) are approved and frozen as the founder-approved baseline,
+together with Phases 1–3 and the subscription / licensing / entitlement engine. The QA fixes and regression tests identified during final
+validation are part of the frozen baseline and must be preserved. Stage 7 has NOT started.
+
+Founder clarifications recorded with the approval:
+1. **Currency.** The Saudi MVP does not require a full multi-currency general ledger, and none is to be built now. The architecture must
+   keep supporting configurable transaction, billing and settlement currency and an approved FX rate / source / date where applicable, for
+   future Pakistan, Qatar, UAE, KSA and other market deployments (already in place: per-document currencies, `FxRate` with maker-checker).
+2. **VALIDATE-KSA launch-readiness items** (do not reopen Phase 4 or 5): Saudi tax invoice format / numbering; write-off treatment;
+   FX-rate source; AI data residency; AI consent wording; native Arabic review.
+3. **Legacy names.** Internal `HotDeal*` and `*Halalas` identifiers may remain only where already documented as legacy internal
+   implementation names; they must not be used in new user-facing or business-facing development.
+4. **TR-01** (Watch & Earn player timing test) stays a monitored reliability item; it is not a regression unless it reproduces consistently.
+5. Stage 7 is not to be started until separately instructed.

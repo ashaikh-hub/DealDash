@@ -528,3 +528,29 @@ Migration `20261224000000_subscription_engine` (additive). Detail: `SUBSCRIPTION
 
 Data mapping: legacy `ENDED` contracts → `SUPERSEDED` or `CANCELLED`; nothing deleted. Development merchants get unpriced SA
 development-fixture agreements; real pilot businesses need explicit assignment.
+
+
+## Addendum (Oct 2026) — Phase 4 / Phase 5 data model
+
+Migration `20261231000000_phase4_phase5_visibility_finance_ai` (additive; applied to the dev database after a backup, no reset).
+
+**New tables**
+- `AnalyticsEvent` (append-only; CHECK on taxonomy and on verified engagement), `AnalyticsWatermark`, `MetricAggregate` (hourly, text
+  dimensions default ''), `CampaignTarget`, `AlertRule`, `AlertEvent`, `AlertDelivery`, `NotificationPreference`.
+- `InvoiceLine` (immutable once the document is issued; one line per billing event at most), `PaymentAllocation` (never deleted; reversal
+  fields), `FxRate` (rate as exact decimal text, maker-checker status).
+- `AiInteraction`, `AiAction`, `AiUsageRecord` (append-only), `AiDraft`.
+
+**Extended**
+- `BusinessAccount`: isDefault (one default per org + currency), name, country, billingAddress, taxId, financeContact, invoiceContact,
+  paymentTermsDays, billingFrequency, billingMethod, contractId, poRequired, lastBilledAt; unique (organizationId, legalEntityId, currency).
+- `FinanceDocument`: legalEntityId, contractId, sourceKind, quotationId, period, transaction / settlement / tax currency, fxRateId, fxRate,
+  taxAmountInTaxCurrency, purchaseOrderId, externalReference, expiresAt, fileId, approval, sent / overdue / disputed / cancelled /
+  written-off fields; new types (PROFORMA_INVOICE, TAX_INVOICE, ADJUSTMENT_NOTE, STATEMENT) and states (PENDING_APPROVAL, SENT,
+  PARTIALLY_PAID, OVERDUE, DISPUTED, CANCELLED, CREDITED, WRITTEN_OFF). Trigger `dd_finance_document_guard` freezes issued fields and
+  blocks deleting issued documents.
+- `FinancePayment`: currency, legalEntityId. `Quotation`: validUntil, rejection and modification-request fields; states REJECTED,
+  MODIFICATION_REQUESTED, EXPIRED. `CommercialBillingEvent`: collection, settlementRef, invoiceLineId (set once by Phase 5).
+- `NotificationType` + ALERT.
+
+Money stays integer minor units (legacy `*Halalas` names = minor units). The general ledger remains SAR-only (documented constraint).

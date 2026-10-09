@@ -1,6 +1,13 @@
 'use client';
 
-import { AdminAiWorkspace, AdminBillingWorkspace, CommandCentreWorkspace, PerformanceWorkspace, RequirePermission, useAuth } from '@dealdash/app-shell';
+import {
+  AdminAiWorkspace,
+  AdminBillingWorkspace,
+  CommandCentreWorkspace,
+  PerformanceWorkspace,
+  RequirePermission,
+  useAuth,
+} from '@dealdash/app-shell';
 
 const usePerms = () => useAuth().me?.permissions ?? [];
 
@@ -14,7 +21,12 @@ export function AdminCommandCentrePage() {
 }
 function CommandCentreInner() {
   const perms = usePerms();
-  return <CommandCentreWorkspace canTimeline={perms.includes('admin.customers.read')} canAlerts={perms.includes('admin.alerts.manage')} />;
+  return (
+    <CommandCentreWorkspace
+      canTimeline={perms.includes('admin.customers.read')}
+      canAlerts={perms.includes('admin.alerts.manage')}
+    />
+  );
 }
 
 /** DealDash-wide analytics with drill-down from business to transaction, targets and platform alert rules. */
@@ -27,7 +39,14 @@ export function AdminAnalyticsPage() {
 }
 function AnalyticsInner() {
   const perms = usePerms();
-  return <PerformanceWorkspace orgId={null} admin canTargets={false} canAlerts={perms.includes('admin.alerts.manage')} />;
+  return (
+    <PerformanceWorkspace
+      orgId={null}
+      admin
+      canTargets={false}
+      canAlerts={perms.includes('admin.alerts.manage')}
+    />
+  );
 }
 
 /** Billing, invoices, receivables, payments, purchase orders, exchange rates and reconciliation (maker-checker enforced by the API). */
@@ -40,7 +59,12 @@ export function AdminBillingPage() {
 }
 function BillingInner() {
   const perms = usePerms();
-  return <AdminBillingWorkspace canManage={perms.includes('admin.finance.manage')} canApprove={perms.includes('admin.finance.approve')} />;
+  return (
+    <AdminBillingWorkspace
+      canManage={perms.includes('admin.finance.manage')}
+      canApprove={perms.includes('admin.finance.approve')}
+    />
+  );
 }
 
 /** Operations and Finance assistants, AI drafts, audit, usage metering and the evaluation pack. */

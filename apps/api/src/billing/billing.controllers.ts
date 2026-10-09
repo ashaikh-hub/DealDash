@@ -1,4 +1,14 @@
-import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Post, Put, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
 import type { BillingAccountStatus } from '@dealdash/types';
@@ -21,7 +31,13 @@ import {
   reconciliationQuerySchema,
   statementQuerySchema,
 } from '@dealdash/validation';
-import { Audiences, CurrentActor, Idempotent, Meta, RequirePermissions } from '../common/decorators';
+import {
+  Audiences,
+  CurrentActor,
+  Idempotent,
+  Meta,
+  RequirePermissions,
+} from '../common/decorators';
 import { AppError } from '../common/errors';
 import type { Actor, RequestMeta } from '../common/request-context';
 import { CommercialService } from '../finance/commercial.service';
@@ -72,34 +88,80 @@ export class OrgBillingController {
   }
 
   @Get('accounts/:id')
-  async account(@Param('orgId', ParseUUIDPipe) orgId: string, @Param('id', ParseUUIDPipe) id: string, @CurrentActor() actor: Actor) {
+  async account(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentActor() actor: Actor,
+  ) {
     return this.accounts.get(await this.access.resolve(actor, orgId, 'read'), id);
   }
 
   @Put('accounts/:id')
-  async updateAccount(@Param('orgId', ParseUUIDPipe) orgId: string, @Param('id', ParseUUIDPipe) id: string, @Body() b: AccountPatchDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
-    return this.accounts.update(actor, await this.access.resolve(actor, orgId, 'manage'), id, b, meta);
+  async updateAccount(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: AccountPatchDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
+    return this.accounts.update(
+      actor,
+      await this.access.resolve(actor, orgId, 'manage'),
+      id,
+      b,
+      meta,
+    );
   }
 
   @Get('accounts/:id/statement')
-  async statement(@Param('orgId', ParseUUIDPipe) orgId: string, @Param('id', ParseUUIDPipe) id: string, @Query() q: StatementDto, @CurrentActor() actor: Actor) {
-    return this.ar.statement(await this.access.resolve(actor, orgId, 'read'), id, new Date(q.from), new Date(q.to));
+  async statement(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() q: StatementDto,
+    @CurrentActor() actor: Actor,
+  ) {
+    return this.ar.statement(
+      await this.access.resolve(actor, orgId, 'read'),
+      id,
+      new Date(q.from),
+      new Date(q.to),
+    );
   }
 
   @Get('documents')
-  async documents(@Param('orgId', ParseUUIDPipe) orgId: string, @Query() q: DocQueryDto, @CurrentActor() actor: Actor) {
+  async documents(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Query() q: DocQueryDto,
+    @CurrentActor() actor: Actor,
+  ) {
     return this.invoicing.list(await this.access.resolve(actor, orgId, 'read'), q);
   }
 
   @Get('documents/:id')
-  async document(@Param('orgId', ParseUUIDPipe) orgId: string, @Param('id', ParseUUIDPipe) id: string, @CurrentActor() actor: Actor) {
+  async document(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentActor() actor: Actor,
+  ) {
     return this.invoicing.view(id, await this.access.resolve(actor, orgId, 'read'));
   }
 
   @Post('documents/:id/dispute')
   @Idempotent()
-  async dispute(@Param('orgId', ParseUUIDPipe) orgId: string, @Param('id', ParseUUIDPipe) id: string, @Body() b: DisputeDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
-    return this.ar.dispute(actor, await this.access.resolve(actor, orgId, 'manage'), id, b.reason, meta);
+  async dispute(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: DisputeDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
+    return this.ar.dispute(
+      actor,
+      await this.access.resolve(actor, orgId, 'manage'),
+      id,
+      b.reason,
+      meta,
+    );
   }
 
   @Get('receivables')
@@ -114,26 +176,52 @@ export class OrgBillingController {
 
   @Post('purchase-orders')
   @Idempotent()
-  async createPo(@Param('orgId', ParseUUIDPipe) orgId: string, @Body() b: PoDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
-    const id = await this.accounts.createPurchaseOrder(actor, await this.access.resolve(actor, orgId, 'manage'), { ...b, organizationId: orgId }, meta);
+  async createPo(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Body() b: PoDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
+    const id = await this.accounts.createPurchaseOrder(
+      actor,
+      await this.access.resolve(actor, orgId, 'manage'),
+      { ...b, organizationId: orgId },
+      meta,
+    );
     return { id };
   }
 
   @Get('reconciliation')
-  async reconciliation(@Param('orgId', ParseUUIDPipe) orgId: string, @Query() q: ReconDto, @CurrentActor() actor: Actor) {
+  async reconciliation(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Query() q: ReconDto,
+    @CurrentActor() actor: Actor,
+  ) {
     const a = await this.access.resolve(actor, orgId, 'read');
-    return this.recon.report(a, { by: q.by as ReconDimension, currency: q.currency, from: q.from ? new Date(q.from) : undefined, to: q.to ? new Date(q.to) : undefined });
+    return this.recon.report(a, {
+      by: q.by as ReconDimension,
+      currency: q.currency,
+      from: q.from ? new Date(q.from) : undefined,
+      to: q.to ? new Date(q.to) : undefined,
+    });
   }
 
   /** A required party rejects a quotation or asks for a change (acceptance itself stays on the commercial routes). */
   @Post('quotations/:caseId/decline')
   @Idempotent()
   @HttpCode(200)
-  async decline(@Param('orgId', ParseUUIDPipe) orgId: string, @Param('caseId', ParseUUIDPipe) caseId: string, @Body() b: DeclineDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async decline(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Param('caseId', ParseUUIDPipe) caseId: string,
+    @Body() b: DeclineDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     const m = actor.membership;
     if (!m || m.organizationId !== orgId) throw AppError.notFound();
     if (m.branchId) throw AppError.forbidden();
-    const perm = m.organizationType === 'PARTNER' ? 'partner.finance.manage' : 'merchant.commercial.accept';
+    const perm =
+      m.organizationType === 'PARTNER' ? 'partner.finance.manage' : 'merchant.commercial.accept';
     if (!actor.permissions.has(perm)) throw AppError.forbidden();
     await this.commercial.decline(actor, orgId, caseId, b.quotationId, b.decision, b.reason, meta);
     return { ok: true as const };
@@ -174,7 +262,12 @@ export class AdminBillingController {
 
   @Put('accounts/:id')
   @RequirePermissions('admin.finance.manage')
-  async updateAccount(@Param('id', ParseUUIDPipe) id: string, @Body() b: AccountPatchDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async updateAccount(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: AccountPatchDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.accounts.update(actor, await this.manage(actor), id, b, meta);
   }
 
@@ -182,22 +275,43 @@ export class AdminBillingController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.finance.manage')
-  async accountStatus(@Param('id', ParseUUIDPipe) id: string, @Body() b: AccountStatusDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async accountStatus(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: AccountStatusDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     await this.accounts.setStatus(actor, id, b.status as BillingAccountStatus, b.reason, meta);
     return this.accounts.get(await this.read(actor), id);
   }
 
   @Get('accounts/:id/statement')
   @RequirePermissions('admin.finance.read')
-  async statement(@Param('id', ParseUUIDPipe) id: string, @Query() q: StatementDto, @CurrentActor() actor: Actor) {
+  async statement(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() q: StatementDto,
+    @CurrentActor() actor: Actor,
+  ) {
     return this.ar.statement(await this.read(actor), id, new Date(q.from), new Date(q.to));
   }
 
   @Post('accounts/:id/statement')
   @Idempotent()
   @RequirePermissions('admin.finance.manage')
-  async issueStatement(@Param('id', ParseUUIDPipe) id: string, @Body() q: StatementDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
-    return this.ar.issueStatement(actor, await this.read(actor), id, new Date(q.from), new Date(q.to), meta);
+  async issueStatement(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() q: StatementDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
+    return this.ar.issueStatement(
+      actor,
+      await this.read(actor),
+      id,
+      new Date(q.from),
+      new Date(q.to),
+      meta,
+    );
   }
 
   @Post('run')
@@ -224,7 +338,11 @@ export class AdminBillingController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.finance.manage')
-  async issue(@Param('id', ParseUUIDPipe) id: string, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async issue(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.invoicing.issue(actor, id, meta);
   }
 
@@ -232,7 +350,11 @@ export class AdminBillingController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.finance.manage')
-  async send(@Param('id', ParseUUIDPipe) id: string, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async send(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.invoicing.send(actor, id, meta);
   }
 
@@ -240,14 +362,24 @@ export class AdminBillingController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.finance.manage')
-  async cancel(@Param('id', ParseUUIDPipe) id: string, @Body() b: ReasonDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async cancel(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: ReasonDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.invoicing.cancelDraft(actor, id, b.reason, meta);
   }
 
   @Post('documents/:id/notes')
   @Idempotent()
   @RequirePermissions('admin.finance.manage')
-  async note(@Param('id', ParseUUIDPipe) id: string, @Body() b: NoteDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async note(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: NoteDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.invoicing.note(actor, id, b, meta);
   }
 
@@ -255,7 +387,12 @@ export class AdminBillingController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.finance.approve')
-  async writeOff(@Param('id', ParseUUIDPipe) id: string, @Body() b: ReasonDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async writeOff(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: ReasonDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.invoicing.writeOff(actor, id, b.reason, meta);
   }
 
@@ -263,7 +400,12 @@ export class AdminBillingController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.finance.manage')
-  async resolveDispute(@Param('id', ParseUUIDPipe) id: string, @Body() b: ResolveDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async resolveDispute(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: ResolveDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.ar.resolveDispute(actor, id, b, meta);
   }
 
@@ -285,7 +427,12 @@ export class AdminBillingController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.finance.manage')
-  async allocate(@Param('id', ParseUUIDPipe) id: string, @Body() b: AllocationDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async allocate(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: AllocationDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     await this.ar.allocate(actor, id, b.documentId, b.amountMinor, meta);
     return { ok: true as const };
   }
@@ -307,7 +454,12 @@ export class AdminBillingController {
   @RequirePermissions('admin.finance.manage')
   async createPo(@Body() b: PoDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
     if (!b.organizationId) throw AppError.validation('The business is required', 'organizationId');
-    const id = await this.accounts.createPurchaseOrder(actor, await this.manage(actor), { ...b, organizationId: b.organizationId }, meta);
+    const id = await this.accounts.createPurchaseOrder(
+      actor,
+      await this.manage(actor),
+      { ...b, organizationId: b.organizationId },
+      meta,
+    );
     return { id };
   }
 
@@ -328,7 +480,12 @@ export class AdminBillingController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.finance.approve')
-  async decideRate(@Param('id', ParseUUIDPipe) id: string, @Param('decision') decision: string, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async decideRate(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('decision') decision: string,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     if (decision !== 'approve' && decision !== 'reject') throw AppError.notFound();
     await this.accounts.decideRate(actor, id, decision === 'approve', meta);
     return { ok: true as const };
@@ -337,6 +494,12 @@ export class AdminBillingController {
   @Get('reconciliation')
   @RequirePermissions('admin.finance.read')
   async reconciliation(@Query() q: ReconDto, @CurrentActor() actor: Actor) {
-    return this.recon.report(await this.read(actor), { by: q.by as ReconDimension, organizationId: q.organizationId, currency: q.currency, from: q.from ? new Date(q.from) : undefined, to: q.to ? new Date(q.to) : undefined });
+    return this.recon.report(await this.read(actor), {
+      by: q.by as ReconDimension,
+      organizationId: q.organizationId,
+      currency: q.currency,
+      from: q.from ? new Date(q.from) : undefined,
+      to: q.to ? new Date(q.to) : undefined,
+    });
   }
 }

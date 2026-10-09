@@ -1124,3 +1124,53 @@ Full specification: `SUBSCRIPTION_LICENSING_ENTITLEMENT.md`. Rules in force:
 - SUB-17 (founder, Oct 2026) An Exclusive Deal that starts immediately / as soon as approved stays commercially stable when re-saved or
   submitted; only a genuinely scheduled start or a commitment-raising change re-quotes. Product name: **Exclusive Deal** (never "Hot Deal").
 - Status: **FOUNDER APPROVED AND FROZEN.**
+
+## Addendum (Oct 2026) — Phase 4 / Phase 5 business rules (awaiting approval)
+
+**Visibility**
+- V1. Engagement (impression, view, click, save, direction request) is never a verified outcome; a click is never a sale, a direction
+  request never a visit, an issued credential never a redemption. Enforced by a database CHECK on analytics events.
+- V2. Analytics events are append-only and idempotent; a credited-back Watch view reduces qualified views and spend.
+- V3. Reporting is filtered on the server by tenant, role, scope (branch / unit / campaign), legal entity and product entitlement. Grouping
+  above branch (country, legal entity, brand, region, city) needs ADVANCED_REPORTING; grouping by business is DealDash only.
+- V4. A target is an objective, never a guarantee. Forecasts are labelled FORECAST_ESTIMATE, carry a confidence and are not shown before
+  10 % of the period has elapsed (configurable).
+- V5. Each target milestone (default 25 / 50 / 75 / 90 / 100 %, custom allowed) alerts once. Behind-target alerts start after 25 % of the
+  period.
+- V6. One alert per code / subject / cooldown window. Organization rules override platform defaults. Recipients must be members; roles
+  must belong to the organization type; rule scope objects must be the organization's own.
+- V7. Preferences are personal (frequency, channels, mute); CRITICAL_ONLY never suppresses a critical alert; muting never hides anything
+  from the team.
+- V8. Unacknowledged alerts escalate by step; acknowledging or resolving stops escalation and closes the task.
+- V9. An alert action only opens the normal screen; RBAC, scope, maker-checker, acceptance, finance approval and audit always apply.
+  Viewers without the permission see the action as unavailable.
+- V10. The support timeline never shows codes, tokens or full mobile numbers.
+
+**Billing and finance**
+- F1. The billed party is a legal entity (never a brand or branch); one billing account per organization, legal entity and currency,
+  one default per currency.
+- F2. Each billing event is collected exactly once: invoice, prepaid draw-down, netting from the merchant payable, or the campaign case.
+- F3. Billing runs only draft; issuing is a Finance action. At or above the configured amount a second finance person approves.
+- F4. Issued documents are immutable and never deleted; corrections are credit / debit / adjustment notes; only drafts are cancelled.
+  A credit note never exceeds the invoice.
+- F5. Tax follows country configuration; when not configured the document says so and no tax is invented.
+- F6. Payments are in the account currency; excess stays as unallocated credit; over-allocation is refused.
+- F7. When an account requires a PO, an invoice needs a valid PO with enough remaining value.
+- F8. Credit exposure includes open receivables; no exposure above the approved credit, PO or funding.
+- F9. No currency conversion without an approved exchange rate (maker-checker).
+- F10. Expired, rejected or modification-requested quotations cannot be accepted; the economics are re-quoted as a new version.
+- F11. Overdue invoices are reported in the financial status (grace with reasons). They block new exposure only when
+  `finance.billing.overdueDrivesPastDue` is switched on. Customer rights, redemptions and records are never affected.
+- F12. Write-off stays disabled until the statutory treatment is confirmed (VALIDATE-KSA).
+
+**AI**
+- A1. Agents use authorised tools that call existing services as the requesting person; no bypass of RBAC, scope, entitlement or rules.
+- A2. Business agents need AI_COPILOT; customers need the customer assistant to be enabled.
+- A3. MVP autonomy is at most L3 (execute after human approval); L4 is disabled; L5 is always refused.
+- A4. The customer assistant never reserves, buys, pays, spends points or redeems; it recommends only offers the customer is eligible for
+  and that are available now, and explains why; savings are only as stated by the merchant.
+- A5. Merchant Growth plans are drafts: the objective is a target, nothing is published and no exposure is created.
+- A6. Every number in an answer must come from a tool result; statements are labelled fact / trend / forecast / hypothesis /
+  recommendation.
+- A7. Every interaction, tool call, draft, approval, execution and refusal is audited; usage is metered but not priced.
+- A8. Unsupported languages (e.g. Urdu) are answered in English with a note; no machine-translated financial text.

@@ -1,7 +1,14 @@
 import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
-import { aiAdminAskSchema, aiAskSchema, aiDecisionSchema, aiDraftQuerySchema, aiInteractionQuerySchema, aiUsageQuerySchema } from '@dealdash/validation';
+import {
+  aiAdminAskSchema,
+  aiAskSchema,
+  aiDecisionSchema,
+  aiDraftQuerySchema,
+  aiInteractionQuerySchema,
+  aiUsageQuerySchema,
+} from '@dealdash/validation';
 import { Audiences, CurrentActor, Meta, RequirePermissions } from '../common/decorators';
 import { AppError } from '../common/errors';
 import type { Actor, RequestMeta } from '../common/request-context';
@@ -38,21 +45,38 @@ export class OrgAiController {
 
   @Post('ask')
   @HttpCode(200)
-  ask(@Param('orgId', ParseUUIDPipe) orgId: string, @Body() b: AskDto, @CurrentActor() actor: Actor) {
-    const agent = actor.membership?.organizationType === 'PARTNER' ? 'PARTNER_CAMPAIGN' : 'MERCHANT_GROWTH';
+  ask(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Body() b: AskDto,
+    @CurrentActor() actor: Actor,
+  ) {
+    const agent =
+      actor.membership?.organizationType === 'PARTNER' ? 'PARTNER_CAMPAIGN' : 'MERCHANT_GROWTH';
     return this.ai.ask(actor, agent, { ...b, organizationId: orgId });
   }
 
   @Get('drafts')
-  drafts(@Param('orgId', ParseUUIDPipe) orgId: string, @Query() q: DraftQueryDto, @CurrentActor() actor: Actor) {
-    const perm = actor.membership?.organizationType === 'PARTNER' ? 'partner.ai.use' : 'merchant.ai.use';
+  drafts(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Query() q: DraftQueryDto,
+    @CurrentActor() actor: Actor,
+  ) {
+    const perm =
+      actor.membership?.organizationType === 'PARTNER' ? 'partner.ai.use' : 'merchant.ai.use';
     if (!actor.permissions.has(perm)) throw AppError.forbidden();
     return this.ai.drafts(actor, orgId, q.status);
   }
 
   @Post('drafts/:id/:decision')
   @HttpCode(200)
-  decide(@Param('orgId', ParseUUIDPipe) orgId: string, @Param('id', ParseUUIDPipe) id: string, @Param('decision') decision: string, @Body() b: DecisionDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  decide(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('decision') decision: string,
+    @Body() b: DecisionDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     if (decision !== 'approve' && decision !== 'reject') throw AppError.notFound();
     return this.ai.decide(actor, orgId, id, decision === 'approve', b.reason ?? null, meta);
   }
@@ -84,7 +108,13 @@ export class AdminAiController {
   @Post('drafts/:id/:decision')
   @HttpCode(200)
   @RequirePermissions('admin.ai.manage')
-  decide(@Param('id', ParseUUIDPipe) id: string, @Param('decision') decision: string, @Body() b: DecisionDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  decide(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('decision') decision: string,
+    @Body() b: DecisionDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     if (decision !== 'approve' && decision !== 'reject') throw AppError.notFound();
     return this.ai.decide(actor, null, id, decision === 'approve', b.reason ?? null, meta);
   }
@@ -104,7 +134,11 @@ export class AdminAiController {
   @Get('usage')
   @RequirePermissions('admin.ai.manage')
   usage(@Query() q: UsageQueryDto) {
-    return this.ai.usage({ organizationId: q.organizationId, from: q.from ? new Date(q.from) : undefined, to: q.to ? new Date(q.to) : undefined });
+    return this.ai.usage({
+      organizationId: q.organizationId,
+      from: q.from ? new Date(q.from) : undefined,
+      to: q.to ? new Date(q.to) : undefined,
+    });
   }
 
   @Get('governance')

@@ -1,5 +1,15 @@
 import { z } from 'zod';
-import { ALERT_CATEGORIES, ALERT_CHANNELS, ALERT_CODE_KEYS, ALERT_FREQUENCIES, ALERT_SEVERITIES, METRIC_KEYS, REPORT_DIMENSIONS, TARGET_METRIC_KEYS, TIMELINE_KINDS } from '@dealdash/types';
+import {
+  ALERT_CATEGORIES,
+  ALERT_CHANNELS,
+  ALERT_CODE_KEYS,
+  ALERT_FREQUENCIES,
+  ALERT_SEVERITIES,
+  METRIC_KEYS,
+  REPORT_DIMENSIONS,
+  TARGET_METRIC_KEYS,
+  TIMELINE_KINDS,
+} from '@dealdash/types';
 
 const uuid = z.string().uuid();
 const iso = z.string().datetime({ offset: true });
@@ -8,8 +18,18 @@ const csv = <T extends string>(values: readonly T[]) =>
   z
     .string()
     .trim()
-    .transform((s) => s.split(',').map((x) => x.trim()).filter(Boolean))
-    .pipe(z.array(z.enum(values as unknown as [T, ...T[]])).min(1).max(60));
+    .transform((s) =>
+      s
+        .split(',')
+        .map((x) => x.trim())
+        .filter(Boolean),
+    )
+    .pipe(
+      z
+        .array(z.enum(values as unknown as [T, ...T[]]))
+        .min(1)
+        .max(60),
+    );
 
 /** A reporting period (defaults: the last 30 days). */
 export const periodQuerySchema = z.object({ from: iso.optional(), to: iso.optional() });
@@ -39,7 +59,11 @@ export const targetCreateSchema = z.object({
   thresholds: z.array(z.number().int().min(1).max(1000)).max(12).default([]),
 });
 
-const escalationStep = z.object({ afterMinutes: z.number().int().min(5).max(10_080), toRoles: z.array(z.string().trim().max(60)).min(1).max(10), channels: z.array(z.enum(ALERT_CHANNELS)).max(5).optional() });
+const escalationStep = z.object({
+  afterMinutes: z.number().int().min(5).max(10_080),
+  toRoles: z.array(z.string().trim().max(60)).min(1).max(10),
+  channels: z.array(z.enum(ALERT_CHANNELS)).max(5).optional(),
+});
 
 export const alertRuleSchema = z.object({
   name: z.string().trim().min(2).max(120),
@@ -78,7 +102,12 @@ export const timelineQuerySchema = z.object({
   kinds: z
     .string()
     .trim()
-    .transform((s) => s.split(',').map((x) => x.trim()).filter(Boolean))
+    .transform((s) =>
+      s
+        .split(',')
+        .map((x) => x.trim())
+        .filter(Boolean),
+    )
     .pipe(z.array(z.enum(TIMELINE_KINDS)).max(14))
     .optional(),
   before: iso.optional(),

@@ -14,18 +14,54 @@ const P45 = {
   'nav.ai': ['AI governance', 'حوكمة الذكاء الاصطناعي'],
 
   // ---------------------------------------------------------------- errors
-  'error.ALERT_RULE_INVALID': ['This alert rule is not valid. Check the type, recipients and scope.', 'قاعدة التنبيه هذه غير صالحة. تحقق من النوع والمستلمين والنطاق.'],
-  'error.TARGET_INVALID': ['This target is not valid. Check the period and the value.', 'هذا الهدف غير صالح. تحقق من الفترة والقيمة.'],
-  'error.DOCUMENT_IMMUTABLE': ['An issued document cannot be changed. Use a credit or debit note.', 'لا يمكن تعديل مستند صادر. استخدم إشعارًا دائنًا أو مدينًا.'],
-  'error.PO_REQUIRED': ['This account needs a purchase order before it can be invoiced.', 'يتطلب هذا الحساب أمر شراء قبل إصدار الفاتورة.'],
-  'error.PO_INSUFFICIENT': ['The purchase order does not have enough remaining value.', 'لا يملك أمر الشراء قيمة متبقية كافية.'],
-  'error.FX_RATE_REQUIRED': ['An approved exchange rate is needed first. Nothing is converted without one.', 'يلزم أولًا سعر صرف معتمد. لا يتم أي تحويل بدونه.'],
-  'error.QUOTATION_EXPIRED': ['This quotation has expired. Ask for a new quotation to continue.', 'انتهت صلاحية عرض السعر هذا. اطلب عرض سعر جديدًا للمتابعة.'],
-  'error.OVERPAYMENT': ['That is more than is owed on this document.', 'هذا المبلغ أكبر من المستحق على هذا المستند.'],
-  'error.AI_NOT_ENTITLED': ['The assistant is not included in your plan.', 'المساعد غير مشمول في باقتك.'],
-  'error.AI_AUTONOMY_EXCEEDED': ['The assistant cannot act on its own here. A person must decide.', 'لا يمكن للمساعد التصرف بمفرده هنا. يجب أن يقرر شخص.'],
-  'error.AI_APPROVAL_REQUIRED': ['Someone with approval rights for this action must decide it.', 'يجب أن يقرر هذا الإجراء شخص لديه صلاحية الاعتماد.'],
-  'error.AI_TOOL_DENIED': ['You do not have access to this information.', 'ليست لديك صلاحية الوصول إلى هذه المعلومات.'],
+  'error.ALERT_RULE_INVALID': [
+    'This alert rule is not valid. Check the type, recipients and scope.',
+    'قاعدة التنبيه هذه غير صالحة. تحقق من النوع والمستلمين والنطاق.',
+  ],
+  'error.TARGET_INVALID': [
+    'This target is not valid. Check the period and the value.',
+    'هذا الهدف غير صالح. تحقق من الفترة والقيمة.',
+  ],
+  'error.DOCUMENT_IMMUTABLE': [
+    'An issued document cannot be changed. Use a credit or debit note.',
+    'لا يمكن تعديل مستند صادر. استخدم إشعارًا دائنًا أو مدينًا.',
+  ],
+  'error.PO_REQUIRED': [
+    'This account needs a purchase order before it can be invoiced.',
+    'يتطلب هذا الحساب أمر شراء قبل إصدار الفاتورة.',
+  ],
+  'error.PO_INSUFFICIENT': [
+    'The purchase order does not have enough remaining value.',
+    'لا يملك أمر الشراء قيمة متبقية كافية.',
+  ],
+  'error.FX_RATE_REQUIRED': [
+    'An approved exchange rate is needed first. Nothing is converted without one.',
+    'يلزم أولًا سعر صرف معتمد. لا يتم أي تحويل بدونه.',
+  ],
+  'error.QUOTATION_EXPIRED': [
+    'This quotation has expired. Ask for a new quotation to continue.',
+    'انتهت صلاحية عرض السعر هذا. اطلب عرض سعر جديدًا للمتابعة.',
+  ],
+  'error.OVERPAYMENT': [
+    'That is more than is owed on this document.',
+    'هذا المبلغ أكبر من المستحق على هذا المستند.',
+  ],
+  'error.AI_NOT_ENTITLED': [
+    'The assistant is not included in your plan.',
+    'المساعد غير مشمول في باقتك.',
+  ],
+  'error.AI_AUTONOMY_EXCEEDED': [
+    'The assistant cannot act on its own here. A person must decide.',
+    'لا يمكن للمساعد التصرف بمفرده هنا. يجب أن يقرر شخص.',
+  ],
+  'error.AI_APPROVAL_REQUIRED': [
+    'Someone with approval rights for this action must decide it.',
+    'يجب أن يقرر هذا الإجراء شخص لديه صلاحية الاعتماد.',
+  ],
+  'error.AI_TOOL_DENIED': [
+    'You do not have access to this information.',
+    'ليست لديك صلاحية الوصول إلى هذه المعلومات.',
+  ],
 
   // ---------------------------------------------------------------- performance
   'vis.title': ['Performance', 'الأداء'],
@@ -36,7 +72,10 @@ const P45 = {
   'vis.tab.alerts': ['Alerts', 'التنبيهات'],
   'vis.tab.rules': ['Alert rules', 'قواعد التنبيه'],
   'vis.tab.preferences': ['Notification preferences', 'تفضيلات الإشعارات'],
-  'vis.honest': ['Counts come from verified records. A view or a click is not a sale, a direction request is not a visit, and an issued code is not a redemption.', 'الأرقام مأخوذة من سجلات موثّقة. المشاهدة أو النقرة ليست عملية بيع، وطلب الاتجاهات ليس زيارة، والرمز الصادر ليس استردادًا.'],
+  'vis.honest': [
+    'Counts come from verified records. A view or a click is not a sale, a direction request is not a visit, and an issued code is not a redemption.',
+    'الأرقام مأخوذة من سجلات موثّقة. المشاهدة أو النقرة ليست عملية بيع، وطلب الاتجاهات ليس زيارة، والرمز الصادر ليس استردادًا.',
+  ],
   'vis.asOf': ['Data as of {time}', 'البيانات حتى {time}'],
   'vis.period': ['Period', 'الفترة'],
   'vis.lastDays': ['Last {days} days', 'آخر {days} يومًا'],
@@ -44,7 +83,10 @@ const P45 = {
   'vis.notEntitled': ['Not in your plan', 'غير مشمول في باقتك'],
   'vis.denied': ['Not available to you', 'غير متاح لك'],
   'vis.empty': ['Nothing to show yet.', 'لا يوجد ما يُعرض بعد.'],
-  'vis.reportNote': ['Group by any level you are allowed to see; select Drill down to go one level deeper. Grouping above branch needs Advanced Reporting.', 'جمّع حسب أي مستوى مسموح لك برؤيته، واختر «تعمّق» للنزول مستوى واحدًا. يتطلب التجميع فوق مستوى الفرع ميزة التقارير المتقدمة.'],
+  'vis.reportNote': [
+    'Group by any level you are allowed to see; select Drill down to go one level deeper. Grouping above branch needs Advanced Reporting.',
+    'جمّع حسب أي مستوى مسموح لك برؤيته، واختر «تعمّق» للنزول مستوى واحدًا. يتطلب التجميع فوق مستوى الفرع ميزة التقارير المتقدمة.',
+  ],
   'vis.groupBy': ['Group by', 'التجميع حسب'],
   'vis.drill': ['Drill down', 'تعمّق'],
   'vis.clearDrill': ['Back to top level', 'العودة إلى المستوى الأعلى'],
@@ -55,7 +97,10 @@ const P45 = {
   'vis.statusLabel': ['Status', 'الحالة'],
 
   // targets
-  'vis.targetsNote': ['A target is what you aim for, not a guaranteed result. Expected-to-date shows where you should be by now; the forecast is an estimate from the pace so far.', 'الهدف هو ما تسعى إليه وليس نتيجة مضمونة. «المتوقع حتى الآن» يبيّن أين يجب أن تكون الآن، والتوقع تقدير مبني على الوتيرة الحالية.'],
+  'vis.targetsNote': [
+    'A target is what you aim for, not a guaranteed result. Expected-to-date shows where you should be by now; the forecast is an estimate from the pace so far.',
+    'الهدف هو ما تسعى إليه وليس نتيجة مضمونة. «المتوقع حتى الآن» يبيّن أين يجب أن تكون الآن، والتوقع تقدير مبني على الوتيرة الحالية.',
+  ],
   'vis.target': ['Target', 'الهدف'],
   'vis.actual': ['Actual', 'الفعلي'],
   'vis.expectedToDate': ['Expected to date', 'المتوقع حتى الآن'],
@@ -119,18 +164,42 @@ const P45 = {
   'vis.metric.live.detail_views': ['Detail views', 'مشاهدات التفاصيل'],
   'vis.metric.live.merchant_page_visits': ['Merchant page visits', 'زيارات صفحة التاجر'],
   'vis.metric.live.saves': ['Saves', 'مرات الحفظ'],
-  'vis.metric.live.directions': ['Direction requests (not visits)', 'طلبات الاتجاهات (ليست زيارات)'],
-  'vis.metric.live.online_clicks': ['Online clicks (not sales)', 'النقرات الإلكترونية (ليست مبيعات)'],
-  'vis.metric.live.member_benefit_activations': ['Member benefit activations', 'تفعيلات مزايا الأعضاء'],
-  'vis.metric.live.member_benefit_redemptions': ['Verified member benefit redemptions', 'استردادات مزايا الأعضاء الموثّقة'],
+  'vis.metric.live.directions': [
+    'Direction requests (not visits)',
+    'طلبات الاتجاهات (ليست زيارات)',
+  ],
+  'vis.metric.live.online_clicks': [
+    'Online clicks (not sales)',
+    'النقرات الإلكترونية (ليست مبيعات)',
+  ],
+  'vis.metric.live.member_benefit_activations': [
+    'Member benefit activations',
+    'تفعيلات مزايا الأعضاء',
+  ],
+  'vis.metric.live.member_benefit_redemptions': [
+    'Verified member benefit redemptions',
+    'استردادات مزايا الأعضاء الموثّقة',
+  ],
   'vis.metric.exclusive.views': ['Views', 'المشاهدات'],
-  'vis.metric.exclusive.credentials_issued': ['Reservations / codes issued', 'الحجوزات / الرموز الصادرة'],
-  'vis.metric.exclusive.verified_redemptions': ['Verified redemptions', 'عمليات الاسترداد الموثّقة'],
-  'vis.metric.exclusive.redemption_rejections': ['Refused redemption attempts', 'محاولات الاسترداد المرفوضة'],
+  'vis.metric.exclusive.credentials_issued': [
+    'Reservations / codes issued',
+    'الحجوزات / الرموز الصادرة',
+  ],
+  'vis.metric.exclusive.verified_redemptions': [
+    'Verified redemptions',
+    'عمليات الاسترداد الموثّقة',
+  ],
+  'vis.metric.exclusive.redemption_rejections': [
+    'Refused redemption attempts',
+    'محاولات الاسترداد المرفوضة',
+  ],
   'vis.metric.exclusive.redemption_rate': ['Redemption rate', 'نسبة الاسترداد'],
   'vis.metric.exclusive.inventory_remaining': ['Inventory remaining', 'المخزون المتبقي'],
   'vis.metric.exclusive.sponsor_utilization': ['Sponsor funding used', 'تمويل الراعي المستخدم'],
-  'vis.metric.exclusive.merchant_benefit_utilization': ['Merchant benefit used', 'ميزة التاجر المستخدمة'],
+  'vis.metric.exclusive.merchant_benefit_utilization': [
+    'Merchant benefit used',
+    'ميزة التاجر المستخدمة',
+  ],
   'vis.metric.voucher.views': ['Views', 'المشاهدات'],
   'vis.metric.voucher.purchases': ['Purchases', 'عمليات الشراء'],
   'vis.metric.voucher.payment_failures': ['Failed payments', 'المدفوعات الفاشلة'],
@@ -162,17 +231,26 @@ const P45 = {
   'vis.metric.loyalty.points_expired': ['Points expired', 'النقاط المنتهية'],
   'vis.metric.loyalty.points_reversed': ['Points reversed', 'النقاط المعكوسة'],
   'vis.metric.loyalty.rewards_allocated': ['Rewards allocated', 'المكافآت المخصّصة'],
-  'vis.metric.loyalty.points_remaining': ['Points outstanding (liability)', 'النقاط القائمة (التزام)'],
+  'vis.metric.loyalty.points_remaining': [
+    'Points outstanding (liability)',
+    'النقاط القائمة (التزام)',
+  ],
   'vis.metric.loyalty.customers': ['Customers earning points', 'العملاء الذين يكسبون نقاطًا'],
 
   // alerts
-  'vis.alertsNote': ['Alerts are grouped so you are not told the same thing twice. Every action still follows your permissions and approvals.', 'تُجمَع التنبيهات حتى لا يصلك الأمر نفسه مرتين. كل إجراء يخضع لصلاحياتك واعتماداتك.'],
+  'vis.alertsNote': [
+    'Alerts are grouped so you are not told the same thing twice. Every action still follows your permissions and approvals.',
+    'تُجمَع التنبيهات حتى لا يصلك الأمر نفسه مرتين. كل إجراء يخضع لصلاحياتك واعتماداتك.',
+  ],
   'vis.acknowledge': ['Acknowledge', 'إقرار'],
   'vis.resolve': ['Resolve', 'حل'],
   'vis.acknowledged': ['Alert acknowledged.', 'تم الإقرار بالتنبيه.'],
   'vis.resolved': ['Alert resolved.', 'تم حل التنبيه.'],
   'vis.escalated': ['Escalated (level {level})', 'تم التصعيد (المستوى {level})'],
-  'vis.actionNeedsPermission': ['{action}: someone with the right permission must do this.', '{action}: يجب أن يقوم بذلك شخص لديه الصلاحية.'],
+  'vis.actionNeedsPermission': [
+    '{action}: someone with the right permission must do this.',
+    '{action}: يجب أن يقوم بذلك شخص لديه الصلاحية.',
+  ],
   'vis.severity.INFO': ['Information', 'معلومة'],
   'vis.severity.WARNING': ['Warning', 'تحذير'],
   'vis.severity.CRITICAL': ['Critical', 'حرج'],
@@ -213,7 +291,10 @@ const P45 = {
   'vis.alert.VOUCHER_INVENTORY_LOW': ['Voucher inventory low', 'مخزون القسائم منخفض'],
   'vis.alert.REWARD_INVENTORY_LOW': ['Reward inventory low', 'مخزون المكافآت منخفض'],
   'vis.alert.POINTS_FUNDING_LOW': ['Points funding low', 'تمويل النقاط منخفض'],
-  'vis.alert.SPONSOR_FUNDING_NEAR_LIMIT': ['Sponsor funding near its limit', 'تمويل الراعي يقترب من حده'],
+  'vis.alert.SPONSOR_FUNDING_NEAR_LIMIT': [
+    'Sponsor funding near its limit',
+    'تمويل الراعي يقترب من حده',
+  ],
   'vis.alert.CREDIT_NEAR_LIMIT': ['Credit near its limit', 'الائتمان يقترب من حده'],
   'vis.alert.PO_NEAR_LIMIT': ['Purchase order nearly used', 'أمر الشراء يكاد يُستنفد'],
   'vis.alert.CAMPAIGN_EXPIRY_APPROACHING': ['Campaign ending soon', 'الحملة تنتهي قريبًا'],
@@ -226,7 +307,10 @@ const P45 = {
   'vis.alert.FEED_STALE': ['Data feed not updated', 'لم يتم تحديث مصدر البيانات'],
   'vis.alert.INTEGRATION_ERROR': ['Integration errors', 'أخطاء في التكامل'],
   'vis.alert.PAYMENT_FAILURES_RISING': ['Payment failures increasing', 'ازدياد المدفوعات الفاشلة'],
-  'vis.alert.REDEMPTION_REJECTIONS_RISING': ['Refused redemptions increasing', 'ازدياد الاستردادات المرفوضة'],
+  'vis.alert.REDEMPTION_REJECTIONS_RISING': [
+    'Refused redemptions increasing',
+    'ازدياد الاستردادات المرفوضة',
+  ],
   'vis.alert.SUSPICIOUS_BRANCH_ACTIVITY': ['Unusual branch activity', 'نشاط غير معتاد في فرع'],
   'vis.alert.RECONCILIATION_DIFFERENCE': ['Reconciliation difference', 'فرق في المطابقة'],
   'vis.alert.FUNDING_REQUIRED': ['Funding needed', 'التمويل مطلوب'],
@@ -236,12 +320,18 @@ const P45 = {
   'vis.alert.FINANCIAL_HOLD': ['Financial hold', 'إيقاف مالي'],
 
   // rules and preferences
-  'vis.rulesNote': ['Choose what to be told about, how often and through which channels. Escalation tells the next person if nobody acknowledges in time.', 'اختر ما تريد معرفته وعدد المرات والقنوات. التصعيد يُبلغ الشخص التالي إذا لم يُقرّ أحد في الوقت المحدد.'],
+  'vis.rulesNote': [
+    'Choose what to be told about, how often and through which channels. Escalation tells the next person if nobody acknowledges in time.',
+    'اختر ما تريد معرفته وعدد المرات والقنوات. التصعيد يُبلغ الشخص التالي إذا لم يُقرّ أحد في الوقت المحدد.',
+  ],
   'vis.ruleName': ['Rule name', 'اسم القاعدة'],
   'vis.alertType': ['Alert type', 'نوع التنبيه'],
   'vis.frequency': ['Frequency', 'التكرار'],
   'vis.threshold': ['Threshold', 'الحد'],
-  'vis.thresholdHelp': ['Leave empty to use the standard threshold.', 'اتركه فارغًا لاستخدام الحد القياسي.'],
+  'vis.thresholdHelp': [
+    'Leave empty to use the standard threshold.',
+    'اتركه فارغًا لاستخدام الحد القياسي.',
+  ],
   'vis.escalateAfter': ['Escalate after (minutes)', 'التصعيد بعد (دقائق)'],
   'vis.escalatesAfter': ['escalates after {minutes} min', 'يُصعَّد بعد {minutes} دقيقة'],
   'vis.channels': ['Channels', 'القنوات'],
@@ -257,7 +347,10 @@ const P45 = {
   'vis.channel.PUSH': ['Push', 'إشعار فوري'],
   'vis.channel.SMS': ['SMS', 'رسالة نصية'],
   'vis.channel.TASK_INBOX': ['Task inbox', 'صندوق المهام'],
-  'vis.prefsNote': ['These settings are yours alone. Muting a category does not hide anything from your team.', 'هذه الإعدادات خاصة بك وحدك. كتم فئة لا يُخفي شيئًا عن فريقك.'],
+  'vis.prefsNote': [
+    'These settings are yours alone. Muting a category does not hide anything from your team.',
+    'هذه الإعدادات خاصة بك وحدك. كتم فئة لا يُخفي شيئًا عن فريقك.',
+  ],
   'vis.mute': ['Mute', 'كتم'],
   'vis.health.HEALTHY': ['Healthy', 'سليم'],
   'vis.health.DEGRADED': ['Degraded', 'متراجع'],
@@ -275,7 +368,10 @@ const P45 = {
   'cc.transactionHealth': ['Transactions (last {hours} hours)', 'المعاملات (آخر {hours} ساعة)'],
   'cc.financialHealth': ['Financial health', 'الحالة المالية'],
   'cc.integrationHealth': ['Integration health', 'حالة التكاملات'],
-  'cc.integrationNote': ['A feed is “not updated” when it has not synced within its expected window. Adapters marked Mock are not connected to a live provider yet.', 'يكون المصدر «غير محدَّث» إذا لم تتم مزامنته خلال المدة المتوقعة. المحوّلات المعلّمة بـ«تجريبي» غير متصلة بمزوّد فعلي بعد.'],
+  'cc.integrationNote': [
+    'A feed is “not updated” when it has not synced within its expected window. Adapters marked Mock are not connected to a live provider yet.',
+    'يكون المصدر «غير محدَّث» إذا لم تتم مزامنته خلال المدة المتوقعة. المحوّلات المعلّمة بـ«تجريبي» غير متصلة بمزوّد فعلي بعد.',
+  ],
   'cc.riskHealth': ['Risk', 'المخاطر'],
   'cc.platformHealth': ['Platform health', 'حالة المنصة'],
   'cc.alertsOpen': ['Open alerts', 'التنبيهات المفتوحة'],
@@ -312,7 +408,10 @@ const P45 = {
   'cc.r.duplicateActivity': ['Possible duplicates', 'تكرارات محتملة'],
   'cc.r.suspiciousDevices': ['Suspicious devices', 'أجهزة مشبوهة'],
   'cc.r.staffMisuse': ['Unusual staff activity', 'نشاط موظفين غير معتاد'],
-  'cc.r.unusualRedemptions': ['Refused redemption attempts (24h)', 'محاولات استرداد مرفوضة (24 ساعة)'],
+  'cc.r.unusualRedemptions': [
+    'Refused redemption attempts (24h)',
+    'محاولات استرداد مرفوضة (24 ساعة)',
+  ],
   'cc.r.rewardFarming': ['Held or blocked rewards (7 days)', 'مكافآت معلّقة أو محظورة (7 أيام)'],
   'cc.r.reconciliationAnomalies': ['Reconciliation anomalies', 'حالات شاذة في المطابقة'],
   'cc.p.state': ['Overall', 'الإجمالي'],
@@ -343,7 +442,10 @@ const P45 = {
   'cc.adapter.CONNECTION': ['Connection', 'اتصال'],
   'cc.adapter.INTERNAL': ['Internal', 'داخلي'],
   'cc.adapter.MOCK': ['Mock (not live)', 'تجريبي (غير فعلي)'],
-  'cc.timelineNote': ['Everything that happened to one customer, newest first. Codes and tokens are never shown.', 'كل ما حدث لعميل واحد، الأحدث أولًا. لا تُعرض الرموز أو المفاتيح أبدًا.'],
+  'cc.timelineNote': [
+    'Everything that happened to one customer, newest first. Codes and tokens are never shown.',
+    'كل ما حدث لعميل واحد، الأحدث أولًا. لا تُعرض الرموز أو المفاتيح أبدًا.',
+  ],
   'cc.findCustomer': ['Find a customer (mobile or name)', 'ابحث عن عميل (الجوال أو الاسم)'],
   'cc.findPlaceholder': ['At least 3 characters', '3 أحرف على الأقل'],
   'cc.search': ['Search', 'بحث'],
@@ -387,10 +489,19 @@ const P45 = {
   'bill.tab.reconciliation': ['Reconciliation', 'المطابقة'],
   'bill.tab.payments': ['Record payment', 'تسجيل دفعة'],
   'bill.tab.fx': ['Exchange rates', 'أسعار الصرف'],
-  'bill.documentsNote': ['Issued documents never change. A correction is a credit or debit note linked to the original.', 'المستندات الصادرة لا تتغير أبدًا. التصحيح يكون بإشعار دائن أو مدين مرتبط بالأصل.'],
-  'bill.accountsNote': ['Each legal entity is billed in its own account and currency. Payment terms, billing frequency and the PO rule are agreed with DealDash.', 'يُفوتَر كل كيان قانوني في حسابه وعملته الخاصة. شروط الدفع وتكرار الفوترة وقاعدة أمر الشراء يتم الاتفاق عليها مع DealDash.'],
+  'bill.documentsNote': [
+    'Issued documents never change. A correction is a credit or debit note linked to the original.',
+    'المستندات الصادرة لا تتغير أبدًا. التصحيح يكون بإشعار دائن أو مدين مرتبط بالأصل.',
+  ],
+  'bill.accountsNote': [
+    'Each legal entity is billed in its own account and currency. Payment terms, billing frequency and the PO rule are agreed with DealDash.',
+    'يُفوتَر كل كيان قانوني في حسابه وعملته الخاصة. شروط الدفع وتكرار الفوترة وقاعدة أمر الشراء يتم الاتفاق عليها مع DealDash.',
+  ],
   'bill.holdTitle': ['Financial hold in place', 'يوجد إيقاف مالي'],
-  'bill.holdBody': ['New paid activity is paused for: {names}. Live customer rights, redemptions and your records are not affected. Contact DealDash Finance.', 'النشاط المدفوع الجديد متوقف لـ: {names}. حقوق العملاء القائمة والاستردادات وسجلاتك لا تتأثر. تواصل مع قسم المالية في DealDash.'],
+  'bill.holdBody': [
+    'New paid activity is paused for: {names}. Live customer rights, redemptions and your records are not affected. Contact DealDash Finance.',
+    'النشاط المدفوع الجديد متوقف لـ: {names}. حقوق العملاء القائمة والاستردادات وسجلاتك لا تتأثر. تواصل مع قسم المالية في DealDash.',
+  ],
   'bill.number': ['Number', 'الرقم'],
   'bill.draftNumber': ['Draft', 'مسودة'],
   'bill.type': ['Type', 'النوع'],
@@ -400,7 +511,10 @@ const P45 = {
   'bill.total': ['Total', 'الإجمالي'],
   'bill.subtotal': ['Subtotal', 'المجموع الفرعي'],
   'bill.tax': ['Tax', 'الضريبة'],
-  'bill.taxNotConfigured': ['Tax treatment pending confirmation', 'المعالجة الضريبية بانتظار التأكيد'],
+  'bill.taxNotConfigured': [
+    'Tax treatment pending confirmation',
+    'المعالجة الضريبية بانتظار التأكيد',
+  ],
   'bill.paid': ['Paid', 'المدفوع'],
   'bill.credited': ['Credited', 'المُقيَّد دائنًا'],
   'bill.outstanding': ['Outstanding', 'المستحق'],
@@ -414,10 +528,16 @@ const P45 = {
   'bill.collection': ['Settled by', 'طريقة السداد'],
   'bill.fx': ['Exchange rate', 'سعر الصرف'],
   'bill.fxValue': ['1 {from} = {rate} {to}', 'كل 1 {from} = {rate} {to}'],
-  'bill.proformaNote': ['A proforma is a request for payment, not a tax invoice and not an amount owed.', 'الفاتورة المبدئية طلب دفع، وليست فاتورة ضريبية ولا مبلغًا مستحقًا.'],
+  'bill.proformaNote': [
+    'A proforma is a request for payment, not a tax invoice and not an amount owed.',
+    'الفاتورة المبدئية طلب دفع، وليست فاتورة ضريبية ولا مبلغًا مستحقًا.',
+  ],
   'bill.dispute': ['Dispute this invoice', 'الاعتراض على هذه الفاتورة'],
   'bill.disputeReason': ['What is wrong?', 'ما المشكلة؟'],
-  'bill.disputed': ['Dispute opened. DealDash Finance will review it.', 'تم فتح الاعتراض. سيراجعه قسم المالية في DealDash.'],
+  'bill.disputed': [
+    'Dispute opened. DealDash Finance will review it.',
+    'تم فتح الاعتراض. سيراجعه قسم المالية في DealDash.',
+  ],
   'bill.account': ['Billing account', 'حساب الفوترة'],
   'bill.default': ['Default', 'الافتراضي'],
   'bill.legalEntity': ['Legal entity', 'الكيان القانوني'],
@@ -444,7 +564,10 @@ const P45 = {
   'bill.aging.D31_60': ['31–60 days', '31–60 يومًا'],
   'bill.aging.D61_90': ['61–90 days', '61–90 يومًا'],
   'bill.aging.D90_PLUS': ['Over 90 days', 'أكثر من 90 يومًا'],
-  'bill.poNote': ['When a purchase order is required, an invoice can only draw on a PO with enough remaining value.', 'عند اشتراط أمر شراء، لا تُصدَر الفاتورة إلا على أمر شراء بقيمة متبقية كافية.'],
+  'bill.poNote': [
+    'When a purchase order is required, an invoice can only draw on a PO with enough remaining value.',
+    'عند اشتراط أمر شراء، لا تُصدَر الفاتورة إلا على أمر شراء بقيمة متبقية كافية.',
+  ],
   'bill.poNumber': ['PO number', 'رقم أمر الشراء'],
   'bill.poValue': ['PO value ({currency})', 'قيمة أمر الشراء ({currency})'],
   'bill.poExpires': ['Valid until', 'صالح حتى'],
@@ -456,7 +579,10 @@ const P45 = {
   'bill.poStatus.EXPIRED': ['Expired', 'منتهي'],
   'bill.poStatus.EXHAUSTED': ['Used up', 'مستنفد'],
   'bill.poStatus.CANCELLED': ['Cancelled', 'ملغى'],
-  'bill.statementNote': ['The last 90 days of invoices, notes and payments with the running balance.', 'آخر 90 يومًا من الفواتير والإشعارات والمدفوعات مع الرصيد الجاري.'],
+  'bill.statementNote': [
+    'The last 90 days of invoices, notes and payments with the running balance.',
+    'آخر 90 يومًا من الفواتير والإشعارات والمدفوعات مع الرصيد الجاري.',
+  ],
   'bill.opening': ['Opening balance', 'الرصيد الافتتاحي'],
   'bill.closing': ['Closing balance', 'الرصيد الختامي'],
   'bill.date': ['Date', 'التاريخ'],
@@ -464,9 +590,15 @@ const P45 = {
   'bill.debit': ['Charged', 'مدين'],
   'bill.credit': ['Paid / credited', 'دائن'],
   'bill.balance': ['Balance', 'الرصيد'],
-  'bill.reconNote': ['Every billing event is settled exactly once: on an invoice, from prepaid funding, netted from the merchant payable or through the campaign case.', 'يُسوّى كل حدث فوترة مرة واحدة فقط: بفاتورة، أو من التمويل المسبق، أو بالخصم من مستحقات التاجر، أو عبر ملف الحملة.'],
+  'bill.reconNote': [
+    'Every billing event is settled exactly once: on an invoice, from prepaid funding, netted from the merchant payable or through the campaign case.',
+    'يُسوّى كل حدث فوترة مرة واحدة فقط: بفاتورة، أو من التمويل المسبق، أو بالخصم من مستحقات التاجر، أو عبر ملف الحملة.',
+  ],
   'bill.reconBy': ['Reconcile by', 'المطابقة حسب'],
-  'bill.integrityIssue': ['{count} invoiceable events are not on an invoice line.', '{count} أحداث قابلة للفوترة ليست على بند فاتورة.'],
+  'bill.integrityIssue': [
+    '{count} invoiceable events are not on an invoice line.',
+    '{count} أحداث قابلة للفوترة ليست على بند فاتورة.',
+  ],
   'bill.r.billed': ['Invoiced events', 'أحداث مفوترة'],
   'bill.r.prepaid': ['From prepaid funding', 'من التمويل المسبق'],
   'bill.r.netted': ['Netted from payable', 'مخصوم من المستحقات'],
@@ -484,11 +616,23 @@ const P45 = {
   'bill.dim.CURRENCY': ['Currency', 'العملة'],
   'bill.match.MATCHED': ['Matched', 'متطابق'],
   'bill.match.DIFFERENCE': ['Difference', 'يوجد فرق'],
-  'bill.check.FUNDING_RECORDS_MATCH_CAMPAIGN_BUDGETS': ['Funding records match campaign budgets', 'سجلات التمويل تطابق ميزانيات الحملات'],
+  'bill.check.FUNDING_RECORDS_MATCH_CAMPAIGN_BUDGETS': [
+    'Funding records match campaign budgets',
+    'سجلات التمويل تطابق ميزانيات الحملات',
+  ],
   'bill.check.SPEND_WITHIN_FUNDING': ['Spend stays within funding', 'الإنفاق ضمن التمويل'],
-  'bill.check.BILLED_REDEMPTIONS_WITHIN_UTILISATION': ['Billed redemptions within the agreed usage', 'الاستردادات المفوترة ضمن الاستخدام المتفق عليه'],
-  'bill.check.COMMISSION_BILLED_NOT_ABOVE_RETAINED': ['Commission billed does not exceed commission retained', 'العمولة المفوترة لا تتجاوز العمولة المحتجزة'],
-  'bill.check.POINTS_LIABILITY_REPORTED': ['Points outstanding reported (no cash value)', 'النقاط القائمة مُبلّغ عنها (بلا قيمة نقدية)'],
+  'bill.check.BILLED_REDEMPTIONS_WITHIN_UTILISATION': [
+    'Billed redemptions within the agreed usage',
+    'الاستردادات المفوترة ضمن الاستخدام المتفق عليه',
+  ],
+  'bill.check.COMMISSION_BILLED_NOT_ABOVE_RETAINED': [
+    'Commission billed does not exceed commission retained',
+    'العمولة المفوترة لا تتجاوز العمولة المحتجزة',
+  ],
+  'bill.check.POINTS_LIABILITY_REPORTED': [
+    'Points outstanding reported (no cash value)',
+    'النقاط القائمة مُبلّغ عنها (بلا قيمة نقدية)',
+  ],
   'bill.docType.PROFORMA_INVOICE': ['Proforma invoice', 'فاتورة مبدئية'],
   'bill.docType.TAX_INVOICE': ['Tax invoice', 'فاتورة ضريبية'],
   'bill.docType.INVOICE': ['Invoice', 'فاتورة'],
@@ -542,11 +686,17 @@ const P45 = {
   'bill.fxStatus.RETIRED': ['Retired', 'متقاعد'],
   // DealDash Finance actions
   'bill.run': ['Run billing', 'تشغيل الفوترة'],
-  'bill.runDone': ['Billing run complete. New drafts wait for review.', 'اكتمل تشغيل الفوترة. المسودات الجديدة بانتظار المراجعة.'],
+  'bill.runDone': [
+    'Billing run complete. New drafts wait for review.',
+    'اكتمل تشغيل الفوترة. المسودات الجديدة بانتظار المراجعة.',
+  ],
   'bill.issue': ['Issue', 'إصدار'],
   'bill.approveIssue': ['Approve and issue', 'اعتماد وإصدار'],
-  'bill.issued': ['Document processed.', 'تمت معالجة المستند.'],
-  'bill.makerChecker': ['This amount needs a second finance person: the person who prepared it cannot approve it.', 'يتطلب هذا المبلغ موظفًا ماليًا ثانيًا: من أعدّه لا يمكنه اعتماده.'],
+  'bill.processed': ['Document processed.', 'تمت معالجة المستند.'],
+  'bill.makerChecker': [
+    'This amount needs a second finance person: the person who prepared it cannot approve it.',
+    'يتطلب هذا المبلغ موظفًا ماليًا ثانيًا: من أعدّه لا يمكنه اعتماده.',
+  ],
   'bill.cancelDraft': ['Cancel draft', 'إلغاء المسودة'],
   'bill.cancelled': ['Draft cancelled.', 'تم إلغاء المسودة.'],
   'bill.send': ['Send to invoice contact', 'إرسال إلى جهة اتصال الفواتير'],
@@ -556,10 +706,16 @@ const P45 = {
   'bill.noteKind': ['Note type', 'نوع الإشعار'],
   'bill.issueNote': ['Issue note', 'إصدار الإشعار'],
   'bill.noteIssued': ['Note issued.', 'تم إصدار الإشعار.'],
-  'bill.paymentsNote': ['Payments are recorded in the account’s currency only and applied to the oldest open invoices; anything extra stays as credit.', 'تُسجَّل الدفعات بعملة الحساب فقط وتُطبَّق على أقدم الفواتير المفتوحة، وأي زيادة تبقى رصيدًا دائنًا.'],
+  'bill.paymentsNote': [
+    'Payments are recorded in the account’s currency only and applied to the oldest open invoices; anything extra stays as credit.',
+    'تُسجَّل الدفعات بعملة الحساب فقط وتُطبَّق على أقدم الفواتير المفتوحة، وأي زيادة تبقى رصيدًا دائنًا.',
+  ],
   'bill.recordPayment': ['Record payment', 'تسجيل الدفعة'],
   'bill.paymentRecorded': ['Payment recorded.', 'تم تسجيل الدفعة.'],
-  'bill.fxNote': ['Nothing is converted between currencies without an approved rate. A rate needs a second finance person to approve it.', 'لا يتم أي تحويل بين العملات دون سعر معتمد. يتطلب السعر اعتماد موظف مالي ثانٍ.'],
+  'bill.fxNote': [
+    'Nothing is converted between currencies without an approved rate. A rate needs a second finance person to approve it.',
+    'لا يتم أي تحويل بين العملات دون سعر معتمد. يتطلب السعر اعتماد موظف مالي ثانٍ.',
+  ],
   'bill.fxBase': ['From', 'من'],
   'bill.fxQuote': ['To', 'إلى'],
   'bill.fxRate': ['Rate', 'السعر'],
@@ -576,25 +732,46 @@ const P45 = {
   // ---------------------------------------------------------------- AI
   'ai.title': ['Assistant', 'المساعد'],
   'ai.adminTitle': ['AI assistants and governance', 'المساعدون الأذكياء والحوكمة'],
-  'ai.intro': ['The assistant explains, recommends and drafts using only data you may see. It never buys, pays, publishes or commits anything: you confirm or approve first.', 'يشرح المساعد ويوصي ويصيغ باستخدام البيانات المسموح لك برؤيتها فقط. لا يشتري ولا يدفع ولا ينشر ولا يلتزم بشيء: أنت تؤكد أو تعتمد أولًا.'],
+  'ai.intro': [
+    'The assistant explains, recommends and drafts using only data you may see. It never buys, pays, publishes or commits anything: you confirm or approve first.',
+    'يشرح المساعد ويوصي ويصيغ باستخدام البيانات المسموح لك برؤيتها فقط. لا يشتري ولا يدفع ولا ينشر ولا يلتزم بشيء: أنت تؤكد أو تعتمد أولًا.',
+  ],
   'ai.ask': ['Ask a question', 'اطرح سؤالًا'],
   'ai.send': ['Ask', 'اسأل'],
   'ai.thinking': ['Working on it…', 'جارٍ العمل…'],
   'ai.allowDrafts': ['Let it prepare drafts for my approval', 'اسمح له بإعداد مسودات لاعتمادي'],
   'ai.agent': ['Assistant', 'المساعد'],
   'ai.autonomy': ['Autonomy level {level}', 'مستوى الاستقلالية {level}'],
-  'ai.localeNote': ['Answers in “{requested}” are not available yet, so this answer is in English.', 'الإجابات بلغة «{requested}» غير متاحة بعد، لذا هذه الإجابة بالإنجليزية.'],
-  'ai.reportedSavings': ['Saving stated by the merchant: {amount} ({percent}%)', 'التوفير كما يذكره التاجر: {amount} ({percent}%)'],
+  'ai.localeNote': [
+    'Answers in “{requested}” are not available yet, so this answer is in English.',
+    'الإجابات بلغة «{requested}» غير متاحة بعد، لذا هذه الإجابة بالإنجليزية.',
+  ],
+  'ai.reportedSavings': [
+    'Saving stated by the merchant: {amount} ({percent}%)',
+    'التوفير كما يذكره التاجر: {amount} ({percent}%)',
+  ],
   'ai.open': ['Open', 'فتح'],
   'ai.openToConfirm': ['Open to review and confirm', 'افتح للمراجعة والتأكيد'],
   'ai.youConfirm': ['you confirm', 'بتأكيدك'],
-  'ai.needsApproval': ['Nothing happens until someone with the right permission approves it.', 'لا يحدث شيء حتى يعتمده شخص لديه الصلاحية.'],
+  'ai.needsApproval': [
+    'Nothing happens until someone with the right permission approves it.',
+    'لا يحدث شيء حتى يعتمده شخص لديه الصلاحية.',
+  ],
   'ai.approve': ['Approve', 'اعتماد'],
   'ai.reject': ['Reject', 'رفض'],
-  'ai.decided.APPROVED': ['Approved. Plans create nothing: build the campaign yourself.', 'تم الاعتماد. الخطط لا تُنشئ شيئًا: أنشئ الحملة بنفسك.'],
-  'ai.decided.EXECUTED': ['Approved and carried out under your name.', 'تم الاعتماد والتنفيذ باسمك.'],
+  'ai.decided.APPROVED': [
+    'Approved. Plans create nothing: build the campaign yourself.',
+    'تم الاعتماد. الخطط لا تُنشئ شيئًا: أنشئ الحملة بنفسك.',
+  ],
+  'ai.decided.EXECUTED': [
+    'Approved and carried out under your name.',
+    'تم الاعتماد والتنفيذ باسمك.',
+  ],
   'ai.decided.REJECTED': ['Draft rejected.', 'تم رفض المسودة.'],
-  'ai.handoff': ['A support specialist can take over at any time.', 'يمكن لأخصائي الدعم تولي الأمر في أي وقت.'],
+  'ai.handoff': [
+    'A support specialist can take over at any time.',
+    'يمكن لأخصائي الدعم تولي الأمر في أي وقت.',
+  ],
   'ai.drafts': ['Drafts awaiting a decision', 'مسودات بانتظار القرار'],
   'ai.noDrafts': ['No drafts.', 'لا توجد مسودات.'],
   'ai.audit': ['Audit', 'سجل التدقيق'],
@@ -607,7 +784,10 @@ const P45 = {
   'ai.tools': ['Tool calls', 'استدعاءات الأدوات'],
   'ai.usageKind': ['Kind', 'النوع'],
   'ai.units': ['Units', 'الوحدات'],
-  'ai.notPriced': ['AI is not priced. Usage is measured so a future treatment ({treatment}) can be decided later.', 'الذكاء الاصطناعي غير مسعّر. يُقاس الاستخدام لتحديد المعالجة المستقبلية ({treatment}) لاحقًا.'],
+  'ai.notPriced': [
+    'AI is not priced. Usage is measured so a future treatment ({treatment}) can be decided later.',
+    'الذكاء الاصطناعي غير مسعّر. يُقاس الاستخدام لتحديد المعالجة المستقبلية ({treatment}) لاحقًا.',
+  ],
   'ai.runEvals': ['Run evaluation pack', 'تشغيل حزمة التقييم'],
   'ai.evalSummary': ['{passed} passed, {failed} failed', 'نجح {passed}، وفشل {failed}'],
   'ai.pass': ['Pass', 'ناجح'],
@@ -649,17 +829,32 @@ const P45 = {
   'ai.usageKindName.SUPPORT_ASSIST': ['Support assists', 'مساعدات الدعم'],
   'ai.usageKindName.TOOL_CALL': ['Tool calls', 'استدعاءات الأدوات'],
   'ai.usageKindName.ACTION': ['Approved actions', 'الإجراءات المعتمدة'],
-  'ai.eval.EXPIRED_DEAL': ['Expired deals are never recommended', 'لا يُوصى أبدًا بالعروض المنتهية'],
-  'ai.eval.INELIGIBLE_DEAL': ['Ineligible deals are never recommended', 'لا يُوصى أبدًا بالعروض غير المؤهلة'],
+  'ai.eval.EXPIRED_DEAL': [
+    'Expired deals are never recommended',
+    'لا يُوصى أبدًا بالعروض المنتهية',
+  ],
+  'ai.eval.INELIGIBLE_DEAL': [
+    'Ineligible deals are never recommended',
+    'لا يُوصى أبدًا بالعروض غير المؤهلة',
+  ],
   'ai.eval.WRONG_BRANCH': ['No offer at the wrong branch', 'لا عرض في فرع خاطئ'],
   'ai.eval.INVENTED_PRICE': ['No invented prices', 'لا أسعار مختلقة'],
   'ai.eval.INVENTED_TERM': ['No invented terms', 'لا شروط مختلقة'],
-  'ai.eval.VOUCHER_VALIDITY': ['Voucher dates come from the wallet', 'تواريخ القسائم مأخوذة من المحفظة'],
+  'ai.eval.VOUCHER_VALIDITY': [
+    'Voucher dates come from the wallet',
+    'تواريخ القسائم مأخوذة من المحفظة',
+  ],
   'ai.eval.LOYALTY_BALANCE': ['Points come from the points ledger', 'النقاط مأخوذة من سجل النقاط'],
   'ai.eval.UNAUTHORIZED_DATA': ['No data without permission', 'لا بيانات دون صلاحية'],
   'ai.eval.CROSS_TENANT': ['No other business’s data', 'لا بيانات لنشاط تجاري آخر'],
-  'ai.eval.BUDGET_OVERRUN': ['No spending or commitment by the assistant', 'لا إنفاق ولا التزام من المساعد'],
-  'ai.eval.INCORRECT_FUNDING': ['Funding answers are labelled facts or estimates', 'إجابات التمويل موسومة كحقائق أو تقديرات'],
+  'ai.eval.BUDGET_OVERRUN': [
+    'No spending or commitment by the assistant',
+    'لا إنفاق ولا التزام من المساعد',
+  ],
+  'ai.eval.INCORRECT_FUNDING': [
+    'Funding answers are labelled facts or estimates',
+    'إجابات التمويل موسومة كحقائق أو تقديرات',
+  ],
   'ai.eval.ARABIC_QUALITY': ['Arabic understood and answered', 'فهم العربية والإجابة بها'],
   'ai.eval.URDU_QUALITY': ['Urdu falls back openly', 'الأردية تعود بشفافية إلى لغة مدعومة'],
 } as const satisfies Record<string, readonly [string, string]>;
@@ -667,7 +862,11 @@ const P45 = {
 type Phase45Pairs = typeof P45;
 export type Phase45Key = keyof Phase45Pairs;
 
-const pick = (index: 0 | 1) => Object.fromEntries(Object.entries(P45).map(([k, v]) => [k, v[index]])) as Record<Phase45Key, string>;
+const pick = (index: 0 | 1) =>
+  Object.fromEntries(Object.entries(P45).map(([k, v]) => [k, v[index]])) as Record<
+    Phase45Key,
+    string
+  >;
 
 export const enPhase45 = pick(0);
 export const arPhase45 = pick(1);

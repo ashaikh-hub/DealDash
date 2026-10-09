@@ -1092,10 +1092,10 @@ export function BillingWorkspace({ orgId, canManage }: { orgId: string; canManag
       {accounts.data ? <HoldBanner accounts={accounts.data} /> : null}
       <div style={{ overflowX: 'auto', maxWidth: '100%' }}>
         <Tabs
-        tabs={tabs}
-        value={tab}
-        onChange={(v) => setTab(v as BillingTab)}
-        label={t('bill.title')}
+          tabs={tabs}
+          value={tab}
+          onChange={(v) => setTab(v as BillingTab)}
+          label={t('bill.title')}
         />
       </div>
       {tab === 'documents' ? (
@@ -1245,10 +1245,10 @@ export function AdminBillingWorkspace({
       {banner}
       <div style={{ overflowX: 'auto', maxWidth: '100%' }}>
         <Tabs
-        tabs={tabs}
-        value={tab}
-        onChange={(v) => setTab(v as AdminBillingTab)}
-        label={t('bill.adminTitle')}
+          tabs={tabs}
+          value={tab}
+          onChange={(v) => setTab(v as AdminBillingTab)}
+          label={t('bill.adminTitle')}
         />
       </div>
       {tab === 'documents' ? (
@@ -1270,7 +1270,7 @@ export function AdminBillingWorkspace({
                             'POST',
                             `${base}/documents/${d.id}/issue`,
                             {},
-                            t('bill.issued'),
+                            t('bill.processed'),
                             async () => {
                               await reload();
                               await docs.reload();

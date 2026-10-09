@@ -337,10 +337,10 @@ export function PerformanceWorkspace({
       <h1 className="dd-title-xl">{admin ? t('vis.adminTitle') : t('vis.title')}</h1>
       <div style={{ overflowX: 'auto', maxWidth: '100%' }}>
         <Tabs
-        tabs={tabs}
-        value={tab}
-        onChange={(v) => setTab(v as PerformanceTab)}
-        label={t('vis.title')}
+          tabs={tabs}
+          value={tab}
+          onChange={(v) => setTab(v as PerformanceTab)}
+          label={t('vis.title')}
         />
       </div>
       {tab === 'overview' ? <OverviewPanel base={base} admin={!!admin} /> : null}
@@ -515,7 +515,15 @@ function ReportPanel({ base, admin }: { base: string; admin: boolean }) {
               <tbody>
                 {d.rows.map((r) => (
                   <tr key={r.key ?? 'unassigned'}>
-                    <td>{r.label ? (locale === 'ar' ? r.label.ar : r.label.en) : r.key ? label('vis.product', r.key) : t('vis.unassigned')}</td>
+                    <td>
+                      {r.label
+                        ? locale === 'ar'
+                          ? r.label.ar
+                          : r.label.en
+                        : r.key
+                          ? label('vis.product', r.key)
+                          : t('vis.unassigned')}
+                    </td>
                     {DEFAULT_REPORT_METRICS.map((m) => (
                       <td key={m}>{metricValue(locale, m, r.metrics[m])}</td>
                     ))}
@@ -1240,10 +1248,10 @@ export function CommandCentreWorkspace({
       <h1 className="dd-title-xl">{t('cc.title')}</h1>
       <div style={{ overflowX: 'auto', maxWidth: '100%' }}>
         <Tabs
-        tabs={tabs}
-        value={tab}
-        onChange={(v) => setTab(v as CommandCentreTab)}
-        label={t('cc.title')}
+          tabs={tabs}
+          value={tab}
+          onChange={(v) => setTab(v as CommandCentreTab)}
+          label={t('cc.title')}
         />
       </div>
       {tab === 'overview' ? <CommandOverview /> : null}

@@ -529,3 +529,21 @@ Detail: `SUBSCRIPTION_LICENSING_ENTITLEMENT.md`.
 - Configuration keys: `commercial.enforcement`, `commercial.signals`, `commercial.trial`, `commercial.metrics`, `commercial.campaign_billing`.
 - UI: shared `packages/app-shell/src/subscription/subscription-views.tsx` (`PlanUsageWorkspace`, `SubscriptionAdminWorkspace`), merchant
   `/plan`, admin `/subscriptions`; `formatAmount` for non-SAR currencies.
+
+
+## Addendum (Oct 2026) — Phase 4 / Phase 5 architecture
+
+- Modules: `VisibilityModule` (projector, metrics, reporting, targets, alerts, early warnings, operations centre), `BillingModule`
+  (finance access, billing accounts / PO / FX, invoicing, receivables, reconciliation; imports `FinanceModule`), `AiModule` (provider,
+  service, evaluation; resolves product services through `ModuleRef`). All in the existing NestJS monolith.
+- Background jobs on the existing job table (idempotency key per time slot; disabled under NODE_ENV=test): `visibility.analytics` (1 min),
+  `visibility.alerts` (5 min), `visibility.digest` (hourly), `billing.daily` (hourly slot: expire quotations, mark overdue, billing run).
+- Analytics is a projection with watermarks and a 2-minute overlap (no dual writes, no message bus); aggregation is SQL
+  INSERT … SELECT … ON CONFLICT. Revisit triggers: event volume beyond Postgres aggregate refresh windows, or near-real-time needs below a
+  minute.
+- `FINANCIAL_STATUS_PROVIDER` now resolves to `ReceivablesFinancialStatusProvider` (`platform.module.ts`); consumers unchanged.
+- The AI provider is an interface; the built-in provider is deterministic and keeps all data in the platform. A hosted model can be added
+  behind the same interface; governance, tools, audit and metering do not change.
+- Database guards: append-only triggers (analytics, AI), finance-document freeze trigger, invoice-line guard, allocation no-delete, CHECKs
+  for every new vocabulary.
+- Shared UI: `packages/app-shell/src/{visibility,billing,ai}`; dictionaries `packages/localization/src/dictionaries.phase45.ts`.
