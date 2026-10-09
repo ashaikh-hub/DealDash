@@ -1,0 +1,1291 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DealDash Merchant Portal · Hi-fi Batch 01 (design mockups)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ===== DealDash tokens (approved base + derived business tokens) ===== */
+:root{
+  --navy:#0F0C42; --navy2:#0A0830; --purple:#5B1AFC; --purple2:#7E4DFF; --purple600:#4A12D6;
+  --purple50:#F6F3FF; --purple300:#B9A4FF; --lilac:#EEE8FF; --bg:#F8F9FD; --card:#fff;
+  --ink2:#5B5E80; --ink3:#6F7296; --line:#E3E1F0; --slate100:#EEF0F8; --slateblue:#E6E8F5;
+  --mint:#1FBF8F; --amber:#F5A524; --red:#E93A52; --stage:#E9E7F5;
+  --s-bg:#E2F7F0; --s-tx:#0B7A5A; --w-bg:#FEF1D9; --w-tx:#8A5A00; --d-bg:#FDE8EB; --d-tx:#B3203A; --d-solid:#C9213D;
+  --hero:linear-gradient(135deg,#0F0C42 0%,#4313D6 100%);
+  --shadow:0 1px 2px rgba(20,22,58,.06),0 6px 18px rgba(20,22,58,.07);
+  --flat:0 1px 2px rgba(20,22,58,.06);
+  --font:'Plus Jakarta Sans',system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:var(--font);background:var(--bg);color:var(--navy);font-size:14px;line-height:22px;font-weight:500;-webkit-font-smoothing:antialiased}
+[dir=rtl] body, [dir=rtl] .shell, [dir=rtl] .modal, [dir=rtl] .drawer{font-family:'IBM Plex Sans Arabic','Plus Jakarta Sans',sans-serif}
+[dir=rtl] body{line-height:26px;font-size:15px}
+h1,h2,h3,h4,p{margin:0}
+button{font-family:inherit;cursor:pointer}
+svg.i{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex:none}
+svg.i.sm{width:16px;height:16px}svg.i.xs{width:14px;height:14px}svg.i.lg{width:24px;height:24px}
+[dir=rtl] .mirror{transform:scaleX(-1)}
+.num{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+
+/* ===== design review bar (not part of the product) ===== */
+.designbar{position:sticky;top:0;z-index:200;background:var(--navy2);color:#fff;display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:12px;flex-wrap:wrap;direction:ltr}
+.designbar b{font-weight:800;margin-inline-end:8px;color:#C9C3FF}
+.designbar button{background:rgba(255,255,255,.1);color:#fff;border:0;border-radius:99px;padding:6px 12px;font-weight:700;font-size:12px}
+.designbar button.on{background:#fff;color:var(--navy)}
+.screen{display:none}.screen.active{display:block}
+
+/* ===== shell ===== */
+.shell{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:calc(100vh - 44px)}
+.shell.collapsed{grid-template-columns:76px minmax(0,1fr)}
+.sidebar{background:#fff;border-inline-end:1px solid var(--line);padding:20px 14px;display:flex;flex-direction:column;position:sticky;top:44px;height:calc(100vh - 44px);overflow:auto}
+.brand{padding:4px 10px 18px;position:relative}
+.nav-toggle{position:absolute;top:6px;inset-inline-end:2px;width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--ink2);display:grid;place-items:center;padding:0}
+.nav-toggle:hover{background:var(--purple50);color:var(--purple)}
+.shell.collapsed .nav-toggle{position:static;margin:10px auto 0;display:grid}
+.shell.collapsed .nav-toggle svg{transform:scaleX(-1)}
+[dir=rtl] .shell.collapsed .nav-toggle svg{transform:none}
+.wordmark{font-weight:800;font-size:24px;letter-spacing:-.02em;line-height:28px;direction:ltr;display:inline-block}
+.wordmark .d1{color:var(--navy)}.wordmark .d2{color:var(--purple)}
+.brand small{display:block;color:var(--ink2);font-size:12px;font-weight:600;margin-top:0}
+.nav-label{font-size:11px;font-weight:700;color:var(--ink3);padding:16px 12px 6px;letter-spacing:.04em}
+[dir=rtl] .nav-label{letter-spacing:0;font-size:12px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;color:var(--ink2);font-weight:700;font-size:14px;text-decoration:none;position:relative}
+.nav-item:hover{background:var(--purple50);color:var(--navy)}
+.nav-item.active{background:var(--lilac);color:var(--purple)}
+.nav-item .dot{margin-inline-start:auto;width:8px;height:8px;border-radius:50%;background:var(--purple)}
+.nav-spacer{flex:1}
+.merchant-card{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--line);border-radius:16px;margin-top:12px;background:var(--purple50)}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px;flex:none}
+.avatar.logo{background:#fff;color:var(--navy);border:1px solid var(--line)}
+.merchant-card b{display:block;font-size:13px;line-height:18px}
+.verified{display:inline-flex;align-items:center;gap:4px;color:var(--s-tx);font-size:11px;font-weight:700}
+.shell.collapsed .nav-item span,.shell.collapsed .nav-label,.shell.collapsed .brand small,.shell.collapsed .mc-tx,.shell.collapsed .nav-item .dot,.shell.collapsed .wordmark{display:none}
+.mono{display:none;width:40px;height:40px;border-radius:14px;background:var(--purple);color:#fff;font-weight:800;font-size:20px;place-items:center;margin-inline:auto}
+.shell.collapsed .mono{display:grid}
+.shell.collapsed .nav-item{justify-content:center;padding:12px}
+.shell.collapsed .brand{padding:4px 0 14px;text-align:center}
+
+.shell.collapsed .merchant-card{justify-content:center;padding:8px}
+.main{min-width:0}
+.topbar{height:64px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:16px;padding:0 32px;position:sticky;top:44px;z-index:30}
+.tb-merchant{display:flex;align-items:center;gap:10px}
+.tb-merchant b{font-size:16px;font-weight:800}
+.branch-pill{display:flex;align-items:center;gap:8px;height:40px;padding:0 14px;border:1px solid var(--line);border-radius:99px;background:#fff;font-weight:700;color:var(--navy);font-size:13px}
+.search{flex:1;max-width:420px;margin-inline:auto;display:flex;align-items:center;gap:10px;height:40px;padding:0 16px;border-radius:99px;background:var(--purple50);color:var(--ink3);font-size:13px;border:1px solid transparent}
+.search kbd{margin-inline-start:auto;border:1px solid var(--line);border-radius:6px;padding:0 6px;font-size:11px;background:#fff;color:var(--ink2);font-family:inherit}
+.tb-right{display:flex;align-items:center;gap:6px;margin-inline-start:auto}
+.search + .tb-right{margin-inline-start:0}
+.icon-btn{width:40px;height:40px;border-radius:50%;border:0;background:transparent;color:var(--ink2);display:grid;place-items:center;position:relative}
+.icon-btn:hover{background:var(--purple50);color:var(--navy)}
+.icon-btn .badge{position:absolute;top:4px;inset-inline-end:3px;min-width:18px;height:18px;border-radius:9px;background:var(--purple);color:#fff;font-size:10px;font-weight:800;display:grid;place-items:center;padding:0 4px;border:2px solid #fff}
+.lang{display:flex;background:var(--lilac);border-radius:99px;padding:3px;margin-inline:6px}
+.lang span{padding:4px 10px;border-radius:99px;font-size:12px;font-weight:700;color:var(--ink2)}
+.lang span.on{background:#fff;color:var(--purple);box-shadow:var(--flat)}
+.page{padding:28px 32px 56px;max-width:1360px;margin-inline:auto}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:24px}
+.crumb{font-size:12px;color:var(--ink2);font-weight:600;display:flex;gap:6px;align-items:center;margin-bottom:6px}
+.crumb b{color:var(--navy);font-weight:700}
+.h-title{font-size:28px;line-height:36px;font-weight:800;letter-spacing:-.01em}
+[dir=rtl] .h-title{letter-spacing:0;line-height:42px}
+.h-sub{color:var(--ink2);margin-top:4px}
+.head-actions{display:flex;gap:10px;align-items:center}
+
+/* ===== components ===== */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:0 22px;border-radius:99px;border:1px solid transparent;font-weight:700;font-size:14px;white-space:nowrap;transition:.15s}
+.btn.sm{height:36px;padding:0 16px;font-size:13px}.btn.lg{height:48px;padding:0 26px;font-size:15px}
+.btn.primary{background:var(--purple);color:#fff}.btn.primary:hover{background:var(--purple2)}
+.btn.tonal{background:var(--lilac);color:var(--purple)}.btn.tonal:hover{background:#E4DBFF}
+.btn.outline{background:#fff;border-color:var(--line);color:var(--navy)}.btn.outline:hover{background:var(--purple50)}
+.btn.text{background:transparent;color:var(--purple);padding:0 10px}
+.btn.danger-t{background:var(--d-bg);color:var(--d-tx)}
+.btn.danger{background:var(--d-solid);color:#fff}
+.btn.onhero{background:#fff;color:var(--navy)}
+.btn.onhero-o{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.28)}
+.btn.onhero-d{background:rgba(255,120,140,.16);color:#FFD3DA;border-color:rgba(255,160,175,.35)}
+.btn[disabled]{background:var(--slate100);color:var(--ink3);cursor:not-allowed}
+.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:24px;box-shadow:var(--flat)}
+.card.flush{padding:0;overflow:hidden}
+.card-h{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.card-t{font-size:16px;line-height:24px;font-weight:800;display:flex;align-items:center;gap:8px}
+.card-t .count{background:var(--slate100);color:var(--ink2);border-radius:99px;font-size:12px;padding:0 8px;font-weight:700}
+.link{color:var(--purple);font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:4px;text-decoration:none;border:0;background:none;padding:0}
+.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:24px}
+.c4{grid-column:span 4}.c5{grid-column:span 5}.c6{grid-column:span 6}.c7{grid-column:span 7}.c8{grid-column:span 8}.c12{grid-column:span 12}
+.muted{color:var(--ink2)}.small{font-size:12px;line-height:16px}
+.strong{font-weight:700}
+.chip{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 12px;border-radius:99px;font-size:12px;font-weight:700;border:1px solid transparent;white-space:nowrap}
+.chip svg{width:14px;height:14px}
+.st-draft{background:var(--slate100);color:var(--ink2);border:1px dashed #C9CBE0}
+.st-pending{background:var(--lilac);color:var(--purple);border-color:rgba(91,26,252,.24)}
+.st-scheduled{background:#fff;color:var(--navy);border-color:var(--purple)}
+.st-live{background:var(--s-bg);color:var(--s-tx);border-color:rgba(31,191,143,.35)}
+.st-live .pulse{width:8px;height:8px;border-radius:50%;background:var(--mint);box-shadow:0 0 0 0 rgba(31,191,143,.5);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(31,191,143,.5)}70%{box-shadow:0 0 0 7px rgba(31,191,143,0)}100%{box-shadow:0 0 0 0 rgba(31,191,143,0)}}
+.st-paused{background:var(--slateblue);color:var(--navy);border-color:var(--line)}
+.st-expired{background:var(--slate100);color:var(--ink2);border-color:transparent}
+.st-rejected{background:var(--d-bg);color:var(--d-tx);border-color:rgba(233,58,82,.28)}
+.st-changes{background:var(--w-bg);color:var(--w-tx);border-color:rgba(245,165,36,.4)}
+.st-suspended{background:var(--d-solid);color:#fff}
+.type-chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--ink2)}
+.type-chip svg{width:14px;height:14px}
+.type-chip .flame{color:#F0701C}
+.type-chip .tpurple{color:var(--purple)}
+.seg{display:inline-flex;background:var(--lilac);border-radius:99px;padding:4px;gap:2px}
+.seg button{border:0;background:transparent;height:40px;padding:0 18px;border-radius:99px;font-weight:700;font-size:14px;color:var(--ink2);display:flex;align-items:center;gap:8px}
+.seg button .n{background:var(--slate100);color:var(--ink2);border-radius:99px;font-size:11px;padding:0 7px;line-height:18px}
+.seg button.on{background:#fff;color:var(--purple);box-shadow:var(--shadow)}
+.seg button.on .n{background:var(--lilac);color:var(--purple)}
+.seg.sm button{height:32px;padding:0 14px;font-size:13px}
+.input{height:48px;border:1px solid var(--line);border-radius:14px;padding:0 16px;font-size:14px;font-weight:500;color:var(--navy);width:100%;background:#fff;font-family:inherit}
+.input:focus{outline:0;border-color:var(--purple2);background:var(--purple50);box-shadow:0 0 0 3px rgba(126,77,255,.15)}
+textarea.input{height:auto;padding:12px 16px;line-height:22px}
+.field{display:flex;flex-direction:column;gap:6px}
+.label{font-size:13px;font-weight:600;line-height:18px;display:flex;align-items:center;gap:8px}
+.help{font-size:12px;color:var(--ink2);line-height:16px}
+.bi{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bi .tag{position:absolute;top:-9px;inset-inline-start:12px;background:#fff;padding:0 6px;font-size:10px;font-weight:800;color:var(--purple);letter-spacing:.04em}
+.bi .cell{position:relative}
+.bi .ar{direction:rtl;text-align:right;font-family:'IBM Plex Sans Arabic',sans-serif;font-size:15px}
+.bar{height:8px;border-radius:99px;background:var(--slate100);overflow:hidden;display:flex}
+.bar i{display:block;height:100%}
+.bar .p{background:var(--purple)}.bar .p2{background:var(--purple300)}.bar .n{background:var(--navy)}
+.bar.thick{height:12px}
+.kbd{font-size:12px;color:var(--ink2)}
+.stat{display:flex;flex-direction:column;gap:6px}
+.stat .l{font-size:13px;font-weight:600;color:var(--ink2)}
+.stat .v{font-size:32px;line-height:40px;font-weight:800;letter-spacing:-.01em}
+.stat .d{font-size:12px;font-weight:600;color:var(--ink2);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.delta{display:inline-flex;align-items:center;gap:2px;font-weight:700;color:var(--s-tx);background:var(--s-bg);border-radius:99px;padding:0 8px;line-height:20px;font-size:12px}
+.delta.neu{color:var(--ink2);background:var(--slate100)}
+.thumb{width:44px;height:44px;border-radius:12px;flex:none;position:relative;overflow:hidden}
+.ph1{background:radial-gradient(circle at 25% 30%,#f6c07a 0,transparent 38%),radial-gradient(circle at 75% 65%,#c2562f 0,transparent 45%),radial-gradient(circle at 60% 20%,#ffe3b0 0,transparent 25%),#2a1410}
+.ph2{background:radial-gradient(circle at 30% 70%,#7fc7a0 0,transparent 40%),radial-gradient(circle at 75% 30%,#e8c46a 0,transparent 38%),#1b2a22}
+.ph3{background:radial-gradient(circle at 70% 30%,#f2a1b8 0,transparent 40%),radial-gradient(circle at 25% 70%,#8a3b6b 0,transparent 45%),#2a1230}
+.ph4{background:radial-gradient(circle at 30% 30%,#8fb4ff 0,transparent 40%),radial-gradient(circle at 70% 70%,#5b1afc 0,transparent 45%),#15103f}
+.ph5{background:radial-gradient(circle at 40% 40%,#ffd9a0 0,transparent 35%),radial-gradient(circle at 80% 70%,#b0652d 0,transparent 45%),#3a1d12}
+.attn{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--line);border-radius:16px;position:relative;background:#fff}
+.attn::before{content:"";position:absolute;inset-block:12px;inset-inline-start:0;width:4px;border-radius:0 4px 4px 0;background:var(--amber)}
+[dir=rtl] .attn::before{border-radius:4px 0 0 4px}
+.attn.red::before{background:var(--d-solid)}
+.attn.purple::before{background:var(--purple)}
+.attn .ic{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;flex:none}
+.attn .ic.w{background:var(--w-bg);color:var(--w-tx)}.attn .ic.p{background:var(--lilac);color:var(--purple)}.attn .ic.d{background:var(--d-bg);color:var(--d-tx)}
+.attn .tx{flex:1;min-width:0}.attn .tx b{display:block;font-weight:700;line-height:20px}
+.attn .tx span{font-size:13px;color:var(--ink2)}
+.stack{display:flex;flex-direction:column;gap:10px}
+.qa{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.qa a{display:flex;flex-direction:column;gap:10px;padding:16px;border:1px solid var(--line);border-radius:18px;background:#fff;text-decoration:none;color:var(--navy);transition:.15s}
+.qa a:hover{border-color:var(--purple300);box-shadow:var(--shadow);background:var(--purple50)}
+.qa .ic{width:40px;height:40px;border-radius:50%;background:var(--lilac);color:var(--purple);display:grid;place-items:center}
+.qa b{font-weight:800;font-size:14px;line-height:20px}.qa span{font-size:12px;color:var(--ink2);line-height:16px}
+.flame-mark{color:#F0701C}
+.list-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.list-row:last-child{border-bottom:0}
+.list-row .tx{flex:1;min-width:0}.list-row b{display:block;font-weight:700;line-height:20px}
+.list-row .tm{font-size:12px;color:var(--ink2);font-weight:600;white-space:nowrap}
+.dot12{width:10px;height:10px;border-radius:50%;flex:none}
+.hero{background:var(--hero);color:#fff;border-radius:24px;padding:28px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;inset-inline-end:-80px;top:-80px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(126,77,255,.45),transparent 70%)}
+.hero .ht{font-size:20px;line-height:28px;font-weight:800}.hero .cap{color:#C9C3FF;font-size:13px;font-weight:600}
+.hero .hv{font-size:36px;line-height:44px;font-weight:800;letter-spacing:-.01em}
+.hero .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:22px;position:relative;z-index:1}
+.hero .metrics > div{padding-inline:20px;border-inline-start:1px solid rgba(255,255,255,.16)}
+.hero .metrics > div:first-child{padding-inline-start:0;border:0}
+.hero .metrics .ml{font-size:13px;color:#C9C3FF;font-weight:600}
+.hero .metrics .md{font-size:12px;color:#C9C3FF;margin-top:2px;display:flex;gap:6px;align-items:center}
+.hero .metrics .md em{font-style:normal;background:rgba(255,255,255,.14);padding:0 8px;border-radius:99px;font-weight:700;color:#fff;line-height:20px}
+.spark{display:flex;align-items:flex-end;gap:4px;height:32px;margin-top:18px;position:relative;z-index:1}
+.spark i{flex:1;background:rgba(255,255,255,.22);border-radius:4px 4px 0 0}
+.spark i.hi{background:rgba(255,255,255,.55)}
+.cd{font-variant-numeric:tabular-nums;font-weight:800;letter-spacing:-.01em;direction:ltr;display:inline-block}
+.pill-live{display:inline-flex;align-items:center;gap:6px;background:var(--s-bg);color:var(--s-tx);border-radius:99px;font-size:12px;font-weight:800;padding:0 10px;line-height:24px}
+.empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:36px 24px}
+.empty .ic{width:64px;height:64px;border-radius:50%;background:var(--lilac);color:var(--purple);display:grid;place-items:center}
+.empty b{font-size:18px;font-weight:800;line-height:26px}.empty p{color:var(--ink2);max-width:360px}
+.skel{background:linear-gradient(90deg,var(--slate100),#F6F7FC,var(--slate100));background-size:200% 100%;animation:sh 1.4s infinite;border-radius:10px;height:14px}
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){.skel,.st-live .pulse{animation:none}}
+.banner{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:16px;border:1px solid transparent}
+.banner b{display:block;font-weight:700}.banner .bx{flex:1;font-size:13px}
+.banner.info{background:var(--lilac);color:var(--navy)}.banner.info svg{color:var(--purple)}
+.banner.warn{background:var(--w-bg);color:#5a3b00}.banner.warn svg{color:var(--w-tx)}
+.banner.danger{background:var(--d-bg);color:#6b1020}.banner.danger svg{color:var(--d-tx)}
+.banner.ok{background:var(--s-bg);color:#064d3a}.banner.ok svg{color:var(--s-tx)}
+.banner.susp{background:var(--d-solid);color:#fff}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+<symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol>
+<symbol id="i-layers" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></symbol>
+<symbol id="i-tag" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></symbol>
+<symbol id="i-ticket" viewBox="0 0 24 24"><path d="M3 9a2 2 0 0 0 0 6v3a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-3a2 2 0 0 0 0-6V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1z"/><line x1="14" y1="5" x2="14" y2="19" stroke-dasharray="2 3"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></symbol>
+<symbol id="i-check-sq" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></symbol>
+<symbol id="i-bars" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></symbol>
+<symbol id="i-card" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></symbol>
+<symbol id="i-store" viewBox="0 0 24 24"><path d="M3 9l1.5-5h15L21 9"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/><path d="M5 12v8h14v-8"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+<symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+<symbol id="i-sliders" viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+<symbol id="i-check-c" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></symbol>
+<symbol id="i-down" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></symbol>
+<symbol id="i-right" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></symbol>
+<symbol id="i-left" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+<symbol id="i-flame" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></symbol>
+<symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></symbol>
+<symbol id="i-stop" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/></symbol>
+<symbol id="i-edit" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></symbol>
+<symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="i-more" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></symbol>
+<symbol id="i-arrow" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></symbol>
+<symbol id="i-filter" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></symbol>
+<symbol id="i-slash" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></symbol>
+<symbol id="i-xc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></symbol>
+<symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol>
+<symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol>
+<symbol id="i-gift" viewBox="0 0 24 24"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></symbol>
+<symbol id="i-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+<symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+<symbol id="i-smart" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></symbol>
+</defs>
+</svg>
+
+<div class="designbar" id="designbar">
+  <b>DealDash · Merchant Portal · Hi-fi batch 01 (design mockups, not production code)</b>
+  <button data-go="m04" class="on">M04 Dashboard</button>
+  <button data-go="m05">M05 Campaigns</button>
+  <button data-go="m11">M11 Hot Deal builder</button>
+  <button data-go="m07">M07 Hot Deal monitor</button>
+  <button data-go="m04ar">M04 · Arabic RTL</button>
+  <button data-go="comp">Components &amp; states</button>
+</div>
+
+<!-- ============ M04 DASHBOARD ============ -->
+<section class="screen active" id="m04" data-nav="dashboard">
+<div class="shell">
+  <aside class="sidebar"></aside>
+  <div class="main">
+    <header class="topbar"></header>
+    <div class="page">
+      <div class="page-head">
+        <div>
+          <div class="h-title"><span data-i18n="greet">Good morning, Akif</span></div>
+          <div class="h-sub" data-i18n="greetSub">Here is what is happening at Harbour Grill today.</div>
+        </div>
+        <div class="head-actions">
+          <button class="btn outline"><svg class="i sm"><use href="#i-cal"/></svg><span data-i18n="today">Today</span><svg class="i sm"><use href="#i-down"/></svg></button>
+          <button class="btn primary"><svg class="i sm"><use href="#i-plus"/></svg><span data-i18n="createCampaign">Create campaign</span><svg class="i sm"><use href="#i-down"/></svg></button>
+        </div>
+      </div>
+
+      <div class="grid">
+        <!-- Hero: performance today -->
+        <div class="c8">
+          <div class="hero">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1">
+              <div>
+                <div class="ht" data-i18n="perfToday">Performance today</div>
+                <div class="cap" data-i18n="updated">Updated just now · All branches</div>
+              </div>
+              <span class="pill-live" style="background:rgba(255,255,255,.14);color:#fff"><svg class="i xs"><use href="#i-zap"/></svg><span data-i18n="liveData">Live data</span></span>
+            </div>
+            <div class="metrics">
+              <div><div class="ml" data-i18n="mActive">Active campaigns</div><div class="hv num">6</div><div class="md"><em class="num">2</em><span data-i18n="mEnding">ending soon</span></div></div>
+              <div><div class="ml" data-i18n="mRes">Reservations today</div><div class="hv num">14</div><div class="md"><em class="num">+4</em><span data-i18n="vsY">vs yesterday</span></div></div>
+              <div><div class="ml" data-i18n="mVouch">Voucher sales</div><div class="hv num">9</div><div class="md"><em data-i18n="sold">sold</em><span class="num">3 <span data-i18n="redeemedT">redeemed</span></span></div></div>
+              <div><div class="ml" data-i18n="mViews">Qualifying views</div><div class="hv num">318</div><div class="md"><em class="num">+12%</em><span data-i18n="vsY">vs yesterday</span></div></div>
+            </div>
+            <div class="spark" aria-hidden="true"><i style="height:30%"></i><i style="height:42%"></i><i style="height:36%"></i><i style="height:55%"></i><i style="height:48%"></i><i style="height:70%" class="hi"></i><i style="height:62%" class="hi"></i><i style="height:84%" class="hi"></i><i style="height:76%" class="hi"></i><i style="height:92%" class="hi"></i><i style="height:60%"></i><i style="height:44%"></i></div>
+          </div>
+        </div>
+        <!-- Hot Deals running -->
+        <div class="c4">
+          <div class="card" style="height:100%">
+            <div class="card-h"><div class="card-t"><svg class="i sm flame-mark"><use href="#i-flame"/></svg><span data-i18n="hotNow">Hot Deals running now</span><span class="count num">1</span></div></div>
+            <div style="display:flex;gap:12px;align-items:center">
+              <div class="thumb ph1" style="width:52px;height:52px"></div>
+              <div style="flex:1;min-width:0"><div class="strong" style="line-height:20px">Dinner for Two · 30% off</div><div class="muted small">Olaya · Riyadh Park</div></div>
+              <span class="chip st-live"><span class="pulse"></span><span data-i18n="live">Live</span></span>
+            </div>
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin:18px 0 8px">
+              <div><div class="muted small" data-i18n="endsIn">Ends in</div><div class="cd" style="font-size:30px;line-height:36px">01:42:18</div></div>
+              <div style="text-align:end"><div class="muted small" data-i18n="remaining">Remaining</div><div class="strong num" style="font-size:20px;line-height:28px">12 <span class="muted" style="font-size:13px;font-weight:600">/ 40</span></div></div>
+            </div>
+            <div class="bar thick"><i class="p" style="width:30%"></i><i class="p2" style="width:23%"></i><i class="n" style="width:42%"></i></div>
+            <div class="small muted" style="display:flex;gap:14px;margin-top:8px;flex-wrap:wrap"><span><i class="dot12" style="display:inline-block;background:var(--purple);margin-inline-end:4px"></i><span data-i18n="availableL">Available</span></span><span><i class="dot12" style="display:inline-block;background:var(--purple300);margin-inline-end:4px"></i><span data-i18n="reservedL">Reserved</span></span><span><i class="dot12" style="display:inline-block;background:var(--navy);margin-inline-end:4px"></i><span data-i18n="redeemedL">Redeemed</span></span></div>
+            <button class="btn tonal sm" style="margin-top:16px;width:100%" data-go="m07"><span data-i18n="openMonitor">Open monitor</span><svg class="i sm mirror"><use href="#i-arrow"/></svg></button>
+          </div>
+        </div>
+
+        <!-- Needs attention -->
+        <div class="c7">
+          <div class="card">
+            <div class="card-h"><div class="card-t"><span data-i18n="needs">Needs attention</span><span class="count num">4</span></div><a class="link" data-go="m05"><span data-i18n="viewAll">View all</span><svg class="i xs mirror"><use href="#i-right"/></svg></a></div>
+            <div class="stack">
+              <div class="attn"><div class="ic w"><svg class="i sm"><use href="#i-edit"/></svg></div><div class="tx"><b data-i18n="a1t">“Free dessert with two mains” needs changes</b><span data-i18n="a1s">Reviewer note: add the minimum spend to the terms</span></div><button class="btn tonal sm" data-i18n="fix">Fix</button></div>
+              <div class="attn red"><div class="ic d"><svg class="i sm"><use href="#i-alert"/></svg></div><div class="tx"><b data-i18n="a2t">Hot Deal inventory low at Riyadh Park</b><span data-i18n="a2s">6 of 20 units left · Dinner for Two</span></div><button class="btn tonal sm" data-i18n="addStock">Add stock</button></div>
+              <div class="attn"><div class="ic w"><svg class="i sm"><use href="#i-clock"/></svg></div><div class="tx"><b data-i18n="a3t">Voucher sale ends in 2 days</b><span data-i18n="a3s">“Pay 80, get 100” · 52 left</span></div><button class="btn tonal sm" data-i18n="view">View</button></div>
+              <div class="attn purple"><div class="ic p"><svg class="i sm"><use href="#i-play"/></svg></div><div class="tx"><b data-i18n="a4t">Watch &amp; Earn budget 92% used</b><span data-i18n="a4s">“Lunch reel” · 80 paid views left</span></div><button class="btn tonal sm" data-i18n="addBudget">Add budget</button></div>
+            </div>
+          </div>
+        </div>
+        <!-- Quick actions -->
+        <div class="c5">
+          <div class="card" style="height:100%">
+            <div class="card-h"><div class="card-t" data-i18n="quick">Quick actions</div></div>
+            <div class="qa">
+              <a href="#" data-go="m10"><div class="ic"><svg class="i"><use href="#i-tag"/></svg></div><div><b data-i18n="qLive">Create Live Deal</b><br><span data-i18n="qLiveD">Everyday offer, no code needed</span></div></a>
+              <a href="#" data-go="m11"><div class="ic"><svg class="i"><use href="#i-flame"/></svg></div><div><b data-i18n="qHot">Create Hot Deal</b><br><span data-i18n="qHotD">Fill quiet moments, free reservation</span></div></a>
+              <a href="#" data-go="m12"><div class="ic"><svg class="i"><use href="#i-ticket"/></svg></div><div><b data-i18n="qVou">Create Voucher</b><br><span data-i18n="qVouD">Pay now, use later</span></div></a>
+              <a href="#" data-go="m13"><div class="ic"><svg class="i"><use href="#i-play"/></svg></div><div><b data-i18n="qWe">Create Watch &amp; Earn</b><br><span data-i18n="qWeD">Reach customers with video</span></div></a>
+            </div>
+          </div>
+        </div>
+
+        <!-- W&E performance -->
+        <div class="c7">
+          <div class="card">
+            <div class="card-h"><div class="card-t"><svg class="i sm" style="color:var(--purple)"><use href="#i-play"/></svg><span data-i18n="weTitle">Watch &amp; Earn performance</span></div><a class="link"><span data-i18n="last7">Last 7 days</span><svg class="i xs"><use href="#i-down"/></svg></a></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:12px">
+              <div class="stat"><span class="l" data-i18n="weQual">Qualifying views</span><span class="v num" style="font-size:28px;line-height:34px">1,942</span><span class="d"><span class="delta num">↑ 12%</span></span></div>
+              <div class="stat"><span class="l" data-i18n="weRate">Qualification rate</span><span class="v num" style="font-size:28px;line-height:34px">61%</span><span class="d"><span class="delta neu num">= 0 pts</span></span></div>
+              <div class="stat"><span class="l" data-i18n="weSpend">Campaign spend</span><span class="v num" style="font-size:28px;line-height:34px">SAR 1,166</span><span class="d muted"><span data-i18n="weOf">of SAR 1,200 funded</span></span></div>
+            </div>
+            <div dir="ltr" style="position:relative">
+              <svg viewBox="0 0 640 170" width="100%" height="170" role="img" aria-label="Qualifying views, last 7 days">
+                <defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5B1AFC" stop-opacity=".22"/><stop offset="1" stop-color="#5B1AFC" stop-opacity="0"/></linearGradient></defs>
+                <g stroke="#E3E1F0" stroke-width="1"><line x1="0" y1="30" x2="640" y2="30"/><line x1="0" y1="80" x2="640" y2="80"/><line x1="0" y1="130" x2="640" y2="130"/></g>
+                <path d="M0 118 C60 112 100 96 160 100 S270 70 320 76 S440 52 480 58 S590 30 640 36 L640 150 L0 150 Z" fill="url(#ag)"/>
+                <path d="M0 118 C60 112 100 96 160 100 S270 70 320 76 S440 52 480 58 S590 30 640 36" fill="none" stroke="#5B1AFC" stroke-width="2.5" stroke-linecap="round"/>
+                <circle cx="640" cy="36" r="5" fill="#fff" stroke="#5B1AFC" stroke-width="2.5"/>
+                <g fill="#6F7296" font-size="12" font-weight="600" text-anchor="middle" id="chartdays"><text x="20" y="168">Mon</text><text x="125" y="168">Tue</text><text x="230" y="168">Wed</text><text x="335" y="168">Thu</text><text x="440" y="168">Fri</text><text x="545" y="168">Sat</text><text x="620" y="168">Sun</text></g>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <!-- Recent redemptions -->
+        <div class="c5">
+          <div class="card" style="height:100%">
+            <div class="card-h"><div class="card-t"><span data-i18n="recentRed">Recent redemptions</span></div><a class="link"><span data-i18n="viewAll">View all</span><svg class="i xs mirror"><use href="#i-right"/></svg></a></div>
+            <div class="list-row"><div class="avatar" style="background:var(--lilac);color:var(--purple)"><svg class="i sm"><use href="#i-ticket"/></svg></div><div class="tx"><b>Pay 80, get 100</b><span class="muted small">Voucher · Olaya · Omar</span></div><span class="tm num">10:41</span></div>
+            <div class="list-row"><div class="avatar" style="background:var(--lilac);color:var(--purple)"><svg class="i sm"><use href="#i-flame"/></svg></div><div class="tx"><b>Dinner for Two</b><span class="muted small">Reservation · Riyadh Park · Lina</span></div><span class="tm num">10:32</span></div>
+            <div class="list-row"><div class="avatar" style="background:var(--lilac);color:var(--purple)"><svg class="i sm"><use href="#i-ticket"/></svg></div><div class="tx"><b>Pay 80, get 100</b><span class="muted small">Voucher · Olaya · Omar</span></div><span class="tm num">10:05</span></div>
+            <div class="list-row"><div class="avatar" style="background:var(--lilac);color:var(--purple)"><svg class="i sm"><use href="#i-gift"/></svg></div><div class="tx"><b>Free pastry (prize)</b><span class="muted small">Watch &amp; Earn prize · Riyadh Park · Lina</span></div><span class="tm num">09:48</span></div>
+          </div>
+        </div>
+
+        <!-- Recent activity -->
+        <div class="c12">
+          <div class="card">
+            <div class="card-h"><div class="card-t"><span data-i18n="recentAct">Recent activity</span></div></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;column-gap:48px">
+              <div>
+                <div class="list-row"><i class="dot12" style="background:var(--mint)"></i><div class="tx"><b data-i18n="e1">“30% off tasting menu” is live at 3 branches</b></div><span class="tm" data-i18n="e1t">2 h ago</span></div>
+                <div class="list-row"><i class="dot12" style="background:var(--purple)"></i><div class="tx"><b data-i18n="e2">New reservation · Dinner for Two · Olaya</b></div><span class="tm" data-i18n="e2t">3 h ago</span></div>
+                <div class="list-row"><i class="dot12" style="background:var(--amber)"></i><div class="tx"><b data-i18n="e3">Arabic text missing for “Lunch reel”</b></div><span class="tm" data-i18n="e3t">5 h ago</span></div>
+              </div>
+              <div>
+                <div class="list-row"><i class="dot12" style="background:var(--purple)"></i><div class="tx"><b data-i18n="e4">Voucher sold · Pay 80, get 100 (3 today)</b></div><span class="tm" data-i18n="e4t">5 h ago</span></div>
+                <div class="list-row"><i class="dot12" style="background:var(--mint)"></i><div class="tx"><b data-i18n="e5">“Dinner for Two” was approved automatically</b></div><span class="tm" data-i18n="e5t">Yesterday</span></div>
+                <div class="list-row"><i class="dot12" style="background:var(--navy)"></i><div class="tx"><b data-i18n="e6">Statement 1–15 Oct issued</b></div><span class="tm" data-i18n="e6t">Yesterday</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ============ M05 CAMPAIGNS HUB ============ -->
+<section class="screen" id="m05" data-nav="campaigns">
+<div class="shell">
+  <aside class="sidebar"></aside>
+  <div class="main">
+    <header class="topbar"></header>
+    <div class="page">
+      <div class="page-head">
+        <div>
+          <div class="h-title">Campaigns</div>
+          <div class="h-sub">All your Live Deals, Hot Deals, Vouchers and Watch &amp; Earn campaigns in one place.</div>
+        </div>
+        <div class="head-actions">
+          <button class="btn primary"><svg class="i sm"><use href="#i-plus"/></svg>Create campaign<svg class="i sm"><use href="#i-down"/></svg></button>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px;flex-wrap:wrap">
+        <div class="seg" id="hubtabs">
+          <button class="on" data-f="all">All <span class="n">12</span></button>
+          <button data-f="live"><svg class="i sm"><use href="#i-tag"/></svg>Live Deals <span class="n">4</span></button>
+          <button data-f="hot"><svg class="i sm"><use href="#i-flame"/></svg>Hot Deals <span class="n">2</span></button>
+          <button data-f="voucher"><svg class="i sm"><use href="#i-ticket"/></svg>Vouchers <span class="n">4</span></button>
+          <button data-f="we"><svg class="i sm"><use href="#i-play"/></svg>Watch &amp; Earn <span class="n">2</span></button>
+        </div>
+        <button class="chip st-changes" style="height:36px;font-size:13px;cursor:pointer"><svg class="i sm"><use href="#i-alert"/></svg>Needs attention · <span class="num">3</span></button>
+      </div>
+
+      <div class="card flush">
+        <div style="display:flex;align-items:center;gap:10px;padding:16px 20px;flex-wrap:wrap;border-bottom:1px solid var(--line)">
+          <div class="search" style="margin:0;max-width:340px;flex:1;min-width:220px"><svg class="i sm"><use href="#i-search"/></svg>Search campaigns in English or Arabic</div>
+          <button class="btn outline sm"><svg class="i sm"><use href="#i-filter"/></svg>Status<svg class="i xs"><use href="#i-down"/></svg></button>
+          <button class="btn outline sm"><svg class="i sm"><use href="#i-pin"/></svg>All branches<svg class="i xs"><use href="#i-down"/></svg></button>
+          <button class="btn outline sm"><svg class="i sm"><use href="#i-cal"/></svg>Any date<svg class="i xs"><use href="#i-down"/></svg></button>
+          <span style="margin-inline-start:auto" class="muted small">Sorted by: <b style="color:var(--navy)">Needs attention first</b></span>
+        </div>
+        <div class="hub-head">
+          <div>Campaign</div><div>Branches</div><div>Status</div><div>Dates</div><div>Performance</div><div>Key metric</div><div></div>
+        </div>
+        <div id="hubrows" style="padding:0 12px 8px"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--line)">
+          <div class="muted small">Rows per page <b style="color:var(--navy)">25 ▾</b> &nbsp; · &nbsp; <span id="hubcount">1–12 of 12</span></div>
+          <div class="seg sm"><button class="on">1</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<style>
+.hub-head,.hub-row{display:grid;grid-template-columns:2.5fr 1.15fr 1.35fr 1.35fr 1.45fr 1.7fr 36px;gap:16px;align-items:center}
+.hub-head{padding:12px 32px;font-size:12px;font-weight:700;color:var(--ink2);background:var(--purple50)}
+.hub-row{padding:14px 20px;border-radius:16px;margin-top:6px;cursor:pointer;border:1px solid transparent;transition:.15s}
+.hub-row:hover{background:var(--purple50);border-color:var(--lilac)}
+.hub-row .name{display:flex;align-items:center;gap:14px;min-width:0}
+.hub-row .name b{display:block;font-weight:700;line-height:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hub-row .bn{font-size:13px;font-weight:600}
+.hub-row .dt{font-size:13px;font-weight:600}.hub-row .dt span{display:block;color:var(--ink2);font-weight:500;font-size:12px}
+.hub-row .pf{font-size:13px;font-weight:700}.hub-row .pf span{display:flex;align-items:center;gap:6px;color:var(--ink2);font-weight:500;font-size:12px}
+.hub-row .km{font-size:13px;font-weight:700}.hub-row .km .bar{margin-top:6px;height:6px}.hub-row .km span{display:block;color:var(--ink2);font-weight:500;font-size:12px}
+.up{color:var(--s-tx)}.dn{color:var(--d-tx)}
+</style>
+</section>
+
+<!-- ============ M11 HOT DEAL BUILDER ============ -->
+<section class="screen" id="m11" data-nav="campaigns" data-collapsed="1">
+<div class="shell collapsed">
+  <aside class="sidebar"></aside>
+  <div class="main">
+    <header class="topbar"></header>
+    <div id="bld" data-mode="both" data-step="3">
+      <div class="b-head">
+        <a class="link" data-go="m05"><svg class="i sm mirror"><use href="#i-left"/></svg>Campaigns</a>
+        <span class="muted">/</span>
+        <div class="h-title" style="font-size:20px;line-height:28px">New Hot Deal</div>
+        <span class="chip st-draft"><svg class="i"><use href="#i-edit"/></svg>Draft</span>
+        <span class="muted small" id="savedtxt">Saved just now</span>
+        <span style="margin-inline-start:auto;display:flex;gap:10px;align-items:center">
+          <span class="chip st-live" style="background:var(--s-bg)"><svg class="i"><use href="#i-check"/></svg>EN + AR complete</span>
+          <button class="btn text sm">Ask DealDash to help translate</button>
+        </span>
+      </div>
+
+      <div class="b-body">
+        <!-- rail -->
+        <aside class="rail card">
+          <div class="rail-top"><div class="ring" id="ring"><span class="num" id="ringtxt">3/9</span></div><div><b>Hot Deal setup</b><div class="muted small" id="railsub">Step 3 of 9 · Branch &amp; inventory</div></div></div>
+          <ol id="steps">
+            <li data-s="1"><i>1</i><div><b>Basics</b><span>Name &amp; description</span></div></li>
+            <li data-s="2"><i>2</i><div><b>Deal configuration</b><span>Offer, limits, reservation</span></div></li>
+            <li data-s="3"><i>3</i><div><b>Branch &amp; inventory</b><span>Where and how many</span></div></li>
+            <li data-s="4"><i>4</i><div><b>Eligibility</b><span>Who can unlock it</span></div></li>
+            <li data-s="5"><i>5</i><div><b>Timing</b><span>Start and duration</span></div></li>
+            <li data-s="6"><i>6</i><div><b>Content</b><span>Photos</span></div></li>
+            <li data-s="7"><i>7</i><div><b>Terms</b><span>The fine print</span></div></li>
+            <li data-s="8"><i>8</i><div><b>Review &amp; preview</b><span>Check everything</span></div></li>
+            <li data-s="9"><i>9</i><div><b>Publish / submit</b><span>Go live</span></div></li>
+          </ol>
+        </aside>
+
+        <!-- form -->
+        <div class="form-col">
+          <!-- step 1 -->
+          <div class="step" data-step="1">
+            <div class="step-h"><div class="muted small">Step 1 of 9</div><h2>Name your Hot Deal</h2><p>Keep it short and clear. Customers see this first.</p></div>
+            <div class="card stack" style="gap:20px">
+              <div class="field"><div class="label">Deal name <span class="chip st-live" style="height:20px;font-size:11px;padding:0 8px"><svg class="i xs"><use href="#i-check"/></svg>EN + AR</span></div>
+                <div class="bi"><div class="cell"><span class="tag">EN</span><input class="input" value="Dinner for Two"></div><div class="cell"><span class="tag">AR</span><input class="input ar" value="عشاء لشخصين"></div></div></div>
+              <div class="field"><div class="label">Short description</div>
+                <div class="bi"><div class="cell"><span class="tag">EN</span><textarea class="input" rows="3">30% off the tasting menu for two. Walk in or reserve for free.</textarea></div><div class="cell"><span class="tag">AR</span><textarea class="input ar" rows="3">خصم 30% على قائمة التذوق لشخصين. تعال مباشرة أو احجز مجاناً.</textarea></div></div>
+                <div class="help">Tip: say what the customer gets in one line. No need to repeat the price.</div></div>
+            </div>
+          </div>
+
+          <!-- step 2 -->
+          <div class="step" data-step="2">
+            <div class="step-h"><div class="muted small">Step 2 of 9</div><h2>Configure your deal</h2><p>Choose the offer, how it is limited, and how reservations work.</p></div>
+            <div class="stack" style="gap:20px">
+              <div class="card stack" style="gap:16px">
+                <div class="card-t">What do customers get?</div>
+                <div class="seg" style="align-self:flex-start"><button class="on">% off</button><button>SAR off</button><button>Buy 1 get 1</button><button>Free item</button></div>
+                <div class="field"><div class="label">Discount</div>
+                  <div class="chips"><span class="fc">20%</span><span class="fc on">30%<svg class="i xs"><use href="#i-check"/></svg></span><span class="fc">40%</span><span class="fc">50%</span><span class="fc">60%</span></div>
+                  <div class="help">Up to 60% off fits DealDash’s pre-approved rules for Hot Deals.</div></div>
+              </div>
+              <div class="card stack" style="gap:16px">
+                <div class="card-t">How is this deal limited?</div>
+                <div class="choice3" id="limitcards">
+                  <button data-m="time"><span class="ic"><svg class="i"><use href="#i-clock"/></svg></span><b>Time</b><span>Ends at a set time. Walk-in friendly.</span></button>
+                  <button data-m="qty"><span class="ic"><svg class="i"><use href="#i-grid"/></svg></span><b>Quantity</b><span>Ends when the units are gone.</span></button>
+                  <button data-m="both" class="on"><span class="ic"><svg class="i"><use href="#i-zap"/></svg></span><b>Time + quantity</b><span>Ends at whichever comes first.</span></button>
+                </div>
+                <div class="banner info" id="limithint"><svg class="i"><use href="#i-info"/></svg><div class="bx">The deal ends when the time runs out or the stock is gone, whichever comes first.</div></div>
+              </div>
+              <div class="card stack" style="gap:16px">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px"><div><div class="card-t">Reservations</div><div class="muted" style="margin-top:2px">Customers reserve for free and show a code at the venue. DealDash does not take any payment.</div></div><span class="tgl on" aria-label="Free reservation on"></span></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                  <div class="field"><div class="label">Hold duration</div><div class="input" style="display:flex;align-items:center;justify-content:space-between">30 minutes<svg class="i sm"><use href="#i-down"/></svg></div><div class="help">Initial default. You can choose 15–60 minutes.</div></div>
+                  <div class="field"><div class="label">Reservations per customer</div><div class="step-num"><button>−</button><b class="num">2</b><button>+</button></div><div class="help">Maximum for one customer.</div></div>
+                </div>
+                <div class="locked-row"><svg class="i sm"><use href="#i-lock"/></svg><div><b>Paid deposit</b><span>Not available in this release. Reservations stay free.</span></div><span class="chip st-draft" style="height:24px">Coming later</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- step 3 -->
+          <div class="step" data-step="3">
+            <div class="step-h"><div class="muted small">Step 3 of 9</div><h2>Choose branches &amp; inventory</h2><p class="v-qty">Stock is set per branch. A customer reserves at one branch and redeems there.</p><p class="v-timeonly">Time-limited deals do not use stock. Customers simply walk in at the chosen branches.</p></div>
+            <div class="card flush">
+              <div class="inv-head"><div>Branch</div><div class="v-qty">Units</div><div>Opens today</div><div class="v-qty">Customers will see</div></div>
+              <div class="inv-row"><div class="bn"><span class="tgl on"></span><div><b>Olaya</b><span>Olaya St, Riyadh</span></div></div><div class="v-qty"><div class="step-num"><button>−</button><b class="num">20</b><button>+</button></div></div><div class="small"><b>12 pm – 12 am</b></div><div class="v-qty"><span class="pill-soft">20 left</span></div></div>
+              <div class="inv-row"><div class="bn"><span class="tgl on"></span><div><b>Riyadh Park</b><span>Riyadh Park Mall</span></div></div><div class="v-qty"><div class="step-num"><button>−</button><b class="num">20</b><button>+</button></div></div><div class="small"><b>10 am – 11 pm</b></div><div class="v-qty"><span class="pill-soft">20 left</span></div></div>
+              <div class="inv-row off"><div class="bn"><span class="tgl"></span><div><b>KAFD</b><span>KAFD Metro</span></div></div><div class="v-qty"><span class="muted small">Not included</span></div><div class="small muted">Closed today</div><div class="v-qty muted small">—</div></div>
+              <div class="inv-total"><div><b>2 branches</b> selected</div><div class="v-qty"><b class="num" style="font-size:18px">40 units</b> in total</div></div>
+            </div>
+            <div class="banner warn v-qty" style="margin-top:16px"><svg class="i"><use href="#i-alert"/></svg><div class="bx"><b>Riyadh Park may sell out quickly</b>You set 20 units. Busy branches often run out within an hour. You can add stock later while the deal is live.</div></div>
+            <div class="locked-row" style="margin-top:16px"><svg class="i sm"><use href="#i-lock"/></svg><div><b>Shared stock across branches</b><span>Coming later. For now each branch keeps its own units.</span></div><span class="chip st-draft" style="height:24px">Coming later</span></div>
+          </div>
+
+          <!-- step 4 -->
+          <div class="step" data-step="4">
+            <div class="step-h"><div class="muted small">Step 4 of 9</div><h2>Who can use this deal?</h2><p>Most Hot Deals are open to everyone.</p></div>
+            <div class="stack" style="gap:12px">
+              <button class="rcard on"><span class="ic"><svg class="i"><use href="#i-users"/></svg></span><div><b>Everyone</b><span>Any DealDash customer nearby can reserve.</span></div><i class="rdot"></i></button>
+              <button class="rcard"><span class="ic"><svg class="i"><use href="#i-card"/></svg></span><div><b>Customers with an eligible bank card</b><span>Shown locked to others with “Add your eligible bank card to unlock”.</span></div><i class="rdot"></i></button>
+              <button class="rcard"><span class="ic"><svg class="i"><use href="#i-store"/></svg></span><div><b>Verified employees of a partner company</b><span>Shown locked to others with “Verify your employer to unlock”.</span></div><i class="rdot"></i></button>
+            </div>
+          </div>
+
+          <!-- step 5 -->
+          <div class="step" data-step="5">
+            <div class="step-h"><div class="muted small">Step 5 of 9</div><h2>When does it run?</h2><p>All times are Riyadh time.</p></div>
+            <div class="stack" style="gap:20px">
+              <div class="card stack" style="gap:14px"><div class="card-t">Start</div>
+                <div class="seg" style="align-self:flex-start"><button class="on">Start now</button><button>Schedule for later</button></div></div>
+              <div class="card stack v-time" style="gap:14px"><div class="card-t">How long?</div>
+                <div class="chips"><span class="fc">30 min</span><span class="fc">1 h</span><span class="fc on">2 h<svg class="i xs"><use href="#i-check"/></svg></span><span class="fc">3 h</span><span class="fc">Until closing</span></div>
+                <div class="help">Hot Deals can run up to a maximum set by DealDash. Customers see a live countdown.</div>
+                <div class="banner info"><svg class="i"><use href="#i-clock"/></svg><div class="bx"><b>Ends today at 17:42</b>That is 1 h 42 min from now.</div></div></div>
+              <div class="card v-qtyonly"><div class="card-t">No end time</div><p class="muted" style="margin-top:4px">This deal ends when the last unit is reserved or redeemed. DealDash may apply a maximum duration.</p></div>
+            </div>
+          </div>
+
+          <!-- step 6 -->
+          <div class="step" data-step="6">
+            <div class="step-h"><div class="muted small">Step 6 of 9</div><h2>Add photos</h2><p>Good photos get more reservations. Add 1 to 5. The first photo is the cover.</p></div>
+            <div class="card stack" style="gap:16px">
+              <div class="gal"><div class="gt ph1"><span class="cover">Cover</span></div><div class="gt ph5"></div><div class="gt ph2"></div><div class="gt add"><svg class="i"><use href="#i-plus"/></svg>Add photo</div></div>
+              <div class="help">JPG or PNG, at least 1200 px wide. Drag to reorder.</div>
+            </div>
+          </div>
+
+          <!-- step 7 -->
+          <div class="step" data-step="7">
+            <div class="step-h"><div class="muted small">Step 7 of 9</div><h2>Terms</h2><p>Tell customers the fine print so there are no surprises at the till.</p></div>
+            <div class="stack" style="gap:20px">
+              <div class="card stack" style="gap:12px"><div class="card-t">Common terms</div>
+                <label class="ck"><i class="on"><svg class="i xs"><use href="#i-check"/></svg></i>Valid on full-price items only</label>
+                <label class="ck"><i></i>Minimum spend applies</label>
+                <label class="ck"><i class="on"><svg class="i xs"><use href="#i-check"/></svg></i>Dine-in only</label>
+                <label class="ck"><i></i>Cannot be combined with other offers</label></div>
+              <div class="card stack" style="gap:16px"><div class="card-t">Anything else?</div>
+                <div class="bi"><div class="cell"><span class="tag">EN</span><textarea class="input" rows="3" placeholder="e.g. One tasting menu per table."></textarea></div><div class="cell"><span class="tag">AR</span><textarea class="input ar" rows="3" placeholder="مثال: قائمة تذوق واحدة لكل طاولة."></textarea></div></div>
+                <div class="banner info"><svg class="i"><use href="#i-info"/></svg><div class="bx"><b>Two common terms selected</b>Customers will see them on the deal page. Add anything specific to your venue, such as a table limit.</div></div></div>
+            </div>
+          </div>
+
+          <!-- step 8 -->
+          <div class="step" data-step="8">
+            <div class="step-h"><div class="muted small">Step 8 of 9</div><h2>Review &amp; preview</h2><p>Check the summary and see exactly what customers will see.</p></div>
+            <div class="stack" style="gap:12px">
+              <div class="banner ok"><svg class="i"><use href="#i-check-c"/></svg><div class="bx"><b>Within pre-approved rules</b>This Hot Deal should go live instantly after you submit.</div></div>
+              <div class="card sumcard"><div class="sr"><span>Deal</span><b>30% off · Dinner for Two</b><a class="link">Edit</a></div><div class="sr"><span>Limited by</span><b>Time + quantity</b><a class="link">Edit</a></div><div class="sr"><span>Reservation</span><b>Free · 30 min hold · 2 per customer</b><a class="link">Edit</a></div><div class="sr"><span>Branches &amp; stock</span><b>Olaya 20 · Riyadh Park 20</b><a class="link">Edit</a></div><div class="sr"><span>Eligibility</span><b>Everyone</b><a class="link">Edit</a></div><div class="sr"><span>Timing</span><b>Now · 2 h · ends 17:42</b><a class="link">Edit</a></div><div class="sr"><span>Terms</span><b>Full-price items · Dine-in only</b><a class="link">Edit</a></div></div>
+            </div>
+          </div>
+
+          <!-- step 9 -->
+          <div class="step" data-step="9">
+            <div class="result">
+              <div class="ric"><svg class="i lg" style="width:36px;height:36px"><use href="#i-check"/></svg></div>
+              <h2>Your Hot Deal is live</h2>
+              <p>It was approved automatically within DealDash’s pre-approved rules. Customers nearby can reserve now.</p>
+              <div style="display:flex;gap:12px;margin-top:8px"><button class="btn primary" data-go="m07">Open live monitor</button><button class="btn tonal">Create another</button></div>
+              <div class="muted small" style="margin-top:16px">Other outcomes you may see here: Scheduled · Pending review · Needs changes</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- preview -->
+        <aside class="prev-col">
+          <div class="stage">
+            <div class="stage-top"><div class="seg sm" id="pv-view"><button class="on" data-v="detail">Detail</button><button data-v="card">Card</button></div><div class="seg sm" id="pv-lang"><button class="on" data-l="en">EN</button><button data-l="ar">AR</button></div></div>
+            <div class="phone" id="phone">
+              <div class="notch"></div>
+              <div class="pv pv-detail">
+                <div class="ph-hero ph1"><span class="back"><svg class="i sm mirror"><use href="#i-left"/></svg></span><span class="cnt">1/3</span><div class="ph-title"><b data-en="Nobu Riyadh" data-ar="نوبو الرياض">Nobu Riyadh</b><span data-en="Japanese · Olaya · 0.8 km away" data-ar="ياباني · العليا · ٠٫٨ كم">Japanese · Olaya · 0.8 km away</span></div></div>
+                <div class="ph-sheet">
+                  <div class="row"><div class="big" data-en="30% off" data-ar="خصم ٣٠٪">30% off</div><span class="hot"><svg class="i xs"><use href="#i-flame"/></svg><span data-en="Hot" data-ar="ساخن">Hot</span></span></div>
+                  <div class="sub" data-en="Dinner for Two: 30% off the tasting menu." data-ar="عشاء لشخصين: خصم ٣٠٪ على قائمة التذوق.">Dinner for Two: 30% off the tasting menu.</div>
+                  <div class="v-qty"><div class="sbar"><i style="width:30%"></i></div><div class="srow"><b data-en="Only 12 remaining" data-ar="متبقي ١٢ فقط">Only 12 remaining</b><span data-en="First come, first served" data-ar="الأسبق يحجز أولاً">First come, first served</span></div></div>
+                  <div class="v-time" style="display:flex;justify-content:space-between;font-size:12px;margin-top:8px"><span style="color:#E93A52;font-weight:800"><span data-en="Ends in" data-ar="ينتهي خلال">Ends in</span> <span class="cd">01:42:18</span></span><span class="muted" data-en="Today" data-ar="اليوم">Today</span></div>
+                  <div class="ok"><svg class="i xs"><use href="#i-check"/></svg><div><b data-en="Open to everyone" data-ar="متاح للجميع">Open to everyone</b><br><span data-en="No card or employer needed." data-ar="لا حاجة لبطاقة أو جهة عمل.">No card or employer needed.</span></div></div>
+                  <div class="how"><b data-en="Reserve for free" data-ar="احجز مجاناً">Reserve for free</b><span data-en="Held for 30 minutes. Up to 2 per customer." data-ar="محجوز لمدة ٣٠ دقيقة. حتى ٢ لكل عميل.">Held for 30 minutes. Up to 2 per customer.</span></div>
+                </div>
+                <div class="ph-bar"><div><b data-en="Free" data-ar="مجاني">Free</b><br><span data-en="30 min hold" data-ar="حجز ٣٠ دقيقة">30 min hold</span></div><span class="cta" data-en="Reserve my spot" data-ar="احجز مكانك">Reserve my spot</span></div>
+              </div>
+              <div class="pv pv-card" style="display:none">
+                <div class="pc-img ph1"><span class="hot"><svg class="i xs"><use href="#i-flame"/></svg><span data-en="Hot" data-ar="ساخن">Hot</span></span><span class="pc-left v-qty" data-en="12 left" data-ar="متبقي ١٢">12 left</span></div>
+                <div class="pc-body"><div class="muted small" data-en="Japanese · Olaya · 0.8 km" data-ar="ياباني · العليا · ٠٫٨ كم">Japanese · Olaya · 0.8 km</div><b data-en="Nobu Riyadh" data-ar="نوبو الرياض">Nobu Riyadh</b><div class="sub" data-en="30% off Dinner for Two" data-ar="خصم ٣٠٪ على عشاء لشخصين">30% off Dinner for Two</div><div class="v-time pc-time"><svg class="i xs"><use href="#i-clock"/></svg><span class="cd">01:42:18</span></div><div class="pc-btn" data-en="Reserve" data-ar="احجز">Reserve</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="card checks">
+            <div class="card-t" style="margin-bottom:10px"><svg class="i sm" style="color:var(--purple)"><use href="#i-check-c"/></svg>DealDash checks</div>
+            <div class="ck-row ok"><svg class="i sm"><use href="#i-check"/></svg>Valid campaign dates</div>
+            <div class="ck-row ok"><svg class="i sm"><use href="#i-check"/></svg>Arabic &amp; English content supplied</div>
+            <div class="ck-row ok"><svg class="i sm"><use href="#i-check"/></svg>Branch selected</div>
+            <div class="ck-row warn"><svg class="i sm"><use href="#i-alert"/></svg>Inventory very low at Riyadh Park</div>
+            <div class="ck-row warn" id="chkTerms"><svg class="i sm"><use href="#i-alert"/></svg><span>Missing terms</span></div>
+            <div class="verdict" id="verdict">Likely to publish instantly once terms are added.</div>
+          </div>
+        </aside>
+      </div>
+
+      <div class="b-foot" id="bfoot">
+        <button class="btn outline" id="bback"><svg class="i sm mirror"><use href="#i-left"/></svg>Back</button>
+        <span class="muted small" style="margin-inline-start:8px" id="footnote">You can leave and come back. Drafts save automatically.</span>
+        <span style="margin-inline-start:auto;display:flex;gap:10px">
+          <button class="btn text">Save draft</button>
+          <button class="btn tonal"><svg class="i sm"><use href="#i-eye"/></svg>Preview</button>
+          <button class="btn primary lg" id="bnext">Continue<svg class="i sm mirror"><use href="#i-arrow"/></svg></button>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+<style>
+#m11 .shell{min-height:calc(100vh - 44px)}
+#bld{position:relative}
+.b-head{display:flex;align-items:center;gap:12px;padding:0 32px;height:72px;background:#fff;border-bottom:1px solid var(--line)}
+.b-body{display:grid;grid-template-columns:264px minmax(0,1fr) 392px;gap:28px;padding:28px 32px 120px;align-items:start;max-width:1500px;margin-inline:auto}
+.rail{padding:20px;position:sticky;top:152px}
+.rail-top{display:flex;gap:14px;align-items:center;margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.ring{width:48px;height:48px;border-radius:50%;background:conic-gradient(var(--purple) 0 33%,var(--lilac) 0);display:grid;place-items:center;position:relative;flex:none}
+.ring::before{content:"";position:absolute;inset:5px;background:#fff;border-radius:50%}
+.ring span{position:relative;font-size:12px;font-weight:800}
+.rail ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;position:relative}
+.rail li{display:flex;gap:12px;align-items:flex-start;padding:10px;border-radius:14px;cursor:pointer;position:relative}
+.rail li i{width:28px;height:28px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-style:normal;font-weight:800;font-size:12px;color:var(--ink2);background:#fff;flex:none;position:relative;z-index:1}
+.rail li b{display:block;font-size:14px;line-height:20px}.rail li span{font-size:12px;color:var(--ink2);line-height:16px}
+.rail li::after{content:"";position:absolute;inset-inline-start:23px;top:40px;height:calc(100% - 22px);width:2px;background:var(--line)}
+.rail li:last-child::after{display:none}
+.rail li.done i{background:var(--purple);border-color:var(--purple);color:#fff}
+.rail li.done::after{background:var(--purple)}
+.rail li.cur{background:var(--lilac)}
+.rail li.cur i{border-color:var(--purple);color:var(--purple)}
+.rail li.cur b{color:var(--purple)}
+.rail li:hover:not(.cur){background:var(--purple50)}
+.step{display:none}
+.step.show{display:block}
+.step-h{margin-bottom:20px}
+.step-h h2{font-size:26px;line-height:34px;font-weight:800;letter-spacing:-.01em;margin:2px 0 4px}
+[dir=rtl] .step-h h2{letter-spacing:0;line-height:40px}
+.step-h p{color:var(--ink2)}
+.chips{display:flex;gap:10px;flex-wrap:wrap}
+.fc{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 18px;border-radius:99px;border:1px solid var(--line);background:#fff;font-weight:700;font-size:14px;color:var(--navy)}
+.fc.on{background:var(--lilac);color:var(--purple);border-color:var(--purple)}
+.choice3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.choice3 button{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:start;padding:18px;border:1px solid var(--line);border-radius:20px;background:#fff;color:var(--navy);transition:.15s}
+.choice3 button .ic{width:40px;height:40px;border-radius:50%;background:var(--slate100);color:var(--ink2);display:grid;place-items:center;margin-bottom:4px}
+.choice3 button b{font-size:15px;font-weight:800}.choice3 button span:last-child{font-size:12px;color:var(--ink2);line-height:16px}
+.choice3 button:hover{border-color:var(--purple300);background:var(--purple50)}
+.choice3 button.on{border:2px solid var(--purple);background:var(--purple50);padding:17px}
+.choice3 button.on .ic{background:var(--purple);color:#fff}
+.tgl{width:44px;height:24px;border-radius:99px;background:#CFCFE3;position:relative;flex:none;display:inline-block;transition:.15s}
+.tgl::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:.15s}
+.tgl.on{background:var(--purple)}.tgl.on::after{inset-inline-start:23px}
+.step-num{display:inline-flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:14px;height:48px;overflow:hidden;width:max-content;background:#fff}
+.step-num button{width:44px;height:100%;border:0;background:var(--purple50);color:var(--purple);font-size:18px;font-weight:800}
+.step-num b{min-width:52px;text-align:center}
+.locked-row{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px dashed #C9CBE0;border-radius:16px;background:var(--slate100);color:var(--ink2)}
+.locked-row b{display:block;color:var(--navy);line-height:20px}.locked-row span{font-size:12px}.locked-row div{flex:1}
+.inv-head,.inv-row,.inv-total{display:grid;grid-template-columns:2.1fr 1.4fr 1.3fr 1.3fr;gap:16px;align-items:center;padding:16px 24px}
+#bld[data-mode=time] .inv-head,#bld[data-mode=time] .inv-row,#bld[data-mode=time] .inv-total{grid-template-columns:2fr 1fr}
+.inv-head{background:var(--purple50);font-size:12px;font-weight:700;color:var(--ink2);padding-block:12px}
+.inv-row{border-top:1px solid var(--line)}
+.inv-row.off{opacity:.62}
+.inv-row .bn{display:flex;gap:14px;align-items:center}.inv-row .bn b{display:block;line-height:20px}.inv-row .bn span.x,.inv-row .bn div span{font-size:12px;color:var(--ink2);display:block}
+.inv-total{border-top:1px solid var(--line);background:var(--purple50);display:flex;justify-content:space-between}
+.pill-soft{background:var(--lilac);color:var(--purple);border-radius:99px;font-size:12px;font-weight:700;padding:4px 12px}
+.rcard{display:flex;align-items:center;gap:16px;padding:18px 20px;border:1px solid var(--line);border-radius:20px;background:#fff;text-align:start;width:100%;color:var(--navy)}
+.rcard .ic{width:44px;height:44px;border-radius:50%;background:var(--slate100);color:var(--ink2);display:grid;place-items:center;flex:none}
+.rcard div{flex:1}.rcard b{display:block;font-size:15px;font-weight:800}.rcard span:not(.ic){font-size:13px;color:var(--ink2)}
+.rcard .rdot{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);position:relative}
+.rcard.on{border:2px solid var(--purple);background:var(--purple50);padding:17px 19px}
+.rcard.on .ic{background:var(--purple);color:#fff}
+.rcard.on .rdot{border-color:var(--purple)}.rcard.on .rdot::after{content:"";position:absolute;inset:4px;border-radius:50%;background:var(--purple)}
+.gal{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.gt{aspect-ratio:16/10;border-radius:16px;position:relative;overflow:hidden}
+.gt.add{border:1.5px dashed var(--purple300);background:var(--purple50);color:var(--purple);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-weight:700;font-size:12px}
+.cover{position:absolute;top:8px;inset-inline-start:8px;background:var(--navy);color:#fff;border-radius:99px;font-size:11px;font-weight:700;padding:2px 10px}
+.ck{display:flex;align-items:center;gap:12px;font-weight:600}
+.ck i{width:22px;height:22px;border-radius:7px;border:2px solid var(--line);display:grid;place-items:center;color:#fff;flex:none}
+.ck i.on{background:var(--purple);border-color:var(--purple)}
+.sumcard{padding:8px 24px}
+.sr{display:grid;grid-template-columns:150px 1fr auto;gap:16px;padding:14px 0;border-bottom:1px solid var(--line);align-items:center}
+.sr:last-child{border:0}.sr span{color:var(--ink2);font-size:13px;font-weight:600}
+.result{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:56px 24px;background:#fff;border:1px solid var(--line);border-radius:24px}
+.ric{width:84px;height:84px;border-radius:50%;background:var(--s-bg);color:var(--s-tx);display:grid;place-items:center}
+.result h2{font-size:28px;font-weight:800;line-height:36px}.result p{color:var(--ink2);max-width:420px}
+.prev-col{position:sticky;top:152px;display:flex;flex-direction:column;gap:16px}
+.stage{background:var(--stage);border-radius:24px;padding:16px 16px 24px}
+.stage-top{display:flex;justify-content:space-between;margin-bottom:14px}
+.phone{width:312px;margin:0 auto;background:#fff;border-radius:34px;border:8px solid var(--navy);overflow:hidden;position:relative;box-shadow:0 20px 40px rgba(15,12,66,.25);height:560px}
+[dir=rtl] .phone{direction:rtl}
+.phone[data-lang=ar]{direction:rtl;font-family:'IBM Plex Sans Arabic',sans-serif}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:90px;height:18px;background:var(--navy);border-radius:0 0 14px 14px;z-index:3}
+.pv{height:100%;position:relative;display:flex;flex-direction:column;background:var(--bg)}
+.ph-hero{height:168px;position:relative;flex:none;color:#fff}
+.ph-hero .back{position:absolute;top:28px;inset-inline-start:12px;width:28px;height:28px;border-radius:9px;background:rgba(255,255,255,.22);display:grid;place-items:center}
+.ph-hero .cnt{position:absolute;top:30px;inset-inline-end:12px;background:rgba(15,12,66,.6);font-size:10px;font-weight:700;border-radius:99px;padding:1px 8px}
+.ph-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(15,12,66,.75))}
+.ph-title{position:absolute;bottom:34px;inset-inline-start:14px;z-index:2}
+.ph-title b{display:block;font-size:19px;font-weight:800;line-height:24px}.ph-title span{font-size:11px;opacity:.9}
+.ph-sheet{background:#fff;border-radius:20px 20px 0 0;margin-top:-22px;padding:14px;position:relative;z-index:2;flex:1;overflow:hidden}
+.ph-sheet .row{display:flex;justify-content:space-between;align-items:center}
+.ph-sheet .big{font-size:25px;font-weight:800;color:var(--purple);line-height:30px}
+.hot{display:inline-flex;align-items:center;gap:3px;background:#FFF0E6;color:#C2410C;border-radius:99px;font-size:10px;font-weight:800;padding:2px 8px}
+.ph-sheet .sub{font-size:11px;color:var(--ink2);margin:2px 0 8px}
+.sbar{height:6px;border-radius:99px;background:var(--lilac);overflow:hidden}.sbar i{display:block;height:100%;background:linear-gradient(90deg,#FF7A1A,#E93A52)}
+.srow{display:flex;justify-content:space-between;font-size:10px;margin-top:4px}.srow b{color:#E93A52;font-weight:800}.srow span{color:var(--ink2)}
+.ph-sheet .ok{display:flex;gap:8px;align-items:flex-start;background:var(--s-bg);color:var(--s-tx);border-radius:12px;padding:8px 10px;margin-top:10px;font-size:11px;line-height:15px}
+.ph-sheet .ok b{color:#064d3a}.ph-sheet .ok span{color:#0B7A5A}
+.ph-sheet .how{margin-top:10px;font-size:11px}.ph-sheet .how b{display:block;font-size:12px}.ph-sheet .how span{color:var(--ink2)}
+.ph-bar{position:absolute;bottom:0;inset-inline:0;background:#fff;border-top:1px solid var(--line);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;font-size:11px;z-index:3}
+.ph-bar b{font-size:15px}.ph-bar span{color:var(--ink2);font-size:10px}
+.ph-bar .cta{background:var(--purple);color:#fff!important;font-weight:800;border-radius:99px;padding:10px 18px;font-size:12px}
+.pc-img{height:200px;position:relative;margin:48px 12px 0;border-radius:20px}
+.pc-img .hot{position:absolute;top:10px;inset-inline-start:10px}
+.pc-left{position:absolute;bottom:10px;inset-inline-start:10px;background:rgba(15,12,66,.75);color:#fff;font-size:11px;font-weight:700;border-radius:99px;padding:2px 10px}
+.pc-body{background:#fff;margin:-18px 12px 0;border-radius:0 0 20px 20px;padding:24px 14px 14px;position:relative}
+.pc-body b{font-size:16px;display:block;line-height:22px}.pc-body .sub{font-size:12px;margin:2px 0 8px}
+.pc-time{font-size:12px;color:#E93A52;font-weight:800;display:flex;gap:6px;align-items:center;margin-bottom:10px}
+.pc-btn{background:var(--purple);color:#fff;text-align:center;border-radius:99px;padding:10px;font-weight:800;font-size:12px}
+.checks{padding:18px 20px}
+.ck-row{display:flex;gap:10px;align-items:center;font-size:13px;font-weight:600;padding:5px 0}
+.ck-row.ok svg{color:var(--s-tx)}.ck-row.warn svg{color:var(--w-tx)}
+.verdict{margin-top:10px;padding:10px 12px;border-radius:12px;background:var(--purple50);color:var(--purple);font-size:12px;font-weight:700}
+.b-foot{position:sticky;bottom:0;display:flex;align-items:center;gap:8px;padding:14px 32px;background:#fff;border-top:1px solid var(--line);z-index:40;box-shadow:0 -6px 18px rgba(20,22,58,.05)}
+#bld[data-mode=time] .v-qty{display:none!important}
+#bld[data-mode=qty] .v-time{display:none!important}
+#bld:not([data-mode=qty]) .v-qtyonly{display:none}
+#bld:not([data-mode=time]) .v-timeonly{display:none}
+@media (max-width:1280px){.b-body{grid-template-columns:220px minmax(0,1fr) 340px}.phone{width:280px;height:520px}}
+</style>
+</section>
+
+<!-- ============ M07 HOT DEAL MONITOR ============ -->
+<section class="screen" id="m07" data-nav="campaigns">
+<div class="shell">
+  <aside class="sidebar"></aside>
+  <div class="main">
+    <header class="topbar"></header>
+    <div class="page">
+      <div class="crumb"><a class="link" data-go="m05" style="font-weight:600;color:var(--ink2)">Campaigns</a><svg class="i xs mirror"><use href="#i-right"/></svg><span>Hot Deals</span><svg class="i xs mirror"><use href="#i-right"/></svg><b>Dinner for Two</b></div>
+
+      <div class="hero" style="padding:28px 32px">
+        <div style="display:flex;gap:20px;align-items:flex-start;justify-content:space-between;position:relative;z-index:1;flex-wrap:wrap">
+          <div style="display:flex;gap:18px;align-items:center;min-width:0">
+            <div class="thumb ph1" style="width:84px;height:84px;border-radius:20px;border:2px solid rgba(255,255,255,.25)"></div>
+            <div>
+              <div style="display:flex;gap:10px;align-items:center;margin-bottom:6px"><span class="chip st-live" style="background:#fff"><span class="pulse"></span>Live</span><span class="type-chip" style="color:#C9C3FF"><svg class="i"><use href="#i-flame"/></svg>Hot Deal · Time + quantity</span></div>
+              <div class="hv" style="font-size:30px;line-height:38px">Dinner for Two · 30% off</div>
+              <div class="cap" style="display:flex;gap:16px;margin-top:4px;flex-wrap:wrap"><span style="display:inline-flex;gap:6px;align-items:center"><svg class="i sm"><use href="#i-pin"/></svg>Olaya · Riyadh Park</span><span style="display:inline-flex;gap:6px;align-items:center"><svg class="i sm"><use href="#i-cal"/></svg>Started today 12:00 · Ends 17:42</span></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn onhero" id="btnPause"><svg class="i sm"><use href="#i-pause"/></svg>Pause</button>
+            <button class="btn onhero-o" id="btnEdit"><svg class="i sm"><use href="#i-edit"/></svg>Edit allowed fields</button>
+            <button class="btn onhero-d"><svg class="i sm"><use href="#i-stop"/></svg>End campaign</button>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1.1fr 2fr;gap:36px;margin-top:26px;position:relative;z-index:1;align-items:end">
+          <div><div class="cap">Time left</div><div class="cd" style="font-size:56px;line-height:60px">01:42:18</div><div class="cap">Ends at 17:42 or when stock sells out</div></div>
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px"><div><span class="hv num" style="font-size:40px">12</span> <span class="cap">of 40 units available</span></div><div class="cap">Customers see: <b style="color:#fff">“Only 12 remaining”</b></div></div>
+            <div class="bar thick" style="background:rgba(255,255,255,.16);height:14px"><i style="width:42.5%;background:#fff"></i><i style="width:22.5%;background:#B9A4FF"></i><i style="width:30%;background:#7E4DFF"></i><i style="width:5%;background:#FFB4C0"></i></div>
+            <div class="cap" style="display:flex;gap:18px;margin-top:10px;flex-wrap:wrap"><span><i class="dot12" style="display:inline-block;background:#fff;margin-inline-end:6px"></i>Redeemed <b class="num" style="color:#fff">17</b></span><span><i class="dot12" style="display:inline-block;background:#B9A4FF;margin-inline-end:6px"></i>Reserved <b class="num" style="color:#fff">9</b></span><span><i class="dot12" style="display:inline-block;background:#7E4DFF;margin-inline-end:6px"></i>Available <b class="num" style="color:#fff">12</b></span><span><i class="dot12" style="display:inline-block;background:#FFB4C0;margin-inline-end:6px"></i>No-show <b class="num" style="color:#fff">2</b></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin:24px 0 20px"><div class="seg" id="monTabs"><button class="on" data-t="ov">Overview</button><button data-t="pf">Performance</button><button data-t="rs">Reservations <span class="n">41</span></button><button data-t="ac">Activity</button><button data-t="st">Settings</button></div></div>
+
+      <!-- OVERVIEW -->
+      <div class="mon" data-t="ov">
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:24px">
+          <div class="card"><div class="stat"><span class="l">Impressions</span><span class="v num" style="font-size:28px;line-height:34px">8,420</span><span class="d"><span class="delta num">↑ 18%</span>vs last Hot Deal</span></div></div>
+          <div class="card"><div class="stat"><span class="l">Detail views</span><span class="v num" style="font-size:28px;line-height:34px">1,960</span><span class="d"><span class="delta num">23%</span>of impressions</span></div></div>
+          <div class="card"><div class="stat"><span class="l">Reservations</span><span class="v num" style="font-size:28px;line-height:34px">41</span><span class="d"><span class="delta neu num">9 active</span></span></div></div>
+          <div class="card"><div class="stat"><span class="l">Confirmed redemptions</span><span class="v num" style="font-size:28px;line-height:34px">17</span><span class="d">scanned by your staff</span></div></div>
+          <div class="card"><div class="stat"><span class="l">Conversion</span><span class="v num" style="font-size:28px;line-height:34px">2.1%</span><span class="d">view → reservation</span><span class="d"><span class="delta neu num">41%</span>reserved → redeemed</span></div></div>
+        </div>
+        <div class="grid">
+          <div class="c8 stack" style="gap:24px">
+            <div class="card">
+              <div class="card-h"><div class="card-t">Inventory by branch</div><span class="muted small">Stock is held per branch</span></div>
+              <div class="br-row"><div class="bn"><b>Olaya</b><span>20 units</span></div><div class="bb"><div class="bar thick"><i class="n" style="width:50%"></i><i class="p2" style="width:20%"></i><i class="p" style="width:25%"></i><i style="width:5%;background:#E93A52"></i></div></div><div class="bs"><b class="num">5</b> available<span class="muted small"><span class="num">10</span> redeemed · <span class="num">4</span> reserved · <span class="num">1</span> no-show</span></div></div>
+              <div class="br-row"><div class="bn"><b>Riyadh Park</b><span>20 units</span></div><div class="bb"><div class="bar thick"><i class="n" style="width:35%"></i><i class="p2" style="width:25%"></i><i class="p" style="width:35%"></i><i style="width:5%;background:#E93A52"></i></div></div><div class="bs"><b class="num">7</b> available<span class="muted small"><span class="num">7</span> redeemed · <span class="num">5</span> reserved · <span class="num">1</span> no-show</span></div></div>
+              <div class="legend"><span><i style="background:var(--navy)"></i>Redeemed</span><span><i style="background:var(--purple300)"></i>Reserved</span><span><i style="background:var(--purple)"></i>Available</span><span><i style="background:#E93A52"></i>No-show</span></div>
+            </div>
+            <div class="card">
+              <div class="card-h"><div class="card-t">Reservation activity</div><a class="link" data-t2="rs">View all 41<svg class="i xs mirror"><use href="#i-right"/></svg></a></div>
+              <div class="act4"><div><span class="muted small">Active</span><b class="num">9</b></div><div><span class="muted small">Redeemed</span><b class="num">17</b></div><div><span class="muted small">Expired</span><b class="num">8</b></div><div><span class="muted small">No-show</span><b class="num">2</b></div></div><div class="help" style="margin-bottom:8px"><b>Expired</b> = the reservation hold timed out. <b>No-show</b> = a confirmed reservation that was not completed and meets DealDash's no-show rule.</div>
+              <div class="res-mini" id="resmini"></div>
+            </div>
+          </div>
+          <div class="c4 stack" style="gap:24px">
+            <div class="card">
+              <div class="card-h"><div class="card-t">Deal summary</div><a class="link">Settings</a></div>
+              <div class="kv"><span>Offer</span><b>30% off tasting menu</b></div>
+              <div class="kv"><span>Limited by</span><b>Time + quantity</b></div>
+              <div class="kv"><span>Reservation</span><b>Free · 30 min hold</b></div>
+              <div class="kv"><span>Per customer</span><b>Up to 2</b></div>
+              <div class="kv"><span>Eligibility</span><b>Everyone</b></div>
+              <div class="kv"><span>Approval</span><b><span class="chip st-live" style="height:22px">Auto-approved</span></b></div>
+            </div>
+            <div class="card" style="background:var(--purple50)">
+              <div class="card-t" style="margin-bottom:6px"><svg class="i sm" style="color:var(--purple)"><use href="#i-info"/></svg>While it is live</div>
+              <p class="muted" style="font-size:13px">You can <b style="color:var(--navy)">pause</b>, <b style="color:var(--navy)">end</b> or adjust <b style="color:var(--navy)">stock and per-customer limits</b> within safe limits. Changing the offer, eligibility, branches, terms or timing means a <b style="color:var(--navy)">new version</b>, so customers are never surprised. Every change is logged.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PERFORMANCE -->
+      <div class="mon" data-t="pf" style="display:none">
+        <div class="grid">
+          <div class="c7"><div class="card"><div class="card-h"><div class="card-t">From view to redemption</div><span class="muted small">Measured by DealDash</span></div>
+            <div class="funnel">
+              <div><span>Impressions</span><div class="fb" style="width:100%"><b class="num">8,420</b></div></div>
+              <div><span>Detail views</span><div class="fb" style="width:62%"><b class="num">1,960</b></div><em class="num">23% of impressions</em></div>
+              <div><span>Reservations</span><div class="fb" style="width:30%"><b class="num">41</b></div><em class="num">2.1% of detail views</em></div>
+              <div><span>Confirmed redemptions</span><div class="fb" style="width:16%"><b class="num">17</b></div><em class="num">41% of reservations</em></div>
+            </div>
+            <div class="banner info" style="margin-top:16px"><svg class="i"><use href="#i-info"/></svg><div class="bx">Redemptions are confirmed by your staff scanning the customer’s code. DealDash does not estimate sales revenue for Hot Deals.</div></div></div></div>
+          <div class="c5"><div class="card"><div class="card-h"><div class="card-t">Reservations per hour</div></div>
+            <div class="hbars"><div><i style="height:34%"></i><span>12</span></div><div><i style="height:58%"></i><span>13</span></div><div><i style="height:88%"></i><span>14</span></div><div><i style="height:72%"></i><span>15</span></div><div class="now"><i style="height:46%"></i><span>16</span></div><div class="fut"><i style="height:0"></i><span>17</span></div></div>
+            <div class="muted small" style="margin-top:10px">Busiest hour: 14:00 (11 reservations)</div></div></div>
+        </div>
+      </div>
+
+      <!-- RESERVATIONS -->
+      <div class="mon" data-t="rs" style="display:none">
+        <div class="card flush">
+          <div style="display:flex;gap:10px;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap">
+            <div class="search" style="margin:0;max-width:300px;flex:1"><svg class="i sm"><use href="#i-search"/></svg>Search by code</div>
+            <div class="seg sm"><button class="on">All</button><button>Active</button><button>Redeemed</button><button>Expired</button><button>No-show</button></div>
+            <button class="btn outline sm" style="margin-inline-start:auto"><svg class="i sm"><use href="#i-pin"/></svg>All branches<svg class="i xs"><use href="#i-down"/></svg></button>
+          </div>
+          <div class="rs-head"><div>Code</div><div>Customer</div><div>Branch</div><div>Units</div><div>Status</div><div>Time</div></div>
+          <div id="resfull"></div>
+        </div>
+      </div>
+
+      <!-- ACTIVITY -->
+      <div class="mon" data-t="ac" style="display:none">
+        <div class="card" style="max-width:760px"><div class="card-h"><div class="card-t">Activity</div></div>
+          <div class="tl">
+            <div><i style="background:var(--mint)"></i><b>Stock raised at Olaya: 15 to 20 units</b><span>Akif &middot; 13:05 &middot; logged</span></div>
+            <div><i style="background:var(--purple)"></i><b>Reservation expired · 2 units released</b><span>System · 12:58</span></div>
+            <div><i style="background:var(--mint)"></i><b>Approved automatically (pre-approved rules)</b><span>DealDash · 12:00</span></div>
+            <div><i style="background:var(--navy)"></i><b>Submitted</b><span>Akif · 12:00</span></div>
+            <div><i style="background:var(--slate100);border:2px solid var(--line)"></i><b>Draft created</b><span>Akif · 11:46</span></div>
+          </div></div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="mon" data-t="st" style="display:none">
+        <div class="grid">
+          <div class="c7"><div class="card"><div class="card-h"><div class="card-t">Configuration</div><span class="chip st-draft" style="height:24px"><svg class="i xs"><use href="#i-lock"/></svg>Locked while live</span></div>
+            <div class="kv"><span>Offer</span><b>30% off tasting menu for two</b></div><div class="kv"><span>Branches &amp; stock</span><b>Olaya 20 · Riyadh Park 20</b></div><div class="kv"><span>Reservation</span><b>Free · 30 min hold · 2 per customer</b></div><div class="kv"><span>Timing</span><b>12:00 – 17:42 today</b></div><div class="kv"><span>Terms</span><b>Full-price items · Dine-in only</b></div></div></div>
+          <div class="c5"><div class="card"><div class="card-t" style="margin-bottom:8px">What you can change</div><div class="stack" style="gap:8px"><div class="ck-row ok"><svg class="i sm"><use href="#i-check"/></svg>Pause or resume</div><div class="ck-row ok"><svg class="i sm"><use href="#i-check"/></svg>End early</div><div class="ck-row ok"><svg class="i sm"><use href="#i-check"/></svg>Raise or lower stock (never below reserved or redeemed)</div><div class="ck-row ok"><svg class="i sm"><use href="#i-check"/></svg>Per-customer limit within DealDash limits</div><div class="ck-row" style="color:var(--ink2)"><svg class="i sm"><use href="#i-lock"/></svg>Discount, eligibility, branches, terms, timing: create a new version</div></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- overlays: pause modal + edit drawer -->
+<div class="scrim" id="scrim"></div>
+<div class="modal" id="modalPause" role="dialog" aria-label="Pause Hot Deal">
+  <div style="display:flex;gap:16px;align-items:flex-start"><div class="ric" style="width:48px;height:48px;background:var(--slateblue);color:var(--navy)"><svg class="i"><use href="#i-pause"/></svg></div><div><h3 style="font-size:20px;font-weight:800;line-height:28px">Pause “Dinner for Two”?</h3><p class="muted" style="margin-top:4px">It disappears from customer discovery immediately. Customers who already reserved can still redeem. You can resume any time before it ends.</p></div></div>
+  <div class="field" style="margin-top:20px"><div class="label">Reason <span class="muted small" style="font-weight:500">(optional)</span></div><div class="input" style="display:flex;align-items:center;justify-content:space-between;color:var(--ink3)">Choose a reason<svg class="i sm"><use href="#i-down"/></svg></div></div>
+  <div class="banner warn" style="margin-top:16px"><svg class="i"><use href="#i-clock"/></svg><div class="bx">The countdown keeps running while paused.</div></div>
+  <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:24px"><button class="btn outline" data-close>Keep live</button><button class="btn primary" data-close><svg class="i sm"><use href="#i-pause"/></svg>Pause deal</button></div>
+</div>
+<div class="drawer" id="drawerEdit" role="dialog" aria-label="Edit allowed fields">
+  <div class="dr-h"><div><h3 style="font-size:20px;font-weight:800;line-height:28px">Edit allowed fields</h3><span class="muted small">Dinner for Two · Live</span></div><button class="icon-btn" data-close aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button></div>
+  <div class="dr-b stack" style="gap:20px">
+    <div class="banner info"><svg class="i"><use href="#i-info"/></svg><div class="bx">While a Hot Deal is live you can change <b>operational settings only</b>. Every change is saved to Activity with your name and the time.</div></div>
+    <div class="card stack" style="gap:16px;box-shadow:none"><div class="card-t">Inventory per branch</div>
+      <div class="inv-mini"><div><b>Olaya</b><span class="muted small" style="display:block">Committed 14 (4 reserved + 10 redeemed)</span><span class="muted small" style="display:block">Allowed range 14 to 50 units</span></div><div class="step-num"><button>−</button><b class="num">20</b><button>+</button></div></div>
+      <div class="inv-mini"><div><b>Riyadh Park</b><span class="muted small" style="display:block">Committed 12 (5 reserved + 7 redeemed)</span><span class="muted small" style="display:block">Allowed range 12 to 50 units</span></div><div class="step-num"><button>−</button><b class="num">20</b><button>+</button></div></div>
+      <div class="help">You can raise or lower stock, but never below what is already reserved or redeemed.</div></div>
+    <div class="card stack" style="gap:12px;box-shadow:none"><div class="card-t">Reservations per customer</div><div style="display:flex;align-items:center;gap:16px"><div class="step-num"><button>−</button><b class="num">2</b><button>+</button></div><span class="help">DealDash allows 1 to 4 for Hot Deals.</span></div></div>
+    <div class="locked-row" style="align-items:flex-start"><svg class="i sm" style="margin-top:2px"><use href="#i-lock"/></svg><div><b>Need to change anything else?</b><span>Discount, offer, eligibility, branches, terms and timing cannot change while live. Create a new version instead; DealDash reviews it where needed.</span><div style="margin-top:10px"><button class="btn tonal sm"><svg class="i sm"><use href="#i-copy"/></svg>Create a new version</button></div></div></div>
+  </div>
+  <div class="dr-f" style="justify-content:space-between;align-items:center"><span class="help" style="max-width:220px">Saved to Activity with your name and time</span><span style="display:flex;gap:10px"><button class="btn outline" data-close>Cancel</button><button class="btn primary" data-close>Save changes</button></span></div>
+</div>
+<style>
+.scrim{position:fixed;inset:0;background:rgba(15,12,66,.4);z-index:300;display:none}
+.scrim.show{display:block}
+.modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:520px;max-width:92vw;background:#fff;border-radius:26px;padding:28px;box-shadow:0 20px 60px rgba(15,12,66,.2);z-index:310;display:none}
+.modal.show{display:block}
+.drawer{position:fixed;top:0;bottom:0;inset-inline-end:0;width:520px;max-width:96vw;background:#fff;z-index:310;border-radius:26px 0 0 26px;box-shadow:0 12px 40px rgba(15,12,66,.16);display:none;flex-direction:column}
+[dir=rtl] .drawer{border-radius:0 26px 26px 0}
+.drawer.show{display:flex}
+.dr-h{display:flex;justify-content:space-between;align-items:flex-start;padding:24px 24px 16px;border-bottom:1px solid var(--line)}
+.dr-b{padding:24px;overflow:auto;flex:1}.dr-f{padding:16px 24px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px}
+.inv-mini{display:flex;justify-content:space-between;align-items:center;gap:12px}.inv-mini b{display:block}
+.br-row{display:grid;grid-template-columns:130px 1fr 220px;gap:20px;align-items:center;padding:14px 0;border-top:1px solid var(--line)}
+.br-row:first-of-type{border-top:0}
+.br-row .bn b{display:block;line-height:20px}.br-row .bn span{font-size:12px;color:var(--ink2)}
+.br-row .bs{font-size:13px}.br-row .bs b{font-size:18px}.br-row .bs > span{display:block}
+.legend{display:flex;gap:18px;margin-top:8px;font-size:12px;color:var(--ink2);font-weight:600;flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-inline-end:6px}
+.act4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
+.act4 > div{background:var(--purple50);border-radius:16px;padding:12px 16px}.act4 b{display:block;font-size:24px;font-weight:800;line-height:30px}
+.kv{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px solid var(--line);font-size:13px}
+.kv:last-child{border:0}.kv span{color:var(--ink2);font-weight:600}.kv b{text-align:end;font-weight:700}
+.rs-head,.rs-row{display:grid;grid-template-columns:1.2fr 1.2fr 1.2fr .6fr 1.2fr 1fr;gap:16px;align-items:center;padding:14px 24px}
+.rs-head{background:var(--purple50);font-size:12px;font-weight:700;color:var(--ink2)}
+.rs-row{border-top:1px solid var(--line);font-size:13px;font-weight:600}
+.rs-row:hover{background:var(--purple50)}
+.rs-row .code{font-family:ui-monospace,Consolas,monospace;direction:ltr;text-align:start;font-weight:700;letter-spacing:.04em}
+.res-mini .rs-row{padding:12px 4px;grid-template-columns:1.1fr 1fr 1fr .5fr 1.1fr .9fr}
+.funnel{display:flex;flex-direction:column;gap:14px}
+.funnel > div{display:grid;grid-template-columns:150px 1fr 150px;gap:14px;align-items:center;font-size:13px;font-weight:600}
+.fb{height:36px;border-radius:12px;background:var(--navy);color:#fff;display:flex;align-items:center;padding-inline:14px}
+.funnel > div:nth-child(2) .fb{background:var(--purple)}.funnel > div:nth-child(3) .fb{background:var(--purple2)}.funnel > div:nth-child(4) .fb{background:var(--purple300);color:var(--navy)}
+.funnel em{font-style:normal;color:var(--ink2);font-size:12px}
+.hbars{display:flex;align-items:flex-end;gap:14px;height:170px;border-bottom:1px solid var(--line)}
+.hbars > div{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;position:relative}
+.hbars i{display:block;width:100%;max-width:34px;background:var(--purple);border-radius:8px 8px 0 0}
+.hbars span{position:absolute;bottom:-24px;font-size:12px;color:var(--ink2);font-weight:600}
+.hbars .now i{background:var(--purple300)}
+.tl{position:relative;padding-inline-start:28px}
+.tl::before{content:"";position:absolute;inset-inline-start:7px;top:6px;bottom:6px;width:2px;background:var(--line)}
+.tl > div{position:relative;padding-bottom:20px}.tl > div:last-child{padding-bottom:0}
+.tl i{position:absolute;inset-inline-start:-28px;top:3px;width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px var(--line)}
+.tl b{display:block;font-weight:700}.tl span{font-size:12px;color:var(--ink2)}
+</style>
+</section>
+
+<!-- ============ COMPONENTS & STATES ============ -->
+<section class="screen" id="comp" data-nav="">
+<div class="shell">
+  <aside class="sidebar"></aside>
+  <div class="main">
+    <header class="topbar"></header>
+    <div class="page">
+      <div class="page-head"><div><div class="crumb"><b>Design system</b></div><div class="h-title">Components &amp; states</div><div class="h-sub">The shared component inventory established by M04, M05, M11 and M07.</div></div></div>
+      <div class="stack" style="gap:24px">
+
+        <div class="card"><div class="card-t" style="margin-bottom:16px">Status chips</div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap" id="allchips"></div>
+          <div class="muted small" style="margin-top:12px">Each status has an icon and a label. Only Suspended is solid. Live pulses once.</div></div>
+
+        <div class="grid">
+          <div class="c6 card"><div class="card-t" style="margin-bottom:16px">Buttons</div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center"><button class="btn primary">Primary</button><button class="btn tonal">Tonal</button><button class="btn outline">Outline</button><button class="btn text">Text</button><button class="btn danger-t">Destructive</button><button class="btn danger">Destructive solid</button><button class="btn" disabled>Disabled</button></div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:16px"><button class="btn primary sm">Small</button><button class="btn primary">Default 44</button><button class="btn primary lg">Large 48</button><button class="icon-btn" style="background:var(--lilac);color:var(--purple)"><svg class="i"><use href="#i-more"/></svg></button></div></div>
+          <div class="c6 card"><div class="card-t" style="margin-bottom:16px">Tabs</div>
+            <div class="seg"><button class="on">Overview</button><button>Performance</button><button>Reservations <span class="n">41</span></button><button>Activity</button></div>
+            <div style="margin-top:18px;display:flex;gap:24px;border-bottom:1px solid var(--line)"><b style="padding:8px 0;border-bottom:2px solid var(--purple);color:var(--purple)">Details</b><span style="padding:8px 0;color:var(--ink2);font-weight:700">History</span><span style="padding:8px 0;color:var(--ink2);font-weight:700">Notes</span></div>
+            <div class="muted small" style="margin-top:8px">Segmented tabs for pages; underline tabs only inside drawers and modals.</div></div>
+        </div>
+
+        <div class="grid">
+          <div class="c4"><div class="card"><div class="stat"><span class="l">KPI card</span><span class="v num">1,942</span><span class="d"><span class="delta num">↑ 12%</span>vs last week</span></div></div></div>
+          <div class="c8"><div class="hero" style="padding:22px 28px"><div class="cap">Hero summary card · used once per screen</div><div class="hv">Remaining 12 / 40</div><div class="bar thick" style="background:rgba(255,255,255,.16);margin-top:10px"><i style="width:30%;background:#fff"></i></div></div></div>
+        </div>
+
+        <div class="grid">
+          <div class="c6 card"><div class="card-t" style="margin-bottom:16px">Banners</div><div class="stack">
+            <div class="banner info"><svg class="i"><use href="#i-info"/></svg><div class="bx"><b>Pending review</b>We will review your campaign shortly.</div></div>
+            <div class="banner ok"><svg class="i"><use href="#i-check-c"/></svg><div class="bx"><b>Within pre-approved rules</b>Likely to publish instantly.</div></div>
+            <div class="banner warn"><svg class="i"><use href="#i-alert"/></svg><div class="bx"><b>Needs changes</b>Add the minimum spend to your terms. <a class="link">Fix</a></div></div>
+            <div class="banner danger"><svg class="i"><use href="#i-xc"/></svg><div class="bx"><b>Payment failed</b>Your card was declined. <a class="link">Try again</a></div></div>
+            <div class="banner susp"><svg class="i"><use href="#i-lock"/></svg><div class="bx"><b>Account suspended</b>New campaigns and sales are paused. Contact DealDash support.</div></div></div></div>
+          <div class="c6 card"><div class="card-t" style="margin-bottom:16px">Form fields</div><div class="stack" style="gap:16px">
+            <div class="field"><div class="label">Text field</div><input class="input" value="Dinner for Two"><div class="help">Helper text sits below.</div></div>
+            <div class="field"><div class="label">Error state</div><input class="input" style="border-color:var(--d-solid)" value="150%"><div class="help" style="color:var(--d-tx);display:flex;gap:6px;align-items:center"><svg class="i xs"><use href="#i-alert"/></svg>Discount cannot be above 60%.</div></div>
+            <div class="field"><div class="label">Bilingual field</div><div class="bi"><div class="cell"><span class="tag">EN</span><input class="input" value="Dinner for Two"></div><div class="cell"><span class="tag">AR</span><input class="input ar" value="عشاء لشخصين"></div></div></div>
+            <div style="display:flex;gap:24px;align-items:center"><span style="display:flex;gap:10px;align-items:center"><span class="tgl on"></span>Toggle</span><div class="step-num"><button>−</button><b class="num">2</b><button>+</button></div></div></div></div>
+        </div>
+
+        <div class="grid">
+          <div class="c4 card"><div class="card-t" style="margin-bottom:6px">Empty state</div><div class="empty"><div class="ic"><svg class="i lg"><use href="#i-flame"/></svg></div><b>Fill quiet moments</b><p>Create a Hot Deal and customers nearby can reserve for free.</p><button class="btn primary sm">Create Hot Deal</button></div></div>
+          <div class="c4 card"><div class="card-t" style="margin-bottom:16px">Loading state</div><div class="stack" style="gap:14px"><div style="display:flex;gap:12px;align-items:center"><div class="skel" style="width:44px;height:44px;border-radius:12px"></div><div style="flex:1"><div class="skel" style="width:60%"></div><div class="skel" style="width:35%;margin-top:8px"></div></div></div><div style="display:flex;gap:12px;align-items:center"><div class="skel" style="width:44px;height:44px;border-radius:12px"></div><div style="flex:1"><div class="skel" style="width:70%"></div><div class="skel" style="width:40%;margin-top:8px"></div></div></div><div class="skel" style="height:40px;border-radius:14px"></div></div></div>
+          <div class="c4 card"><div class="card-t" style="margin-bottom:6px">Error state</div><div class="empty"><div class="ic" style="background:var(--d-bg);color:var(--d-tx)"><svg class="i lg"><use href="#i-alert"/></svg></div><b>Could not load this</b><p>Check your connection and try again. Your other widgets are fine.</p><button class="btn tonal sm">Retry</button></div></div>
+        </div>
+
+        <div class="grid">
+          <div class="c6 card"><div class="card-t" style="margin-bottom:16px">Charts</div>
+            <div class="muted small" style="margin-bottom:6px">Series: purple · navy · lilac-300 · slate. No orange or red series.</div>
+            <div style="display:flex;gap:6px;align-items:flex-end;height:90px;margin-bottom:6px"><i style="flex:1;height:40%;background:var(--purple);border-radius:8px 8px 0 0"></i><i style="flex:1;height:70%;background:var(--purple);border-radius:8px 8px 0 0"></i><i style="flex:1;height:55%;background:var(--purple);border-radius:8px 8px 0 0"></i><i style="flex:1;height:90%;background:var(--purple);border-radius:8px 8px 0 0"></i><i style="flex:1;height:60%;background:var(--purple300);border-radius:8px 8px 0 0"></i></div>
+            <div class="bar thick" style="margin-top:14px"><i class="n" style="width:42%"></i><i class="p2" style="width:22%"></i><i class="p" style="width:30%"></i><i style="width:6%;background:#E93A52"></i></div><div class="muted small" style="margin-top:6px">Stock bar: stacked segments with a legend, never colour alone.</div></div>
+          <div class="c6 card"><div class="card-t" style="margin-bottom:16px">Drawer &amp; modal (live in M07: Pause · Edit allowed fields)</div><div style="display:flex;gap:12px;flex-wrap:wrap"><button class="btn tonal" data-go="m07">Open M07 to try them</button></div>
+            <div class="toast" style="margin-top:18px"><svg class="i" style="color:var(--mint)"><use href="#i-check-c"/></svg><div><b>Stock added</b><br><span class="muted small">+5 units at Olaya</span></div><button class="btn text sm">Undo</button></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<style>
+.toast{display:flex;align-items:center;gap:12px;padding:12px 16px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);width:max-content;max-width:100%}
+</style>
+</section>
+
+<script>
+/* Design-review interactions only (static mockup). Not production code. */
+const I18N = {
+  en: {
+    merchant:'Nobu Riyadh', verified:'Verified', branch:'All branches', search:'Search campaigns or codes',
+    g_run:'RUN', g_und:'UNDERSTAND', g_man:'MANAGE',
+    n_dashboard:'Dashboard', n_campaigns:'Campaigns', n_vouchers:'Vouchers', n_we:'Watch & Earn', n_redemptions:'Redemptions',
+    n_insights:'Insights', n_finance:'Finance', n_business:'Business', n_team:'Team', n_support:'Support', n_settings:'Settings',
+    greet:'Good morning, Akif', greetSub:'Here is what is happening at Nobu Riyadh today.', today:'Today', createCampaign:'Create campaign',
+    perfToday:'Performance today', updated:'Updated just now · All branches', liveData:'Live data',
+    mActive:'Active campaigns', mEnding:'ending soon', mRes:'Reservations today', vsY:'vs yesterday', mVouch:'Voucher sales', sold:'sold', redeemedT:'redeemed', mViews:'Qualifying views',
+    hotNow:'Hot Deals running now', live:'Live', endsIn:'Ends in', remaining:'Remaining', availableL:'Available', reservedL:'Reserved', redeemedL:'Redeemed', openMonitor:'Open monitor',
+    needs:'Needs attention', viewAll:'View all',
+    a1t:'“Free dessert with two mains” needs changes', a1s:'Reviewer note: add the minimum spend to the terms', fix:'Fix',
+    a2t:'Hot Deal inventory low at Riyadh Park', a2s:'6 of 20 units left · Dinner for Two', addStock:'Add stock',
+    a3t:'Voucher sale ends in 2 days', a3s:'“Pay 80, get 100” · 52 left', view:'View',
+    a4t:'Watch & Earn budget 92% used', a4s:'“Lunch reel” · 80 paid views left', addBudget:'Add budget',
+    quick:'Quick actions', qLive:'Create Live Deal', qLiveD:'Everyday offer, no code needed', qHot:'Create Hot Deal', qHotD:'Fill quiet moments, free reservation',
+    qVou:'Create Voucher', qVouD:'Pay now, use later', qWe:'Create Watch & Earn', qWeD:'Reach customers with video',
+    weTitle:'Watch & Earn performance', last7:'Last 7 days', weQual:'Qualifying views', weRate:'Qualification rate', weSpend:'Campaign spend', weOf:'of SAR 1,200 funded',
+    recentRed:'Recent redemptions', recentAct:'Recent activity',
+    e1:'“30% off tasting menu” is live at 3 branches', e1t:'2 h ago', e2:'New reservation · Dinner for Two · Olaya', e2t:'3 h ago', e3:'Arabic text missing for “Lunch reel”', e3t:'5 h ago',
+    e4:'Voucher sold · Pay 80, get 100 (3 today)', e4t:'5 h ago', e5:'“Dinner for Two” was approved automatically', e5t:'Yesterday', e6:'Statement 1–15 Oct issued', e6t:'Yesterday'
+  },
+  ar: {
+    merchant:'نوبو الرياض', verified:'موثّق', branch:'جميع الفروع', search:'ابحث عن الحملات أو الرموز',
+    g_run:'العمليات', g_und:'الرؤى', g_man:'الإدارة',
+    n_dashboard:'لوحة التحكم', n_campaigns:'الحملات', n_vouchers:'القسائم', n_we:'شاهد واربح', n_redemptions:'عمليات الاسترداد',
+    n_insights:'التحليلات', n_finance:'المالية', n_business:'النشاط التجاري', n_team:'الفريق', n_support:'الدعم', n_settings:'الإعدادات',
+    greet:'صباح الخير، Akif', greetSub:'إليك ما يحدث في نوبو الرياض اليوم.', today:'اليوم', createCampaign:'إنشاء حملة',
+    perfToday:'الأداء اليوم', updated:'تم التحديث الآن · جميع الفروع', liveData:'بيانات مباشرة',
+    mActive:'الحملات النشطة', mEnding:'تنتهي قريباً', mRes:'حجوزات اليوم', vsY:'مقارنة بالأمس', mVouch:'مبيعات القسائم', sold:'مباعة', redeemedT:'مستردة', mViews:'المشاهدات المؤهلة',
+    hotNow:'العروض الساخنة الجارية', live:'مباشر', endsIn:'ينتهي خلال', remaining:'المتبقي', availableL:'متاح', reservedL:'محجوز', redeemedL:'مسترد', openMonitor:'افتح المراقبة',
+    needs:'تحتاج إلى انتباه', viewAll:'عرض الكل',
+    a1t:'العرض «حلوى مجانية مع طبقين رئيسيين» يحتاج إلى تعديلات', a1s:'ملاحظة المراجع: أضف الحد الأدنى للإنفاق إلى الشروط', fix:'إصلاح',
+    a2t:'مخزون العرض الساخن منخفض في رياض بارك', a2s:'تبقّت 6 من 20 وحدة · عشاء لشخصين', addStock:'إضافة مخزون',
+    a3t:'ينتهي بيع القسيمة خلال يومين', a3s:'«ادفع 80 واحصل على 100» · تبقّت 52', view:'عرض',
+    a4t:'تم استخدام 92٪ من ميزانية شاهد واربح', a4s:'«فيديو الغداء» · تبقّت 80 مشاهدة مدفوعة', addBudget:'إضافة ميزانية',
+    quick:'إجراءات سريعة', qLive:'إنشاء عرض مباشر', qLiveD:'عرض يومي بدون رمز', qHot:'إنشاء عرض ساخن', qHotD:'املأ الأوقات الهادئة بحجز مجاني',
+    qVou:'إنشاء قسيمة', qVouD:'ادفع الآن واستخدم لاحقاً', qWe:'إنشاء حملة شاهد واربح', qWeD:'اصل إلى العملاء بالفيديو',
+    weTitle:'أداء شاهد واربح', last7:'آخر 7 أيام', weQual:'المشاهدات المؤهلة', weRate:'نسبة التأهيل', weSpend:'إنفاق الحملة', weOf:'من أصل SAR 1,200 ممولة',
+    recentRed:'آخر عمليات الاسترداد', recentAct:'آخر النشاطات',
+    e1:'«خصم 30٪ على قائمة التذوق» مباشر في 3 فروع', e1t:'قبل ساعتين', e2:'حجز جديد · عشاء لشخصين · العليا', e2t:'قبل 3 ساعات', e3:'النص العربي ناقص في «فيديو الغداء»', e3t:'قبل 5 ساعات',
+    e4:'بيع قسيمة · ادفع 80 واحصل على 100 (3 اليوم)', e4t:'قبل 5 ساعات', e5:'تمت الموافقة على «عشاء لشخصين» تلقائياً', e5t:'أمس', e6:'صدر كشف 1–15 أكتوبر', e6t:'أمس'
+  }
+};
+const DAYS = { en:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], ar:['الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت','الأحد'] };
+let LANG = 'en';
+function applyLang(l){
+  LANG = l;
+  document.documentElement.lang = l; document.documentElement.dir = l==='ar' ? 'rtl' : 'ltr';
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ const v = I18N[l][el.dataset.i18n]; if(v!==undefined) el.textContent = v; });
+  const days = document.querySelectorAll('#chartdays text'); days.forEach((t,i)=>{ t.textContent = DAYS[l][i]; t.setAttribute('font-size', l==='ar' ? 11 : 12); });
+  document.querySelectorAll('.lang span').forEach(s=>s.classList.toggle('on', s.dataset.l===l));
+}
+
+/* ---- shell ---- */
+const NAV = [
+  ['g_run',[['dashboard','home','m04'],['campaigns','layers','m05'],['redemptions','check-sq','m14']]],
+  ['g_und',[['insights','bars','m15'],['finance','card','m18']]],
+  ['g_man',[['business','store','m16'],['team','users','m17']]]
+];
+function buildShell(sec){
+  const active = sec.dataset.nav;
+  const sb = sec.querySelector('.sidebar'), tb = sec.querySelector('.topbar');
+  let h = `<div class="brand"><span class="wordmark"><span class="d1">Deal</span><span class="d2">Dash</span></span><small>for Business</small><span class="mono">D</span><button class="nav-toggle" aria-label="Collapse or expand navigation" title="Collapse / expand navigation"><svg class="i sm mirror"><use href="#i-left"/></svg></button></div>`;
+  NAV.forEach(([g,items])=>{
+    h += `<div class="nav-label" data-i18n="${g}"></div>`;
+    items.forEach(([k,ic,go,tab])=>{
+      const on = (k===active) ? ' active' : '';
+      const dot = (k==='campaigns') ? '<i class="dot" title="Needs attention"></i>' : '';
+      h += `<a class="nav-item${on}" href="#" data-go="${go}" ${tab?`data-tab="${tab}"`:''} title="${k}"><svg class="i"><use href="#i-${ic}"/></svg><span data-i18n="n_${k}"></span>${dot}</a>`;
+    });
+  });
+  h += `<div class="nav-spacer"></div>
+    <a class="nav-item" href="#" data-go="m20"><svg class="i"><use href="#i-help"/></svg><span data-i18n="n_support"></span></a>
+    <a class="nav-item" href="#" data-go="m21"><svg class="i"><use href="#i-sliders"/></svg><span data-i18n="n_settings"></span></a>
+    <div class="merchant-card"><div class="avatar logo" style="font-size:12px">NR</div><div class="mc-tx"><b data-i18n="merchant"></b><span class="verified"><svg class="i xs"><use href="#i-check-c"/></svg><span data-i18n="verified"></span></span></div></div>`;
+  sb.innerHTML = h;
+  tb.innerHTML = `<div class="tb-merchant"><div class="avatar logo" style="width:34px;height:34px;font-size:12px">NR</div><b data-i18n="merchant"></b><svg class="i sm" style="color:var(--mint)"><use href="#i-check-c"/></svg></div>
+    <div class="branch-pill"><svg class="i sm"><use href="#i-pin"/></svg><span data-i18n="branch"></span><svg class="i xs"><use href="#i-down"/></svg></div>
+    <div class="search"><svg class="i sm"><use href="#i-search"/></svg><span data-i18n="search"></span><kbd>/</kbd></div>
+    <div class="tb-right"><button class="icon-btn" aria-label="Help"><svg class="i"><use href="#i-help"/></svg></button><button class="icon-btn" aria-label="Notifications"><svg class="i"><use href="#i-bell"/></svg><span class="badge num">3</span></button><div class="lang"><span class="${LANG==='en'?'on':''}" data-l="en">EN</span><span class="${LANG==='ar'?'on':''}" data-l="ar">عربي</span></div><div class="avatar">AK</div></div>`;
+}
+document.querySelectorAll('.screen').forEach(buildShell);
+
+/* ---- router ---- */
+const designbtns = document.querySelectorAll('#designbar button');
+const B2=['m01','m02','m03','m06','m08','m09','m10','m12','m13','m14','m15','m16','m17','m18','m19','m20','m21'];
+const B2=['m01','m02','m03','m06','m08','m09','m10','m12','m13','m14','m15','m16','m17','m18','m19','m20','m21'];
+function show(id){
+  if(B2.includes(id)){ location.href='merchant-hifi-batch-02.html#'+id; return; }
+  if(B2.includes(id)){ location.href='merchant-hifi-batch-02.html#'+id; return; }
+  let lang = 'en'; if(id==='m04ar'){ id='m04'; lang='ar'; }
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active', s.id===id));
+  applyLang(lang);
+  designbtns.forEach(b=>b.classList.toggle('on', b.dataset.go===(lang==='ar'?'m04ar':id)));
+  closeOverlays(); window.scrollTo(0,0);
+}
+document.addEventListener('click',e=>{
+  const nt = e.target.closest('.nav-toggle'); if(nt){ nt.closest('.shell').classList.toggle('collapsed'); return; }
+  const g = e.target.closest('[data-go]');
+  if(g){ e.preventDefault(); show(g.dataset.go); if(g.dataset.tab) setHub(g.dataset.tab); return; }
+  const l = e.target.closest('.lang span'); if(l){ applyLang(l.dataset.l); return; }
+});
+
+/* ---- status chips ---- */
+const SI = { draft:['st-draft','edit','Draft'], pending:['st-pending','clock','Pending review'], scheduled:['st-scheduled','cal','Scheduled'], live:['st-live','','Live'], paused:['st-paused','pause','Paused'], expired:['st-expired','slash','Expired'], rejected:['st-rejected','xc','Rejected'], changes:['st-changes','alert','Needs changes'], suspended:['st-suspended','lock','Suspended'] };
+function chip(s){ const [c,ic,t]=SI[s]; return `<span class="chip ${c}">${s==='live'?'<span class="pulse"></span>':`<svg class="i"><use href="#i-${ic}"/></svg>`}${t}</span>`; }
+document.getElementById('allchips').innerHTML = Object.keys(SI).map(chip).join('') + '<span class="chip st-expired" style="background:var(--lilac);color:var(--purple)"><svg class="i"><use href="#i-clock"/></svg>Awaiting funding</span><span class="chip st-expired"><svg class="i"><use href="#i-check-c"/></svg>Sold out</span>';
+
+/* ---- campaigns hub ---- */
+const TYPE = { live:['tag','tpurple','Live Deal'], hot:['flame','flame','Hot Deal'], voucher:['ticket','tpurple','Voucher'], we:['play','tpurple','Watch & Earn'] };
+const PH = ['ph1','ph2','ph3','ph4','ph5'];
+const ROWS = [
+ {t:'live',n:'Free dessert with two mains',s:'changes',b:'Olaya',d:['Submitted 5 Oct','Start not set'],p:['—','Not live yet'],k:['Needs your edit','Reviewer: add minimum spend'],ph:1},
+ {t:'we',n:'Spring launch reel',s:'suspended',b:'Riyadh · 5 km',d:['Suspended 6 Oct','Spend reconciled'],p:['—','Contact support'],k:['620 / 1,000 views','Invalid views credited back'],ph:2,bar:62},
+ {t:'we',n:'Lunch reel',s:'live',b:'Riyadh · 5 km',d:['1 – 31 Oct','Ends in 24 days'],p:['1,942 qualified','↑ 12% this week'],k:['920 / 1,000 views','Budget 92% used'],ph:3,bar:92,warn:true},
+ {t:'hot',n:'Dinner for Two',s:'live',b:'Olaya · Riyadh Park',d:['Today 12:00','Ends 17:42'],p:['8,420 impressions','↑ 18% vs last Hot Deal'],k:['12 of 40 left','17 redeemed'],ph:0,bar:30},
+ {t:'live',n:'30% off tasting menu',s:'live',b:'All branches (3)',d:['4 Oct – 11 Oct','Ends in 4 days'],p:['12.4K impressions','↑ 6%'],k:['322 directions','1,960 detail views'],ph:0},
+ {t:'voucher',n:'Pay 80, get 100',s:'live',b:'All branches (3)',d:['Sale ends 24 Oct','Valid 90 days'],p:['3,210 views','↑ 9%'],k:['48 sold','31 redeemed'],ph:4,bar:65},
+ {t:'hot',n:'Quiet Tuesday 2-for-1',s:'paused',b:'KAFD',d:['Paused 2 h ago','Was ending 15:00'],p:['1,120 impressions','–'],k:['8 of 20 left','12 redeemed'],ph:3,bar:40},
+ {t:'voucher',n:'Weekend brunch box',s:'pending',b:'Riyadh Park',d:['Submitted today','Review in progress'],p:['—','Awaiting review'],k:['100 vouchers','Ready when approved'],ph:1},
+ {t:'voucher',n:'Eid family set',s:'scheduled',b:'All branches (3)',d:['Starts 2 Nov','Sale to 20 Nov'],p:['—','Not live yet'],k:['120 vouchers','Valid 60 days'],ph:2},
+ {t:'voucher',n:'Chef’s tasting pre-sale',s:'draft',b:'Olaya',d:['Edited yesterday','Not submitted'],p:['—','—'],k:['Step 3 of 8','Continue editing'],ph:4},
+ {t:'live',n:'Ramadan iftar deal',s:'expired',b:'All branches (3)',d:['1 Mar – 9 Apr','Ended'],p:['10.1K impressions','–'],k:['2,904 directions','4,380 detail views'],ph:3},
+ {t:'live',n:'Team lunch 15%',s:'rejected',b:'Olaya',d:['Rejected 3 Oct','Final'],p:['—','—'],k:['See reason','Contains an unsupported claim'],ph:1}
+];
+function rowHTML(r,i){
+  const [ic,cl,tn] = TYPE[r.t];
+  const bar = r.bar!=null ? `<div class="bar"><i class="${r.warn?'':'p'}" style="width:${r.bar}%;${r.warn?'background:var(--amber)':''}"></i></div>` : '';
+  const go = ' data-go="'+({hot:'m07',live:'m06',voucher:'m08',we:'m09'})[r.t]+'"';
+  return `<div class="hub-row" data-type="${r.t}"${go}>
+    <div class="name"><div class="thumb ${PH[r.ph]}"></div><div style="min-width:0"><b>${r.n}</b><span class="type-chip"><svg class="i ${cl}"><use href="#i-${ic}"/></svg>${tn}</span></div></div>
+    <div class="bn">${r.b}</div>
+    <div>${chip(r.s)}</div>
+    <div class="dt">${r.d[0]}<span>${r.d[1]}</span></div>
+    <div class="pf">${r.p[0]}<span>${r.p[1].startsWith('↑')?`<b class="up">${r.p[1]}</b>`:r.p[1]}</span></div>
+    <div class="km">${r.k[0]}${bar}<span>${r.k[1]}</span></div>
+    <div><button class="icon-btn" aria-label="Actions"><svg class="i"><use href="#i-more"/></svg></button></div></div>`;
+}
+document.getElementById('hubrows').innerHTML = ROWS.map(rowHTML).join('');
+function setHub(f){
+  document.querySelectorAll('#hubtabs button').forEach(b=>b.classList.toggle('on',b.dataset.f===f));
+  let n=0; document.querySelectorAll('#hubrows .hub-row').forEach(r=>{ const ok = f==='all' || r.dataset.type===f; r.style.display = ok?'':'none'; if(ok)n++; });
+  document.getElementById('hubcount').textContent = `1–${n} of ${n}`;
+}
+document.getElementById('hubtabs').addEventListener('click',e=>{ const b=e.target.closest('button'); if(b) setHub(b.dataset.f); });
+
+/* ---- builder ---- */
+const STEPS = ['Basics','Deal configuration','Branch & inventory','Eligibility','Timing','Content','Terms','Review & preview','Publish / submit'];
+const bld = document.getElementById('bld');
+function goStep(n){
+  n = Math.max(1,Math.min(9,n)); bld.dataset.step = n;
+  document.querySelectorAll('#bld .step').forEach(s=>s.classList.toggle('show', +s.dataset.step===n));
+  document.querySelectorAll('#steps li').forEach(li=>{ const s=+li.dataset.s; li.className = s<n?'done':(s===n?'cur':''); li.querySelector('i').innerHTML = s<n? '<svg class="i xs" style="width:14px;height:14px"><use href="#i-check"/></svg>' : s; });
+  document.getElementById('ring').style.background = `conic-gradient(var(--purple) 0 ${Math.round(n/9*100)}%,var(--lilac) 0)`;
+  document.getElementById('ringtxt').textContent = n+'/9';
+  document.getElementById('railsub').textContent = `Step ${n} of 9 · ${STEPS[n-1]}`;
+  document.getElementById('bback').disabled = n===1;
+  const next = document.getElementById('bnext');
+  next.innerHTML = n===8 ? 'Submit<svg class="i sm mirror"><use href="#i-arrow"/></svg>' : 'Continue<svg class="i sm mirror"><use href="#i-arrow"/></svg>';
+  document.getElementById('bfoot').style.display = n===9 ? 'none':'flex';
+  const ct=document.getElementById('chkTerms'), vd=document.getElementById('verdict');
+  if(n>=7){ ct.className='ck-row ok'; ct.innerHTML='<svg class=\"i sm\"><use href=\"#i-check\"/></svg><span>Terms added</span>'; vd.textContent='Within pre-approved rules: should publish instantly.'; } else { ct.className='ck-row warn'; ct.innerHTML='<svg class=\"i sm\"><use href=\"#i-alert\"/></svg><span>Missing terms</span>'; vd.textContent='Likely to publish instantly once terms are added.'; }
+  window.scrollTo({top:0});
+}
+document.getElementById('steps').addEventListener('click',e=>{ const li=e.target.closest('li'); if(li) goStep(+li.dataset.s); });
+document.getElementById('bnext').addEventListener('click',()=>goStep(+bld.dataset.step+1));
+document.getElementById('bback').addEventListener('click',()=>goStep(+bld.dataset.step-1));
+const HINT = { time:'The deal ends at the time you choose. Customers can walk in; there is no stock to manage.', qty:'The deal ends when the units are gone. DealDash may apply a maximum duration.', both:'The deal ends when the time runs out or the stock is gone, whichever comes first.' };
+document.getElementById('limitcards').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return;
+  document.querySelectorAll('#limitcards button').forEach(x=>x.classList.toggle('on',x===b)); bld.dataset.mode=b.dataset.m; document.getElementById('limithint').querySelector('.bx').textContent=HINT[b.dataset.m]; });
+document.getElementById('pv-view').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; document.querySelectorAll('#pv-view button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelector('.pv-detail').style.display = b.dataset.v==='detail'?'flex':'none'; document.querySelector('.pv-card').style.display = b.dataset.v==='card'?'flex':'none'; });
+document.getElementById('pv-lang').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; document.querySelectorAll('#pv-lang button').forEach(x=>x.classList.toggle('on',x===b));
+  const ph=document.getElementById('phone'); ph.dataset.lang=b.dataset.l; ph.querySelectorAll('[data-en]').forEach(el=>{ el.textContent = el.dataset[b.dataset.l]; }); });
+document.querySelector('.rail').addEventListener('click',()=>{});
+
+/* ---- monitor ---- */
+const RES = [['MG5-X9QR','Sara M.','Olaya',2,'active','24 min left'],['KP2-84TD','Omar T.','Riyadh Park',1,'redeemed','13:42'],['LN7-C03Z','Lina S.','Riyadh Park',2,'active','11 min left'],['QD1-55HV','Faisal A.','Olaya',1,'redeemed','13:15'],['TR9-72BK','Noor H.','Olaya',2,'noshow','12:48'],['VB4-19WM','Hassan K.','Riyadh Park',1,'expired','12:30']];
+const RSC = { active:['st-pending','Reserved'], redeemed:['st-live','Redeemed'], expired:['st-expired','Expired'], noshow:['st-changes','No-show'], cancelled:['st-paused','Cancelled'] };
+function resRow(r){ const [c,t]=RSC[r[4]]; return `<div class="rs-row"><div class="code">${r[0]}</div><div>${r[1]}</div><div>${r[2]}</div><div class="num">${r[3]}</div><div><span class="chip ${c}" style="height:24px">${t}</span></div><div class="muted num">${r[5]}</div></div>`; }
+document.getElementById('resmini').innerHTML = `<div class="rs-head" style="padding:10px 4px;background:transparent;border-bottom:1px solid var(--line)"><div>Code</div><div>Customer</div><div>Branch</div><div>Units</div><div>Status</div><div>Time</div></div>` + RES.slice(0,4).map(resRow).join('');
+document.getElementById('resfull').innerHTML = RES.concat([['HM3-60PA','Reem D.','Olaya',1,'redeemed','12:12'],['WZ8-25JC','Khalid B.','Riyadh Park',2,'cancelled','12:05'],['BN6-01FT','Maha S.','Olaya',1,'redeemed','12:01']]).map(resRow).join('') + '<div style="padding:14px 24px;border-top:1px solid var(--line)" class="muted small">Showing 9 of 41 · customer first names only</div>';
+function monTab(t){ document.querySelectorAll('#monTabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t)); document.querySelectorAll('.mon').forEach(m=>m.style.display = m.dataset.t===t?'block':'none'); }
+document.getElementById('monTabs').addEventListener('click',e=>{ const b=e.target.closest('button'); if(b) monTab(b.dataset.t); });
+document.addEventListener('click',e=>{ const t=e.target.closest('[data-t2]'); if(t){ monTab(t.dataset.t2); } });
+const scrim = document.getElementById('scrim');
+function closeOverlays(){ scrim.classList.remove('show'); document.querySelectorAll('.modal,.drawer').forEach(x=>x.classList.remove('show')); }
+document.getElementById('btnPause').addEventListener('click',()=>{ scrim.classList.add('show'); document.getElementById('modalPause').classList.add('show'); });
+document.getElementById('btnEdit').addEventListener('click',()=>{ scrim.classList.add('show'); document.getElementById('drawerEdit').classList.add('show'); });
+scrim.addEventListener('click',closeOverlays);
+document.addEventListener('click',e=>{ if(e.target.closest('[data-close]')) closeOverlays(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeOverlays(); });
+
+/* ---- init from hash (for review links / screenshots) ---- */
+goStep(3);
+(function(){
+  const h = location.hash.replace('#','');
+  if(!h){ show('m04'); return; }
+  const [id,arg,arg2] = h.split(':');
+  show(id);
+  if(id==='m11' && arg) goStep(+arg);
+  if(id==='m11' && arg2) document.querySelector(`#limitcards button[data-m="${arg2}"]`).click();
+  if(id==='m07' && arg) monTab(arg);
+  if(id==='m07' && arg2==='modal'){ document.getElementById('btnPause').click(); }
+  if(id==='m07' && arg2==='drawer'){ document.getElementById('btnEdit').click(); }
+  if(id==='m05' && arg) setHub(arg);
+})();
+</script>
+</body>
+</html>

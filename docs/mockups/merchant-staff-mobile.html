@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DealDash Staff · Mobile design mockups</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#0F0C42;--purple:#5B1AFC;--purple2:#7E4DFF;--p50:#F6F3FF;--p300:#B9A4FF;--lilac:#EEE8FF;--bg:#F8F9FD;--ink2:#5B5E80;--ink3:#6F7296;--line:#E3E1F0;--sl:#EEF0F8;--mint:#1FBF8F;--stage:#E9E7F5;
+--s-bg:#E2F7F0;--s-tx:#0B7A5A;--s-solid:#0E8F6A;--w-bg:#FEF1D9;--w-tx:#8A5A00;--w-solid:#B26B00;--d-bg:#FDE8EB;--d-tx:#B3203A;--d-solid:#C9213D;--shadow:0 1px 2px rgba(20,22,58,.06),0 6px 18px rgba(20,22,58,.07)}
+*{box-sizing:border-box}body{margin:0;font-family:'Plus Jakarta Sans',sans-serif;background:var(--stage);color:var(--navy);font-size:14px;line-height:20px;font-weight:500;-webkit-font-smoothing:antialiased}
+.ar,[dir=rtl] .phone{font-family:'IBM Plex Sans Arabic','Plus Jakarta Sans',sans-serif}
+h1,h2,h3,p{margin:0}button{font-family:inherit;cursor:pointer}
+svg.i{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+svg.i.s{width:18px;height:18px}svg.i.l{width:30px;height:30px}svg.i.xl{width:44px;height:44px;stroke-width:2.2}
+.rtl .mir{transform:scaleX(-1)}
+.num{direction:ltr;unicode-bidi:isolate;font-variant-numeric:tabular-nums}
+.bar{position:sticky;top:0;z-index:50;background:#0A0830;color:#fff;padding:10px 20px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12px}
+.bar b{color:#C9C3FF;margin-inline-end:8px}.bar button{background:rgba(255,255,255,.1);color:#fff;border:0;border-radius:99px;padding:6px 12px;font-weight:700;font-size:12px}.bar button.on{background:#fff;color:var(--navy)}
+.wrap{max-width:1500px;margin:0 auto;padding:28px 24px 60px}
+.sec{margin:0 0 44px}.sec h2{font-size:22px;line-height:30px;font-weight:800;margin-bottom:4px}.sec .d{color:var(--ink2);margin-bottom:18px;max-width:900px}
+.row{display:flex;gap:28px;flex-wrap:wrap;align-items:flex-start}
+.cell{display:flex;flex-direction:column;gap:10px;align-items:center}.cap{font-size:12px;font-weight:700;color:var(--ink2);text-align:center;max-width:300px}
+/* phone */
+.phone{width:320px;height:660px;background:#fff;border-radius:38px;border:9px solid var(--navy);overflow:hidden;position:relative;box-shadow:0 22px 44px rgba(15,12,66,.25);display:flex;flex-direction:column}
+.phone.big{width:360px;height:740px}
+.phone .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:96px;height:20px;background:var(--navy);border-radius:0 0 14px 14px;z-index:20}
+.sb{height:32px;flex:none;display:flex;align-items:flex-end;justify-content:space-between;padding:0 22px 4px;font-size:11px;font-weight:700;color:var(--navy)}
+.scr{flex:1;display:flex;flex-direction:column;min-height:0;background:var(--bg);position:relative}
+.top{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:#fff;border-bottom:1px solid var(--line)}
+.wm{font-weight:800;font-size:19px;letter-spacing:-.02em;direction:ltr;display:inline-block}.wm i{font-style:normal;color:var(--purple)}
+.ctx{display:flex;gap:6px;align-items:center;font-size:12px;font-weight:700;color:var(--ink2)}
+.ctx b{color:var(--navy)}
+.ib{width:44px;height:44px;border-radius:50%;border:0;background:transparent;color:var(--ink2);display:grid;place-items:center}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;height:56px;border-radius:99px;border:1px solid transparent;font-weight:800;font-size:16px;width:100%}
+.btn.p{background:var(--purple);color:#fff}.btn.t{background:var(--lilac);color:var(--purple)}.btn.o{background:#fff;border-color:var(--line);color:var(--navy)}
+.btn.g{background:var(--s-solid);color:#fff}.btn.sm{height:44px;font-size:14px}.btn.d{background:var(--d-bg);color:var(--d-tx)}
+.btn.dis{background:var(--sl);color:var(--ink3)}
+.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:16px}
+.chip{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:99px;font-size:12px;font-weight:800}
+.chip.ok{background:var(--s-bg);color:var(--s-tx)}.chip.w{background:var(--w-bg);color:var(--w-tx)}.chip.d{background:var(--d-bg);color:var(--d-tx)}.chip.n{background:var(--lilac);color:var(--purple)}.chip.g{background:var(--sl);color:var(--ink2)}
+.bn{display:flex;background:#fff;border-top:1px solid var(--line);padding:6px 10px 12px;justify-content:space-around}
+.bn div{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:700;color:var(--ink3);padding:6px 18px;border-radius:14px;min-width:84px}
+.bn div.on{color:var(--purple);background:var(--lilac)}
+.field{border:1px solid var(--line);border-radius:16px;height:56px;display:flex;align-items:center;padding:0 16px;background:#fff;font-size:16px;font-weight:600}
+.field.f{border-color:var(--purple2);background:var(--p50);box-shadow:0 0 0 3px rgba(126,77,255,.15)}
+.lbl{font-size:13px;font-weight:700;margin-bottom:6px}
+.otp{display:flex;gap:8px;direction:ltr}.otp i{flex:1;height:58px;border:1px solid var(--line);border-radius:14px;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:22px;background:#fff}
+.otp i.f{border-color:var(--purple2);background:var(--p50)}.otp i.e{border-color:var(--d-solid);background:var(--d-bg)}
+.help{font-size:12px;color:var(--ink2)}
+.ban{display:flex;gap:10px;padding:12px 14px;border-radius:16px;font-size:13px;font-weight:600;align-items:flex-start}
+.ban.w{background:var(--w-bg);color:#5a3b00}.ban.d{background:var(--d-bg);color:#6b1020}.ban.n{background:var(--lilac)}.ban.ok{background:var(--s-bg);color:#064d3a}
+.pad{padding:16px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0}
+/* scanner */
+.cam{flex:1;margin:12px 16px 0;border-radius:28px;background:radial-gradient(circle at 30% 20%,#2c2a5e 0,transparent 55%),radial-gradient(circle at 80% 80%,#3a1f66 0,transparent 55%),#0b0a2a;position:relative;overflow:hidden;min-height:0;display:grid;place-items:center}
+.frame{width:56%;aspect-ratio:1;position:relative;margin-top:-34px}
+.frame::before,.frame::after,.frame i::before,.frame i::after{content:"";position:absolute;width:34px;height:34px;border:4px solid #fff;border-radius:10px}
+.frame::before{top:0;inset-inline-start:0;border-right:0;border-bottom:0}.frame::after{top:0;inset-inline-end:0;border-left:0;border-bottom:0}
+.frame i::before{bottom:0;inset-inline-start:0;border-right:0;border-top:0}.frame i::after{bottom:0;inset-inline-end:0;border-left:0;border-top:0}
+.scanline{position:absolute;inset-inline:6%;top:48%;height:3px;border-radius:2px;background:linear-gradient(90deg,transparent,#B9A4FF,transparent);box-shadow:0 0 14px #7E4DFF}
+.camhint{position:absolute;bottom:14px;inset-inline:0;text-align:center;color:#fff;font-size:13px;font-weight:700}
+.camtop{position:absolute;top:12px;inset-inline:12px;display:flex;justify-content:space-between}
+.camtop span{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;display:grid;place-items:center}
+.stats{display:flex;gap:10px;padding:12px 16px 0}
+.stats .card{flex:1;padding:12px 14px}.stats b{display:block;font-size:22px;line-height:26px;font-weight:800}.stats span{font-size:12px;color:var(--ink2);font-weight:600}
+/* result */
+.res{flex:1;display:flex;flex-direction:column;min-height:0}
+.res-h{padding:22px 20px 26px;color:#fff;display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;border-radius:0 0 30px 30px}
+.res-h .ic{width:76px;height:76px;border-radius:50%;background:rgba(255,255,255,.2);display:grid;place-items:center}
+.res-h h2{font-size:26px;line-height:32px;font-weight:800;letter-spacing:-.01em}.res-h p{font-size:14px;opacity:.95;max-width:260px;font-weight:600}
+.r-ok{background:var(--s-solid)}.r-no{background:var(--d-solid)}.r-wr{background:var(--w-solid)}.r-gy{background:#4b4e75}
+.res-b{padding:16px;display:flex;flex-direction:column;gap:12px;flex:1;min-height:0}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}.kv:last-child{border:0}.kv span{color:var(--ink2);font-weight:600}.kv b{text-align:end;font-weight:800}
+.big{font-size:30px;line-height:36px;font-weight:800;letter-spacing:-.01em}
+.itm{display:flex;gap:12px;align-items:center}.th{width:52px;height:52px;border-radius:14px;flex:none}
+.p1{background:radial-gradient(circle at 25% 30%,#f6c07a 0,transparent 38%),radial-gradient(circle at 75% 65%,#c2562f 0,transparent 45%),#2a1410}
+.p2{background:radial-gradient(circle at 30% 70%,#9d7bff 0,transparent 40%),radial-gradient(circle at 75% 30%,#e8c46a 0,transparent 38%),#1b1450}
+.p3{background:radial-gradient(circle at 70% 30%,#f2a1b8 0,transparent 40%),#2a1230}
+.sheet{position:absolute;inset:0;background:rgba(15,12,66,.45);display:flex;align-items:flex-end;z-index:10}
+.sh{background:#fff;border-radius:28px 28px 0 0;padding:14px 18px 22px;width:100%;display:flex;flex-direction:column;gap:12px}
+.grab{width:42px;height:5px;border-radius:3px;background:#D5D3E6;margin:0 auto 4px}
+.list .li{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}.list .li:last-child{border:0}
+.li .tx{flex:1;min-width:0}.li b{display:block;font-weight:800}.li span{font-size:12px;color:var(--ink2)}
+.seg{display:flex;background:var(--lilac);border-radius:99px;padding:3px}.seg span{flex:1;text-align:center;padding:8px 4px;border-radius:99px;font-size:12px;font-weight:800;color:var(--ink2)}.seg span.on{background:#fff;color:var(--purple);box-shadow:var(--shadow)}
+.srch{display:flex;gap:8px;align-items:center;height:46px;border-radius:99px;background:#fff;border:1px solid var(--line);padding:0 14px;color:var(--ink3);font-size:14px}
+.pulse{width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:0 0 0 0 rgba(255,255,255,.6);animation:pl 1.8s infinite}@keyframes pl{70%{box-shadow:0 0 0 8px rgba(255,255,255,0)}}
+.rtl{direction:rtl}
+.legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}.legend span{display:flex;gap:6px;align-items:center;font-size:12px;font-weight:700}.legend i{width:14px;height:14px;border-radius:5px}
+.tb{width:100%;border-collapse:collapse;background:#fff;border-radius:16px;overflow:hidden;font-size:13px}.tb th{background:var(--p50);text-align:start;padding:10px 12px;font-size:12px;color:var(--ink2)}.tb td{padding:10px 12px;border-top:1px solid var(--line);vertical-align:top}
+.note{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;max-width:360px;font-size:13px;line-height:20px}
+.note b{display:block;margin-bottom:4px}
+.proto{display:flex;gap:28px;align-items:flex-start;flex-wrap:wrap}
+.nav{display:flex;gap:6px;flex-wrap:wrap;max-width:420px}.nav button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:6px 12px;font-weight:700;font-size:12px}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="i-scan" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></symbol>
+<symbol id="i-kb" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="6" y1="10" x2="6.01" y2="10"/><line x1="10" y1="10" x2="10.01" y2="10"/><line x1="14" y1="10" x2="14.01" y2="10"/><line x1="18" y1="10" x2="18.01" y2="10"/><line x1="7" y1="14" x2="17" y2="14"/></symbol>
+<symbol id="i-hist" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></symbol>
+<symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+<symbol id="i-flash" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+<symbol id="i-left" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></symbol>
+<symbol id="i-right" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></symbol>
+<symbol id="i-wifi" viewBox="0 0 24 24"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55M5 12.55a10.94 10.94 0 0 1 5.17-2.39M10.71 5.05A16 16 0 0 1 22.58 9M1.42 9a15.91 15.91 0 0 1 4.7-2.88M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+<symbol id="i-store" viewBox="0 0 24 24"><path d="M3 9l1.5-5h15L21 9"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/><path d="M5 12v8h14v-8"/></symbol>
+<symbol id="i-down" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></symbol>
+<symbol id="i-refresh" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></symbol>
+<symbol id="i-ticket" viewBox="0 0 24 24"><path d="M3 9a2 2 0 0 0 0 6v3a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-3a2 2 0 0 0 0-6V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1z"/></symbol>
+<symbol id="i-gift" viewBox="0 0 24 24"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></symbol>
+<symbol id="i-phone" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></symbol>
+<symbol id="i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></symbol>
+<symbol id="i-flame" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></symbol>
+</defs></svg>
+
+<div class="bar"><b>DealDash Staff · mobile design mockups (not production code)</b>
+<button class="on" data-v="proto">Interactive prototype</button><button data-v="gallery">All screens &amp; variants</button><button data-v="ar">Arabic (RTL)</button><button data-v="states">Errors &amp; edge cases</button></div>
+<div class="wrap" id="app"></div>
+
+<script>
+const I=(n,c='')=>`<svg class="i ${c}"><use href="#i-${n}"/></svg>`;
+const T={
+ en:{dir:'ltr',m:'Nobu Riyadh',br:'Olaya',scan:'Scan QR code',enter:'Enter code manually',today:'Today',redeemed:'Redeemed',rejected:'Rejected',history:'History',account:'Account',hint:'Point the camera at the customer’s QR code',help:'Help',
+  recent:'Recent activity',redeem:'Redeem',confirm:'Confirm redemption',cancel:'Cancel',back:'Back',next:'Scan next',details:'View details',
+  valid:'Valid',validp:'Ready to redeem',invalid:'Code not recognised',invalidp:'Check the code and try again, or ask the customer to open their code in DealDash.',
+  expired:'Expired',expiredp:'This voucher expired on 12 Oct 2026.',already:'Already redeemed',alreadyp:'Redeemed today at 10:41 at Olaya.',
+  wrong:'Wrong branch',wrongp:'This voucher works at Riyadh Park and KAFD only.',elig:'Not eligible right now',eligp:'This offer needs a verified employee. The customer can verify in DealDash.',
+  rexp:'Reservation expired',rexpp:'The 30-minute hold ended at 14:12.',noshow:'Reservation not completed',noshowp:'This reservation is no longer available. The customer can check DealDash.',
+  notyet:'Not valid yet',notyetp:'Starts tomorrow at 12:00.',susp:'Cannot be redeemed',suspp:'This voucher is on hold. Please contact your manager or DealDash support.',
+  item:'Pay 80, get 100',type:'Voucher',cust:'Customer',val:'Value',valid2:'Valid until',branch:'Branch',time:'Time',ref:'Reference',
+  conf1:'Redeem this voucher?',conf2:'This cannot be undone by staff.',
+  ok1:'Redeemed',ok2:'Handed over successfully',
+  signin:'Sign in',signp:'Enter your mobile number. We will send a one-time code.',mob:'Mobile number',send:'Send code',code:'Enter the 6-digit code',resend:'Resend code in',verify:'Verify',
+  signa:'Your manager invited you to use DealDash Staff.',
+  offline:'No connection',offp:'We cannot safely redeem without a connection. Your scan is saved. We will check again when you are back online.',retry:'Try again',
+  fname:'Sara M.',tot:'redeemed',rej:'rejected',
+  manual:'Enter the code',manp:'Type the code shown under the customer’s QR.',check:'Check code',
+  failed:'Rejected checks',all:'All',search:'Search by code or reference',
+  hint2:'Staff cannot reverse a redemption. Ask your manager.'},
+ ar:{dir:'rtl',m:'نوبو الرياض',br:'العليا',scan:'امسح رمز QR',enter:'أدخل الرمز يدوياً',today:'اليوم',redeemed:'مستردة',rejected:'مرفوضة',history:'السجل',account:'الحساب',hint:'وجّه الكاميرا نحو رمز QR الخاص بالعميل',help:'مساعدة',
+  recent:'آخر النشاط',redeem:'استرداد',confirm:'تأكيد الاسترداد',cancel:'إلغاء',back:'رجوع',next:'امسح التالي',details:'عرض التفاصيل',
+  valid:'صالح',validp:'جاهز للاسترداد',invalid:'الرمز غير معروف',invalidp:'تحقق من الرمز وحاول مرة أخرى، أو اطلب من العميل فتح رمزه في DealDash.',
+  expired:'منتهي الصلاحية',expiredp:'انتهت صلاحية هذه القسيمة في 12 أكتوبر 2026.',already:'تم استردادها مسبقاً',alreadyp:'تم استردادها اليوم الساعة 10:41 في العليا.',
+  wrong:'فرع غير صحيح',wrongp:'تعمل هذه القسيمة في رياض بارك وKAFD فقط.',elig:'غير مؤهل حالياً',eligp:'يتطلب هذا العرض موظفاً موثّقاً. يمكن للعميل التوثيق في DealDash.',
+  rexp:'انتهى الحجز',rexpp:'انتهت مدة الحجز (30 دقيقة) الساعة 14:12.',noshow:'الحجز لم يكتمل',noshowp:'هذا الحجز لم. يعد متاحاً.',
+  notyet:'غير صالح بعد',notyetp:'يبدأ غداً الساعة 12:00.',susp:'لا يمكن استرداده',suspp:'هذه القسيمة معلّقة. يرجى التواصل مع المدير أو دعم DealDash.',
+  item:'ادفع 80 واحصل على 100',type:'قسيمة',cust:'العميل',val:'القيمة',valid2:'صالحة حتى',branch:'الفرع',time:'الوقت',ref:'المرجع',
+  conf1:'استرداد هذه القسيمة؟',conf2:'لا يمكن للموظف التراجع عن هذا الإجراء.',
+  ok1:'تم الاسترداد',ok2:'تم التسليم بنجاح',
+  signin:'تسجيل الدخول',signp:'أدخل رقم جوالك. سنرسل لك رمزاً لمرة واحدة.',mob:'رقم الجوال',send:'إرسال الرمز',code:'أدخل الرمز المكوّن من 6 أرقام',resend:'إعادة الإرسال خلال',verify:'تحقق',
+  signa:'دعاك مديرك لاستخدام DealDash للموظفين.',
+  offline:'لا يوجد اتصال',offp:'لا يمكننا الاسترداد بأمان بدون اتصال. تم حفظ المسح. سنتحقق مجدداً عند عودة الاتصال.',retry:'حاول مرة أخرى',
+  fname:'سارة م.',tot:'مستردة',rej:'مرفوضة',
+  manual:'أدخل الرمز',manp:'اكتب الرمز الظاهر أسفل رمز QR الخاص بالعميل.',check:'تحقق من الرمز',
+  failed:'عمليات التحقق المرفوضة',all:'الكل',search:'ابحث بالرمز أو المرجع',
+  hint2:'لا يمكن للموظف عكس عملية استرداد. اطلب من مديرك.'}
+};
+function ph(t,inner,opts={}){ const L=T[t]; return `<div class="phone ${opts.big?'big':''} ${L.dir==='rtl'?'rtl':''}" dir="${L.dir}"><div class="notch"></div><div class="sb"><span class="num">9:41</span><span>${opts.off?I('wifi','s'):'●●●●'}</span></div><div class="scr">${inner}</div></div>`; }
+const tbar=(t,right='')=>{const L=T[t];return `<div class="top"><div style="display:flex;flex-direction:column"><span class="wm">Deal<i>Dash</i></span><span class="ctx">${I('store','s')}<b>${L.m}</b> · ${I('pin','s')}<b>${L.br}</b></span></div><div style="display:flex">${right||`<button class="ib">${I('help')}</button>`}</div></div>`};
+const bnav=(t,on)=>{const L=T[t];return `<div class="bn"><div class="${on==='scan'?'on':''}">${I('scan')}${L.scan.split(' ')[0]==='Scan'?'Scan':L.scan.split(' ')[0]}</div><div class="${on==='hist'?'on':''}">${I('hist')}${L.history}</div><div class="${on==='acc'?'on':''}">${I('user')}${L.account}</div></div>`};
+
+/* screens */
+const S={
+ signin:(t)=>{const L=T[t];return ph(t,`<div class="pad" style="justify-content:space-between"><div style="display:flex;flex-direction:column;gap:18px;padding-top:24px"><span class="wm" style="font-size:30px">Deal<i>Dash</i></span><div><h1 style="font-size:28px;line-height:34px;font-weight:800">${L.signin}</h1><p style="color:var(--ink2);margin-top:6px">${L.signp}</p></div><div class="ban n">${I('store','s')}<span>${L.signa}</span></div><div><div class="lbl">${L.mob}</div><div class="field f"><span class="num">+966 55 111 2222</span></div></div></div><div style="display:flex;flex-direction:column;gap:10px"><button class="btn p">${L.send}</button><p class="help" style="text-align:center">${I('lock','s')} One-time code · no password</p></div></div>`)},
+ otp:(t,st)=>{const L=T[t];const e=st==='err',x=st==='exp';return ph(t,`<div class="pad" style="justify-content:space-between"><div style="display:flex;flex-direction:column;gap:16px;padding-top:12px"><button class="ib" style="margin-inline-start:-10px">${I('left','mir')}</button><div><h1 style="font-size:26px;line-height:32px;font-weight:800">${L.code}</h1><p style="color:var(--ink2);margin-top:6px" class="num">+966 55 111 2222</p></div><div class="otp"><i>4</i><i>8</i><i>2</i><i ${e?'class="e"':'class="f"'}>${e?'9':'1'}</i><i ${e?'class="e"':''}>${e?'0':''}</i><i ${e?'class="e"':''}>${e?'3':''}</i></div>${e?`<div class="ban d">${I('x','s')}<span>${t==='en'?'That code is not right. 2 tries left.':'الرمز غير صحيح. تبقّت محاولتان.'}</span></div>`:''}${x?`<div class="ban w">${I('clock','s')}<span>${t==='en'?'That code has expired. We sent you a new one.':'انتهت صلاحية الرمز. أرسلنا لك رمزاً جديداً.'}</span></div>`:''}<p class="help">${L.resend} <b class="num">00:42</b></p></div><div style="display:flex;flex-direction:column;gap:10px"><button class="btn p">${L.verify}</button><button class="btn t sm">${L.resend.split(' ')[0]==='Resend'?'Resend code':'إعادة إرسال الرمز'}</button></div></div>`)},
+ access:(t)=>ph(t,`<div class="pad" style="justify-content:center;align-items:center;text-align:center;gap:14px"><div style="width:84px;height:84px;border-radius:50%;background:var(--sl);display:grid;place-items:center;color:var(--ink2)">${I('lock','l')}</div><h1 style="font-size:24px;line-height:30px;font-weight:800">${t==='en'?'No branch assigned yet':'لم يتم تعيين فرع بعد'}</h1><p style="color:var(--ink2);max-width:260px">${t==='en'?'Your manager needs to give you access to a branch before you can redeem. Ask them to check your invite.':'يحتاج مديرك إلى منحك صلاحية الوصول إلى فرع قبل أن تتمكن من الاسترداد. اطلب منه مراجعة دعوتك.'}</p><button class="btn t sm" style="width:auto;padding:0 22px">${t==='en'?'Contact support':'تواصل مع الدعم'}</button></div>`),
+ home:(t,opt={})=>{const L=T[t];return ph(t,`${tbar(t)}<div class="stats"><div class="card"><b class="num">27</b><span>${L.redeemed}</span></div><div class="card"><b class="num">3</b><span>${L.rejected}</span></div></div><div class="cam"><div class="camtop"><span>${I('flash','s')}</span><span>${I('help','s')}</span></div><div class="frame"><i></i><div class="scanline"></div></div><div class="camhint">${L.hint}</div></div><div style="padding:12px 16px 8px;display:flex;flex-direction:column;gap:10px"><button class="btn p">${I('scan')}${L.scan}</button><button class="btn o sm">${I('kb')}${L.enter}</button></div>${bnav(t,'scan')}`,{big:opt.big})},
+ camdenied:(t)=>ph(t,`${tbar(t)}<div class="pad" style="justify-content:center;align-items:center;text-align:center;gap:14px"><div style="width:84px;height:84px;border-radius:50%;background:var(--w-bg);display:grid;place-items:center;color:var(--w-tx)">${I('alert','l')}</div><h1 style="font-size:22px;line-height:28px;font-weight:800">${t==='en'?'Camera is off':'الكاميرا مغلقة'}</h1><p style="color:var(--ink2);max-width:250px">${t==='en'?'Allow camera access to scan QR codes, or enter the code by hand.':'اسمح بالوصول إلى الكاميرا لمسح رموز QR، أو أدخل الرمز يدوياً.'}</p></div><div style="padding:12px 16px 8px;display:flex;flex-direction:column;gap:10px"><button class="btn p">${t==='en'?'Allow camera':'السماح بالكاميرا'}</button><button class="btn o sm">${I('kb')}${T[t].enter}</button></div>${bnav(t,'scan')}`),
+ manual:(t)=>{const L=T[t];return ph(t,`${tbar(t,`<button class="ib">${I('x')}</button>`)}<div class="pad" style="justify-content:space-between"><div style="display:flex;flex-direction:column;gap:14px"><div><h1 style="font-size:24px;line-height:30px;font-weight:800">${L.manual}</h1><p style="color:var(--ink2);margin-top:4px">${L.manp}</p></div><div class="field f" style="height:64px;font-size:24px;font-weight:800;letter-spacing:.1em;justify-content:center"><span class="num">NG7-4DX9</span></div><p class="help">${t==='en'?'Codes are not case sensitive. 5 attempts per minute.':'الرموز غير حساسة لحالة الأحرف. 5 محاولات في الدقيقة.'}</p></div><button class="btn p">${L.check}</button></div>`)},
+ result:(t,v)=>{const L=T[t];const M={
+  valid:['r-ok','check',L.valid,L.validp],invalid:['r-no','x',L.invalid,L.invalidp],expired:['r-no','clock',L.expired,L.expiredp],already:['r-wr','alert',L.already,L.alreadyp],wrong:['r-wr','pin',L.wrong,L.wrongp],elig:['r-wr','ban',L.elig,L.eligp],rexp:['r-no','clock',L.rexp,L.rexpp],noshow:['r-gy','ban',L.noshow,L.noshowp],notyet:['r-gy','clock',L.notyet,L.notyetp],susp:['r-gy','lock',L.susp,L.suspp]}[v];
+  const showDetail=['valid','already','wrong','elig','expired','rexp'].includes(v);
+  const itemType=v==='rexp'?(t==='en'?'Reservation':'حجز'):L.type;
+  const body=showDetail?`<div class="card"><div class="itm"><div class="th ${v==='rexp'?'p1':'p2'}"></div><div><b style="font-size:16px">${v==='rexp'?(t==='en'?'Dinner for Two':'عشاء لشخصين'):L.item}</b><div class="help">${itemType} · ${t==='en'?'Nobu Riyadh':'نوبو الرياض'}</div></div></div><div style="margin-top:8px"><div class="kv"><span>${L.cust}</span><b>${L.fname}</b></div>${v==='valid'?`<div class="kv"><span>${L.val}</span><b class="num">SAR 100</b></div><div class="kv"><span>${L.valid2}</span><b class="num">12 Jan 2027</b></div><div class="kv"><span>${L.branch}</span><b>${L.br}</b></div>`:''}${v==='already'?`<div class="kv"><span>${L.time}</span><b class="num">10:41</b></div><div class="kv"><span>${L.branch}</span><b>${L.br}</b></div>`:''}${v==='wrong'?`<div class="kv"><span>${L.branch}</span><b>${t==='en'?'Riyadh Park, KAFD':'رياض بارك، KAFD'}</b></div>`:''}${v==='elig'?`<div class="kv"><span>${t==='en'?'Needs':'يتطلب'}</span><b>${t==='en'?'Verified employee':'موظف موثّق'}</b></div>`:''}</div></div>`:`<div class="card" style="text-align:center;color:var(--ink2)">${v==='invalid'?(t==='en'?'No details to show.':'لا توجد تفاصيل لعرضها.'):(t==='en'?'Details are hidden for this result.':'التفاصيل مخفية لهذه النتيجة.')}</div>`;
+  const cta=v==='valid'?`<button class="btn g">${L.redeem}</button><button class="btn o sm">${L.cancel}</button>`:`<button class="btn p">${I('scan')}${L.next}</button>${v==='invalid'?`<button class="btn o sm">${I('kb')}${L.enter}</button>`:`<button class="btn o sm">${t==='en'?'Contact manager':'تواصل مع المدير'}</button>`}`;
+  return ph(t,`<div class="res"><div class="res-h ${M[0]}"><div class="ic">${I(M[1],'xl')}</div><h2>${M[2]}</h2><p>${M[3]}</p></div><div class="res-b">${body}</div><div style="padding:0 16px 18px;display:flex;flex-direction:column;gap:10px">${cta}</div></div>`,{big:false})},
+ confirm:(t)=>{const L=T[t];return ph(t,`<div class="res"><div class="res-h r-ok" style="padding-bottom:18px"><div class="ic" style="width:56px;height:56px">${I('check','l')}</div><h2 style="font-size:22px">${L.valid}</h2></div><div class="res-b"></div></div><div class="sheet"><div class="sh"><div class="grab"></div><h1 style="font-size:22px;line-height:28px;font-weight:800">${L.conf1}</h1><div class="card" style="box-shadow:none"><div class="itm"><div class="th p2"></div><div><b style="font-size:16px">${L.item}</b><div class="help">${L.type} · ${L.m}</div></div></div><div style="margin-top:8px"><div class="kv"><span>${L.cust}</span><b>${L.fname}</b></div><div class="kv"><span>${L.val}</span><b class="num">SAR 100</b></div><div class="kv"><span>${L.branch}</span><b>${L.br}</b></div></div></div><p class="help">${I('info','s')} ${L.conf2}</p><button class="btn g">${L.confirm}</button><button class="btn o sm">${L.cancel}</button></div></div>`)},
+ loadingConfirm:(t)=>ph(t,`<div class="pad" style="justify-content:center;align-items:center;text-align:center;gap:14px"><div style="width:64px;height:64px;border-radius:50%;border:5px solid var(--lilac);border-top-color:var(--purple)"></div><h1 style="font-size:20px;font-weight:800">${t==='en'?'Redeeming…':'جارٍ الاسترداد…'}</h1><p style="color:var(--ink2);max-width:250px">${t==='en'?'Please wait. Do not tap again. We are making sure this is only redeemed once.':'يرجى الانتظار. لا تضغط مرة أخرى. نتأكد من أن الاسترداد يتم مرة واحدة فقط.'}</p></div>`),
+ success:(t)=>{const L=T[t];return ph(t,`<div class="res"><div class="res-h r-ok" style="padding:28px 20px 30px"><div class="ic" style="width:92px;height:92px">${I('check','xl')}</div><h2 style="font-size:30px;line-height:36px">${L.ok1}</h2><p>${L.ok2}</p></div><div class="res-b"><div class="card"><div class="itm"><div class="th p2"></div><div><b style="font-size:16px">${L.item}</b><div class="help">${L.type} · ${L.br}</div></div></div><div style="margin-top:8px"><div class="kv"><span>${L.cust}</span><b>${L.fname}</b></div><div class="kv"><span>${L.time}</span><b class="num">Today 14:08</b></div><div class="kv"><span>${L.ref}</span><b class="num">RD-48210</b></div></div></div></div><div style="padding:0 16px 18px;display:flex;flex-direction:column;gap:10px"><button class="btn p">${I('scan')}${L.next}</button><button class="btn o sm">${L.details}</button></div></div>`)},
+ history:(t,det)=>{const L=T[t];const rows=[['ok','Pay 80, get 100','Pay 80, get 100','Sara M.','10:41'],['ok','Dinner for Two','عشاء لشخصين','Lina S.','10:32'],['no',t==='en'?'Already redeemed':'مستردة مسبقاً','','—','10:20'],['ok','Free pastry','معجنات مجانية','Noor H.','09:48'],['no',t==='en'?'Wrong branch':'فرع غير صحيح','','—','09:30']];
+  return ph(t,`${tbar(t)}<div class="pad" style="gap:10px"><div class="seg"><span class="on">${L.all}</span><span>${L.redeemed}</span><span>${L.failed.split(' ')[0]}</span></div><div class="srch">${I('hist','s')}${L.search}</div><div class="list card" style="padding:4px 14px;flex:1;overflow:hidden">${rows.map(r=>`<div class="li"><div class="th ${r[0]==='ok'?'p2':'p3'}" style="width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:#fff">${I(r[0]==='ok'?'check':'x','s')}</div><div class="tx"><b>${t==='en'?r[1]:(r[2]||r[1])}</b><span>${r[3]} · <span class="num">${r[4]}</span></span></div>${I('right','s mir')}</div>`).join('')}</div></div>${bnav(t,'hist')}${det?`<div class="sheet"><div class="sh"><div class="grab"></div><div style="display:flex;justify-content:space-between;align-items:center"><h1 style="font-size:20px;font-weight:800">${t==='en'?'Redemption':'عملية الاسترداد'}</h1><span class="chip ok">${I('check','s')}${L.redeemed}</span></div><div class="card" style="box-shadow:none"><div class="kv"><span>${L.item.length?(t==='en'?'Item':'العنصر'):''}</span><b>${L.item}</b></div><div class="kv"><span>${L.cust}</span><b>${L.fname}</b></div><div class="kv"><span>${L.time}</span><b class="num">10:41</b></div><div class="kv"><span>${L.ref}</span><b class="num">RD-48198</b></div><div class="kv"><span>${L.branch}</span><b>${L.br}</b></div></div><div class="ban n">${I('info','s')}<span>${L.hint2}</span></div><button class="btn o sm">${t==='en'?'Close':'إغلاق'}</button></div></div>`:''}`)},
+ offline:(t)=>{const L=T[t];return ph(t,`${tbar(t)}<div class="ban w" style="margin:12px 16px 0;border-radius:14px">${I('wifi','s')}<span>${L.offline}</span></div><div class="pad" style="justify-content:center;align-items:center;text-align:center;gap:14px"><div style="width:96px;height:96px;border-radius:50%;background:var(--w-bg);display:grid;place-items:center;color:var(--w-tx)">${I('wifi','xl')}</div><h1 style="font-size:24px;line-height:30px;font-weight:800">${L.offline}</h1><p style="color:var(--ink2);max-width:270px">${L.offp}</p><div class="card" style="width:100%;text-align:start"><div class="kv"><span>${t==='en'?'Saved scan':'المسح المحفوظ'}</span><b class="num">NG7-4DX9</b></div><div class="kv"><span>${t==='en'?'Saved at':'وقت الحفظ'}</span><b class="num">14:07</b></div></div></div><div style="padding:12px 16px 18px;display:flex;flex-direction:column;gap:10px"><button class="btn p">${I('refresh')}${L.retry}</button><button class="btn dis sm">${L.redeem}</button></div>`)},
+ account:(t)=>{const L=T[t];return ph(t,`${tbar(t)}<div class="pad"><div class="card" style="display:flex;gap:14px;align-items:center"><div style="width:56px;height:56px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px">OT</div><div><b style="font-size:17px">${t==='en'?'Omar Taha':'عمر طه'}</b><div class="help">${t==='en'?'Redemption staff':'موظف استرداد'}</div></div></div><div class="card"><div class="kv"><span>${L.m.length?(t==='en'?'Merchant':'التاجر'):''}</span><b>${L.m}</b></div><div class="kv"><span>${L.branch}</span><b>${L.br}</b></div><div class="kv"><span>${t==='en'?'Language':'اللغة'}</span><b>${t==='en'?'English':'العربية'}</b></div></div><div class="ban n">${I('info','s')}<span>${L.hint2}</span></div><button class="btn t sm">${I('help','s')}${t==='en'?'Help & contact manager':'المساعدة والتواصل مع المدير'}</button><button class="btn o sm" style="margin-top:auto">${t==='en'?'Sign out':'تسجيل الخروج'}</button></div>${bnav(t,'acc')}`)}
+};
+
+/* views */
+const app=document.getElementById('app');
+function cell(html,cap){return `<div class="cell">${html}<div class="cap">${cap}</div></div>`}
+function sec(t,d,cells){return `<div class="sec"><h2>${t}</h2><p class="d">${d}</p><div class="row">${cells}</div></div>`}
+function gallery(l){
+ return sec('1 · Sign in','Mobile number + one-time code. Staff are invited by their merchant; no passwords.',cell(S.signin(l),'Sign in')+cell(S.otp(l,''),'Enter code')+cell(S.otp(l,'err'),'Wrong code (2 tries left)')+cell(S.otp(l,'exp'),'Expired code (new one sent)')+cell(S.access(l),'No branch assigned'))
+ +sec('2 · Home / Scanner','The primary screen. Camera opens immediately; manual entry is one tap away.',cell(S.home(l),'Scanner (default)')+cell(S.camdenied(l),'Camera permission off')+cell(S.manual(l),'Manual code fallback')+cell(S.account(l),'Account'))
+ +sec('3 · Validation result (one adaptive screen)','Same layout, ten outcomes. Colour + icon + one sentence. Details only where useful.',['valid','invalid','expired','already','wrong','elig','rexp','noshow','notyet','susp'].map(v=>cell(S.result(l,v),({valid:'VALID',invalid:'INVALID',expired:'EXPIRED',already:'ALREADY REDEEMED',wrong:'WRONG BRANCH',elig:'ELIGIBILITY (only where rules require)',rexp:'RESERVATION EXPIRED',noshow:'RESERVATION NOT COMPLETED',notyet:'NOT VALID YET',susp:'ON HOLD / REFUNDED'})[v])).join(''))
+ +sec('4 · Confirm → 5 · Success','A confirmation sheet prevents accidents; the button locks while processing.',cell(S.confirm(l),'Confirm redemption')+cell(S.loadingConfirm(l),'Processing (button locked)')+cell(S.success(l),'Success'))
+ +sec('6 · Today / History','Staff see only their branch’s redemptions and rejected checks. No money.',cell(S.history(l,false),'Today')+cell(S.history(l,true),'Detail sheet (read-only)'))
+ +sec('Connection','Online-first. Nothing redeems offline.',cell(S.offline(l),'No connection'));
+}
+function proto(){
+ const steps=['signin','otp','home','manual','valid','confirm','loadingConfirm','success','history','offline','already','invalid'];
+ let i=2;
+ const render=()=>{const k=steps[i];let html=({signin:()=>S.signin('en'),otp:()=>S.otp('en',''),home:()=>S.home('en',{big:true}),manual:()=>S.manual('en'),valid:()=>S.result('en','valid'),confirm:()=>S.confirm('en'),loadingConfirm:()=>S.loadingConfirm('en'),success:()=>S.success('en'),history:()=>S.history('en',false),offline:()=>S.offline('en'),already:()=>S.result('en','already'),invalid:()=>S.result('en','invalid')})[k]();
+  document.getElementById('pp').innerHTML=html.replace('class="phone"','class="phone big"').replace('class="phone big big"','class="phone big"');};
+ setTimeout(()=>{render();
+  document.getElementById('pn').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;i=+b.dataset.i;render();document.querySelectorAll('#pn button').forEach(x=>x.classList.toggle('on',x===b));});},0);
+ const names=['Sign in','Enter code','Scanner (Home)','Manual code','Valid result','Confirm','Processing','Success','History','No connection','Already redeemed','Invalid'];
+ return `<div class="sec"><h2>Interactive journey</h2><p class="d">Pick a step to see it in the phone. The core journey is <b>Scan → Validate → Redeem</b> in three taps: <b>Scan</b> → <b>Redeem</b> → <b>Confirm</b>.</p><div class="proto"><div id="pp"></div><div><div class="nav" id="pn">${names.map((n,j)=>`<button data-i="${j}" class="${j===2?'on':''}">${j+1}. ${n}</button>`).join('')}</div>
+ <div style="display:flex;flex-direction:column;gap:14px;margin-top:20px">
+ <div class="note"><b>The whole job in three taps</b>1. Scan the customer’s QR (or type the code). 2. Read one big colour result and tap <b>Redeem</b>. 3. <b>Confirm</b>. Then <b>Scan next</b>.</div>
+ <div class="note"><b>What staff never see</b>Money, settlement, campaigns, customer profile, date of birth, employer email, card details, reward balance, other transactions. First name only.</div>
+ <div class="note"><b>What staff cannot do</b>Reverse a redemption. A manager or DealDash does that, with a reason and an audit record.</div></div></div></div></div>`;
+}
+function ar(){ return sec('Arabic (RTL): Home / Scanner and result','Layouts mirror; numbers and codes stay left-to-right; IBM Plex Sans Arabic.',cell(S.signin('ar'),'تسجيل الدخول')+cell(S.home('ar'),'الماسح')+cell(S.result('ar','valid'),'صالح')+cell(S.result('ar','already'),'تم استردادها مسبقاً')+cell(S.success('ar'),'نجاح')+cell(S.history('ar',false),'السجل')+cell(S.offline('ar'),'لا يوجد اتصال')) }
+function states(){
+ return sec('Failure and edge-case states','What staff see when something goes wrong.',cell(S.result('en','invalid'),'Invalid code')+cell(S.offline('en'),'No connection (scan preserved, redeem disabled)')+cell(S.camdenied('en'),'Camera denied')+cell(S.loadingConfirm('en'),'Double-tap protection')+cell(S.otp('en','err'),'OTP error')+cell(S.access('en'),'No branch assigned'))
+ +`<div class="sec"><h2>Validation result matrix</h2><p class="d">Every outcome, what staff see, and the next action.</p><table class="tb"><thead><tr><th>Result</th><th>Colour</th><th>What it means</th><th>Details shown</th><th>Primary action</th></tr></thead><tbody>
+ <tr><td><b>Valid</b></td><td>Green</td><td>Can be redeemed here, now</td><td>Item, type, first name, value/benefit, validity, branch</td><td>Redeem → Confirm</td></tr>
+ <tr><td><b>Invalid</b></td><td>Red</td><td>Code not recognised</td><td>None</td><td>Scan again / Enter code</td></tr>
+ <tr><td><b>Expired</b></td><td>Red</td><td>Past validity</td><td>Item, expiry date</td><td>Scan next</td></tr>
+ <tr><td><b>Already redeemed</b></td><td>Amber</td><td>Used earlier</td><td>When and where (own merchant only)</td><td>Scan next / Contact manager</td></tr>
+ <tr><td><b>Wrong branch</b></td><td>Amber</td><td>Valid elsewhere</td><td>The branches where it works</td><td>Scan next</td></tr>
+ <tr><td><b>Eligibility failed</b></td><td>Amber</td><td>Only for free restricted offers/reservations that need current eligibility. <b>Never for a paid voucher bought while eligible.</b></td><td>What is needed</td><td>Scan next / Contact manager</td></tr>
+ <tr><td><b>Reservation expired</b></td><td>Red</td><td>Hold timed out</td><td>Item, hold end time</td><td>Scan next</td></tr>
+ <tr><td><b>Reservation not completed</b></td><td>Grey</td><td>Reservation no longer available</td><td>None</td><td>Scan next</td></tr>
+ <tr><td><b>Not valid yet</b></td><td>Grey</td><td>Starts later</td><td>Start time</td><td>Scan next</td></tr>
+ <tr><td><b>On hold / refunded / cancelled</b></td><td>Grey</td><td>Cannot be redeemed</td><td>None (neutral wording)</td><td>Contact manager</td></tr></tbody></table></div>`;
+}
+function view(v){ document.querySelectorAll('.bar button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+ document.documentElement.dir='ltr';
+ app.innerHTML = v==='proto'?proto(): v==='gallery'?gallery('en'): v==='ar'?ar(): states();
+ if(v==='proto'){ /* init */ } window.scrollTo(0,0); }
+document.querySelector('.bar').addEventListener('click',e=>{const b=e.target.closest('button');if(b)view(b.dataset.v)});
+view((location.hash||'#proto').slice(1)||'proto');
+</script>
+</body>
+</html>

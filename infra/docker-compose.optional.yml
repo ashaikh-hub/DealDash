@@ -1,0 +1,15 @@
+# OPTIONAL. DealDash local development does NOT require Docker (the current Windows workstation uses native PostgreSQL).
+# This file is kept for developers/CI environments that prefer containers.
+#   docker compose -f infra/docker-compose.optional.yml up -d
+services:
+  postgres:
+    image: postgis/postgis:17-3.5
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${ADMIN_DB_PASSWORD:?set ADMIN_DB_PASSWORD locally}
+    ports:
+      - "5432:5432"
+    volumes:
+      - dealdash-pg:/var/lib/postgresql/data
+volumes:
+  dealdash-pg:

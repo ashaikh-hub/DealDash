@@ -1,0 +1,3011 @@
+{
+  "generated": "2026-10-08T12:28:48.118Z",
+  "files": [
+    {
+      "id": "C01",
+      "lang": "en",
+      "surface": "customer",
+      "file": "customer/C01-home-hot-deals-rail.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C01",
+      "lang": "ar",
+      "surface": "customer",
+      "file": "customer/C01-home-hot-deals-rail-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C02",
+      "lang": "en",
+      "surface": "customer",
+      "file": "customer/C02-hot-deals-discovery-list.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C02",
+      "lang": "ar",
+      "surface": "customer",
+      "file": "customer/C02-hot-deals-discovery-list-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C03",
+      "lang": "en",
+      "surface": "customer",
+      "file": "customer/C03-hot-deal-detail-reservable-active.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C03",
+      "lang": "ar",
+      "surface": "customer",
+      "file": "customer/C03-hot-deal-detail-reservable-active-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C04",
+      "lang": "en",
+      "surface": "customer",
+      "file": "customer/C04-countdown-and-stock-states-board.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C05",
+      "lang": "en",
+      "surface": "customer",
+      "file": "customer/C05-hot-deal-detail-low-stock-urgent.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C06",
+      "lang": "en",
+      "surface": "customer",
+      "file": "customer/C06-reserve-sheet-branch-selection-free.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C06",
+      "lang": "ar",
+      "surface": "customer",
+      "file": "customer/C06-reserve-sheet-branch-selection-free-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C07",
+      "lang": "en",
+      "surface": "customer",
+      "file": "customer/C07-reservation-confirmation.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C07",
+      "lang": "ar",
+      "surface": "customer",
+      "file": "customer/C07-reservation-confirmation-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C08",
+      "lang": "en",
+      "surface": "customer",
+      "file": "customer/C08-reservation-active-qr-code-timer.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C08",
+      "lang": "ar",
+      "surface": "customer",
+      "file": "customer/C08-reservation-active-qr-code-timer-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C09",
+      "lang": "en",
+      "surface": "customer",
+      "file": "customer/C09-reservation-expiring-under-5-minutes.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C10",
+      "lang": "en",
+      "surface": "customer",
+      "file": "customer/C10-reservation-not-completed-expired.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C10",
+      "lang": "ar",
+      "surface": "customer",
+      "file": "customer/C10-reservation-not-completed-expired-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C11",
+      "lang": "en",
+      "surface": "customer",
+      "file": "customer/C11-reservation-cancelled-by-customer.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C12",
+      "lang": "en",
+      "surface": "customer",
+      "file": "customer/C12-reservation-redeemed-used.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C13",
+      "lang": "en",
+      "surface": "customer",
+      "file": "customer/C13-hot-deal-detail-sold-out.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C13",
+      "lang": "ar",
+      "surface": "customer",
+      "file": "customer/C13-hot-deal-detail-sold-out-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C14",
+      "lang": "en",
+      "surface": "customer",
+      "file": "customer/C14-hot-deal-detail-campaign-ended.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C15",
+      "lang": "en",
+      "surface": "customer",
+      "file": "customer/C15-hot-deal-detail-locked-eligibility.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C16",
+      "lang": "en",
+      "surface": "customer",
+      "file": "customer/C16-hot-deal-detail-reservations-paused-restriction.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C17",
+      "lang": "en",
+      "surface": "customer",
+      "file": "customer/C17-my-deals-active.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C17",
+      "lang": "ar",
+      "surface": "customer",
+      "file": "customer/C17-my-deals-active-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C18",
+      "lang": "en",
+      "surface": "customer",
+      "file": "customer/C18-my-deals-past.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C19",
+      "lang": "en",
+      "surface": "customer",
+      "file": "customer/C19-my-deals-updates-in-app-notifications.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C20",
+      "lang": "en",
+      "surface": "customer",
+      "file": "customer/C20-loading-skeleton.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C21",
+      "lang": "en",
+      "surface": "customer",
+      "file": "customer/C21-empty-no-hot-deals-no-reservations.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C22",
+      "lang": "en",
+      "surface": "customer",
+      "file": "customer/C22-error-and-not-available.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C23",
+      "lang": "en",
+      "surface": "customer",
+      "file": "customer/C23-connection-lost-while-reserving-sheet-error.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "C24",
+      "lang": "en",
+      "surface": "customer",
+      "file": "customer/C24-branch-sold-out-inside-the-sheet.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "M01",
+      "lang": "en",
+      "surface": "merchant",
+      "file": "merchant/M01-campaigns-hot-deals-list.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "M01",
+      "lang": "ar",
+      "surface": "merchant",
+      "file": "merchant/M01-campaigns-hot-deals-list-ar.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "M02",
+      "lang": "en",
+      "surface": "merchant",
+      "file": "merchant/M02-builder-1-6-offer.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "M03",
+      "lang": "en",
+      "surface": "merchant",
+      "file": "merchant/M03-builder-2-6-content-bilingual-photos.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "M04",
+      "lang": "en",
+      "surface": "merchant",
+      "file": "merchant/M04-builder-3-6-time-limits-time-quantity-both.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "M04",
+      "lang": "ar",
+      "surface": "merchant",
+      "file": "merchant/M04-builder-3-6-time-limits-time-quantity-both-ar.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "M05",
+      "lang": "en",
+      "surface": "merchant",
+      "file": "merchant/M05-limit-configurations-side-by-side-board.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "M06",
+      "lang": "en",
+      "surface": "merchant",
+      "file": "merchant/M06-builder-4-6-branches-stock-inventory.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "M07",
+      "lang": "en",
+      "surface": "merchant",
+      "file": "merchant/M07-builder-5-6-eligibility-terms.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "M08",
+      "lang": "en",
+      "surface": "merchant",
+      "file": "merchant/M08-builder-6-6-review-submit.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "M09",
+      "lang": "en",
+      "surface": "merchant",
+      "file": "merchant/M09-status-and-banner-board-draft-rejected.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "M10",
+      "lang": "en",
+      "surface": "merchant",
+      "file": "merchant/M10-hot-deal-monitor-live-monitor.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "M10",
+      "lang": "ar",
+      "surface": "merchant",
+      "file": "merchant/M10-hot-deal-monitor-live-monitor-ar.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "M11",
+      "lang": "en",
+      "surface": "merchant",
+      "file": "merchant/M11-hot-deal-monitor-reservations.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "M12",
+      "lang": "en",
+      "surface": "merchant",
+      "file": "merchant/M12-hot-deal-monitor-results-funnel.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "M13",
+      "lang": "en",
+      "surface": "merchant",
+      "file": "merchant/M13-hot-deal-monitor-activity.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "M14",
+      "lang": "en",
+      "surface": "merchant",
+      "file": "merchant/M14-add-remove-stock-dialog.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "M15",
+      "lang": "en",
+      "surface": "merchant",
+      "file": "merchant/M15-redemptions-with-reverse.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "M16",
+      "lang": "en",
+      "surface": "merchant",
+      "file": "merchant/M16-needs-changes-banner-on-the-hot-deal.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "T01",
+      "lang": "en",
+      "surface": "staff",
+      "file": "staff/T01-sign-in-mobile-number.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T01",
+      "lang": "ar",
+      "surface": "staff",
+      "file": "staff/T01-sign-in-mobile-number-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T02",
+      "lang": "en",
+      "surface": "staff",
+      "file": "staff/T02-sign-in-one-time-code.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T02",
+      "lang": "ar",
+      "surface": "staff",
+      "file": "staff/T02-sign-in-one-time-code-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T03",
+      "lang": "en",
+      "surface": "staff",
+      "file": "staff/T03-scanner-camera-with-manual-entry-fallback.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T03",
+      "lang": "ar",
+      "surface": "staff",
+      "file": "staff/T03-scanner-camera-with-manual-entry-fallback-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T04",
+      "lang": "en",
+      "surface": "staff",
+      "file": "staff/T04-manual-code-entry-also-camera-denied.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T04",
+      "lang": "ar",
+      "surface": "staff",
+      "file": "staff/T04-manual-code-entry-also-camera-denied-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T05",
+      "lang": "en",
+      "surface": "staff",
+      "file": "staff/T05-validate-valid-reservation.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T05",
+      "lang": "ar",
+      "surface": "staff",
+      "file": "staff/T05-validate-valid-reservation-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T06",
+      "lang": "en",
+      "surface": "staff",
+      "file": "staff/T06-redeem-processing-locked.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T06",
+      "lang": "ar",
+      "surface": "staff",
+      "file": "staff/T06-redeem-processing-locked-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T07",
+      "lang": "en",
+      "surface": "staff",
+      "file": "staff/T07-redeem-success.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T07",
+      "lang": "ar",
+      "surface": "staff",
+      "file": "staff/T07-redeem-success-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T08",
+      "lang": "en",
+      "surface": "staff",
+      "file": "staff/T08-invalid-code.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T08",
+      "lang": "ar",
+      "surface": "staff",
+      "file": "staff/T08-invalid-code-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T09",
+      "lang": "en",
+      "surface": "staff",
+      "file": "staff/T09-expired-reservation-reservation-not-completed.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T09",
+      "lang": "ar",
+      "surface": "staff",
+      "file": "staff/T09-expired-reservation-reservation-not-completed-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T10",
+      "lang": "en",
+      "surface": "staff",
+      "file": "staff/T10-already-redeemed.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T10",
+      "lang": "ar",
+      "surface": "staff",
+      "file": "staff/T10-already-redeemed-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T11",
+      "lang": "en",
+      "surface": "staff",
+      "file": "staff/T11-wrong-branch.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T11",
+      "lang": "ar",
+      "surface": "staff",
+      "file": "staff/T11-wrong-branch-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T12",
+      "lang": "en",
+      "surface": "staff",
+      "file": "staff/T12-eligibility-failed.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T12",
+      "lang": "ar",
+      "surface": "staff",
+      "file": "staff/T12-eligibility-failed-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T13",
+      "lang": "en",
+      "surface": "staff",
+      "file": "staff/T13-reservation-not-active-cancelled.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T13",
+      "lang": "ar",
+      "surface": "staff",
+      "file": "staff/T13-reservation-not-active-cancelled-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T14",
+      "lang": "en",
+      "surface": "staff",
+      "file": "staff/T14-campaign-suspended-blocked-paused-red.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T14",
+      "lang": "ar",
+      "surface": "staff",
+      "file": "staff/T14-campaign-suspended-blocked-paused-red-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T15",
+      "lang": "en",
+      "surface": "staff",
+      "file": "staff/T15-connectivity-error-with-retry-same-key.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T15",
+      "lang": "ar",
+      "surface": "staff",
+      "file": "staff/T15-connectivity-error-with-retry-same-key-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T16",
+      "lang": "en",
+      "surface": "staff",
+      "file": "staff/T16-offline-banner-and-disabled-actions.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T16",
+      "lang": "ar",
+      "surface": "staff",
+      "file": "staff/T16-offline-banner-and-disabled-actions-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T17",
+      "lang": "en",
+      "surface": "staff",
+      "file": "staff/T17-rate-limited-too-many-wrong-codes.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T17",
+      "lang": "ar",
+      "surface": "staff",
+      "file": "staff/T17-rate-limited-too-many-wrong-codes-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T18",
+      "lang": "en",
+      "surface": "staff",
+      "file": "staff/T18-today-history.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T18",
+      "lang": "ar",
+      "surface": "staff",
+      "file": "staff/T18-today-history-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T19",
+      "lang": "en",
+      "surface": "staff",
+      "file": "staff/T19-account.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T19",
+      "lang": "ar",
+      "surface": "staff",
+      "file": "staff/T19-account-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T20",
+      "lang": "en",
+      "surface": "staff",
+      "file": "staff/T20-camera-permission-denied.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T20",
+      "lang": "ar",
+      "surface": "staff",
+      "file": "staff/T20-camera-permission-denied-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T21",
+      "lang": "en",
+      "surface": "staff",
+      "file": "staff/T21-redeem-confirmation-bottom-sheet.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T21",
+      "lang": "ar",
+      "surface": "staff",
+      "file": "staff/T21-redeem-confirmation-bottom-sheet-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T22",
+      "lang": "en",
+      "surface": "staff",
+      "file": "staff/T22-not-valid-yet-amber.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T22",
+      "lang": "ar",
+      "surface": "staff",
+      "file": "staff/T22-not-valid-yet-amber-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T23",
+      "lang": "en",
+      "surface": "staff",
+      "file": "staff/T23-history-search-by-code.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T23",
+      "lang": "ar",
+      "surface": "staff",
+      "file": "staff/T23-history-search-by-code-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T24",
+      "lang": "en",
+      "surface": "staff",
+      "file": "staff/T24-history-scan-detail-sheet.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T24",
+      "lang": "ar",
+      "surface": "staff",
+      "file": "staff/T24-history-scan-detail-sheet-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T25",
+      "lang": "en",
+      "surface": "staff",
+      "file": "staff/T25-scanner-with-torch-control-and-wake-lock-note.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T25",
+      "lang": "ar",
+      "surface": "staff",
+      "file": "staff/T25-scanner-with-torch-control-and-wake-lock-note-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T26",
+      "lang": "en",
+      "surface": "staff",
+      "file": "staff/T26-otp-wrong-code-and-expired-code.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "T26",
+      "lang": "ar",
+      "surface": "staff",
+      "file": "staff/T26-otp-wrong-code-and-expired-code-ar.svg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "id": "A01",
+      "lang": "en",
+      "surface": "admin",
+      "file": "admin/A01-hot-deal-review-queue.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "A01",
+      "lang": "ar",
+      "surface": "admin",
+      "file": "admin/A01-hot-deal-review-queue-ar.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "A02",
+      "lang": "en",
+      "surface": "admin",
+      "file": "admin/A02-hot-deal-review-workbench.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "A02",
+      "lang": "ar",
+      "surface": "admin",
+      "file": "admin/A02-hot-deal-review-workbench-ar.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "A03",
+      "lang": "en",
+      "surface": "admin",
+      "file": "admin/A03-decision-dialog-approve-request-changes-reject-p.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "A04",
+      "lang": "en",
+      "surface": "admin",
+      "file": "admin/A04-pause-suspend-reinstate-controls-on-a-live-hot-d.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "A05",
+      "lang": "en",
+      "surface": "admin",
+      "file": "admin/A05-live-hot-deal-monitor-platform.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "A05",
+      "lang": "ar",
+      "surface": "admin",
+      "file": "admin/A05-live-hot-deal-monitor-platform-ar.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "A06",
+      "lang": "en",
+      "surface": "admin",
+      "file": "admin/A06-reservation-activity-lookup-cancel-reverse.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "A07",
+      "lang": "en",
+      "surface": "admin",
+      "file": "admin/A07-customer-restrictions-no-show-review.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "A08",
+      "lang": "en",
+      "surface": "admin",
+      "file": "admin/A08-audit-and-decision-history-timeline.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "A09",
+      "lang": "en",
+      "surface": "admin",
+      "file": "admin/A09-customer-preview-inside-the-workbench.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "A10",
+      "lang": "en",
+      "surface": "admin",
+      "file": "admin/A10-per-hot-deal-reservation-and-activity-feed.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "A10",
+      "lang": "ar",
+      "surface": "admin",
+      "file": "admin/A10-per-hot-deal-reservation-and-activity-feed-ar.svg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "id": "K01",
+      "lang": "en",
+      "surface": "components",
+      "file": "components/K01-customer-components.svg",
+      "w": 1200,
+      "h": 900
+    },
+    {
+      "id": "K02",
+      "lang": "en",
+      "surface": "components",
+      "file": "components/K02-merchant-portal-components.svg",
+      "w": 1200,
+      "h": 900
+    },
+    {
+      "id": "K03",
+      "lang": "en",
+      "surface": "components",
+      "file": "components/K03-merchant-staff-components.svg",
+      "w": 1200,
+      "h": 900
+    },
+    {
+      "id": "K04",
+      "lang": "en",
+      "surface": "components",
+      "file": "components/K04-admin-components.svg",
+      "w": 1200,
+      "h": 800
+    },
+    {
+      "id": "K05",
+      "lang": "en",
+      "surface": "components",
+      "file": "components/K05-shared-status-and-state-patterns.svg",
+      "w": 1200,
+      "h": 700
+    },
+    {
+      "id": "F01",
+      "lang": "en",
+      "surface": "flows",
+      "file": "flows/F01-merchant-creates-hot-deal-admin-approves.svg",
+      "w": 1200,
+      "h": 660
+    },
+    {
+      "id": "F02",
+      "lang": "en",
+      "surface": "flows",
+      "file": "flows/F02-customer-discovers-reserves-confirmation-visits-.svg",
+      "w": 1200,
+      "h": 660
+    },
+    {
+      "id": "F03",
+      "lang": "en",
+      "surface": "flows",
+      "file": "flows/F03-staff-scans-validates-redeems.svg",
+      "w": 1200,
+      "h": 660
+    },
+    {
+      "id": "F04",
+      "lang": "en",
+      "surface": "flows",
+      "file": "flows/F04-reservation-expires-inventory-returns-customer-s.svg",
+      "w": 1200,
+      "h": 660
+    },
+    {
+      "id": "F05",
+      "lang": "en",
+      "surface": "flows",
+      "file": "flows/F05-last-unit-one-customer-succeeds-second-sees-sold.svg",
+      "w": 1200,
+      "h": 660
+    }
+  ],
+  "screens": [
+    {
+      "surface": "customer",
+      "id": "C01",
+      "name": "Home: Exclusive Deals rail",
+      "journey": "Discover",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "02 Home - Food and Drink / 06 Home - Best Deal for Me (rail pattern)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Exclusive Deal card (carousel)",
+        "Countdown",
+        "Inventory badge",
+        "Header + My Deals icon",
+        "Tab bar (3 tabs)"
+      ],
+      "sheets": [],
+      "states": [
+        "rail hidden when nothing is hot",
+        "loading skeleton"
+      ],
+      "route": "/ (HotRail in customer/features/hot.tsx)",
+      "priority": "P1",
+      "shot": "customer-01-home-hot-rail-en"
+    },
+    {
+      "surface": "customer",
+      "id": "C02",
+      "name": "Exclusive Deals discovery (list)",
+      "journey": "Discover",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "08 Explore - Exclusive Deals",
+      "svg": true,
+      "isNew": false,
+      "comps": [
+        "Exclusive Deal card (list)",
+        "Sort chips",
+        "Countdown",
+        "Inventory badge"
+      ],
+      "sheets": [],
+      "states": [
+        "sold-out card sinks to bottom",
+        "locked card",
+        "loading",
+        "empty",
+        "error"
+      ],
+      "route": "/hot",
+      "priority": "P1",
+      "shot": "customer-02-hot-list-en"
+    },
+    {
+      "surface": "customer",
+      "id": "C03",
+      "name": "Exclusive Deal detail: reservable (active)",
+      "journey": "Discover → Reserve",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "20 Deal - Hot limited reserve (OUTDATED: paid SAR 15)",
+      "svg": true,
+      "isNew": false,
+      "comps": [
+        "Hero gallery",
+        "Urgency strip (countdown + units + hold)",
+        "How it works",
+        "Branch card",
+        "Sticky Reserve bar"
+      ],
+      "sheets": [
+        "C06 Reserve sheet"
+      ],
+      "states": [
+        "active",
+        "low stock",
+        "sold out",
+        "ended",
+        "locked",
+        "restricted",
+        "already reserved",
+        "limit reached"
+      ],
+      "route": "/hot/[id]",
+      "priority": "P1",
+      "shot": "customer-03-hot-detail-guest-en"
+    },
+    {
+      "surface": "customer",
+      "id": "C04",
+      "name": "Countdown and stock states (board)",
+      "journey": "Discover",
+      "device": "mobile",
+      "rtl": false,
+      "figma": "none",
+      "svg": false,
+      "isNew": true,
+      "comps": [
+        "Countdown",
+        "Inventory badge"
+      ],
+      "sheets": [],
+      "states": [
+        "calm (>1h)",
+        "soon (<1h, amber)",
+        "urgent (<5 min, red)",
+        "ended",
+        "low stock (≤5)",
+        "sold out"
+      ],
+      "route": "packages/app-shell/src/hot/countdown.tsx",
+      "priority": "P2",
+      "shot": null
+    },
+    {
+      "surface": "customer",
+      "id": "C05",
+      "name": "Exclusive Deal detail: low stock (urgent)",
+      "journey": "Reserve",
+      "device": "mobile",
+      "rtl": false,
+      "figma": "20 Deal - Hot limited reserve",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Urgency strip",
+        "Branch card with units left"
+      ],
+      "sheets": [],
+      "states": [
+        "only N left",
+        "countdown urgent"
+      ],
+      "route": "/hot/[id]",
+      "priority": "P2",
+      "shot": null
+    },
+    {
+      "surface": "customer",
+      "id": "C06",
+      "name": "Reserve sheet: branch selection (free)",
+      "journey": "Reserve",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "26 Deal - Reserve sheet (REPLACE: remove payment/card)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Bottom sheet",
+        "Branch selector (radio cards)",
+        "Reserve CTA"
+      ],
+      "sheets": [
+        "sheet"
+      ],
+      "states": [
+        "branch chosen",
+        "stock race error",
+        "connection error",
+        "submitting"
+      ],
+      "route": "/hot/[id] (reserve sheet in app-shell/hot/hot-views.tsx)",
+      "priority": "P1",
+      "shot": "customer-04-reserve-sheet-en"
+    },
+    {
+      "surface": "customer",
+      "id": "C07",
+      "name": "Reservation confirmation",
+      "journey": "Reserve → Visit",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "31 Code - reservation (MODIFY: remove \"Token paid SAR 15\")",
+      "svg": true,
+      "isNew": false,
+      "comps": [
+        "Confirmation banner",
+        "QR/code card",
+        "Hold timer"
+      ],
+      "sheets": [],
+      "states": [
+        "just confirmed"
+      ],
+      "route": "/reservations/[id]?new=1",
+      "priority": "P1",
+      "shot": "customer-05-ticket-en"
+    },
+    {
+      "surface": "customer",
+      "id": "C08",
+      "name": "Reservation active (QR + code + timer)",
+      "journey": "Visit merchant",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "31 Code - reservation",
+      "svg": true,
+      "isNew": false,
+      "comps": [
+        "QR/code card",
+        "Hold timer",
+        "Directions/Call/Cancel"
+      ],
+      "sheets": [
+        "Cancel confirm modal"
+      ],
+      "states": [
+        "active"
+      ],
+      "route": "/reservations/[id]",
+      "priority": "P1",
+      "shot": "customer-06-ticket-en-full"
+    },
+    {
+      "surface": "customer",
+      "id": "C09",
+      "name": "Reservation expiring (under 5 minutes)",
+      "journey": "Visit merchant",
+      "device": "mobile",
+      "rtl": false,
+      "figma": "31 Code - reservation",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Hold timer (urgent)",
+        "QR/code card"
+      ],
+      "sheets": [],
+      "states": [
+        "timer red <5 min",
+        "in-app \"ends soon\" notification at 10 min"
+      ],
+      "route": "/reservations/[id]",
+      "priority": "P2",
+      "shot": null
+    },
+    {
+      "surface": "customer",
+      "id": "C10",
+      "name": "Reservation not completed (expired)",
+      "journey": "Expiry",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "31 Code - reservation (Expired state)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Reservation status chip",
+        "Past-state card"
+      ],
+      "sheets": [],
+      "states": [
+        "neutral wording: \"Reservation not completed\""
+      ],
+      "route": "/reservations/[id]",
+      "priority": "P1",
+      "shot": null
+    },
+    {
+      "surface": "customer",
+      "id": "C11",
+      "name": "Reservation cancelled by customer",
+      "journey": "Cancel",
+      "device": "mobile",
+      "rtl": false,
+      "figma": "31 Code - reservation (Cancelled state)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Reservation status chip"
+      ],
+      "sheets": [],
+      "states": [
+        "cancelled by you",
+        "cancelled by the business"
+      ],
+      "route": "/reservations/[id]",
+      "priority": "P2",
+      "shot": "customer-11-cancelled-en"
+    },
+    {
+      "surface": "customer",
+      "id": "C12",
+      "name": "Reservation redeemed (Used)",
+      "journey": "Redeem",
+      "device": "mobile",
+      "rtl": false,
+      "figma": "31 Code - reservation (Redeemed state)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Reservation status chip"
+      ],
+      "sheets": [],
+      "states": [
+        "used (QR removed)"
+      ],
+      "route": "/reservations/[id]",
+      "priority": "P1",
+      "shot": "customer-09-ticket-used-en"
+    },
+    {
+      "surface": "customer",
+      "id": "C13",
+      "name": "Exclusive Deal detail: sold out",
+      "journey": "Race",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "20 Deal - Hot limited reserve (sold-out state)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Urgency strip (off)",
+        "Sold-out alert",
+        "Disabled CTA"
+      ],
+      "sheets": [],
+      "states": [
+        "sold out (stays visible)"
+      ],
+      "route": "/hot/[id]",
+      "priority": "P1",
+      "shot": "customer-07-sold-out-en"
+    },
+    {
+      "surface": "customer",
+      "id": "C14",
+      "name": "Exclusive Deal detail: campaign ended",
+      "journey": "Discover",
+      "device": "mobile",
+      "rtl": false,
+      "figma": "21 Deal - Hot time-limited (ended state)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Urgency strip (ended)",
+        "Disabled CTA"
+      ],
+      "sheets": [],
+      "states": [
+        "ended (not listed, direct link only)"
+      ],
+      "route": "/hot/[id]",
+      "priority": "P2",
+      "shot": null
+    },
+    {
+      "surface": "customer",
+      "id": "C15",
+      "name": "Exclusive Deal detail: locked (eligibility)",
+      "journey": "Eligibility",
+      "device": "mobile",
+      "rtl": false,
+      "figma": "24 Deal - Employer offer",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Locked panel",
+        "Unlock CTA"
+      ],
+      "sheets": [],
+      "states": [
+        "locked with reason + action (hidden when no realistic path)"
+      ],
+      "route": "/hot/[id]",
+      "priority": "P2",
+      "shot": null
+    },
+    {
+      "surface": "customer",
+      "id": "C16",
+      "name": "Exclusive Deal detail: reservations paused (restriction)",
+      "journey": "Restriction",
+      "device": "mobile",
+      "rtl": false,
+      "figma": "none (CU-47 notice referenced in MVP doc)",
+      "svg": false,
+      "isNew": true,
+      "comps": [
+        "Warning alert",
+        "Disabled CTA"
+      ],
+      "sheets": [],
+      "states": [
+        "neutral temporary pause, end date, browsing still allowed"
+      ],
+      "route": "/hot/[id]",
+      "priority": "P2",
+      "shot": null
+    },
+    {
+      "surface": "customer",
+      "id": "C17",
+      "name": "My Deals: Active",
+      "journey": "Visit merchant",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "52 My Deals - active (MODIFY: no \"Paid SAR 15\")",
+      "svg": true,
+      "isNew": false,
+      "comps": [
+        "Segmented tabs",
+        "Reservation row"
+      ],
+      "sheets": [],
+      "states": [
+        "empty",
+        "loading",
+        "sign-in"
+      ],
+      "route": "/reservations",
+      "priority": "P1",
+      "shot": "customer-08-my-deals-en"
+    },
+    {
+      "surface": "customer",
+      "id": "C18",
+      "name": "My Deals: Past",
+      "journey": "History",
+      "device": "mobile",
+      "rtl": false,
+      "figma": "52 My Deals - active (Past tab)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Segmented tabs",
+        "Reservation row (past states)"
+      ],
+      "sheets": [],
+      "states": [
+        "used",
+        "not completed",
+        "cancelled by you",
+        "cancelled by the business"
+      ],
+      "route": "/reservations?tab=past",
+      "priority": "P2",
+      "shot": null
+    },
+    {
+      "surface": "customer",
+      "id": "C19",
+      "name": "My Deals: Updates (in-app notifications)",
+      "journey": "Notify",
+      "device": "mobile",
+      "rtl": false,
+      "figma": "05 Home - Notifications",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Notification row"
+      ],
+      "sheets": [],
+      "states": [
+        "unread highlight",
+        "empty"
+      ],
+      "route": "/reservations?tab=updates",
+      "priority": "P2",
+      "shot": "customer-10-updates-en"
+    },
+    {
+      "surface": "customer",
+      "id": "C20",
+      "name": "Loading (skeleton)",
+      "journey": "States",
+      "device": "mobile",
+      "rtl": false,
+      "figma": "none",
+      "svg": false,
+      "isNew": true,
+      "comps": [
+        "Skeleton card"
+      ],
+      "sheets": [],
+      "states": [
+        "loading"
+      ],
+      "route": "/hot",
+      "priority": "P3",
+      "shot": null
+    },
+    {
+      "surface": "customer",
+      "id": "C21",
+      "name": "Empty: no Exclusive Deals / no reservations",
+      "journey": "States",
+      "device": "mobile",
+      "rtl": false,
+      "figma": "none",
+      "svg": false,
+      "isNew": true,
+      "comps": [
+        "Empty state"
+      ],
+      "sheets": [],
+      "states": [
+        "no Exclusive Deals",
+        "no active reservations",
+        "no past reservations"
+      ],
+      "route": "/hot, /reservations",
+      "priority": "P3",
+      "shot": null
+    },
+    {
+      "surface": "customer",
+      "id": "C22",
+      "name": "Error and not-available",
+      "journey": "States",
+      "device": "mobile",
+      "rtl": false,
+      "figma": "none",
+      "svg": false,
+      "isNew": true,
+      "comps": [
+        "Error state",
+        "Retry button"
+      ],
+      "sheets": [],
+      "states": [
+        "could not load (retry)",
+        "Exclusive Deal not available any more"
+      ],
+      "route": "/hot, /hot/[id]",
+      "priority": "P3",
+      "shot": "customer-18-hot-error-en"
+    },
+    {
+      "surface": "customer",
+      "id": "C23",
+      "name": "Connection lost while reserving (sheet error)",
+      "journey": "Reserve",
+      "device": "mobile",
+      "rtl": false,
+      "figma": "26 Deal - Reserve sheet",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Bottom sheet",
+        "Danger alert"
+      ],
+      "sheets": [
+        "sheet"
+      ],
+      "states": [
+        "offline",
+        "out of stock (409)",
+        "limit reached",
+        "too many active"
+      ],
+      "route": "/hot/[id]",
+      "priority": "P2",
+      "shot": null
+    },
+    {
+      "surface": "customer",
+      "id": "C24",
+      "name": "Branch sold out inside the sheet",
+      "journey": "Race",
+      "device": "mobile",
+      "rtl": false,
+      "figma": "26 Deal - Reserve sheet",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Branch selector (disabled option)"
+      ],
+      "sheets": [
+        "sheet"
+      ],
+      "states": [
+        "one branch sold out, another available"
+      ],
+      "route": "/hot/[id]",
+      "priority": "P2",
+      "shot": null
+    },
+    {
+      "surface": "merchant",
+      "id": "M01",
+      "name": "Campaigns: Exclusive Deals list",
+      "journey": "Create",
+      "device": "desktop",
+      "rtl": true,
+      "figma": "58 Business console - Campaigns (REPLACED by Merchant Portal)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Sidebar nav",
+        "Live/Hot switch",
+        "Info alert (free)",
+        "Filters",
+        "Status chip",
+        "Table"
+      ],
+      "sheets": [],
+      "states": [
+        "loading",
+        "empty",
+        "error",
+        "no manage permission (no create button)"
+      ],
+      "route": "/deals/hot",
+      "priority": "P1",
+      "shot": "merchant-01-hot-hub-en"
+    },
+    {
+      "surface": "merchant",
+      "id": "M02",
+      "name": "Builder 1/6: Offer",
+      "journey": "Create",
+      "device": "desktop",
+      "rtl": false,
+      "figma": "63 Business - Create Exclusive Deal (REPLACED by 6-step builder)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Stepper",
+        "Select",
+        "Number input",
+        "Preview panel"
+      ],
+      "sheets": [],
+      "states": [
+        "draft saved",
+        "validation per step",
+        "autosave 30 s"
+      ],
+      "route": "/deals/hot/new",
+      "priority": "P1",
+      "shot": "merchant-02-hot-builder-empty-en"
+    },
+    {
+      "surface": "merchant",
+      "id": "M03",
+      "name": "Builder 2/6: Content (bilingual + photos)",
+      "journey": "Create",
+      "device": "desktop",
+      "rtl": false,
+      "figma": "63 Business - Create Exclusive Deal",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Bilingual field pair (EN LTR / AR RTL)",
+        "Photo uploader + alt text",
+        "Translation status chip"
+      ],
+      "sheets": [],
+      "states": [
+        "missing Arabic (blocks Next)",
+        "upload error",
+        "min size rules"
+      ],
+      "route": "/deals/hot/new (step 2)",
+      "priority": "P1",
+      "shot": "merchant-03-hot-builder-content-en"
+    },
+    {
+      "surface": "merchant",
+      "id": "M04",
+      "name": "Builder 3/6: Time & limits (time / quantity / both)",
+      "journey": "Create",
+      "device": "desktop",
+      "rtl": true,
+      "figma": "63 Business - Create Exclusive Deal",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Limit-type cards",
+        "Reservations switch",
+        "Datetime fields (Riyadh time)",
+        "Per-customer + hold fields"
+      ],
+      "sheets": [],
+      "states": [
+        "time only = walk-in (no reservation fields)",
+        "quantity only",
+        "time + quantity",
+        "live: locked fields"
+      ],
+      "route": "/deals/hot/new (step 3)",
+      "priority": "P1",
+      "shot": "merchant-04-hot-builder-limits-en"
+    },
+    {
+      "surface": "merchant",
+      "id": "M05",
+      "name": "Limit configurations side by side (board)",
+      "journey": "Create",
+      "device": "desktop",
+      "rtl": false,
+      "figma": "none",
+      "svg": false,
+      "isNew": true,
+      "comps": [
+        "Limit-type cards"
+      ],
+      "sheets": [],
+      "states": [
+        "time-only walk-in",
+        "quantity-only",
+        "time + quantity"
+      ],
+      "route": "hot-builder.tsx step 3",
+      "priority": "P2",
+      "shot": null
+    },
+    {
+      "surface": "merchant",
+      "id": "M06",
+      "name": "Builder 4/6: Branches & stock (inventory)",
+      "journey": "Create",
+      "device": "desktop",
+      "rtl": false,
+      "figma": "63 Business - Create Exclusive Deal",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Branch checkbox rows",
+        "Units input"
+      ],
+      "sheets": [],
+      "states": [
+        "no stock tracked (walk-in)",
+        "units too high",
+        "live: locked, use Add stock"
+      ],
+      "route": "/deals/hot/new (step 4)",
+      "priority": "P1",
+      "shot": "merchant-05-hot-builder-stock-en"
+    },
+    {
+      "surface": "merchant",
+      "id": "M07",
+      "name": "Builder 5/6: Eligibility & terms",
+      "journey": "Create",
+      "device": "desktop",
+      "rtl": false,
+      "figma": "63 Business - Create Exclusive Deal",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Radio list",
+        "Partner checkboxes",
+        "Terms toggles",
+        "Bilingual terms text"
+      ],
+      "sheets": [],
+      "states": [
+        "public",
+        "geography",
+        "employer",
+        "bank card",
+        "scheme"
+      ],
+      "route": "/deals/hot/new (step 5)",
+      "priority": "P2",
+      "shot": null
+    },
+    {
+      "surface": "merchant",
+      "id": "M08",
+      "name": "Builder 6/6: Review & submit",
+      "journey": "Create → Review",
+      "device": "desktop",
+      "rtl": false,
+      "figma": "63 Business - Create Exclusive Deal",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Summary list",
+        "Guardrail alert",
+        "Fix-first list with links",
+        "Submit"
+      ],
+      "sheets": [],
+      "states": [
+        "complete",
+        "issues with Fix links",
+        "live edit: only wording allowed",
+        "result: Sent for review / Published / Scheduled"
+      ],
+      "route": "/deals/hot/new (step 6)",
+      "priority": "P1",
+      "shot": "merchant-05b-hot-builder-review-en"
+    },
+    {
+      "surface": "merchant",
+      "id": "M09",
+      "name": "Status and banner board (Draft … Rejected)",
+      "journey": "Lifecycle",
+      "device": "desktop",
+      "rtl": false,
+      "figma": "none",
+      "svg": false,
+      "isNew": true,
+      "comps": [
+        "Status chip",
+        "Banners (info/warning/danger)"
+      ],
+      "sheets": [],
+      "states": [
+        "DRAFT",
+        "PENDING_REVIEW",
+        "NEEDS_CHANGES",
+        "SCHEDULED",
+        "LIVE",
+        "PAUSED",
+        "SOLD_OUT",
+        "EXPIRED",
+        "CANCELLED",
+        "REJECTED",
+        "SUSPENDED"
+      ],
+      "route": "hot-utils.tsx HotStatusChip",
+      "priority": "P1",
+      "shot": null
+    },
+    {
+      "surface": "merchant",
+      "id": "M10",
+      "name": "Exclusive Deal monitor: Live monitor",
+      "journey": "Operate",
+      "device": "desktop",
+      "rtl": true,
+      "figma": "58 Business console - Campaigns (monitor not in old design)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "KPI tiles",
+        "Countdown",
+        "Stock bar + legend",
+        "Per-branch table",
+        "Auto-refresh footer"
+      ],
+      "sheets": [
+        "Add stock dialog",
+        "Pause dialog",
+        "Cancel dialog"
+      ],
+      "states": [
+        "live",
+        "sold out",
+        "paused by DealDash (warning)",
+        "read-only role (no controls)"
+      ],
+      "route": "/deals/hot/[id]",
+      "priority": "P1",
+      "shot": "merchant-07-hot-monitor-en"
+    },
+    {
+      "surface": "merchant",
+      "id": "M11",
+      "name": "Exclusive Deal monitor: Reservations",
+      "journey": "Operate",
+      "device": "desktop",
+      "rtl": false,
+      "figma": "none",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Filters",
+        "Reservation table",
+        "Cancel-with-reason dialog"
+      ],
+      "sheets": [
+        "Cancel reservation dialog (reason required)"
+      ],
+      "states": [
+        "empty",
+        "held",
+        "used",
+        "not completed",
+        "cancelled"
+      ],
+      "route": "/deals/hot/[id] (tab)",
+      "priority": "P1",
+      "shot": "merchant-08-hot-reservations-en"
+    },
+    {
+      "surface": "merchant",
+      "id": "M12",
+      "name": "Exclusive Deal monitor: Results (funnel)",
+      "journey": "Operate",
+      "device": "desktop",
+      "rtl": false,
+      "figma": "60 Business console - Analytics (pattern only)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Funnel bars",
+        "KPI tiles",
+        "Caveat text"
+      ],
+      "sheets": [],
+      "states": [
+        "no data yet (–)"
+      ],
+      "route": "/deals/hot/[id] (tab)",
+      "priority": "P2",
+      "shot": "merchant-09-hot-results-en"
+    },
+    {
+      "surface": "merchant",
+      "id": "M13",
+      "name": "Exclusive Deal monitor: Activity",
+      "journey": "Operate",
+      "device": "desktop",
+      "rtl": false,
+      "figma": "none",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Timeline list"
+      ],
+      "sheets": [],
+      "states": [
+        "empty"
+      ],
+      "route": "/deals/hot/[id] (tab)",
+      "priority": "P3",
+      "shot": "merchant-10-hot-activity-en"
+    },
+    {
+      "surface": "merchant",
+      "id": "M14",
+      "name": "Add / remove stock dialog",
+      "journey": "Operate",
+      "device": "desktop",
+      "rtl": false,
+      "figma": "none",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Modal",
+        "Segment (add/remove)",
+        "Select",
+        "Number field",
+        "Danger alert"
+      ],
+      "sheets": [
+        "modal"
+      ],
+      "states": [
+        "add",
+        "remove (only unreserved)",
+        "INVENTORY_BELOW_COMMITTED error"
+      ],
+      "route": "/deals/hot/[id] (StockDialog)",
+      "priority": "P2",
+      "shot": null
+    },
+    {
+      "surface": "merchant",
+      "id": "M15",
+      "name": "Redemptions (with reverse)",
+      "journey": "Operate",
+      "device": "desktop",
+      "rtl": false,
+      "figma": "59 Business console - Redeem (REPLACED by Staff app)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Table",
+        "Reverse dialog (reason required)"
+      ],
+      "sheets": [
+        "Reverse dialog"
+      ],
+      "states": [
+        "reversed badge",
+        "no reverse permission",
+        "outside window"
+      ],
+      "route": "/redemptions",
+      "priority": "P1",
+      "shot": "merchant-12-redemptions-en"
+    },
+    {
+      "surface": "merchant",
+      "id": "M16",
+      "name": "Needs changes banner on the Exclusive Deal",
+      "journey": "Review",
+      "device": "desktop",
+      "rtl": false,
+      "figma": "none",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Warning banner with reviewer reason (EN/AR)"
+      ],
+      "sheets": [],
+      "states": [
+        "needs changes",
+        "rejected (danger)",
+        "pending (info)"
+      ],
+      "route": "/deals/hot/[id]",
+      "priority": "P2",
+      "shot": null
+    },
+    {
+      "surface": "staff",
+      "id": "T01",
+      "name": "Sign in: mobile number",
+      "journey": "Sign in",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "none (design doc T01)",
+      "svg": false,
+      "isNew": true,
+      "comps": [
+        "Phone field",
+        "Primary button",
+        "Language switch"
+      ],
+      "sheets": [],
+      "states": [
+        "enter number",
+        "no access / not invited"
+      ],
+      "route": "/ (LoginPanel via RequireAuth)",
+      "priority": "P1",
+      "shot": null
+    },
+    {
+      "surface": "staff",
+      "id": "T02",
+      "name": "Sign in: one-time code",
+      "journey": "Sign in",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "none (design doc T01)",
+      "svg": false,
+      "isNew": true,
+      "comps": [
+        "OTP boxes (always LTR)",
+        "Resend"
+      ],
+      "sheets": [],
+      "states": [
+        "wrong code",
+        "expired code",
+        "locked out"
+      ],
+      "route": "/ (LoginPanel)",
+      "priority": "P1",
+      "shot": null
+    },
+    {
+      "surface": "staff",
+      "id": "T03",
+      "name": "Scanner (camera) with manual-entry fallback",
+      "journey": "SCAN",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "none (Business console - Redeem is REPLACED)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Scanner viewport",
+        "Today counts",
+        "Enter-code button",
+        "Bottom bar (Scan/History/Account)"
+      ],
+      "sheets": [],
+      "states": [
+        "camera starting",
+        "scanning",
+        "camera denied → manual form"
+      ],
+      "route": "/ (staff/features/redeem.tsx)",
+      "priority": "P1",
+      "shot": "staff-01-scan-en"
+    },
+    {
+      "surface": "staff",
+      "id": "T04",
+      "name": "Manual code entry (also camera-denied)",
+      "journey": "SCAN",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "none (design doc T02 manual sheet)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Code field (large, LTR)",
+        "Primary button",
+        "Warning alert"
+      ],
+      "sheets": [],
+      "states": [
+        "camera denied",
+        "no camera",
+        "rate limited"
+      ],
+      "route": "/ (ManualEntry)",
+      "priority": "P1",
+      "shot": "staff-10-no-camera-en"
+    },
+    {
+      "surface": "staff",
+      "id": "T05",
+      "name": "VALIDATE: valid reservation",
+      "journey": "VALIDATE",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "none (design doc T03)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Result card (ok)",
+        "Facts list",
+        "Confirm button",
+        "Countdown"
+      ],
+      "sheets": [],
+      "states": [
+        "valid"
+      ],
+      "route": "/ (ResultView)",
+      "priority": "P1",
+      "shot": "staff-02-valid-en"
+    },
+    {
+      "surface": "staff",
+      "id": "T06",
+      "name": "REDEEM: processing (locked)",
+      "journey": "REDEEM",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "none (design doc T04)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Working card (aria-busy)"
+      ],
+      "sheets": [],
+      "states": [
+        "checking",
+        "confirming (no double tap)"
+      ],
+      "route": "/ (phase working)",
+      "priority": "P2",
+      "shot": null
+    },
+    {
+      "surface": "staff",
+      "id": "T07",
+      "name": "REDEEM: success",
+      "journey": "REDEEM",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "none (design doc T04)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Result card (ok)",
+        "Reference",
+        "Scan next"
+      ],
+      "sheets": [],
+      "states": [
+        "redeemed + reference"
+      ],
+      "route": "/ (phase done)",
+      "priority": "P1",
+      "shot": "staff-03-redeemed-en"
+    },
+    {
+      "surface": "staff",
+      "id": "T08",
+      "name": "Invalid code",
+      "journey": "VALIDATE",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "none (design doc T03)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Result card (stop)"
+      ],
+      "sheets": [],
+      "states": [
+        "unknown / malformed / other merchant (no leak)"
+      ],
+      "route": "/ (ResultView)",
+      "priority": "P1",
+      "shot": "staff-05-invalid-en"
+    },
+    {
+      "surface": "staff",
+      "id": "T09",
+      "name": "Expired reservation (\"Reservation not completed\")",
+      "journey": "VALIDATE",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "none (design doc T03)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Result card (warn)"
+      ],
+      "sheets": [],
+      "states": [
+        "hold ended"
+      ],
+      "route": "/ (ResultView)",
+      "priority": "P1",
+      "shot": null
+    },
+    {
+      "surface": "staff",
+      "id": "T10",
+      "name": "Already redeemed",
+      "journey": "VALIDATE",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "none (design doc T03)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Result card (stop)",
+        "Facts: when/where"
+      ],
+      "sheets": [],
+      "states": [
+        "replay / duplicate scan / lost race"
+      ],
+      "route": "/ (ResultView)",
+      "priority": "P1",
+      "shot": "staff-04-already-used-en"
+    },
+    {
+      "surface": "staff",
+      "id": "T11",
+      "name": "Wrong branch",
+      "journey": "VALIDATE",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "none (design doc T03)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Result card (stop)"
+      ],
+      "sheets": [],
+      "states": [
+        "valid at another branch of the same merchant"
+      ],
+      "route": "/ (ResultView)",
+      "priority": "P1",
+      "shot": "staff-07-wrong-branch-en"
+    },
+    {
+      "surface": "staff",
+      "id": "T12",
+      "name": "Eligibility failed",
+      "journey": "VALIDATE",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "none (design doc T03)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Result card (stop)",
+        "Requirement text (no personal data)"
+      ],
+      "sheets": [],
+      "states": [
+        "rule needs current eligibility"
+      ],
+      "route": "/ (ResultView)",
+      "priority": "P2",
+      "shot": null
+    },
+    {
+      "surface": "staff",
+      "id": "T13",
+      "name": "Reservation not active (cancelled)",
+      "journey": "VALIDATE",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "none (design doc T03)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Result card (stop)"
+      ],
+      "sheets": [],
+      "states": [
+        "cancelled or released"
+      ],
+      "route": "/ (ResultView)",
+      "priority": "P2",
+      "shot": null
+    },
+    {
+      "surface": "staff",
+      "id": "T14",
+      "name": "Campaign suspended / blocked / paused (red)",
+      "journey": "VALIDATE",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "none (design doc T03)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Result card (stop)"
+      ],
+      "sheets": [],
+      "states": [
+        "paused",
+        "suspended",
+        "cancelled campaign"
+      ],
+      "route": "/ (ResultView)",
+      "priority": "P2",
+      "shot": null
+    },
+    {
+      "surface": "staff",
+      "id": "T15",
+      "name": "Connectivity error with retry (same key)",
+      "journey": "REDEEM",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "none (design doc §8)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Offline panel",
+        "Retry button"
+      ],
+      "sheets": [],
+      "states": [
+        "request lost",
+        "retry reuses Idempotency-Key",
+        "never shows success without server confirmation"
+      ],
+      "route": "/ (phase offline)",
+      "priority": "P1",
+      "shot": "staff-06-offline-en"
+    },
+    {
+      "surface": "staff",
+      "id": "T16",
+      "name": "Offline banner and disabled actions",
+      "journey": "REDEEM",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "none (design doc §8)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Offline banner",
+        "Disabled button"
+      ],
+      "sheets": [],
+      "states": [
+        "device offline: banner, check/confirm disabled"
+      ],
+      "route": "/ (offline-banner)",
+      "priority": "P2",
+      "shot": "staff-06b-offline-banner-en"
+    },
+    {
+      "surface": "staff",
+      "id": "T17",
+      "name": "Rate limited (too many wrong codes)",
+      "journey": "VALIDATE",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "none (design doc §8)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Result card (stop)"
+      ],
+      "sheets": [],
+      "states": [
+        "5 wrong codes per minute"
+      ],
+      "route": "/ (phase error)",
+      "priority": "P3",
+      "shot": null
+    },
+    {
+      "surface": "staff",
+      "id": "T18",
+      "name": "Today / history",
+      "journey": "History",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "none (design doc T05)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Day toggle",
+        "Count tiles",
+        "Search field",
+        "Filter chips",
+        "History row (tappable)"
+      ],
+      "sheets": [
+        "T24 Scan details sheet"
+      ],
+      "states": [
+        "today",
+        "yesterday",
+        "empty",
+        "error + retry",
+        "search results (T23)"
+      ],
+      "route": "/history",
+      "priority": "P1",
+      "shot": "staff-08-history-en"
+    },
+    {
+      "surface": "staff",
+      "id": "T19",
+      "name": "Account",
+      "journey": "Account",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "none (design doc T06)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Account card",
+        "Language pills",
+        "Sign out"
+      ],
+      "sheets": [],
+      "states": [
+        "single branch",
+        "all branches",
+        "no redeem permission"
+      ],
+      "route": "/account",
+      "priority": "P2",
+      "shot": "staff-09-account-en"
+    },
+    {
+      "surface": "staff",
+      "id": "T20",
+      "name": "Camera permission denied",
+      "journey": "SCAN",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "none (design doc §8)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Scanner empty state",
+        "Enter-code button"
+      ],
+      "sheets": [],
+      "states": [
+        "denied",
+        "unavailable"
+      ],
+      "route": "/ (CameraScanner)",
+      "priority": "P2",
+      "shot": null
+    },
+    {
+      "surface": "staff",
+      "id": "T21",
+      "name": "REDEEM: confirmation bottom sheet",
+      "journey": "REDEEM",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "none (approved bottom-sheet confirmation, design doc T04)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Result card (valid)",
+        "Bottom sheet",
+        "Facts list",
+        "Irreversible warning alert",
+        "Confirm / Cancel buttons"
+      ],
+      "sheets": [
+        "Redeem confirmation bottom sheet (locks while submitting)"
+      ],
+      "states": [
+        "open",
+        "submitting (buttons locked, no double submit)",
+        "offline (Confirm disabled)"
+      ],
+      "route": "/ (BottomSheet in apps/staff/features/redeem.tsx)",
+      "priority": "P1",
+      "shot": "staff-02b-confirm-sheet-en"
+    },
+    {
+      "surface": "staff",
+      "id": "T22",
+      "name": "Not valid yet (amber)",
+      "journey": "VALIDATE",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "none (design doc T03)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Result card (warn)",
+        "Facts incl. start time",
+        "Scan next"
+      ],
+      "sheets": [],
+      "states": [
+        "campaign scheduled or start time ahead; shows when it starts; never offers Redeem"
+      ],
+      "route": "/ (ResultView, result NOT_VALID_YET)",
+      "priority": "P1",
+      "shot": null
+    },
+    {
+      "surface": "staff",
+      "id": "T23",
+      "name": "History: search by code",
+      "journey": "History",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "none (design doc T05)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Search field (LTR)",
+        "Day toggle",
+        "Count tiles",
+        "Filter chips",
+        "History row (tappable)"
+      ],
+      "sheets": [],
+      "states": [
+        "results",
+        "no matches",
+        "loading"
+      ],
+      "route": "/history (search, q=last letters of the code)",
+      "priority": "P1",
+      "shot": "staff-08c-history-search-en"
+    },
+    {
+      "surface": "staff",
+      "id": "T24",
+      "name": "History: scan detail sheet",
+      "journey": "History",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "none (design doc T05 detail)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Bottom sheet",
+        "Facts list",
+        "Status chip"
+      ],
+      "sheets": [
+        "Scan details bottom sheet"
+      ],
+      "states": [
+        "redeemed",
+        "rejected (any result)",
+        "no personal data beyond first name"
+      ],
+      "route": "/history (BottomSheet history-detail)",
+      "priority": "P2",
+      "shot": "staff-08b-history-detail-en"
+    },
+    {
+      "surface": "staff",
+      "id": "T25",
+      "name": "Scanner with torch control and wake-lock note",
+      "journey": "SCAN",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "none",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Scanner viewport",
+        "Torch toggle (only where the camera supports it)",
+        "Enter-code button"
+      ],
+      "sheets": [],
+      "states": [
+        "torch off",
+        "torch on (amber)",
+        "torch unsupported: control hidden",
+        "wake lock held where supported (silent progressive enhancement)"
+      ],
+      "route": "/ (CameraScanner)",
+      "priority": "P2",
+      "shot": null
+    },
+    {
+      "surface": "staff",
+      "id": "T26",
+      "name": "OTP: wrong code and expired code",
+      "journey": "Sign in",
+      "device": "mobile",
+      "rtl": true,
+      "figma": "none (design doc T01)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "OTP boxes (one input drawn as six)",
+        "Danger alert",
+        "Resend button"
+      ],
+      "sheets": [],
+      "states": [
+        "wrong code (boxes red, cleared, no \"tries left\")",
+        "expired code",
+        "new code sent (success note)",
+        "too many requests (backend-controlled)"
+      ],
+      "route": "/ (LoginPanel / OtpInput in packages/ui)",
+      "priority": "P1",
+      "shot": null
+    },
+    {
+      "surface": "admin",
+      "id": "A01",
+      "name": "Exclusive Deal review queue",
+      "journey": "Review",
+      "device": "desktop",
+      "rtl": true,
+      "figma": "none (Admin visual design: campaign queue pattern)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Tabs (Queue/All/Monitor)",
+        "Search",
+        "Table",
+        "Status chip"
+      ],
+      "sheets": [],
+      "states": [
+        "empty queue",
+        "loading",
+        "error"
+      ],
+      "route": "/hot-deals",
+      "priority": "P1",
+      "shot": "admin-01-hot-queue-en"
+    },
+    {
+      "surface": "admin",
+      "id": "A02",
+      "name": "Exclusive Deal review workbench",
+      "journey": "Review",
+      "device": "desktop",
+      "rtl": true,
+      "figma": "none (Admin visual design: review workbench pattern)",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Merchant card",
+        "Reservation rules card",
+        "Inventory table",
+        "EN/AR content columns",
+        "Media grid",
+        "History timeline",
+        "Reservation activity feed (A10)",
+        "Decision panel",
+        "Customer preview"
+      ],
+      "sheets": [
+        "Decision dialog"
+      ],
+      "states": [
+        "pending review",
+        "live (control actions)",
+        "suspended",
+        "support: no access"
+      ],
+      "route": "/hot-deals/[id]",
+      "priority": "P1",
+      "shot": "admin-02-hot-review-en"
+    },
+    {
+      "surface": "admin",
+      "id": "A03",
+      "name": "Decision dialog (approve / request changes / reject / pause / suspend / cancel)",
+      "journey": "Review",
+      "device": "desktop",
+      "rtl": false,
+      "figma": "none",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Modal",
+        "Reason (EN) required",
+        "Reason (AR) optional",
+        "Confirm (danger for reject/suspend/cancel)"
+      ],
+      "sheets": [
+        "modal"
+      ],
+      "states": [
+        "reason required error",
+        "success \"Done\""
+      ],
+      "route": "/hot-deals/[id]",
+      "priority": "P1",
+      "shot": null
+    },
+    {
+      "surface": "admin",
+      "id": "A04",
+      "name": "Pause / suspend / reinstate controls on a live Exclusive Deal",
+      "journey": "Control",
+      "device": "desktop",
+      "rtl": false,
+      "figma": "none",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Decision panel (control actions)",
+        "Status chip"
+      ],
+      "sheets": [
+        "Decision dialog"
+      ],
+      "states": [
+        "LIVE: pause/suspend/cancel",
+        "PAUSED: resume/suspend",
+        "SUSPENDED: reinstate"
+      ],
+      "route": "/hot-deals/[id]",
+      "priority": "P1",
+      "shot": null
+    },
+    {
+      "surface": "admin",
+      "id": "A05",
+      "name": "Live Exclusive Deal monitor (platform)",
+      "journey": "Monitor",
+      "device": "desktop",
+      "rtl": true,
+      "figma": "none",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "KPI tiles",
+        "Table of live deals"
+      ],
+      "sheets": [],
+      "states": [
+        "loading",
+        "error"
+      ],
+      "route": "/hot-deals (Live monitor tab)",
+      "priority": "P1",
+      "shot": "admin-03-hot-monitor-en"
+    },
+    {
+      "surface": "admin",
+      "id": "A06",
+      "name": "Reservation activity: lookup, cancel, reverse",
+      "journey": "Support",
+      "device": "desktop",
+      "rtl": false,
+      "figma": "none",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Search field",
+        "Reservation card",
+        "Reason dialog"
+      ],
+      "sheets": [
+        "Reason dialog"
+      ],
+      "states": [
+        "not found",
+        "held → cancel",
+        "redeemed → reverse"
+      ],
+      "route": "/reservations (Find a reservation)",
+      "priority": "P1",
+      "shot": "admin-05-reservation-lookup-en"
+    },
+    {
+      "surface": "admin",
+      "id": "A07",
+      "name": "Customer restrictions (no-show review)",
+      "journey": "Support",
+      "device": "desktop",
+      "rtl": false,
+      "figma": "none",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Table",
+        "Lift dialog (reason required)"
+      ],
+      "sheets": [
+        "Lift dialog"
+      ],
+      "states": [
+        "active",
+        "lifted",
+        "ended",
+        "empty"
+      ],
+      "route": "/reservations (Restrictions)",
+      "priority": "P1",
+      "shot": "admin-04-restrictions-en"
+    },
+    {
+      "surface": "admin",
+      "id": "A08",
+      "name": "Audit and decision history (timeline)",
+      "journey": "Audit",
+      "device": "desktop",
+      "rtl": false,
+      "figma": "none",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Timeline",
+        "Actor/role meta"
+      ],
+      "sheets": [],
+      "states": [
+        "empty"
+      ],
+      "route": "/hot-deals/[id] (History card)",
+      "priority": "P2",
+      "shot": "admin-02-hot-review-en"
+    },
+    {
+      "surface": "admin",
+      "id": "A09",
+      "name": "Customer preview inside the workbench",
+      "journey": "Review",
+      "device": "desktop",
+      "rtl": false,
+      "figma": "none",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Preview frame (EN/AR toggle)",
+        "Exclusive Deal card",
+        "Exclusive Deal detail (embedded)"
+      ],
+      "sheets": [],
+      "states": [
+        "EN",
+        "AR (RTL)",
+        "locked eligibility shown"
+      ],
+      "route": "/hot-deals/[id] (aside)",
+      "priority": "P2",
+      "shot": "admin-07-hot-review-ar"
+    },
+    {
+      "surface": "admin",
+      "id": "A10",
+      "name": "Per-Hot-Deal reservation and activity feed",
+      "journey": "Monitor",
+      "device": "desktop",
+      "rtl": true,
+      "figma": "none",
+      "svg": true,
+      "isNew": true,
+      "comps": [
+        "Activity feed card",
+        "Timeline row (time, event, ref, actor)",
+        "Refresh button",
+        "Show more"
+      ],
+      "sheets": [],
+      "states": [
+        "loading",
+        "empty \"No activity yet\"",
+        "error",
+        "more than 15 events: Show more"
+      ],
+      "route": "/hot-deals/[id] (ActivityFeed card under History)",
+      "priority": "P1",
+      "shot": "admin-02-hot-review-en"
+    }
+  ],
+  "components": [
+    {
+      "id": "K01",
+      "name": "Customer components",
+      "items": [
+        "Exclusive Deal card (list + carousel)",
+        "Countdown (calm/soon/urgent/ended)",
+        "Inventory badge",
+        "Branch selector",
+        "Reserve CTA bar",
+        "Reservation status chip",
+        "QR/code card",
+        "Sold-out state"
+      ]
+    },
+    {
+      "id": "K02",
+      "name": "Merchant Portal components",
+      "items": [
+        "Exclusive Deal builder (stepper + preview)",
+        "Inventory controls",
+        "Reservation configuration",
+        "Campaign monitor",
+        "Reservation table",
+        "Performance cards"
+      ]
+    },
+    {
+      "id": "K03",
+      "name": "Merchant Staff components",
+      "items": [
+        "Scanner viewport",
+        "Manual entry field",
+        "Validation result card (ok/warn/stop)",
+        "Status states",
+        "Confirm redemption button",
+        "Success state"
+      ]
+    },
+    {
+      "id": "K04",
+      "name": "Admin components",
+      "items": [
+        "Review workbench",
+        "Inventory view",
+        "Reservation activity",
+        "Decision panel",
+        "Audit timeline"
+      ]
+    },
+    {
+      "id": "K05",
+      "name": "Shared status and state patterns",
+      "items": [
+        "Exclusive Deal status chips (11)",
+        "Loading skeleton",
+        "Empty state",
+        "Error + retry",
+        "Offline banner",
+        "Alerts (info/warning/danger/success)"
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "id": "F01",
+      "name": "Merchant creates Exclusive Deal → Admin approves",
+      "steps": 8
+    },
+    {
+      "id": "F02",
+      "name": "Customer discovers → reserves → confirmation → visits merchant",
+      "steps": 8
+    },
+    {
+      "id": "F03",
+      "name": "Staff scans → validates → redeems",
+      "steps": 8
+    },
+    {
+      "id": "F04",
+      "name": "Reservation expires → inventory returns → customer sees expired",
+      "steps": 8
+    },
+    {
+      "id": "F05",
+      "name": "Last unit → one customer succeeds → second sees sold out",
+      "steps": 8
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+node_modules/
+dist/
+.next/
+.turbo/
+coverage/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+# generated Prisma client (re-created by `pnpm --filter @dealdash/api db:generate`)
+apps/api/src/generated/
+# local tools and data
+.tools/
+.pgdata/
+test-results/
+playwright-report/
+# development file storage (uploaded documents)
+.storage/

@@ -1,0 +1,4 @@
+{
+  "extends": "@dealdash/tsconfig/library.json",
+  "include": ["src"]
+}

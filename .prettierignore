@@ -1,0 +1,16 @@
+node_modules
+dist
+.next
+.turbo
+coverage
+pnpm-lock.yaml
+apps/api/src/generated
+packages/api-client/src/schema.d.ts
+packages/api-client/openapi.json
+docs
+Figma Files
+tooling
+.github
+infra
+README.md
+apps/*/public/sw.js

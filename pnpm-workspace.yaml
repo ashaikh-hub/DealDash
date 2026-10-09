@@ -1,0 +1,13 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+# Packages allowed to run install/build scripts (pnpm 12 blocks others by default).
+allowBuilds:
+  esbuild: true
+  "@prisma/engines": true
+  prisma: true
+  "@swc/core": true
+  sharp: true
+  unrs-resolver: true
+  "@scarf/scarf": false

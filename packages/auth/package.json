@@ -1,0 +1,34 @@
+{
+  "name": "@dealdash/auth",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Client-side auth helpers: permission checks and permission-aware navigation (UI hint only; the API enforces everything)",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@dealdash/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@dealdash/tsconfig": "workspace:*",
+    "tsup": "^8.5.0",
+    "typescript": "~5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

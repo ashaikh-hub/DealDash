@@ -1,0 +1,10 @@
+{
+  "extends": "@dealdash/tsconfig/nestjs.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "rootDir": ".",
+    "noEmit": true,
+    "types": ["node", "vitest/globals"]
+  },
+  "include": ["src", "test", "scripts", "prisma.config.ts", "vitest.config.ts"]
+}

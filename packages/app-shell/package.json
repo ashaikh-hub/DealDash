@@ -1,0 +1,55 @@
+{
+  "name": "@dealdash/app-shell",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shared application shell for all five Next.js apps: auth state, login flows, permission-aware navigation, locale switcher, RTL demo, PWA helpers",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@dealdash/analytics": "workspace:*",
+    "@dealdash/api-client": "workspace:*",
+    "@dealdash/auth": "workspace:*",
+    "@dealdash/localization": "workspace:*",
+    "@dealdash/types": "workspace:*",
+    "@dealdash/ui": "workspace:*",
+    "@dealdash/validation": "workspace:*",
+    "qrcode-generator": "^2.0.4"
+  },
+  "peerDependencies": {
+    "next": "^15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@dealdash/tsconfig": "workspace:*",
+    "@testing-library/jest-dom": "^6.6.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "jsdom": "^26.1.0",
+    "next": "^15.5.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tsup": "^8.5.0",
+    "typescript": "~5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

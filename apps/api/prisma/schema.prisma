@@ -1,0 +1,4347 @@
+// DealDash foundation schema (Stage 1). Product tables (deals, vouchers, rewards, ...) arrive with their stages.
+// Source of truth: PostgreSQL. Geographic search uses PostGIS (see migrations 0002 and docs/DEALDASH_TECH_SPIKES.md).
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------- enums
+enum UserType {
+  CUSTOMER
+  MERCHANT_USER
+  PARTNER_USER
+  ADMIN_USER
+}
+
+enum UserStatus {
+  ACTIVE
+  INVITED
+  SUSPENDED
+  CLOSED
+}
+
+enum OrganizationType {
+  DEALDASH
+  MERCHANT
+  PARTNER
+}
+
+enum OrganizationStatus {
+  DRAFT
+  ACTIVE
+  SUSPENDED
+}
+
+enum PartnerType {
+  BANK
+  SCHEME
+  EMPLOYER
+}
+
+enum BranchStatus {
+  ACTIVE
+  CLOSED
+  SUSPENDED
+}
+
+enum RoleScope {
+  CUSTOMER
+  MERCHANT
+  PARTNER
+  DEALDASH
+}
+
+enum MembershipStatus {
+  ACTIVE
+  REVOKED
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+  DEAD
+}
+
+// ---------------------------------------------------------------- identity
+model User {
+  id               String     @id @default(uuid(7)) @db.Uuid
+  userType         UserType
+  status           UserStatus @default(ACTIVE)
+  email            String?    @unique
+  mobile           String?    @unique
+  displayName      String
+  locale           String     @default("en")
+  passwordHash     String?
+  mfaSecretEnc     String?
+  mfaEnabled       Boolean    @default(false)
+  failedLoginCount Int        @default(0)
+  emailVerifiedAt  DateTime?
+  mobileVerifiedAt DateTime?
+  lockedUntil      DateTime?
+  lastLoginAt      DateTime?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  sessions    UserSession[]
+  memberships OrganizationMembership[]
+  customer    Customer?
+
+  @@index([userType, status])
+}
+
+model UserSession {
+  id                 String    @id @default(uuid(7)) @db.Uuid
+  userId             String    @db.Uuid
+  audience           String
+  tokenHash          String    @unique
+  mfaVerified        Boolean   @default(false)
+  activeMembershipId String?   @db.Uuid
+  ip                 String?
+  userAgent          String?
+  createdAt          DateTime  @default(now())
+  lastSeenAt         DateTime  @default(now())
+  expiresAt          DateTime
+  revokedAt          DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model OtpChallenge {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  purpose     String
+  audience    String
+  target      String
+  codeHash    String
+  attempts    Int       @default(0)
+  maxAttempts Int
+  expiresAt   DateTime
+  consumedAt  DateTime?
+  ip          String?
+  createdAt   DateTime  @default(now())
+
+  @@index([target, createdAt])
+}
+
+// ---------------------------------------------------------------- organisations (tenants)
+model Organization {
+  id        String             @id @default(uuid(7)) @db.Uuid
+  type      OrganizationType
+  status    OrganizationStatus @default(ACTIVE)
+  nameEn    String
+  nameAr    String
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  merchant       Merchant?
+  masterMerchant MasterMerchant?
+  partner        Partner?
+  application    MerchantApplication?
+  branches       MerchantBranch[]
+  memberships    OrganizationMembership[]
+  liveDeals      LiveDeal[]
+  hotDeals       HotDeal[]
+  vouchers       Voucher[]
+  watchCampaigns WatchCampaign[]
+
+  @@index([type, status])
+}
+
+model Merchant {
+  organizationId               String     @id @db.Uuid
+  legalName                    String
+  legalNameAr                  String?
+  tradeNameEn                  String?
+  tradeNameAr                  String?
+  commercialRegistrationNumber String?
+  taxNumber                    String?
+  businessType                 String?
+  registeredAddress            String?
+  businessPhone                String?
+  businessEmail                String?
+  category                     String?
+  categoryCode                 String?
+  subCategory                  String?
+  descriptionEn                String?
+  descriptionAr                String?
+  logoFileId                   String?    @db.Uuid
+  coverFileId                  String?    @db.Uuid
+  galleryFileIds               Json       @default("[]")
+  trustLevel                   TrustLevel @default(NEW)
+  riskTier                     RiskTier   @default(STANDARD)
+  suspendedReason              String?
+  suspendedAt                  DateTime?
+  activatedAt                  DateTime?
+  createdAt                    DateTime   @default(now())
+  updatedAt                    DateTime   @updatedAt
+
+  organization   Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  representative MerchantRepresentative?
+  settlement     MerchantSettlementAccount?
+
+  @@index([commercialRegistrationNumber])
+  @@index([trustLevel, riskTier])
+}
+
+model Partner {
+  organizationId String      @id @db.Uuid
+  partnerType    PartnerType
+  legalName      String
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([partnerType])
+}
+
+model MerchantBranch {
+  id             String                                @id @default(uuid(7)) @db.Uuid
+  organizationId String                                @db.Uuid
+  nameEn         String
+  nameAr         String
+  addressEn      String
+  addressAr      String
+  city           String
+  latitude       Decimal?                              @db.Decimal(9, 6)
+  longitude      Decimal?                              @db.Decimal(9, 6)
+  // Maintained by a database trigger from latitude/longitude (PostGIS); never written by the application.
+  location       Unsupported("geography(Point,4326)")?
+  phone          String?
+  hours          Json?
+  holidayHours   Json?
+  /// Market the outlet trades in (ISO 3166-1 alpha-2); scope checks and country configuration use it.
+  country        String                                @default("SA")
+  status         BranchStatus                          @default(ACTIVE)
+  createdAt      DateTime                              @default(now())
+  updatedAt      DateTime                              @updatedAt
+
+  organization    Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  memberships     OrganizationMembership[]
+  dealBranches    LiveDealBranch[]
+  hotInventory    HotDealInventory[]
+  reservations    Reservation[]
+  voucherBranches VoucherBranch[]
+
+  @@index([organizationId])
+  @@index([city, status])
+  @@index([location], type: Gist, map: "MerchantBranch_location_gist")
+}
+
+// ---------------------------------------------------------------- RBAC
+model Role {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  code        String    @unique
+  scope       RoleScope
+  name        String
+  description String?
+
+  permissions RolePermission[]
+  memberships OrganizationMembership[]
+  invitations Invitation[]
+  assignments RoleAssignment[]
+}
+
+model Permission {
+  id          String  @id @default(uuid(7)) @db.Uuid
+  code        String  @unique
+  description String?
+
+  roles RolePermission[]
+}
+
+model RolePermission {
+  roleId       String @db.Uuid
+  permissionId String @db.Uuid
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@index([permissionId])
+}
+
+model OrganizationMembership {
+  id             String           @id @default(uuid(7)) @db.Uuid
+  userId         String           @db.Uuid
+  organizationId String           @db.Uuid
+  roleId         String           @db.Uuid
+  // Branch scope: null means organisation-wide; set means restricted to that branch (for example staff).
+  branchId       String?          @db.Uuid
+  status         MembershipStatus @default(ACTIVE)
+  createdAt      DateTime         @default(now())
+  revokedAt      DateTime?
+  /// Scoped member: permissions come ONLY from active role assignments, each with its own scope.
+  scoped         Boolean          @default(false)
+
+  assignments  RoleAssignment[]
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  role         Role             @relation(fields: [roleId], references: [id])
+  branch       MerchantBranch?  @relation(fields: [branchId], references: [id], onDelete: SetNull)
+
+  @@index([userId, status])
+  @@index([organizationId, status])
+  @@index([branchId])
+}
+
+// ---------------------------------------------------------------- customers
+model Customer {
+  userId          String   @id @db.Uuid
+  firstName       String?
+  lastName        String?
+  email           String?
+  city            String?
+  onboardingState String   @default("PHONE_VERIFIED")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ---------------------------------------------------------------- audit (append-only; enforced by DB triggers)
+model AuditLog {
+  id                    String   @id @default(uuid(7)) @db.Uuid
+  occurredAt            DateTime @default(now())
+  actorUserId           String?  @db.Uuid
+  actorRole             String?
+  actorOrganizationId   String?  @db.Uuid
+  subjectOrganizationId String?  @db.Uuid
+  action                String
+  entityType            String
+  entityId              String?
+  reason                String?
+  previousState         Json?
+  newState              Json?
+  ip                    String?
+  userAgent             String?
+  requestId             String?
+  /// The scope the actor acted under (for example BRANCH:<id>, COUNTRY:SA) and a correlation id that ties one business
+  /// operation across several records. Both optional so older records stay valid.
+  scope                 String?
+  correlationId         String?
+  approvalRef           String?
+  source                String?
+
+  @@index([occurredAt])
+  @@index([correlationId])
+  @@index([actorOrganizationId, occurredAt])
+  @@index([subjectOrganizationId, occurredAt])
+  @@index([entityType, entityId])
+  @@index([action, occurredAt])
+}
+
+// ---------------------------------------------------------------- configuration
+model SystemConfiguration {
+  id              String   @id @default(uuid(7)) @db.Uuid
+  key             String   @unique
+  value           Json
+  description     String?
+  version         Int      @default(1)
+  updatedByUserId String?  @db.Uuid
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------- framework tables
+model Job {
+  id             String    @id @default(uuid(7)) @db.Uuid
+  type           String
+  payload        Json
+  status         JobStatus @default(QUEUED)
+  attempts       Int       @default(0)
+  maxAttempts    Int       @default(3)
+  runAt          DateTime  @default(now())
+  lockedAt       DateTime?
+  lockedBy       String?
+  lastError      String?
+  result         Json?
+  idempotencyKey String?   @unique
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  finishedAt     DateTime?
+
+  @@index([status, runAt])
+  @@index([type])
+}
+
+model IdempotencyKey {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  scope          String
+  key            String
+  method         String
+  path           String
+  requestHash    String
+  responseStatus Int?
+  responseBody   Json?
+  createdAt      DateTime @default(now())
+  expiresAt      DateTime
+
+  @@unique([scope, key])
+  @@index([expiresAt])
+}
+
+// ================================================================ Stage 2: merchant onboarding, review, team
+enum TrustLevel {
+  NEW
+  STANDARD
+  TRUSTED
+}
+
+enum RiskTier {
+  STANDARD
+  ENHANCED
+}
+
+enum ApplicationStatus {
+  DRAFT
+  SUBMITTED
+  IN_REVIEW
+  CHANGES_REQUESTED
+  RESUBMITTED
+  APPROVED
+  REJECTED
+}
+
+enum DecisionType {
+  CLAIMED
+  REQUEST_CHANGES
+  APPROVE_RECOMMENDED
+  APPROVE
+  REJECT
+  RISK_TIER_CHANGED
+  RESUBMITTED
+}
+
+enum DocumentStatus {
+  UPLOADED
+  ACCEPTED
+  REJECTED
+  SUPERSEDED
+}
+
+enum FileStatus {
+  PENDING
+  AVAILABLE
+  REJECTED
+}
+
+enum AcceptanceStatus {
+  ACCEPTED
+  SUPERSEDED
+  REVOKED
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  EXPIRED
+}
+
+model MerchantApplication {
+  id                   String            @id @default(uuid(7)) @db.Uuid
+  organizationId       String            @unique @db.Uuid
+  reference            String            @unique
+  status               ApplicationStatus @default(DRAFT)
+  version              Int               @default(0)
+  submittedAt          DateTime?
+  decidedAt            DateTime?
+  decidedByUserId      String?           @db.Uuid
+  assignedToUserId     String?           @db.Uuid
+  firstApproverUserId  String?           @db.Uuid
+  awaitingSecondReview Boolean           @default(false)
+  rejectionReason      String?
+  rejectionReasonAr    String?
+  appealable           Boolean           @default(true)
+  requestedChanges     Json?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  organization Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  decisions    ApplicationDecision[]
+  submissions  ApplicationSubmission[]
+  notes        ApplicationNote[]
+
+  @@index([status, submittedAt])
+  @@index([assignedToUserId])
+}
+
+model ApplicationDecision {
+  id              String       @id @default(uuid(7)) @db.Uuid
+  applicationId   String       @db.Uuid
+  decision        DecisionType
+  message         String?
+  messageAr       String?
+  sections        Json         @default("[]")
+  documentIds     Json         @default("[]")
+  decidedByUserId String?      @db.Uuid
+  createdAt       DateTime     @default(now())
+
+  application MerchantApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId, createdAt])
+}
+
+model ApplicationSubmission {
+  id            String   @id @default(uuid(7)) @db.Uuid
+  applicationId String   @db.Uuid
+  version       Int
+  snapshot      Json
+  createdAt     DateTime @default(now())
+
+  application MerchantApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@unique([applicationId, version])
+}
+
+model ApplicationNote {
+  id            String   @id @default(uuid(7)) @db.Uuid
+  applicationId String   @db.Uuid
+  authorUserId  String   @db.Uuid
+  body          String
+  createdAt     DateTime @default(now())
+
+  application MerchantApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId, createdAt])
+}
+
+model MerchantRepresentative {
+  organizationId   String   @id @db.Uuid
+  fullName         String
+  role             String
+  idReferenceEnc   String
+  idReferenceLast4 String
+  mobile           String
+  email            String
+  isSignatory      Boolean  @default(false)
+  updatedAt        DateTime @updatedAt
+
+  merchant Merchant @relation(fields: [organizationId], references: [organizationId], onDelete: Cascade)
+}
+
+model MerchantSettlementAccount {
+  organizationId     String    @id @db.Uuid
+  bankName           String
+  ibanEnc            String
+  ibanMasked         String
+  accountHolderName  String
+  verificationStatus String    @default("UNVERIFIED")
+  verifiedByUserId   String?   @db.Uuid
+  verifiedAt         DateTime?
+  payoutHold         Boolean   @default(false)
+  updatedAt          DateTime  @updatedAt
+
+  merchant Merchant @relation(fields: [organizationId], references: [organizationId], onDelete: Cascade)
+}
+
+model StoredFile {
+  id             String     @id @default(uuid(7)) @db.Uuid
+  organizationId String?    @db.Uuid
+  ownerUserId    String?    @db.Uuid
+  kind           String
+  originalName   String
+  mimeType       String
+  declaredSize   Int
+  sizeBytes      Int?
+  sha256         String?
+  storageKey     String     @unique
+  status         FileStatus @default(PENDING)
+  createdAt      DateTime   @default(now())
+  completedAt    DateTime?
+
+  documents MerchantDocument[]
+
+  @@index([organizationId, kind])
+}
+
+model MerchantDocument {
+  id               String         @id @default(uuid(7)) @db.Uuid
+  organizationId   String         @db.Uuid
+  requirementCode  String
+  fileId           String         @db.Uuid
+  expiryDate       DateTime?      @db.Date
+  status           DocumentStatus @default(UPLOADED)
+  reviewerNote     String?
+  reviewedByUserId String?        @db.Uuid
+  reviewedAt       DateTime?
+  uploadedByUserId String?        @db.Uuid
+  createdAt        DateTime       @default(now())
+
+  file StoredFile @relation(fields: [fileId], references: [id])
+
+  @@index([organizationId, requirementCode])
+}
+
+model AgreementVersion {
+  id            String   @id @default(uuid(7)) @db.Uuid
+  kind          String   @default("MERCHANT")
+  version       String
+  titleEn       String
+  titleAr       String
+  bodyEn        String
+  bodyAr        String
+  placeholder   Boolean  @default(true)
+  active        Boolean  @default(true)
+  effectiveFrom DateTime @default(now())
+
+  acceptances AgreementAcceptance[]
+
+  @@unique([kind, version])
+}
+
+model AgreementAcceptance {
+  id                 String           @id @default(uuid(7)) @db.Uuid
+  organizationId     String           @db.Uuid
+  agreementVersionId String           @db.Uuid
+  signatoryUserId    String           @db.Uuid
+  signatoryName      String
+  signatoryRole      String
+  signatoryIdLast4   String
+  entityLegalName    String
+  signatureText      String
+  acceptedAt         DateTime         @default(now())
+  ip                 String?
+  userAgent          String?
+  method             String           @default("CLICK_ACCEPT")
+  status             AcceptanceStatus @default(ACCEPTED)
+
+  version AgreementVersion @relation(fields: [agreementVersionId], references: [id])
+
+  @@index([organizationId, status])
+}
+
+model Invitation {
+  id              String           @id @default(uuid(7)) @db.Uuid
+  organizationId  String           @db.Uuid
+  name            String
+  email           String?
+  mobile          String?
+  roleId          String           @db.Uuid
+  branchId        String?          @db.Uuid
+  tokenHash       String?          @unique
+  status          InvitationStatus @default(PENDING)
+  expiresAt       DateTime
+  invitedByUserId String           @db.Uuid
+  createdUserId   String?          @db.Uuid
+  acceptedAt      DateTime?
+  createdAt       DateTime         @default(now())
+
+  role Role @relation(fields: [roleId], references: [id])
+
+  @@index([organizationId, status])
+}
+
+// ================================================================ Stage 3: Live Deals and customer discovery
+enum LiveDealStatus {
+  DRAFT
+  PENDING_REVIEW
+  NEEDS_CHANGES
+  SCHEDULED
+  LIVE
+  PAUSED
+  EXPIRED
+  REJECTED
+  SUSPENDED
+}
+
+enum LiveDealRevisionStatus {
+  DRAFT
+  PENDING_REVIEW
+  NEEDS_CHANGES
+  APPROVED
+  REJECTED
+  WITHDRAWN
+}
+
+enum LiveDealAction {
+  CREATE
+  UPDATE
+  SUBMIT
+  AUTO_APPROVE
+  REQUEST_CHANGES
+  APPROVE
+  REJECT
+  ACTIVATE
+  EXPIRE
+  PAUSE
+  RESUME
+  SUSPEND
+  REINSTATE
+  END
+  MINOR_EDIT
+  REVISION_SAVED
+  REVISION_SUBMIT
+  REVISION_AUTO_APPROVE
+  REVISION_REQUEST_CHANGES
+  REVISION_APPROVE
+  REVISION_REJECT
+  REVISION_DISCARD
+}
+
+enum LiveDealMechanic {
+  PERCENTAGE_OFF
+  AMOUNT_OFF
+  BOGO
+  BUNDLE
+  MEAL_DEAL
+  SERVICE_OFFER
+  EVERYDAY_PROMOTION
+  OTHER
+}
+
+enum RedemptionMode {
+  GENERAL
+  CONTROLLED
+}
+
+enum DealPausedBy {
+  MERCHANT
+  DEALDASH
+}
+
+enum EligibilityKind {
+  PUBLIC
+  GEOGRAPHY
+  EMPLOYER
+  BANK_CARD
+  SCHEME
+  COMPOSITE
+}
+
+enum EligibilityAttributeType {
+  GEOGRAPHY
+  EMPLOYER
+  CARD
+  SCHEME
+  COUNTRY
+  CARD_PRODUCT
+  CARD_TIER
+  SEGMENT
+  MEMBERSHIP
+  PRODUCT_OWNERSHIP
+  AGE_BAND
+  GENDER
+}
+
+enum EligibilityLevel {
+  SELF_DECLARED
+  OTP_VERIFIED
+  ISSUER_VERIFIED
+}
+
+enum EligibilityAttributeStatus {
+  PENDING
+  VERIFIED
+  REVERIFICATION_DUE
+  EXPIRED
+  FAILED
+  REVOKED
+}
+
+enum DealEventType {
+  IMPRESSION
+  DETAIL_VIEW
+  MERCHANT_PAGE_VIEW
+  SAVE
+  UNSAVE
+  DIRECTIONS_CLICK
+  RESERVATION_CREATED
+  RESERVATION_CANCELLED
+  RESERVATION_EXPIRED
+  RESERVATION_REDEEMED
+  CHECKOUT_STARTED
+  PAYMENT_INITIATED
+  PAYMENT_SUCCEEDED
+  PAYMENT_FAILED
+  VOUCHER_ISSUED
+  WALLET_VIEWED
+  VOUCHER_REDEEMED
+  REFUND_REQUESTED
+  REFUND_COMPLETED
+  CTA_CLICK
+}
+
+/// Discovery categories. Configuration data (bilingual), never hard-coded in the application.
+model Category {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  code      String   @unique
+  nameEn    String
+  nameAr    String
+  icon      String?
+  sortOrder Int      @default(100)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  deals    LiveDeal[]
+  hotDeals HotDeal[]
+  vouchers Voucher[]
+
+  @@index([active, sortOrder])
+}
+
+/// Shared eligibility architecture (one engine for every product). Stage 3 uses it for Live Deals only.
+model EligibilityRuleSet {
+  id                  String          @id @default(uuid(7)) @db.Uuid
+  ownerOrganizationId String?         @db.Uuid
+  /// Nested AND / OR / NOT rule (kind COMPOSITE). Legacy kinds keep using conditions.
+  expression          Json?
+  kind                EligibilityKind
+  createdAt           DateTime        @default(now())
+
+  conditions EligibilityCondition[]
+  deals      LiveDeal[]
+  hotDeals   HotDeal[]
+  vouchers   Voucher[]
+}
+
+model EligibilityCondition {
+  id            String                   @id @default(uuid(7)) @db.Uuid
+  ruleSetId     String                   @db.Uuid
+  attrType      EligibilityAttributeType
+  operator      String                   @default("EQUALS")
+  /// City name (GEOGRAPHY) or partner organisation id (EMPLOYER, CARD issuer, SCHEME). Never a card number.
+  valueRef      String
+  requiredLevel EligibilityLevel         @default(OTP_VERIFIED)
+
+  ruleSet EligibilityRuleSet @relation(fields: [ruleSetId], references: [id], onDelete: Cascade)
+
+  @@index([ruleSetId])
+}
+
+/// What a customer has declared or verified. Card attributes are issuer (later product and tier) only.
+model EligibilityAttribute {
+  id         String                     @id @default(uuid(7)) @db.Uuid
+  userId     String                     @db.Uuid
+  attrType   EligibilityAttributeType
+  valueRef   String
+  level      EligibilityLevel           @default(SELF_DECLARED)
+  status     EligibilityAttributeStatus @default(PENDING)
+  source     String                     @default("SELF")
+  verifiedAt DateTime?
+  expiresAt  DateTime?
+  createdAt  DateTime                   @default(now())
+
+  @@unique([userId, attrType, valueRef])
+  @@index([userId, status])
+}
+
+model LiveDeal {
+  id                     String            @id @default(uuid(7)) @db.Uuid
+  organizationId         String            @db.Uuid
+  status                 LiveDealStatus    @default(DRAFT)
+  /// Where a suspended deal returns to when DealDash reinstates it.
+  statusBeforeSuspension LiveDealStatus?
+  pausedBy               DealPausedBy?
+  version                Int               @default(1)
+  /// Authoritative customer-facing content (validated by the shared liveDealContentSchema).
+  content                Json
+  // Columns below are derived from `content` by one function on every write; they exist for queries and indexes.
+  categoryId             String?           @db.Uuid
+  mechanic               LiveDealMechanic?
+  titleEn                String            @default("")
+  titleAr                String            @default("")
+  startAt                DateTime?
+  endAt                  DateTime?
+  eligibilityKind        EligibilityKind   @default(PUBLIC)
+  eligibilityRuleSetId   String?           @db.Uuid
+  redemptionMode         RedemptionMode    @default(GENERAL)
+  submittedAt            DateTime?
+  publishedAt            DateTime?
+  endedAt                DateTime?
+  createdByUserId        String            @db.Uuid
+  updatedByUserId        String?           @db.Uuid
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+
+  organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  category     Category?           @relation(fields: [categoryId], references: [id])
+  ruleSet      EligibilityRuleSet? @relation(fields: [eligibilityRuleSetId], references: [id])
+  branches     LiveDealBranch[]
+  revisions    LiveDealRevision[]
+  history      LiveDealHistory[]
+
+  @@index([organizationId, status])
+  @@index([status, startAt, endAt])
+  @@index([categoryId, status])
+}
+
+model LiveDealBranch {
+  dealId   String @db.Uuid
+  branchId String @db.Uuid
+
+  deal   LiveDeal       @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  branch MerchantBranch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@id([dealId, branchId])
+  @@index([branchId])
+}
+
+/// A proposed new version of an approved deal (material edits). The live version keeps serving until a revision is approved.
+model LiveDealRevision {
+  id              String                 @id @default(uuid(7)) @db.Uuid
+  dealId          String                 @db.Uuid
+  number          Int
+  status          LiveDealRevisionStatus @default(DRAFT)
+  content         Json
+  materialFields  Json                   @default("[]")
+  baseVersion     Int
+  createdByUserId String                 @db.Uuid
+  submittedAt     DateTime?
+  decidedAt       DateTime?
+  decidedByUserId String?                @db.Uuid
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  deal LiveDeal @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@unique([dealId, number])
+  @@index([status, submittedAt])
+}
+
+/// Append-only history of every lifecycle step and review decision (also written to the platform AuditLog).
+model LiveDealHistory {
+  id          String          @id @default(uuid(7)) @db.Uuid
+  dealId      String          @db.Uuid
+  revisionId  String?         @db.Uuid
+  action      LiveDealAction
+  fromStatus  LiveDealStatus?
+  toStatus    LiveDealStatus?
+  reason      String?
+  reasonAr    String?
+  fields      Json            @default("[]")
+  actorUserId String?         @db.Uuid
+  actorRole   String?
+  actorName   String?
+  byDealDash  Boolean         @default(false)
+  /// Before/after content for edits (minor edits and revisions).
+  snapshot    Json?
+  createdAt   DateTime        @default(now())
+
+  deal LiveDeal @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([dealId, createdAt])
+}
+
+/// Customer favourites. Polymorphic by design (Hot Deals and Vouchers join later); Follow is Phase 2 and not modelled.
+model SavedItem {
+  userId     String   @db.Uuid
+  objectType String
+  objectId   String   @db.Uuid
+  savedAt    DateTime @default(now())
+
+  @@id([userId, objectType, objectId])
+  @@index([objectType, objectId])
+}
+
+/// Append-only discovery signals. These prove nothing about visits or sales and are never presented as such.
+model DealEvent {
+  id            String        @id @default(uuid(7)) @db.Uuid
+  occurredAt    DateTime      @default(now())
+  type          DealEventType
+  dealId        String?       @db.Uuid
+  merchantOrgId String        @db.Uuid
+  branchId      String?       @db.Uuid
+  sourceDealId  String?       @db.Uuid
+  userId        String?       @db.Uuid
+  anonymousId   String
+  /// LIVE or HOT: which product dealId refers to.
+  productType   String        @default("LIVE")
+
+  @@index([dealId, type, occurredAt])
+  @@index([merchantOrgId, type, occurredAt])
+  @@index([occurredAt])
+}
+
+// ================================================================ Stage 4: Hot Deals, reservations, redemption
+
+enum HotDealStatus {
+  DRAFT
+  PENDING_REVIEW
+  NEEDS_CHANGES
+  SCHEDULED
+  LIVE
+  PAUSED
+  SOLD_OUT
+  EXPIRED
+  CANCELLED
+  REJECTED
+  SUSPENDED
+}
+
+enum HotDealAction {
+  CREATE
+  UPDATE
+  SUBMIT
+  AUTO_APPROVE
+  REQUEST_CHANGES
+  APPROVE
+  REJECT
+  ACTIVATE
+  SOLD_OUT
+  REOPEN
+  EXPIRE
+  PAUSE
+  RESUME
+  SUSPEND
+  REINSTATE
+  CANCEL
+  MINOR_EDIT
+  STOCK_CHANGED
+}
+
+enum HotDealLimitType {
+  TIME
+  QUANTITY
+  TIME_AND_QUANTITY
+}
+
+enum ReservationStatus {
+  HELD
+  REDEEMED
+  EXPIRED
+  CANCELLED
+}
+
+enum CancelledBy {
+  CUSTOMER
+  MERCHANT
+  DEALDASH
+  SYSTEM
+}
+
+enum ReservationEventType {
+  CREATED
+  EXPIRING_NOTICE
+  CANCELLED
+  EXPIRED
+  NO_SHOW_COUNTED
+  REDEEMED
+  REDEMPTION_REVERSED
+}
+
+enum RestrictionStatus {
+  ACTIVE
+  LIFTED
+  ENDED
+}
+
+enum RedemptionStatus {
+  REDEEMED
+  REVERSED
+}
+
+enum RedemptionResult {
+  VALID
+  REDEEMED
+  INVALID_CODE
+  EXPIRED
+  ALREADY_REDEEMED
+  WRONG_BRANCH
+  INELIGIBLE
+  NOT_ACTIVE
+  CAMPAIGN_UNAVAILABLE
+  NOT_VALID_YET
+  VOUCHER_SUSPENDED
+  REFUNDED
+}
+
+enum RedemptionSource {
+  QR
+  MANUAL
+}
+
+enum NotificationType {
+  RESERVATION_CONFIRMED
+  RESERVATION_EXPIRING
+  RESERVATION_EXPIRED
+  RESERVATION_CANCELLED
+  REDEMPTION_SUCCESS
+  PURCHASE_SUCCEEDED
+  PAYMENT_FAILED
+  VOUCHER_ISSUED
+  VOUCHER_EXPIRING
+  REFUND_UPDATED
+  VOUCHER_REDEEMED
+  REWARD_EARNED
+  REWARD_HELD
+  REWARD_RELEASED
+  REWARD_REVERSED
+  REWARD_EXPIRING
+  CAMPAIGN_COMPLETED
+  /// Phase 4: an operational alert (target milestone, early warning, finance, integration, risk)
+  ALERT
+}
+
+/// Hot Deal: urgent, limited by time and/or quantity, free reservation (no payment in the MVP). Own lifecycle, own table.
+model HotDeal {
+  id                     String            @id @default(uuid(7)) @db.Uuid
+  organizationId         String            @db.Uuid
+  status                 HotDealStatus     @default(DRAFT)
+  statusBeforeSuspension HotDealStatus?
+  pausedBy               DealPausedBy?
+  version                Int               @default(1)
+  /// Authoritative customer-facing content (validated by the shared hotDealContentSchema).
+  content                Json
+  // Derived from `content` on every write; present for queries and indexes.
+  categoryId             String?           @db.Uuid
+  mechanic               LiveDealMechanic?
+  titleEn                String            @default("")
+  titleAr                String            @default("")
+  limitType              HotDealLimitType  @default(QUANTITY)
+  reservationsEnabled    Boolean           @default(true)
+  perCustomerLimit       Int               @default(1)
+  /// Minutes a reservation is held; null uses the platform default (configuration).
+  holdMinutes            Int?
+  startAt                DateTime?
+  endAt                  DateTime?
+  eligibilityKind        EligibilityKind   @default(PUBLIC)
+  eligibilityRuleSetId   String?           @db.Uuid
+  submittedAt            DateTime?
+  publishedAt            DateTime?
+  endedAt                DateTime?
+  createdByUserId        String            @db.Uuid
+  updatedByUserId        String?           @db.Uuid
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+
+  organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  category     Category?           @relation(fields: [categoryId], references: [id])
+  ruleSet      EligibilityRuleSet? @relation(fields: [eligibilityRuleSetId], references: [id])
+  inventory    HotDealInventory[]
+  reservations Reservation[]
+  history      HotDealHistory[]
+
+  @@index([organizationId, status])
+  @@index([status, startAt, endAt])
+  @@index([categoryId, status])
+}
+
+/// Per-branch stock. Invariant (also a CHECK): total = available + reserved + redeemed, every counter >= 0.
+/// Rows are only ever changed with a row lock (SELECT ... FOR UPDATE) inside the same transaction as the reservation.
+model HotDealInventory {
+  dealId    String   @db.Uuid
+  branchId  String   @db.Uuid
+  total     Int      @default(0)
+  available Int      @default(0)
+  reserved  Int      @default(0)
+  redeemed  Int      @default(0)
+  /// Cumulative units that went back to the pool (cancelled or not completed). Informational.
+  released  Int      @default(0)
+  /// False for time-only walk-in deals: no stock to hold.
+  tracked   Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+
+  deal   HotDeal        @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  branch MerchantBranch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@id([dealId, branchId])
+  @@index([branchId])
+}
+
+model HotDealHistory {
+  id          String         @id @default(uuid(7)) @db.Uuid
+  dealId      String         @db.Uuid
+  action      HotDealAction
+  fromStatus  HotDealStatus?
+  toStatus    HotDealStatus?
+  reason      String?
+  reasonAr    String?
+  fields      Json           @default("[]")
+  actorUserId String?        @db.Uuid
+  actorRole   String?
+  actorName   String?
+  byDealDash  Boolean        @default(false)
+  snapshot    Json?
+  createdAt   DateTime       @default(now())
+
+  deal HotDeal @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([dealId, createdAt])
+}
+
+model Reservation {
+  id                   String            @id @default(uuid(7)) @db.Uuid
+  /// Short customer-facing reference. Random, never sequential.
+  reference            String            @unique
+  dealId               String            @db.Uuid
+  branchId             String            @db.Uuid
+  organizationId       String            @db.Uuid
+  userId               String            @db.Uuid
+  quantity             Int               @default(1)
+  status               ReservationStatus @default(HELD)
+  holdMinutes          Int
+  expiresAt            DateTime
+  /// Opaque random QR payload (DD1.<token>) and the manual fallback code. Neither is derived from an id.
+  qrToken              String            @unique
+  manualCode           String            @unique
+  redeemedAt           DateTime?
+  cancelledAt          DateTime?
+  cancelledBy          CancelledBy?
+  cancelReason         String?
+  /// A reservation that expired unredeemed is counted once toward the no-show foundation.
+  noShowCounted        Boolean           @default(false)
+  expiringNoticeSentAt DateTime?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  deal            HotDeal            @relation(fields: [dealId], references: [id])
+  branch          MerchantBranch     @relation(fields: [branchId], references: [id])
+  events          ReservationEvent[]
+  redemption      Redemption[]
+  /// The campaign version in force when this happened (CampaignVersion.version).
+  campaignVersion Int?
+
+  @@index([userId, status, expiresAt])
+  @@index([dealId, status])
+  @@index([branchId, status, expiresAt])
+  @@index([status, expiresAt])
+  @@index([organizationId, createdAt])
+}
+
+/// Append-only (database trigger).
+model ReservationEvent {
+  id            String               @id @default(uuid(7)) @db.Uuid
+  reservationId String               @db.Uuid
+  type          ReservationEventType
+  fromStatus    ReservationStatus?
+  toStatus      ReservationStatus?
+  actorUserId   String?              @db.Uuid
+  actorRole     String?
+  note          String?
+  createdAt     DateTime             @default(now())
+
+  reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+
+  @@index([reservationId, createdAt])
+}
+
+/// One row per successful redemption. A partial unique index allows only ONE active (REDEEMED) row per reservation.
+model Redemption {
+  id               String           @id @default(uuid(7)) @db.Uuid
+  reservationId    String           @db.Uuid
+  dealId           String           @db.Uuid
+  branchId         String           @db.Uuid
+  organizationId   String           @db.Uuid
+  staffUserId      String           @db.Uuid
+  source           RedemptionSource
+  status           RedemptionStatus @default(REDEEMED)
+  reference        String           @unique
+  /// The client's Idempotency-Key for the redeem call. Same key again returns the same result.
+  idempotencyKey   String?
+  redeemedAt       DateTime         @default(now())
+  reversedAt       DateTime?
+  reversedByUserId String?          @db.Uuid
+  reverseReason    String?
+
+  reservation     Reservation @relation(fields: [reservationId], references: [id])
+  /// The campaign version in force when this happened (CampaignVersion.version).
+  campaignVersion Int?
+
+  @@index([organizationId, redeemedAt])
+  @@index([branchId, redeemedAt])
+  @@index([staffUserId, redeemedAt])
+}
+
+/// Append-only (database trigger): every validate or redeem attempt, successful or not.
+model RedemptionAttempt {
+  id                String           @id @default(uuid(7)) @db.Uuid
+  staffUserId       String           @db.Uuid
+  organizationId    String           @db.Uuid
+  branchId          String?          @db.Uuid
+  reservationId     String?          @db.Uuid
+  /// Stage 5: the voucher instance this attempt concerned (null for reservations).
+  voucherInstanceId String?          @db.Uuid
+  /// Never the full code: the last characters only, enough to find the case in support.
+  codeHint          String
+  source            RedemptionSource
+  kind              String           @default("REDEEM")
+  result            RedemptionResult
+  idempotencyKey    String?
+  createdAt         DateTime         @default(now())
+
+  @@index([staffUserId, createdAt])
+  @@index([organizationId, createdAt])
+  @@index([reservationId])
+  @@index([voucherInstanceId])
+}
+
+/// Temporary reservation restriction after repeated confirmed no-shows. Never a permanent ban (FDR-39).
+model CustomerRestriction {
+  id             String            @id @default(uuid(7)) @db.Uuid
+  userId         String            @db.Uuid
+  status         RestrictionStatus @default(ACTIVE)
+  reason         String
+  strikes        Int
+  startsAt       DateTime          @default(now())
+  endsAt         DateTime
+  liftedAt       DateTime?
+  liftedByUserId String?           @db.Uuid
+  liftedReason   String?
+  createdAt      DateTime          @default(now())
+
+  @@index([userId, status, endsAt])
+  @@index([status, endsAt])
+}
+
+/// In-app notification foundation. Delivery channels (push, SMS) plug into the provider abstraction later.
+model Notification {
+  id        String           @id @default(uuid(7)) @db.Uuid
+  userId    String           @db.Uuid
+  type      NotificationType
+  data      Json             @default("{}")
+  /// One notification per (user, dedupeKey): sweeps and retries never double-send.
+  dedupeKey String
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@unique([userId, dedupeKey])
+  @@index([userId, createdAt])
+}
+
+// ================================================================ Stage 5: Vouchers, purchase, payments, refunds, ledger foundation
+
+enum VoucherStatus {
+  DRAFT
+  PENDING_REVIEW
+  NEEDS_CHANGES
+  REJECTED
+  SCHEDULED
+  ON_SALE
+  PAUSED
+  SOLD_OUT
+  ENDED
+  SUSPENDED
+}
+
+enum VoucherAction {
+  CREATE
+  UPDATE
+  SUBMIT
+  AUTO_APPROVE
+  REQUEST_CHANGES
+  APPROVE
+  REJECT
+  ACTIVATE
+  SOLD_OUT
+  REOPEN
+  END
+  PAUSE
+  RESUME
+  SUSPEND
+  REINSTATE
+  MINOR_EDIT
+  STOCK_CHANGED
+}
+
+enum VoucherValidityType {
+  FIXED_DATE
+  DAYS_FROM_PURCHASE
+}
+
+enum VoucherInstanceStatus {
+  ACTIVE
+  REDEEMED
+  EXPIRED
+  REFUNDED
+  VOIDED
+}
+
+enum VoucherOrderStatus {
+  PENDING_PAYMENT
+  PAID
+  FAILED
+  CANCELLED
+  EXPIRED
+}
+
+enum PaymentStatus {
+  CREATED
+  PENDING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+  REFUND_PENDING
+  REFUNDED
+  PARTIALLY_REFUNDED
+  REVERSED
+}
+
+enum PaymentEventOutcome {
+  APPLIED
+  DUPLICATE
+  IGNORED
+  REJECTED
+  LATE_SUCCESS
+}
+
+enum RefundStatus {
+  REQUESTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  PROCESSING
+  REFUNDED
+  FAILED
+}
+
+enum RefundKind {
+  CUSTOMER_REQUEST
+  ADMIN_INITIATED
+  SYSTEM
+}
+
+enum LedgerAccountFamily {
+  PSP_CLEARING
+  MERCHANT_HELD
+  MERCHANT_SETTLEMENT_ELIGIBLE
+  PLATFORM_REVENUE
+  EXPIRED_VALUE
+  ADJUSTMENTS
+  /// Stage 6: merchant campaign budget (funded money held for Watch & Earn views). Per merchant; per-campaign detail is the journal source.
+  CAMPAIGN_BUDGET
+  /// Stage 6: budget released at campaign close-out. Kept separate so its treatment can be decided later (VALIDATE-KSA).
+  CAMPAIGN_UNUSED
+  /// Commercial finance: prepaid funds a business holds with DealDash (liability), receivables (asset), funding utilised for sponsors
+  CAMPAIGN_FUNDS_HELD
+  RECEIVABLE
+  FUNDING_UTILIZED
+}
+
+enum LedgerJournalType {
+  SALE
+  REDEMPTION
+  REFUND
+  REVERSAL
+  EXPIRY
+  ADJUSTMENT
+  CAMPAIGN_FUNDING
+  CAMPAIGN_CONSUMPTION
+  CAMPAIGN_CREDIT_BACK
+  CAMPAIGN_RELEASE
+  FUNDING_RECEIVED
+  FUNDING_UTILIZED
+  FUNDING_RELEASED
+  DOCUMENT_ADJUSTMENT
+}
+
+enum PayableEventType {
+  SOLD
+  ISSUED
+  REDEEMED
+  ELIGIBLE
+  REFUNDED
+  REDEMPTION_REVERSED
+  EXPIRED
+  ADJUSTMENT
+}
+
+enum SupportCaseStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}
+
+enum SupportCaseType {
+  VOUCHER_ISSUE
+  PAYMENT_ISSUE
+  REFUND_QUESTION
+  REDEMPTION_ISSUE
+  OTHER
+}
+
+/// Voucher (product): a purchasable stored-value instrument with its own lifecycle. All money is integer halalas.
+/// Inventory invariant (also a CHECK): totalQty >= heldQty + soldQty, all >= 0. `heldQty` = units in unpaid checkouts.
+model Voucher {
+  id                     String              @id @default(uuid(7)) @db.Uuid
+  organizationId         String              @db.Uuid
+  status                 VoucherStatus       @default(DRAFT)
+  statusBeforeSuspension VoucherStatus?
+  pausedBy               DealPausedBy?
+  version                Int                 @default(1)
+  /// Authoritative customer-facing content (validated by the shared voucherContentSchema).
+  content                Json
+  // Derived from `content` on every write; present for queries and indexes.
+  categoryId             String?             @db.Uuid
+  titleEn                String              @default("")
+  titleAr                String              @default("")
+  faceValueHalalas       Int                 @default(0)
+  sellingPriceHalalas    Int                 @default(0)
+  totalQty               Int                 @default(0)
+  heldQty                Int                 @default(0)
+  soldQty                Int                 @default(0)
+  perCustomerLimit       Int                 @default(1)
+  validityType           VoucherValidityType @default(DAYS_FROM_PURCHASE)
+  validityDays           Int?
+  validUntil             DateTime?
+  saleStartAt            DateTime?
+  saleEndAt              DateTime?
+  eligibilityKind        EligibilityKind     @default(PUBLIC)
+  eligibilityRuleSetId   String?             @db.Uuid
+  submittedAt            DateTime?
+  publishedAt            DateTime?
+  endedAt                DateTime?
+  createdByUserId        String              @db.Uuid
+  updatedByUserId        String?             @db.Uuid
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+
+  organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  category     Category?           @relation(fields: [categoryId], references: [id])
+  ruleSet      EligibilityRuleSet? @relation(fields: [eligibilityRuleSetId], references: [id])
+  branches     VoucherBranch[]
+  history      VoucherHistory[]
+  orders       VoucherOrder[]
+  instances    VoucherInstance[]
+
+  @@index([organizationId, status])
+  @@index([status, saleStartAt, saleEndAt])
+  @@index([categoryId, status])
+}
+
+/// Branches where a voucher can be redeemed.
+model VoucherBranch {
+  voucherId String @db.Uuid
+  branchId  String @db.Uuid
+
+  voucher Voucher        @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+  branch  MerchantBranch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@id([voucherId, branchId])
+  @@index([branchId])
+}
+
+/// Append-only (database trigger).
+model VoucherHistory {
+  id          String         @id @default(uuid(7)) @db.Uuid
+  voucherId   String         @db.Uuid
+  action      VoucherAction
+  fromStatus  VoucherStatus?
+  toStatus    VoucherStatus?
+  reason      String?
+  reasonAr    String?
+  fields      Json           @default("[]")
+  actorUserId String?        @db.Uuid
+  actorRole   String?
+  actorName   String?
+  byDealDash  Boolean        @default(false)
+  snapshot    Json?
+  createdAt   DateTime       @default(now())
+
+  voucher Voucher @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+
+  @@index([voucherId, createdAt])
+}
+
+/// A purchase attempt. Holds `quantity` units of stock until `holdExpiresAt`. Owns no voucher until a payment SUCCEEDS.
+model VoucherOrder {
+  id               String             @id @default(uuid(7)) @db.Uuid
+  /// Short customer-facing reference. Random, never sequential.
+  reference        String             @unique
+  userId           String             @db.Uuid
+  voucherId        String             @db.Uuid
+  organizationId   String             @db.Uuid
+  quantity         Int                @default(1)
+  unitPriceHalalas Int
+  faceValueHalalas Int
+  totalHalalas     Int
+  currency         String             @default("SAR")
+  status           VoucherOrderStatus @default(PENDING_PAYMENT)
+  holdExpiresAt    DateTime
+  /// Snapshot of the terms the customer accepted at checkout.
+  termsVersion     String?
+  termsAcceptedAt  DateTime?
+  returnUrl        String?
+  /// The client's Idempotency-Key for checkout creation: the same key returns the same order.
+  idempotencyKey   String?
+  paidAt           DateTime?
+  cancelledAt      DateTime?
+  failedAt         DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  voucher   Voucher           @relation(fields: [voucherId], references: [id])
+  payments  Payment[]
+  instances VoucherInstance[]
+  refunds   Refund[]
+
+  @@unique([userId, idempotencyKey])
+  @@index([userId, createdAt])
+  @@index([voucherId, status])
+  @@index([status, holdExpiresAt])
+  @@index([organizationId, createdAt])
+}
+
+/// One row per payment attempt. No card data, ever. A partial unique index allows one open and one SUCCEEDED attempt per order.
+model Payment {
+  id                String        @id @default(uuid(7)) @db.Uuid
+  orderId           String        @db.Uuid
+  provider          String
+  providerReference String?       @unique
+  status            PaymentStatus @default(CREATED)
+  amountHalalas     Int
+  currency          String        @default("SAR")
+  attemptNo         Int           @default(1)
+  idempotencyKey    String        @unique
+  methodType        String?
+  redirectUrl       String?
+  failureCode       String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  completedAt       DateTime?
+
+  order   VoucherOrder   @relation(fields: [orderId], references: [id])
+  events  PaymentEvent[]
+  refunds Refund[]
+
+  @@index([orderId, createdAt])
+  @@index([status, createdAt])
+}
+
+/// Append-only (database trigger): every verified or rejected provider callback. `providerEventId` is unique: replay safe.
+model PaymentEvent {
+  id                String              @id @default(uuid(7)) @db.Uuid
+  paymentId         String?             @db.Uuid
+  providerEventId   String              @unique
+  kind              String
+  status            String
+  payloadHash       String
+  signatureVerified Boolean
+  outcome           PaymentEventOutcome
+  note              String?
+  occurredAt        DateTime?
+  receivedAt        DateTime            @default(now())
+
+  payment Payment? @relation(fields: [paymentId], references: [id])
+
+  @@index([paymentId, receivedAt])
+}
+
+model Refund {
+  id                      String       @id @default(uuid(7)) @db.Uuid
+  reference               String       @unique
+  orderId                 String       @db.Uuid
+  paymentId               String       @db.Uuid
+  instanceId              String?      @db.Uuid
+  organizationId          String       @db.Uuid
+  /// Full refunds only in the MVP; the amount column keeps partial refunds a Phase 2 addition with no redesign.
+  amountHalalas           Int
+  status                  RefundStatus @default(REQUESTED)
+  kind                    RefundKind
+  reasonCode              String
+  reason                  String?
+  requestedByUserId       String?      @db.Uuid
+  requestedByRole         String?
+  decidedByUserId         String?      @db.Uuid
+  decidedAt               DateTime?
+  decisionNote            String?
+  providerRefundReference String?
+  idempotencyKey          String       @unique
+  failureCode             String?
+  createdAt               DateTime     @default(now())
+  updatedAt               DateTime     @updatedAt
+  refundedAt              DateTime?
+
+  order    VoucherOrder     @relation(fields: [orderId], references: [id])
+  payment  Payment          @relation(fields: [paymentId], references: [id])
+  instance VoucherInstance? @relation(fields: [instanceId], references: [id])
+
+  @@index([status, createdAt])
+  @@index([orderId])
+  @@index([instanceId])
+  @@index([organizationId, createdAt])
+}
+
+/// The customer's ownership of a purchased voucher. Created only after a confirmed payment. Codes are opaque and random.
+model VoucherInstance {
+  id                   String                @id @default(uuid(7)) @db.Uuid
+  reference            String                @unique
+  voucherId            String                @db.Uuid
+  orderId              String                @db.Uuid
+  seq                  Int                   @default(1)
+  organizationId       String                @db.Uuid
+  ownerUserId          String                @db.Uuid
+  status               VoucherInstanceStatus @default(ACTIVE)
+  purchasePriceHalalas Int
+  faceValueHalalas     Int
+  validFrom            DateTime?
+  expiresAt            DateTime
+  /// Opaque random QR payload (DV1.<token>) and the manual fallback code. Neither is derived from an id.
+  qrToken              String                @unique
+  manualCode           String                @unique
+  issuedAt             DateTime              @default(now())
+  redeemedAt           DateTime?
+  refundedAt           DateTime?
+  expiredAt            DateTime?
+  voidedAt             DateTime?
+  expiringNoticeSentAt DateTime?
+  version              Int                   @default(1)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+
+  voucher         Voucher             @relation(fields: [voucherId], references: [id])
+  order           VoucherOrder        @relation(fields: [orderId], references: [id])
+  redemptions     VoucherRedemption[]
+  refunds         Refund[]
+  /// The campaign version in force when this happened (CampaignVersion.version).
+  campaignVersion Int?
+
+  @@unique([orderId, seq])
+  @@index([ownerUserId, status, expiresAt])
+  @@index([voucherId, status])
+  @@index([organizationId, issuedAt])
+  @@index([status, expiresAt])
+}
+
+/// One row per successful voucher redemption. A partial unique index allows only ONE active (REDEEMED) row per instance.
+model VoucherRedemption {
+  id               String           @id @default(uuid(7)) @db.Uuid
+  instanceId       String           @db.Uuid
+  voucherId        String           @db.Uuid
+  branchId         String           @db.Uuid
+  organizationId   String           @db.Uuid
+  staffUserId      String           @db.Uuid
+  source           RedemptionSource
+  status           RedemptionStatus @default(REDEEMED)
+  reference        String           @unique
+  idempotencyKey   String?
+  redeemedAt       DateTime         @default(now())
+  reversedAt       DateTime?
+  reversedByUserId String?          @db.Uuid
+  reverseReason    String?
+
+  instance        VoucherInstance @relation(fields: [instanceId], references: [id])
+  /// The campaign version in force when this happened (CampaignVersion.version).
+  campaignVersion Int?
+
+  @@index([organizationId, redeemedAt])
+  @@index([branchId, redeemedAt])
+  @@index([staffUserId, redeemedAt])
+}
+
+/// Ledger accounts. Platform accounts have no organization; merchant accounts are one per (family, organization).
+model LedgerAccount {
+  id             String              @id @default(uuid(7)) @db.Uuid
+  family         LedgerAccountFamily
+  organizationId String?             @db.Uuid
+  currency       String              @default("SAR")
+  createdAt      DateTime            @default(now())
+
+  entries LedgerEntry[]
+
+  @@index([organizationId, family])
+}
+
+/// Append-only (database trigger). One journal per business event; its entries must sum to zero (deferred constraint trigger).
+model LedgerJournal {
+  id                String            @id @default(uuid(7)) @db.Uuid
+  type              LedgerJournalType
+  sourceType        String
+  sourceId          String            @db.Uuid
+  idempotencyKey    String            @unique
+  memo              String?
+  reasonCode        String?
+  feeRuleVersion    Int?
+  reversesJournalId String?           @db.Uuid
+  postedAt          DateTime          @default(now())
+  postedByUserId    String?           @db.Uuid
+  postedByRole      String?
+
+  entries LedgerEntry[]
+
+  @@index([sourceType, sourceId])
+  @@index([postedAt])
+}
+
+/// Append-only (database trigger). Signed halalas: debit-positive for assets (PSP clearing), credit-negative for liabilities.
+model LedgerEntry {
+  id            String   @id @default(uuid(7)) @db.Uuid
+  journalId     String   @db.Uuid
+  accountId     String   @db.Uuid
+  amountHalalas Int
+  memo          String?
+  createdAt     DateTime @default(now())
+
+  journal LedgerJournal @relation(fields: [journalId], references: [id])
+  account LedgerAccount @relation(fields: [accountId], references: [id])
+
+  @@index([accountId, createdAt])
+  @@index([journalId])
+}
+
+/// Append-only (database trigger). The merchant payable trail: what was sold, when it became settlement-eligible, and what
+/// reversed. `settlementId` is the link a later settlement run fills (Stage 8); null until then.
+model MerchantPayableEvent {
+  id             String           @id @default(uuid(7)) @db.Uuid
+  organizationId String           @db.Uuid
+  voucherId      String?          @db.Uuid
+  instanceId     String?          @db.Uuid
+  type           PayableEventType
+  amountHalalas  Int
+  feeHalalas     Int              @default(0)
+  journalId      String?          @db.Uuid
+  settlementId   String?          @db.Uuid
+  note           String?
+  createdAt      DateTime         @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([instanceId])
+  @@index([type, createdAt])
+}
+
+/// Minimal support case linked to commerce objects. No payment detail is stored on it.
+model SupportCase {
+  id                String            @id @default(uuid(7)) @db.Uuid
+  reference         String            @unique
+  userId            String            @db.Uuid
+  type              SupportCaseType
+  status            SupportCaseStatus @default(OPEN)
+  subject           String
+  body              String
+  voucherInstanceId String?           @db.Uuid
+  orderId           String?           @db.Uuid
+  paymentId         String?           @db.Uuid
+  refundId          String?           @db.Uuid
+  redemptionId      String?           @db.Uuid
+  resolutionNote    String?
+  handledByUserId   String?           @db.Uuid
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+  @@index([orderId])
+  @@index([voucherInstanceId])
+}
+
+// ================================================================ Stage 6: Watch & Earn and Rewards
+
+enum WatchStatus {
+  DRAFT
+  PENDING_REVIEW
+  NEEDS_CHANGES
+  REJECTED
+  SCHEDULED
+  LIVE
+  PAUSED
+  COMPLETED
+  EXPIRED
+  CANCELLED
+  SUSPENDED
+}
+
+enum WatchAction {
+  CREATE
+  UPDATE
+  SUBMIT
+  AUTO_APPROVE
+  REQUEST_CHANGES
+  APPROVE
+  REJECT
+  ACTIVATE
+  PAUSE
+  RESUME
+  SUSPEND
+  REINSTATE
+  STOP
+  CANCEL
+  COMPLETE
+  EXPIRE
+  FUND
+  CLOSE_OUT
+}
+
+enum WatchViewStatus {
+  STARTED
+  QUALIFIED
+  INVALID
+  CAPPED
+  CREDITED_BACK
+}
+
+enum WatchFundingSource {
+  MOCK_PAYMENT
+  ADMIN_CREDIT
+}
+
+enum RiskDecision {
+  ALLOW
+  HOLD
+  FLAG
+  BLOCK
+}
+
+enum RiskFlagStatus {
+  OPEN
+  IN_REVIEW
+  DECIDED
+}
+
+enum RewardEntryType {
+  EARN
+  BONUS
+  HOLD
+  RELEASE
+  REVERSE
+  REDEEM
+  EXPIRE
+  ADMIN_ADJUSTMENT
+}
+
+enum RewardBucket {
+  AVAILABLE
+  HELD
+}
+
+enum RewardAdjustmentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum RewardItemStatus {
+  ACTIVE
+  INACTIVE
+}
+
+/// A Watch & Earn campaign: a separate advertising / reward product (NOT a deal or voucher). The merchant buys paid qualifying
+/// views from a pre-funded budget; DealDash alone controls the customer reward and the qualification rules.
+model WatchCampaign {
+  id                     String          @id @default(uuid(7)) @db.Uuid
+  organizationId         String          @db.Uuid
+  status                 WatchStatus     @default(DRAFT)
+  statusBeforeSuspension WatchStatus?
+  pausedBy               DealPausedBy?
+  version                Int             @default(1)
+  /// Authoritative content (validated by the shared watchContentSchema). There is no reward-amount field.
+  content                Json
+  // Derived from `content` on every write; present for queries and indexes.
+  titleEn                String          @default("")
+  titleAr                String          @default("")
+  videoFileId            String?         @db.Uuid
+  thumbnailFileId        String?         @db.Uuid
+  durationSec            Int?
+  startAt                DateTime?
+  endAt                  DateTime?
+  cities                 String[]        @default([])
+  eligibilityKind        EligibilityKind @default(PUBLIC)
+  /// Effective repeat-view window (the merchant may only be equal or stricter than the platform minimum).
+  repeatWindowHours      Int             @default(24)
+  // ---- delivery and budget (all integers; spend is moved only by conditional SQL updates, never read-then-write)
+  paidViews              Int             @default(0)
+  qualifiedViews         Int             @default(0)
+  chargePerViewHalalas   Int             @default(0)
+  rateCardVersion        Int?
+  requiredBudgetHalalas  Int             @default(0)
+  fundedHalalas          Int             @default(0)
+  spentHalalas           Int             @default(0)
+  /// Budget released at close-out (separately identifiable; treatment is configurable / VALIDATE-KSA).
+  unusedHalalas          Int             @default(0)
+  closedOutAt            DateTime?
+  submittedAt            DateTime?
+  publishedAt            DateTime?
+  endedAt                DateTime?
+  createdByUserId        String          @db.Uuid
+  updatedByUserId        String?         @db.Uuid
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+
+  organization Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  history      WatchCampaignHistory[]
+  fundings     WatchFunding[]
+  views        WatchView[]
+
+  @@index([organizationId, status])
+  @@index([status, startAt, endAt])
+}
+
+/// Append-only (database trigger).
+model WatchCampaignHistory {
+  id          String       @id @default(uuid(7)) @db.Uuid
+  campaignId  String       @db.Uuid
+  action      WatchAction
+  fromStatus  WatchStatus?
+  toStatus    WatchStatus?
+  reason      String?
+  reasonAr    String?
+  fields      Json         @default("[]")
+  actorUserId String?      @db.Uuid
+  actorRole   String?
+  actorName   String?
+  byDealDash  Boolean      @default(false)
+  snapshot    Json?
+  createdAt   DateTime     @default(now())
+
+  campaign WatchCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId, createdAt])
+}
+
+/// Money added to a campaign budget (mock payment in development; the ledger journal is CAMPAIGN_FUNDING).
+model WatchFunding {
+  id              String             @id @default(uuid(7)) @db.Uuid
+  campaignId      String             @db.Uuid
+  organizationId  String             @db.Uuid
+  amountHalalas   Int
+  source          WatchFundingSource
+  reference       String             @unique
+  idempotencyKey  String             @unique
+  journalId       String?            @db.Uuid
+  createdByUserId String?            @db.Uuid
+  createdByName   String?
+  createdAt       DateTime           @default(now())
+
+  campaign WatchCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId, createdAt])
+}
+
+/// One viewing session. Only the SERVER decides that a view qualified (WE-29): the client sends events, the server stamps its
+/// own time and evaluates the timeline against DealDash's qualifying policy.
+model WatchView {
+  id                   String          @id @default(uuid(7)) @db.Uuid
+  campaignId           String          @db.Uuid
+  userId               String          @db.Uuid
+  /// Hash of the random per-device id the app generates (no fingerprinting).
+  deviceHash           String
+  tokenHash            String          @unique
+  status               WatchViewStatus @default(STARTED)
+  reason               String?
+  city                 String?
+  durationSec          Int
+  requiredSeconds      Int             @default(0)
+  watchedSeconds       Float           @default(0)
+  positionSec          Float           @default(0)
+  startedAt            DateTime        @default(now())
+  lastEventAt          DateTime        @default(now())
+  expiresAt            DateTime
+  completedAt          DateTime?
+  qualifiedAt          DateTime?
+  stillWatchingNeeded  Boolean         @default(false)
+  /// Server-scheduled prompt and the customer's answer: { id, issuedAt, deadlineSec, answeredAt, responseMs, passed }.
+  prompt               Json?
+  chargeHalalas        Int             @default(0)
+  rewardPoints         Int             @default(0)
+  /// EARNED | HELD | REVERSED
+  rewardState          String?
+  rewardEntryId        String?         @db.Uuid
+  consumptionJournalId String?         @db.Uuid
+  riskDecision         RiskDecision?
+  riskScore            Int?
+  riskSignals          Json            @default("[]")
+  creditedBackAt       DateTime?
+  createdAt            DateTime        @default(now())
+
+  campaign        WatchCampaign    @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  events          WatchViewEvent[]
+  /// The campaign version in force when this happened (CampaignVersion.version).
+  campaignVersion Int?
+
+  @@index([campaignId, status, startedAt])
+  @@index([userId, startedAt])
+  @@index([deviceHash, startedAt])
+  @@index([userId, campaignId, qualifiedAt])
+}
+
+/// Append-only timeline (database trigger). Client positions are recorded but the server clock is the one that counts.
+model WatchViewEvent {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  viewId      String   @db.Uuid
+  type        String
+  positionSec Float
+  clientAt    BigInt?
+  serverAt    DateTime @default(now())
+  data        Json?
+
+  view WatchView @relation(fields: [viewId], references: [id], onDelete: Cascade)
+
+  @@index([viewId, serverAt])
+}
+
+/// Which accounts use which app installation (cap on accounts per device, linkage signals). The device id is app-generated.
+model DeviceLink {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  deviceHash  String
+  userId      String   @db.Uuid
+  firstSeenAt DateTime @default(now())
+  lastSeenAt  DateTime @default(now())
+
+  @@unique([deviceHash, userId])
+  @@index([userId])
+}
+
+/// A fraud / risk case (rule-based, no ML). FLAG and HOLD create one; BLOCK of a view records one as evidence.
+model RiskFlag {
+  id                String         @id @default(uuid(7)) @db.Uuid
+  status            RiskFlagStatus @default(OPEN)
+  decision          RiskDecision
+  severity          Int            @default(0)
+  /// [{ code, weight, detail }]
+  signals           Json           @default("[]")
+  subjectUserId     String?        @db.Uuid
+  subjectDeviceHash String?
+  campaignId        String?        @db.Uuid
+  viewId            String?        @db.Uuid
+  rewardEntryId     String?        @db.Uuid
+  outcome           String?
+  reviewedByUserId  String?        @db.Uuid
+  reviewedByName    String?
+  reviewedAt        DateTime?
+  reviewReason      String?
+  createdAt         DateTime       @default(now())
+
+  @@index([status, createdAt])
+  @@index([subjectUserId])
+  @@index([campaignId, status])
+}
+
+/// Blocklist for earning (account or device). Never reveals detection logic to the customer (FR-34).
+model RiskBlock {
+  id              String    @id @default(uuid(7)) @db.Uuid
+  /// ACCOUNT | DEVICE
+  kind            String
+  subjectId       String
+  scope           String    @default("WATCH")
+  reason          String
+  active          Boolean   @default(true)
+  createdByUserId String?   @db.Uuid
+  createdAt       DateTime  @default(now())
+  liftedAt        DateTime?
+
+  @@index([kind, subjectId, active])
+}
+
+/// One per customer. The cached balances are updated in the SAME transaction as every ledger entry (and checked against the
+/// ledger in tests); they are never edited on their own.
+model RewardAccount {
+  id               String   @id @default(uuid(7)) @db.Uuid
+  userId           String   @unique @db.Uuid
+  availableBalance Int      @default(0)
+  heldBalance      Int      @default(0)
+  lifetimeEarned   Int      @default(0)
+  lifetimeRedeemed Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  entries     RewardEntry[]
+  lots        RewardLot[]
+  redemptions RewardRedemption[]
+}
+
+/// Append-only (database trigger). Non-cash points; no SAR value anywhere. Corrections are counter-entries.
+model RewardEntry {
+  id                    String          @id @default(uuid(7)) @db.Uuid
+  accountId             String          @db.Uuid
+  type                  RewardEntryType
+  bucket                RewardBucket
+  /// Signed change applied to `bucket`.
+  points                Int
+  availableAfter        Int
+  heldAfter             Int
+  /// VIEW | REDEMPTION | ADJUSTMENT | EXPIRY
+  sourceType            String
+  sourceId              String?
+  reasonCode            String?
+  actorType             String          @default("SYSTEM")
+  actorUserId           String?         @db.Uuid
+  actorRole             String?
+  expiresAt             DateTime?
+  idempotencyKey        String          @unique
+  metadata              Json            @default("{}")
+  createdAt             DateTime        @default(now())
+  /// Shared loyalty: where the points came from and who paid for them. Older Watch & Earn entries are DEALDASH funded.
+  sourceProduct         String?
+  sourceCampaignId      String?         @db.Uuid
+  campaignVersion       Int?
+  ruleId                String?         @db.Uuid
+  fundingSource         String          @default("DEALDASH")
+  fundingOrganizationId String?         @db.Uuid
+  /// The utilisation event that drew down the sponsor's funding for this issuance (finance link).
+  financialRef          String?         @db.Uuid
+  correlationId         String?
+
+  account RewardAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId, createdAt])
+  @@index([sourceType, sourceId])
+  @@index([ruleId, createdAt])
+  @@index([fundingSource, fundingOrganizationId])
+}
+
+/// FIFO lots for expiry and spending (mutable bookkeeping; the ledger above is the record).
+model RewardLot {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  accountId String    @db.Uuid
+  entryId   String    @unique @db.Uuid
+  points    Int
+  remaining Int
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  account RewardAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId, expiresAt])
+}
+
+/// Redemption catalogue. Contents, costs and stock are configuration (RW-06); development items are flagged `isSample`.
+model RewardCatalogueItem {
+  id                  String           @id @default(uuid(7)) @db.Uuid
+  nameEn              String
+  nameAr              String
+  descriptionEn       String           @default("")
+  descriptionAr       String           @default("")
+  pointsCost          Int
+  /// Null = unlimited.
+  stock               Int?
+  status              RewardItemStatus @default(ACTIVE)
+  validityDays        Int?
+  isSample            Boolean          @default(false)
+  /// Where the points go: CATALOGUE | MERCHANT_REWARD | VOUCHER | CAMPAIGN | PARTNER_BENEFIT. The destination is fulfilled by its owner.
+  destinationType     String           @default("CATALOGUE")
+  destinationRef      String?
+  ownerOrganizationId String?          @db.Uuid
+  createdByUserId     String?          @db.Uuid
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  redemptions RewardRedemption[]
+
+  @@index([status])
+}
+
+model RewardRedemption {
+  id             String    @id @default(uuid(7)) @db.Uuid
+  accountId      String    @db.Uuid
+  itemId         String    @db.Uuid
+  entryId        String    @db.Uuid
+  pointsCost     Int
+  code           String    @unique
+  status         String    @default("ISSUED")
+  idempotencyKey String
+  expiresAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  account RewardAccount       @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  item    RewardCatalogueItem @relation(fields: [itemId], references: [id])
+
+  @@unique([accountId, idempotencyKey])
+  @@index([accountId, createdAt])
+}
+
+/// Manual credit / debit by authorised roles (RW-10/11). Above the threshold a DIFFERENT administrator must approve.
+model RewardAdjustment {
+  id                String                 @id @default(uuid(7)) @db.Uuid
+  accountId         String                 @db.Uuid
+  points            Int
+  reasonCode        String
+  ticketRef         String
+  reason            String
+  status            RewardAdjustmentStatus @default(PENDING)
+  requestedByUserId String                 @db.Uuid
+  requestedByName   String?
+  decidedByUserId   String?                @db.Uuid
+  decidedByName     String?
+  decidedAt         DateTime?
+  decisionReason    String?
+  entryId           String?                @db.Uuid
+  createdAt         DateTime               @default(now())
+
+  @@index([status, createdAt])
+  @@index([accountId])
+}
+
+// ================================================================ Shared commercial governance and finance (Vouchers, Watch & Earn, Exclusive Deals)
+// Money is integer halalas. Statutory formats, tax and accounting recognition are configuration / VALIDATE-KSA.
+
+enum CommercialProduct {
+  VOUCHER
+  WATCH
+  EXCLUSIVE
+  LIVE_BENEFIT
+  LOYALTY
+}
+
+enum CommercialStatus {
+  PRICING_DRAFT
+  AWAITING_ACCEPTANCE
+  ACCEPTED
+  AWAITING_FUNDING
+  PARTIALLY_FUNDED
+  FULLY_FUNDED
+  CREDIT_APPROVED
+  FINANCIAL_HOLD
+  RECONCILED
+  CLOSED
+}
+
+enum QuotationStatus {
+  DRAFT
+  PENDING_ACCEPTANCE
+  ACCEPTED
+  SUPERSEDED
+  /// Phase 5: the business declined it, asked for a change, or let it lapse
+  REJECTED
+  MODIFICATION_REQUESTED
+  EXPIRED
+}
+
+enum PartyRole {
+  OWNER
+  SPONSOR
+  FULFILMENT_MERCHANT
+}
+
+enum ApprovalStepKind {
+  INTERNAL_APPROVER
+  FINANCE_APPROVER
+}
+
+enum ApprovalDecision {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum FundingMode {
+  PREPAID
+  CREDIT
+}
+
+enum CommitmentKind {
+  CHARGE
+  SPONSOR_FUNDING
+}
+
+enum CreditStatus {
+  PENDING_APPROVAL
+  ACTIVE
+  SUSPENDED
+  EXPIRED
+  REJECTED
+}
+
+enum FinanceDocumentType {
+  INVOICE
+  CREDIT_NOTE
+  DEBIT_NOTE
+  RECEIPT
+  PURCHASE_ORDER
+  /// Phase 5
+  PROFORMA_INVOICE
+  TAX_INVOICE
+  ADJUSTMENT_NOTE
+  STATEMENT
+}
+
+enum FinanceDocumentStatus {
+  DRAFT
+  ISSUED
+  PAID
+  VOID
+  /// Phase 5: approval, delivery, partial payment, collection and correction states
+  PENDING_APPROVAL
+  SENT
+  PARTIALLY_PAID
+  OVERDUE
+  DISPUTED
+  CANCELLED
+  CREDITED
+  WRITTEN_OFF
+}
+
+enum PricingScope {
+  GLOBAL
+  ENTITY_TYPE
+  ORGANIZATION
+}
+
+enum UnusedTreatment {
+  REFUND
+  CREDIT_ACCOUNT
+  CARRY_FORWARD
+  TRANSFER_CAMPAIGN
+  NON_REFUNDABLE
+}
+
+model LegalEntity {
+  id                 String   @id @default(uuid(7)) @db.Uuid
+  organizationId     String   @db.Uuid
+  legalName          String
+  registrationNumber String?
+  taxNumber          String?
+  country            String   @default("SA")
+  /// Billing and settlement currency of this legal entity (different subsidiaries can differ).
+  currency           String   @default("SAR")
+  /// Tax profile, address and contact: configuration per country, statutory content is VALIDATE-KSA.
+  taxProfile         Json     @default("{}")
+  address            Json     @default("{}")
+  status             String   @default("ACTIVE")
+  createdAt          DateTime @default(now())
+
+  accounts BusinessAccount[]
+  units    OrganizationUnit[]
+
+  @@unique([organizationId, legalName])
+  @@index([organizationId])
+}
+
+/// One per organisation and currency: the party to whom DealDash quotes, invoices and from whom it receives funds.
+model BusinessAccount {
+  id             String      @id @default(uuid(7)) @db.Uuid
+  organizationId String      @db.Uuid
+  legalEntityId  String      @db.Uuid
+  currency       String      @default("SAR")
+  fundingMode    FundingMode @default(PREPAID)
+  /// ACTIVE | CREDIT_HOLD | FINANCIAL_HOLD | SUSPENDED | CLOSED
+  status         String      @default("ACTIVE")
+  createdAt      DateTime    @default(now())
+  /// Phase 5: the billing account. One default account per (organization, currency); other legal entities can have their own.
+  isDefault        Boolean   @default(true)
+  name             String?
+  country          String    @default("SA")
+  billingAddress   Json      @default("{}")
+  /// Defaults to the legal entity's tax number; statutory validation is VALIDATE-KSA.
+  taxId            String?
+  financeContact   Json      @default("{}")
+  invoiceContact   Json      @default("{}")
+  paymentTermsDays Int       @default(30)
+  /// PER_EVENT | MONTHLY | QUARTERLY | ANNUAL | ON_DEMAND
+  billingFrequency String    @default("MONTHLY")
+  /// INVOICE | BANK_TRANSFER | CARD | PREPAID_BALANCE | DIRECT_DEBIT
+  billingMethod    String    @default("INVOICE")
+  contractId       String?   @db.Uuid
+  poRequired       Boolean   @default(false)
+  lastBilledAt     DateTime?
+  updatedAt        DateTime  @default(now()) @updatedAt
+
+  legalEntity LegalEntity @relation(fields: [legalEntityId], references: [id])
+
+  @@unique([organizationId, legalEntityId, currency])
+  @@index([organizationId, currency])
+}
+
+model PricingAgreement {
+  id              String             @id @default(uuid(7)) @db.Uuid
+  name            String
+  scope           PricingScope
+  organizationId  String?            @db.Uuid
+  entityType      String?
+  market          String?
+  product         CommercialProduct?
+  /// Lower number wins when several agreements match.
+  priority        Int                @default(100)
+  status          String             @default("ACTIVE")
+  createdByUserId String             @db.Uuid
+  createdAt       DateTime           @default(now())
+
+  versions PricingAgreementVersion[]
+
+  @@index([scope, status])
+  @@index([organizationId])
+}
+
+model PricingAgreementVersion {
+  id              String           @id @default(uuid(7)) @db.Uuid
+  agreementId     String           @db.Uuid
+  version         Int
+  /// PricingComponent[] per product: { VOUCHER: [...], EXCLUSIVE: [...] }
+  components      Json
+  taxBps          Int?
+  unusedTreatment UnusedTreatment?
+  /// Contract / commercial agreement reference.
+  reference       String?
+  effectiveFrom   DateTime         @default(now())
+  effectiveTo     DateTime?
+  createdByUserId String           @db.Uuid
+  createdAt       DateTime         @default(now())
+
+  agreement PricingAgreement @relation(fields: [agreementId], references: [id], onDelete: Cascade)
+
+  @@unique([agreementId, version])
+}
+
+/// Configurable business approval workflow. No monetary threshold is hard-coded: rules are data.
+model CommercialApprovalRule {
+  id                  String             @id @default(uuid(7)) @db.Uuid
+  name                String
+  active              Boolean            @default(true)
+  priority            Int                @default(100)
+  /// CAMPAIGN or CREDIT
+  scope               String             @default("CAMPAIGN")
+  product             CommercialProduct?
+  entityType          String?
+  organizationId      String?            @db.Uuid
+  riskTier            String?
+  minLiabilityHalalas Int?
+  /// ApprovalStep[]
+  steps               Json
+  createdByUserId     String             @db.Uuid
+  createdAt           DateTime           @default(now())
+
+  @@index([scope, active])
+}
+
+/// The campaign-level commercial and financial record. Commercial status is separate from the campaign's operational status.
+model CommercialCase {
+  id                       String            @id @default(uuid(7)) @db.Uuid
+  reference                String            @unique
+  product                  CommercialProduct
+  subjectId                String            @db.Uuid
+  ownerOrganizationId      String            @db.Uuid
+  fulfilmentOrganizationId String            @db.Uuid
+  businessAccountId        String?           @db.Uuid
+  status                   CommercialStatus  @default(PRICING_DRAFT)
+  unusedTreatment          UnusedTreatment?
+  transferTargetCaseId     String?           @db.Uuid
+  currentQuotationId       String?           @db.Uuid
+  acceptedQuotationId      String?           @db.Uuid
+  /// Development / QA fixtures (and campaigns that pre-date the commercial platform) are marked, never silently trusted.
+  developmentFixture       Boolean           @default(false)
+  /// The contract in force when the campaign was committed, and what the campaign is billed on (never inferred later from dashboard totals).
+  contractId               String?           @db.Uuid
+  /// USAGE | FIXED | HYBRID | INCLUDED
+  billingModel             String?
+  /// CAMPAIGN_ACTIVATION | QUALIFIED_VIEW | VERIFIED_REDEMPTION | TRANSACTION | FIXED_FEE
+  billingTrigger           String?
+  maxCashHalalas           Int               @default(0)
+  benefitCommitmentHalalas Int               @default(0)
+  createdByUserId          String            @db.Uuid
+  createdAt                DateTime          @default(now())
+  updatedAt                DateTime          @updatedAt
+  closedAt                 DateTime?
+
+  quotations  Quotation[]
+  acceptances CommercialAcceptance[]
+  approvals   CommercialApproval[]
+  commitments FundingCommitment[]
+
+  @@unique([product, subjectId])
+  @@index([ownerOrganizationId])
+  @@index([fulfilmentOrganizationId])
+  @@index([status])
+  @@index([contractId])
+}
+
+model Quotation {
+  id               String           @id @default(uuid(7)) @db.Uuid
+  caseId           String           @db.Uuid
+  version          Int
+  reference        String           @unique
+  status           QuotationStatus  @default(DRAFT)
+  /// The economic inputs the calculation used (so the exact numbers can always be reproduced).
+  inputs           Json
+  /// QuoteLine[]
+  lines            Json
+  /// QuoteTotals
+  totals           Json
+  pricingVersionId String?          @db.Uuid
+  pricingSnapshot  Json             @default("{}")
+  unusedTreatment  UnusedTreatment?
+  /// [{ role, organizationId }] whose acceptance is required.
+  requiredParties  Json             @default("[]")
+  /// For an amendment: original, additional and revised commitments.
+  delta            Json?
+  createdByUserId  String           @db.Uuid
+  createdByName    String?
+  createdAt        DateTime         @default(now())
+  supersededAt     DateTime?
+  /// Phase 5: a quotation expires, can be rejected, or the business can ask for a change (each is recorded, never deleted).
+  validUntil              DateTime?
+  rejectedAt              DateTime?
+  rejectedByUserId        String?   @db.Uuid
+  rejectionReason         String?
+  modificationRequestedAt DateTime?
+  modificationRequest     String?
+
+  case        CommercialCase         @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  acceptances CommercialAcceptance[]
+  approvals   CommercialApproval[]
+
+  @@unique([caseId, version])
+}
+
+/// Permanent, append-only (database trigger). A new accepted version never overwrites an earlier one.
+model CommercialAcceptance {
+  id                      String    @id @default(uuid(7)) @db.Uuid
+  reference               String    @unique
+  caseId                  String    @db.Uuid
+  quotationId             String    @db.Uuid
+  role                    PartyRole
+  organizationId          String    @db.Uuid
+  legalEntityId           String?   @db.Uuid
+  userId                  String    @db.Uuid
+  userRole                String?
+  userName                String?
+  /// Set when DealDash Admin recorded the acceptance for an authorised entity (until the Partner Portal exists).
+  onBehalfAuthorizationId String?   @db.Uuid
+  checks                  Json
+  textVersion             String
+  language                String
+  /// Amounts shown at the time (a copy, so the record is self-contained).
+  amounts                 Json
+  createdAt               DateTime  @default(now())
+  ip                      String?
+  userAgent               String?
+
+  case      CommercialCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  quotation Quotation      @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+
+  @@unique([quotationId, role, organizationId])
+  @@index([caseId])
+}
+
+model CommercialApproval {
+  id              String           @id @default(uuid(7)) @db.Uuid
+  caseId          String           @db.Uuid
+  quotationId     String           @db.Uuid
+  step            ApprovalStepKind
+  status          ApprovalDecision @default(PENDING)
+  decidedByUserId String?          @db.Uuid
+  decidedByName   String?
+  decidedAt       DateTime?
+  reason          String?
+
+  case      CommercialCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  quotation Quotation      @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+
+  @@unique([quotationId, step])
+}
+
+/// What one party owes DealDash (a charge) or commits to fund (sponsor funding), by mode and trigger.
+model FundingCommitment {
+  id                   String         @id @default(uuid(7)) @db.Uuid
+  caseId               String         @db.Uuid
+  quotationId          String         @db.Uuid
+  organizationId       String         @db.Uuid
+  role                 PartyRole
+  kind                 CommitmentKind
+  mode                 FundingMode
+  /// Earned at activation (fixed fees, tax).
+  upfrontHalalas       Int            @default(0)
+  /// Maximum drawn per verified event (per redemption / voucher / view).
+  usageMaxHalalas      Int            @default(0)
+  perUnitHalalas       Int            @default(0)
+  trigger              String         @default("VERIFIED_REDEMPTION")
+  receivedHalalas      Int            @default(0)
+  upfrontEarnedHalalas Int            @default(0)
+  utilizedHalalas      Int            @default(0)
+  releasedHalalas      Int            @default(0)
+  /// True when the product owns its funds (Watch & Earn budget): received and utilised are read from the product.
+  adapterManaged       Boolean        @default(false)
+  status               String         @default("OPEN")
+  createdAt            DateTime       @default(now())
+
+  case CommercialCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@index([caseId])
+  @@index([organizationId])
+}
+
+/// One row per verified event that drew down a commitment. Idempotent per (commitment, source).
+model UtilizationEvent {
+  id                String    @id @default(uuid(7)) @db.Uuid
+  commitmentId      String    @db.Uuid
+  caseId            String    @db.Uuid
+  sourceType        String
+  sourceId          String
+  units             Int       @default(1)
+  amountHalalas     Int
+  journalId         String?   @db.Uuid
+  reversedAt        DateTime?
+  reversalJournalId String?   @db.Uuid
+  createdAt         DateTime  @default(now())
+  /// The campaign version in force when this happened (CampaignVersion.version).
+  campaignVersion   Int?
+
+  @@unique([commitmentId, sourceType, sourceId])
+  @@index([caseId])
+}
+
+model FinancePayment {
+  id                String   @id @default(uuid(7)) @db.Uuid
+  reference         String   @unique
+  businessAccountId String   @db.Uuid
+  organizationId    String   @db.Uuid
+  caseId            String?  @db.Uuid
+  commitmentId      String?  @db.Uuid
+  documentId        String?  @db.Uuid
+  amountHalalas     Int
+  method            String
+  externalReference String?
+  status            String   @default("RECEIVED")
+  recordedByUserId  String?  @db.Uuid
+  recordedByRole    String?
+  journalId         String?  @db.Uuid
+  idempotencyKey    String   @unique
+  receivedAt        DateTime @default(now())
+  createdAt         DateTime @default(now())
+  /// Phase 5: payments in any configured currency, allocated (fully or partly) to documents; the remainder stays unallocated credit.
+  currency          String   @default("SAR")
+  legalEntityId     String?  @db.Uuid
+
+  allocations PaymentAllocation[]
+
+  @@index([organizationId, receivedAt])
+  @@index([caseId])
+}
+
+model FinanceDocument {
+  id                String                @id @default(uuid(7)) @db.Uuid
+  number            String                @unique
+  type              FinanceDocumentType
+  status            FinanceDocumentStatus @default(ISSUED)
+  businessAccountId String                @db.Uuid
+  organizationId    String                @db.Uuid
+  caseId            String?               @db.Uuid
+  relatedDocumentId String?               @db.Uuid
+  currency          String                @default("SAR")
+  subtotalHalalas   Int                   @default(0)
+  taxHalalas        Int                   @default(0)
+  totalHalalas      Int                   @default(0)
+  paidHalalas       Int                   @default(0)
+  lines             Json                  @default("[]")
+  issuedAt          DateTime              @default(now())
+  dueAt             DateTime?
+  /// Statutory fields (tax invoice number, QR, e-invoicing UUID...) are configuration and VALIDATE-KSA: kept open here.
+  statutory         Json                  @default("{}")
+  notes             String?
+  createdByUserId   String?               @db.Uuid
+  createdAt         DateTime              @default(now())
+  /// Phase 5: the legal entity billed, the contract and billing period, the currencies (transaction / billing / settlement / tax) and FX used.
+  legalEntityId          String?   @db.Uuid
+  contractId             String?   @db.Uuid
+  /// CAMPAIGN_CASE | BILLING_RUN | MANUAL | QUOTATION | STATEMENT | PAYMENT
+  sourceKind             String    @default("MANUAL")
+  quotationId            String?   @db.Uuid
+  periodStart            DateTime?
+  periodEnd              DateTime?
+  transactionCurrency    String?
+  settlementCurrency     String?
+  fxRateId               String?   @db.Uuid
+  fxRate                 String?
+  taxCurrency            String?
+  taxAmountInTaxCurrency Int?
+  /// PO: its number, expiry and supporting file; an invoice keeps the PO it draws on.
+  purchaseOrderId        String?   @db.Uuid
+  externalReference      String?
+  expiresAt              DateTime?
+  fileId                 String?   @db.Uuid
+  approvedByUserId       String?   @db.Uuid
+  approvedAt             DateTime?
+  sentAt                 DateTime?
+  overdueAt              DateTime?
+  disputedAt             DateTime?
+  disputeCaseId          String?   @db.Uuid
+  cancelledAt            DateTime?
+  cancelReason           String?
+  writtenOffAt           DateTime?
+  writtenOffByUserId     String?   @db.Uuid
+  updatedAt              DateTime  @default(now()) @updatedAt
+
+  invoiceLines InvoiceLine[]
+  allocations  PaymentAllocation[]
+
+  @@index([organizationId, type])
+  @@index([caseId])
+  @@index([businessAccountId, status])
+  @@index([status, dueAt])
+  @@index([purchaseOrderId])
+}
+
+model CreditFacility {
+  id                 String       @id @default(uuid(7)) @db.Uuid
+  businessAccountId  String       @db.Uuid
+  organizationId     String       @db.Uuid
+  currency           String       @default("SAR")
+  limitHalalas       Int
+  paymentTermsDays   Int
+  expiresAt          DateTime
+  agreementReference String
+  status             CreditStatus @default(PENDING_APPROVAL)
+  requestedByUserId  String       @db.Uuid
+  requestedByName    String?
+  decidedByUserId    String?      @db.Uuid
+  decidedByName      String?
+  decidedAt          DateTime?
+  decisionReason     String?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  @@index([organizationId, status])
+}
+
+model FinancialHold {
+  id                String    @id @default(uuid(7)) @db.Uuid
+  organizationId    String    @db.Uuid
+  businessAccountId String?   @db.Uuid
+  caseId            String?   @db.Uuid
+  reason            String
+  status            String    @default("ACTIVE")
+  placedByUserId    String    @db.Uuid
+  placedAt          DateTime  @default(now())
+  releasedByUserId  String?   @db.Uuid
+  releasedAt        DateTime?
+  releaseReason     String?
+
+  @@index([organizationId, status])
+  @@index([caseId, status])
+}
+
+model FinanceAdjustment {
+  id                String   @id @default(uuid(7)) @db.Uuid
+  caseId            String?  @db.Uuid
+  businessAccountId String   @db.Uuid
+  organizationId    String   @db.Uuid
+  /// CREDIT (reduces what the business owes / adds to its account) or DEBIT
+  kind              String
+  amountHalalas     Int
+  reason            String
+  documentId        String?  @db.Uuid
+  journalId         String?  @db.Uuid
+  createdByUserId   String   @db.Uuid
+  idempotencyKey    String   @unique
+  createdAt         DateTime @default(now())
+
+  @@index([organizationId])
+}
+
+model CaseReconciliation {
+  id             String    @id @default(uuid(7)) @db.Uuid
+  caseId         String    @db.Uuid
+  status         String    @default("PENDING_REVIEW")
+  snapshot       Json
+  computedAt     DateTime  @default(now())
+  closedByUserId String?   @db.Uuid
+  closedAt       DateTime?
+  treatment      Json?
+
+  @@index([caseId, computedAt])
+}
+
+model FinanceSequence {
+  key   String @id
+  value Int    @default(0)
+}
+
+/// Auditable authorisation for DealDash Admin to act for an entity (until the Partner Portal exists). It can NEVER stand in for a
+/// fulfilment merchant's approval.
+model AdminAuthorization {
+  id              String    @id @default(uuid(7)) @db.Uuid
+  organizationId  String    @db.Uuid
+  kind            String    @default("ACT_ON_BEHALF")
+  reference       String
+  reason          String
+  validUntil      DateTime
+  createdByUserId String    @db.Uuid
+  createdAt       DateTime  @default(now())
+  revokedAt       DateTime?
+
+  @@index([organizationId])
+}
+
+// ================================================================ Shared platform, Phase 1: organization units, scoped access, contracts, markets
+// The Organization stays the tenant and business account. A Business Account holds one or more LegalEntity records (their own
+// currency, tax profile, contracts, billing). OrganizationUnit is a flexible hierarchy (brand, operating company, franchisee,
+// country, region, city, business unit, branch ...) whose kinds are configuration (`platform.unit_kinds`).
+
+model OrganizationUnit {
+  id                      String   @id @default(uuid(7)) @db.Uuid
+  organizationId          String   @db.Uuid
+  parentId                String?  @db.Uuid
+  /// Configurable kind (BRAND, OPERATING_COMPANY, FRANCHISEE, COUNTRY, REGION, CITY, BUSINESS_UNIT, BRANCH, OUTLET, DEPARTMENT ...).
+  kind                    String
+  code                    String
+  nameEn                  String
+  nameAr                  String
+  /// The legal entity this unit belongs to (a unit inherits its nearest ancestor's when null).
+  legalEntityId           String?  @db.Uuid
+  /// Franchise models: the party that operates the unit and the party that is settled can differ from the legal entity.
+  operatorLegalEntityId   String?  @db.Uuid
+  settlementLegalEntityId String?  @db.Uuid
+  country                 String?
+  city                    String?
+  /// A physical outlet unit points at its MerchantBranch (one unit per branch).
+  branchId                String?  @unique @db.Uuid
+  /// Materialised path of ancestor ids, "/a/b/c/" (own id last), used for fast descendant checks.
+  path                    String
+  depth                   Int      @default(0)
+  status                  String   @default("ACTIVE")
+  createdByUserId         String   @db.Uuid
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  legalEntity LegalEntity? @relation(fields: [legalEntityId], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, code])
+  @@index([organizationId, parentId])
+  @@index([organizationId, kind])
+}
+
+/// One scoped grant: a role held within a scope. Effective access is the INTERSECTION of the membership's organisation, the role's
+/// permissions, this scope, product entitlements and (for CAMPAIGN / PRODUCT scopes) the optional envelope. A campaign or product
+/// scope can only narrow; it never widens the envelope.
+model RoleAssignment {
+  id              String    @id @default(uuid(7)) @db.Uuid
+  organizationId  String    @db.Uuid
+  membershipId    String    @db.Uuid
+  userId          String    @db.Uuid
+  roleId          String    @db.Uuid
+  /// ORGANIZATION | LEGAL_ENTITY | UNIT | COUNTRY | BRANCH | PRODUCT | CAMPAIGN
+  scopeKind       String
+  /// Unit / legal entity / branch / campaign id, country code or product code. Null for ORGANIZATION.
+  scopeRef        String?
+  /// CAMPAIGN scope: the product the campaign belongs to.
+  scopeProduct    String?
+  /// Optional broader envelope for CAMPAIGN and PRODUCT scopes (for example the country the campaign sits in).
+  envelopeKind    String?
+  envelopeRef     String?
+  status          String    @default("ACTIVE")
+  validFrom       DateTime  @default(now())
+  validUntil      DateTime?
+  grantedByUserId String    @db.Uuid
+  grantedByRole   String?
+  reason          String?
+  createdAt       DateTime  @default(now())
+  revokedAt       DateTime?
+  revokedByUserId String?   @db.Uuid
+
+  membership OrganizationMembership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  role       Role                   @relation(fields: [roleId], references: [id])
+
+  @@index([organizationId, userId, status])
+  @@index([membershipId, status])
+}
+
+/// A commercial contract with a Business Account (optionally one legal entity). Entitlements are effective-dated; history is kept.
+model Contract {
+  id              String    @id @default(uuid(7)) @db.Uuid
+  organizationId  String    @db.Uuid
+  /// The contracting legal entity (the contract may cover more through ContractLegalEntity). Null = a Business Account level contract.
+  legalEntityId   String?   @db.Uuid
+  name            String
+  reference       String?
+  planCode        String?
+  /// Commercial lifecycle: DRAFT PENDING_ACTIVATION TRIAL ACTIVE PAST_DUE SUSPENDED CANCELLED EXPIRED SUPERSEDED.
+  status          String    @default("ACTIVE")
+  effectiveFrom   DateTime  @default(now())
+  effectiveUntil  DateTime?
+  createdByUserId String    @db.Uuid
+  createdAt       DateTime  @default(now())
+
+  /// MERCHANT_SUBSCRIPTION MERCHANT_ENTERPRISE BANK_ENTERPRISE SCHEME_NETWORK_LICENCE CORPORATE_PARTNER CUSTOM_ENTERPRISE
+  kind                 String    @default("CUSTOM_ENTERPRISE")
+  market               String?
+  currency             String?
+  billingCadence       String    @default("NONE")
+  /// Who is billed. Null = the contracting legal entity, else the organization's first legal entity. Never a brand or a branch.
+  billingLegalEntityId String?   @db.Uuid
+  planVersionId        String?   @db.Uuid
+  /// AUTO_RENEW MANUAL_RENEWAL NON_RENEWING RENEWAL_PENDING (separate from the lifecycle).
+  renewalState         String    @default("MANUAL_RENEWAL")
+  /// Contract version: raised by every applied amendment (the previous version is kept in ContractAmendment).
+  version              Int       @default(1)
+  termsVersion         String?
+  graceDays            Int?
+  /// Contract-specific enforcement policy override (stricter or looser than plan / market / platform defaults).
+  enforcement          Json?
+  pastDueSince         DateTime?
+  graceUntil           DateTime?
+  suspendedAt          DateTime?
+  cancelledAt          DateTime?
+  activatedAt          DateTime?
+  nextBillingAt        DateTime?
+  nextRenewalAt        DateTime?
+  supportLevel         String?
+  accountManager       String?
+  /// PLV:<planVersionId> (or the contract's own pricing reference): the pricing version that governs the base price.
+  pricingVersionKey    String?
+  developmentFixture   Boolean   @default(false)
+
+  entitlements ContractEntitlement[]
+  planVersion  CommercialPlanVersion? @relation(fields: [planVersionId], references: [id])
+  coverage     ContractLegalEntity[]
+  amendments   ContractAmendment[]
+  acceptances  ContractAcceptance[]
+  addOns       ContractAddOn[]
+  trials       ContractTrial[]
+  promotions   ContractPromotion[]
+  rates        ContractRate[]
+
+  @@index([organizationId, status])
+  @@index([status, graceUntil])
+  @@index([planVersionId])
+}
+
+
+model ContractEntitlement {
+  id             String    @id @default(uuid(7)) @db.Uuid
+  contractId     String    @db.Uuid
+  /// PRODUCT | FEATURE | LIMIT
+  kind           String
+  key            String
+  enabled        Boolean   @default(true)
+  limitValue     Int?
+  effectiveFrom  DateTime  @default(now())
+  effectiveUntil DateTime?
+
+  /// CONTRACT (typed in directly) | PLAN (fed by the plan version) | OVERRIDE (contract-specific, replaces the plan default) | ADDON (adds)
+  source          String   @default("CONTRACT")
+  /// Add-on id or amendment id that created the row.
+  sourceRef       String?
+  /// LIMIT rows: HARD (action blocked) | SOFT (warn / overage / approval)
+  mode            String   @default("HARD")
+  /// NONE | DAY | MONTH | YEAR | CONTRACT_TERM (period meters; resource counts use NONE)
+  period          String   @default("NONE")
+  warnPercents    Int[]    @default([80, 100])
+  /// SOFT limits: WARN | OVERAGE_CHARGE | REQUIRE_APPROVAL
+  softAction      String   @default("WARN")
+  overageRateMinor Int?
+  note            String?
+
+  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([contractId, kind, key])
+  @@index([contractId, source])
+}
+
+
+/// One row per market. KSA is the only enabled market for the pilot. Tax, payment, settlement and legal content are configuration
+/// and VALIDATE-KSA; nothing Saudi-specific is hard-coded in code.
+model CountryConfiguration {
+  code                  String   @id
+  nameEn                String
+  nameAr                String
+  currency              String
+  languages             String[] @default([])
+  enabled               Boolean  @default(false)
+  taxProfile            Json     @default("{}")
+  paymentProvider       String?
+  settlement            Json     @default("{}")
+  legalTextVersion      String?
+  residency             Json     @default("{}")
+  notificationProviders Json     @default("{}")
+  settings              Json     @default("{}")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+// ================================================================ Shared platform, Phase 2: master data, provenance, imports, integrations
+// Canonical identities for merchants, brands and branches. A REFERENCED (network) merchant comes from a bank, scheme or partner feed
+// and is NOT a DealDash merchant: it has no Organization, no staff, no inventory, no finance and no controlled products. A
+// REGISTERED merchant is linked to its Organization. Uncertain duplicates are never merged automatically.
+
+enum MasterRegistration {
+  REFERENCED
+  REGISTERED
+}
+
+model MasterBrand {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  nameEn         String
+  nameAr         String?
+  normalizedName String
+  status         String   @default("ACTIVE")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  merchants MasterMerchant[]
+
+  @@index([normalizedName])
+}
+
+model MasterMerchant {
+  id             String             @id @default(uuid(7)) @db.Uuid
+  registration   MasterRegistration @default(REFERENCED)
+  /// Set only for a REGISTERED merchant: the DealDash organization it was linked or upgraded to.
+  organizationId String?            @unique @db.Uuid
+  brandId        String?            @db.Uuid
+  nameEn         String
+  nameAr         String?
+  normalizedName String
+  country        String             @default("SA")
+  categoryCode   String?
+  status         String             @default("ACTIVE")
+  /// Set when this record was merged into another (the target keeps every source reference, alias and offer).
+  mergedIntoId   String?            @db.Uuid
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  organization Organization?     @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  brand        MasterBrand?      @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  branches     MasterBranch[]
+  offers       ReferencedOffer[]
+
+  @@index([normalizedName, country])
+  @@index([registration])
+}
+
+model MasterBranch {
+  id               String   @id @default(uuid(7)) @db.Uuid
+  merchantId       String   @db.Uuid
+  nameEn           String
+  nameAr           String?
+  addressEn        String?
+  addressAr        String?
+  city             String?
+  country          String   @default("SA")
+  latitude         Decimal? @db.Decimal(9, 6)
+  longitude        Decimal? @db.Decimal(9, 6)
+  normalizedKey    String
+  /// Set when the merchant registered and this outlet became a DealDash branch.
+  merchantBranchId String?  @unique @db.Uuid
+  status           String   @default("ACTIVE")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  merchant MasterMerchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@index([merchantId])
+  @@index([normalizedKey])
+}
+
+/// An offer supplied by a network source (a scheme or bank feed). It can only be shown in discovery as a Live Deal listing when
+/// publication rights are confirmed; it never becomes an Exclusive Deal, Voucher or Watch & Earn reward.
+model ReferencedOffer {
+  id           String    @id @default(uuid(7)) @db.Uuid
+  merchantId   String    @db.Uuid
+  titleEn      String
+  titleAr      String?
+  benefitEn    String
+  benefitAr    String?
+  termsEn      String?
+  termsAr      String?
+  categoryCode String?
+  channel      String    @default("IN_STORE")
+  validFrom    DateTime
+  validUntil   DateTime?
+  /// Card schemes / products / tiers the source says qualify (kept as supplied; the shared eligibility engine reads it in Phase 3).
+  eligibility  Json      @default("{}")
+  branchIds    String[]  @default([])
+  status       String    @default("ACTIVE")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  merchant MasterMerchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@index([merchantId, status])
+  @@index([validUntil])
+}
+
+/// Provenance of every externally sourced record (and of manual ones).
+model ExternalEntityReference {
+  id                   String    @id @default(uuid(7)) @db.Uuid
+  /// MERCHANT | BRAND | BRANCH | OFFER
+  entityType           String
+  entityId             String    @db.Uuid
+  sourceSystem         String
+  sourceOrganizationId String?   @db.Uuid
+  sourceRecordId       String
+  connectionId         String?   @db.Uuid
+  importJobId          String?   @db.Uuid
+  /// MANUAL | BULK | API | FEED
+  importMethod         String
+  sourceOwner          String?
+  /// SOURCE | DEALDASH | MERCHANT: who may edit the record.
+  editableBy           String    @default("SOURCE")
+  syncStatus           String    @default("SYNCED")
+  /// NONE | LOCAL | TEMPORARY | PERMANENT | PENDING_RECONCILIATION
+  overrideStatus       String    @default("NONE")
+  publicationConfirmed Boolean   @default(false)
+  publicationRef       String?
+  lastSyncAt           DateTime?
+  lastSuccessfulSyncAt DateTime?
+  lastSourceUpdateAt   DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@unique([sourceSystem, entityType, sourceRecordId])
+  @@index([entityType, entityId])
+  @@index([sourceOrganizationId])
+}
+
+model EntityAlias {
+  id              String   @id @default(uuid(7)) @db.Uuid
+  entityType      String
+  entityId        String   @db.Uuid
+  alias           String
+  normalizedAlias String
+  createdAt       DateTime @default(now())
+
+  @@unique([entityType, entityId, normalizedAlias])
+  @@index([entityType, normalizedAlias])
+}
+
+/// Two records that might be the same business. Nothing is merged until a person decides.
+model MatchCandidate {
+  id              String    @id @default(uuid(7)) @db.Uuid
+  entityType      String
+  aId             String    @db.Uuid
+  bId             String    @db.Uuid
+  confidence      Int
+  reasons         Json      @default("[]")
+  status          String    @default("PENDING")
+  decidedByUserId String?   @db.Uuid
+  decidedAt       DateTime?
+  decisionNote    String?
+  createdAt       DateTime  @default(now())
+
+  @@unique([entityType, aId, bId])
+  @@index([status, confidence])
+}
+
+/// A field the source and DealDash disagree about (an approved local value exists and the source now says something else).
+model DataConflict {
+  id               String    @id @default(uuid(7)) @db.Uuid
+  entityType       String
+  entityId         String    @db.Uuid
+  field            String
+  sourceSystem     String
+  sourceValue      Json
+  localValue       Json
+  policy           String
+  status           String    @default("OPEN")
+  resolution       String?
+  resolvedByUserId String?   @db.Uuid
+  resolvedAt       DateTime?
+  createdAt        DateTime  @default(now())
+
+  @@index([status, createdAt])
+  @@index([entityType, entityId])
+}
+
+/// A local value that wins over the source for one field. Overrides can be temporary and are never silently overwritten by a feed.
+model EntityOverride {
+  id              String    @id @default(uuid(7)) @db.Uuid
+  entityType      String
+  entityId        String    @db.Uuid
+  field           String
+  value           Json
+  /// LOCAL | TEMPORARY | PERMANENT
+  kind            String
+  validUntil      DateTime?
+  reason          String
+  createdByUserId String    @db.Uuid
+  createdAt       DateTime  @default(now())
+  endedAt         DateTime?
+
+  @@index([entityType, entityId, field])
+}
+
+model ImportJob {
+  id               String    @id @default(uuid(7)) @db.Uuid
+  /// The business that ran it (null = DealDash Admin).
+  organizationId   String?   @db.Uuid
+  kind             String
+  sourceSystem     String
+  fileName         String?
+  fileHash         String
+  /// Contract or authorisation reference that lets DealDash show offers from this file (null = not authorised for publication).
+  publicationRef   String?
+  status           String    @default("UPLOADED")
+  totals           Json      @default("{}")
+  createdByUserId  String    @db.Uuid
+  approvedByUserId String?   @db.Uuid
+  approvedAt       DateTime?
+  executedAt       DateTime?
+  rejectionReason  String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  rows ImportRow[]
+
+  @@unique([organizationId, kind, fileHash])
+  @@index([organizationId, status])
+}
+
+model ImportRow {
+  id              String  @id @default(uuid(7)) @db.Uuid
+  jobId           String  @db.Uuid
+  rowNumber       Int
+  raw             Json
+  normalized      Json?
+  /// VALID | WARNING | ERROR | DUPLICATE | IMPORTED | SKIPPED
+  status          String
+  action          String?
+  errors          Json    @default("[]")
+  matchedEntityId String? @db.Uuid
+
+  job ImportJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, rowNumber])
+  @@index([jobId, status])
+}
+
+model IntegrationConnection {
+  id                    String    @id @default(uuid(7)) @db.Uuid
+  organizationId        String?   @db.Uuid
+  name                  String
+  sourceSystem          String
+  /// API_PUSH | FEED_PULL | WEBHOOK
+  kind                  String    @default("API_PUSH")
+  status                String    @default("ACTIVE")
+  keyPrefix             String    @unique
+  keyHash               String
+  scopes                String[]  @default([])
+  apiVersion            String    @default("1")
+  rateLimitPerMinute    Int       @default(120)
+  publicationAuthorized Boolean   @default(false)
+  publicationRef        String?
+  staleAfterMinutes     Int       @default(1440)
+  lastSyncAt            DateTime?
+  lastSuccessfulSyncAt  DateTime?
+  lastSourceUpdateAt    DateTime?
+  errorCount            Int       @default(0)
+  createdByUserId       String    @db.Uuid
+  createdAt             DateTime  @default(now())
+  revokedAt             DateTime?
+
+  syncJobs  SyncJob[]
+  failed    FailedRecord[]
+  endpoints WebhookEndpoint[]
+
+  @@index([organizationId, status])
+}
+
+model SyncJob {
+  id             String    @id @default(uuid(7)) @db.Uuid
+  connectionId   String    @db.Uuid
+  idempotencyKey String?
+  status         String    @default("RUNNING")
+  received       Int       @default(0)
+  accepted       Int       @default(0)
+  rejected       Int       @default(0)
+  conflicts      Int       @default(0)
+  startedAt      DateTime  @default(now())
+  finishedAt     DateTime?
+  error          String?
+  result         Json?
+
+  connection IntegrationConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@unique([connectionId, idempotencyKey])
+  @@index([connectionId, startedAt])
+}
+
+/// A record the platform could not accept. It waits here for a person (retry, fix, or discard); nothing is dropped silently.
+model FailedRecord {
+  id               String    @id @default(uuid(7)) @db.Uuid
+  connectionId     String    @db.Uuid
+  syncJobId        String?   @db.Uuid
+  recordType       String?
+  sourceRecordId   String?
+  payload          Json
+  error            String
+  attempts         Int       @default(1)
+  status           String    @default("OPEN")
+  createdAt        DateTime  @default(now())
+  resolvedAt       DateTime?
+  resolvedByUserId String?   @db.Uuid
+
+  connection IntegrationConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@index([connectionId, status])
+}
+
+model WebhookEndpoint {
+  id           String   @id @default(uuid(7)) @db.Uuid
+  connectionId String   @db.Uuid
+  url          String
+  secretEnc    String
+  events       String[] @default([])
+  status       String   @default("ACTIVE")
+  createdAt    DateTime @default(now())
+
+  connection IntegrationConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  deliveries WebhookDelivery[]
+
+  @@index([connectionId])
+}
+
+model WebhookDelivery {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  endpointId    String    @db.Uuid
+  event         String
+  payload       Json
+  status        String    @default("PENDING")
+  attempts      Int       @default(0)
+  nextAttemptAt DateTime  @default(now())
+  lastError     String?
+  deliveredAt   DateTime?
+  createdAt     DateTime  @default(now())
+
+  endpoint WebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+
+  @@index([status, nextAttemptAt])
+}
+
+// ================================================================ Shared platform, Phase 3: loyalty rules, campaign versions, task inbox, disputes, offer conflicts
+
+/// Configurable, effective-dated loyalty earning rule. Every rule is capped (no uncontrolled liability) and names who funds it.
+model LoyaltyRule {
+  id                     String    @id @default(uuid(7)) @db.Uuid
+  name                   String
+  status                 String    @default("DRAFT")
+  /// QUALIFIED_VIEW | EXCLUSIVE_REDEMPTION | VOUCHER_PURCHASE | VOUCHER_REDEMPTION | FIRST_ACTIVITY | CAMPAIGN_BONUS (data, extendable)
+  eventType              String
+  /// BASE | BONUS (a bonus is recorded as a BONUS entry)
+  kind                   String    @default("BASE")
+  productScope           String?
+  campaignId             String?   @db.Uuid
+  /// Null = a DealDash platform rule; otherwise the business that owns the rule.
+  organizationId         String?   @db.Uuid
+  basePoints             Int       @default(0)
+  bonusPoints            Int       @default(0)
+  multiplierBps          Int       @default(10000)
+  /// Spend-based events (a voucher purchase): points per 100 halalas spent. 0 = not spend based.
+  pointsPer100Halalas    Int       @default(0)
+  dailyCap               Int?
+  monthlyCap             Int?
+  customerCap            Int?
+  eligibilityRuleSetId   String?   @db.Uuid
+  /// DEALDASH | MERCHANT | BANK | SCHEME | CORPORATE | CAMPAIGN | SPONSOR
+  fundingSource          String    @default("DEALDASH")
+  fundingOrganizationId  String?   @db.Uuid
+  /// What the funder pays per point (agreement driven, never a global value). Required for funded rules.
+  fundingHalalasPerPoint Int?
+  expiryDays             Int?
+  maxAllocationPoints    Int?
+  allocatedPoints        Int       @default(0)
+  reversedPoints         Int       @default(0)
+  effectiveFrom          DateTime  @default(now())
+  effectiveUntil         DateTime?
+  createdByUserId        String    @db.Uuid
+  approvedByUserId       String?   @db.Uuid
+  approvedAt             DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  @@index([status, eventType])
+  @@index([organizationId])
+}
+
+/// A frozen copy of a campaign as it was approved or amended. Entitlements, redemptions, purchases, rewards and financial events
+/// record the version they happened under, so a later change never rewrites history.
+model CampaignVersion {
+  id              String    @id @default(uuid(7)) @db.Uuid
+  product         String
+  subjectId       String    @db.Uuid
+  organizationId  String    @db.Uuid
+  version         Int
+  /// DRAFT | LIVE | SUPERSEDED
+  status          String
+  reason          String
+  content         Json
+  contentHash     String
+  quotationId     String?   @db.Uuid
+  effectiveFrom   DateTime  @default(now())
+  effectiveUntil  DateTime?
+  createdByUserId String?   @db.Uuid
+  createdAt       DateTime  @default(now())
+
+  @@unique([product, subjectId, version])
+  @@index([product, subjectId, status])
+}
+
+/// Work that needs a person and has no source table of its own (alerts, integration issues). Most inbox items are derived live from
+/// their source tables; both kinds are filtered by the viewer's role and scope.
+model ApprovalTask {
+  id                 String    @id @default(uuid(7)) @db.Uuid
+  kind               String
+  status             String    @default("OPEN")
+  priority           String    @default("NORMAL")
+  title              String
+  detail             String?
+  organizationId     String?   @db.Uuid
+  product            String?
+  entityType         String?
+  entityId           String?
+  branchId           String?   @db.Uuid
+  country            String?
+  /// The permission a viewer needs (in the scope above) to see and act on the task.
+  requiredPermission String
+  dedupeKey          String?   @unique
+  dueAt              DateTime?
+  createdAt          DateTime  @default(now())
+  resolvedAt         DateTime?
+  resolvedByUserId   String?   @db.Uuid
+  resolution         String?
+
+  @@index([status, organizationId])
+  @@index([kind, status])
+}
+
+model DisputeCase {
+  id                     String    @id @default(uuid(7)) @db.Uuid
+  reference              String    @unique
+  type                   String
+  product                String?
+  organizationId         String?   @db.Uuid
+  customerUserId         String?   @db.Uuid
+  relatedType            String?
+  relatedId              String?
+  title                  String
+  description            String?
+  priority               String    @default("NORMAL")
+  status                 String    @default("OPEN")
+  ownerUserId            String?   @db.Uuid
+  openedByUserId         String?   @db.Uuid
+  openedByOrganizationId String?   @db.Uuid
+  slaDueAt               DateTime
+  resolution             String?
+  resolvedAt             DateTime?
+  resolvedByUserId       String?   @db.Uuid
+  financialAdjustmentId  String?   @db.Uuid
+  evidence               Json      @default("[]")
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  notes CaseNote[]
+
+  @@index([status, slaDueAt])
+  @@index([organizationId, status])
+  @@index([customerUserId])
+}
+
+model CaseNote {
+  id                   String   @id @default(uuid(7)) @db.Uuid
+  caseId               String   @db.Uuid
+  authorUserId         String?  @db.Uuid
+  authorOrganizationId String?  @db.Uuid
+  /// INTERNAL notes are DealDash only; SHARED notes are visible to the business and, where relevant, the customer.
+  visibility           String   @default("INTERNAL")
+  body                 String
+  createdAt            DateTime @default(now())
+
+  case DisputeCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@index([caseId, createdAt])
+}
+
+/// Two campaigns or offers that contradict or duplicate each other. Flagged for review, never auto-rejected.
+model OfferConflictFlag {
+  id              String    @id @default(uuid(7)) @db.Uuid
+  organizationId  String?   @db.Uuid
+  /// OVERLAP_WEAKER_EXCLUSIVE | DUPLICATE | CONTRADICTORY_TERMS | DUPLICATE_IMPORTED
+  type            String
+  aProduct        String
+  aId             String    @db.Uuid
+  bProduct        String
+  bId             String    @db.Uuid
+  details         Json      @default("{}")
+  status          String    @default("OPEN")
+  decidedByUserId String?   @db.Uuid
+  decisionNote    String?
+  decidedAt       DateTime?
+  createdAt       DateTime  @default(now())
+
+  @@unique([type, aId, bId])
+  @@index([status, createdAt])
+}
+
+// ============================================================================================================
+// Subscription, licensing and commercial plan engine. It extends Contract / ContractEntitlement; nothing here is a second model.
+// ============================================================================================================
+
+/// A reusable commercial template (Merchant Starter, Growth, Business, Bank Enterprise, a Scheme licence ...). NOT a customer contract.
+model CommercialPlan {
+  id           String   @id @default(uuid(7)) @db.Uuid
+  code         String   @unique
+  nameEn       String
+  nameAr       String
+  descriptionEn String?
+  descriptionAr String?
+  /// MERCHANT | BANK | SCHEME | CORPORATE | PARTNER
+  entityType   String
+  /// The contract kind an agreement created from this plan gets.
+  contractKind String
+  isFree       Boolean  @default(false)
+  /// Negotiated / custom: no fixed list price.
+  negotiated   Boolean  @default(false)
+  status       String   @default("ACTIVE")
+  sortOrder    Int      @default(100)
+  createdByUserId String? @db.Uuid
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  versions CommercialPlanVersion[]
+
+  @@index([entityType, status])
+}
+
+/// The versioned, per-market snapshot of a plan. Published versions are immutable; a change is a new version.
+model CommercialPlanVersion {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  planId        String    @db.Uuid
+  market        String
+  currency      String
+  version       Int
+  /// DRAFT | PUBLISHED | RETIRED
+  status        String    @default("DRAFT")
+  effectiveFrom DateTime  @default(now())
+  effectiveUntil DateTime?
+  defaultCadence String   @default("MONTHLY")
+  /// [{ cadence, amountMinor, indicative? }]  (minor units of `currency`). Empty = negotiated.
+  prices        Json      @default("[]")
+  /// [{ code, amountMinor, indicative?, note? }]  setup, integration, API and similar one-off fees.
+  fees          Json      @default("[]")
+  /// { CODE: { amountMinor, cadence, indicative? } }  add-on prices of this plan.
+  addOnPrices   Json      @default("{}")
+  /// { products: string[], features: string[], limits: [{ key, value|null, mode, period, warnPercents, softAction, overageRateMinor }] }
+  entitlements  Json      @default("{}")
+  addOnCodes    String[]  @default([])
+  supportLevel  String?
+  trialDays     Int?
+  graceDays     Int?
+  enforcement   Json?
+  rules         Json      @default("{}")
+  /// Reference ("indicative from ...") figures that are not list prices.
+  referencePricing Json   @default("{}")
+  developmentFixture Boolean @default(false)
+  createdByUserId String? @db.Uuid
+  publishedByUserId String? @db.Uuid
+  publishedAt   DateTime?
+  createdAt     DateTime  @default(now())
+
+  plan      CommercialPlan @relation(fields: [planId], references: [id])
+  contracts Contract[]
+
+  @@unique([planId, market, version])
+  @@index([planId, market, status])
+}
+
+/// The market price book for usage, placement and transaction items (featured placement, commission, per qualified view ...).
+model PriceItem {
+  id       String   @id @default(uuid(7)) @db.Uuid
+  code     String   @unique
+  nameEn   String
+  nameAr   String
+  /// A BILLING_CATEGORY (revenue classification).
+  category String
+  /// EACH | PER_VIEW | PER_REDEMPTION | PERCENT | PER_CAMPAIGN | PER_MONTH | PER_YEAR | PER_REQUEST
+  unit     String   @default("EACH")
+  product  String?
+  /// ACTIVE | INACTIVE (for example Play & Win stays inactive until activated)
+  status   String   @default("ACTIVE")
+  createdAt DateTime @default(now())
+
+  versions PriceItemVersion[]
+}
+
+model PriceItemVersion {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  itemId        String    @db.Uuid
+  market        String
+  currency      String
+  version       Int
+  /// FIXED | PER_UNIT | PERCENT_BPS | TIERED
+  model         String
+  amountMinor   Int?
+  rateBps       Int?
+  tiers         Json?
+  minAmountMinor Int?
+  maxAmountMinor Int?
+  /// A reference ("from") value or range rather than a mandatory price.
+  indicative    Boolean   @default(false)
+  rangeMin      Int?
+  rangeMax      Int?
+  effectiveFrom DateTime  @default(now())
+  effectiveUntil DateTime?
+  status        String    @default("PUBLISHED")
+  reference     String?
+  createdByUserId String? @db.Uuid
+  createdAt     DateTime  @default(now())
+
+  item PriceItem @relation(fields: [itemId], references: [id])
+
+  @@unique([itemId, market, version])
+  @@index([itemId, market, status])
+}
+
+model AddOnDefinition {
+  id            String   @id @default(uuid(7)) @db.Uuid
+  code          String   @unique
+  nameEn        String
+  nameAr        String
+  /// [{ kind: PRODUCT | FEATURE | LIMIT, key, perUnit }]  what one unit of the add-on grants.
+  effect        Json
+  /// Price book item used when the plan version carries no price for it.
+  priceItemCode String?
+  eligiblePlanCodes String[] @default([])
+  status        String   @default("ACTIVE")
+  createdAt     DateTime @default(now())
+}
+
+/// A contract can cover several legal entities (the contracting entity stays on Contract).
+model ContractLegalEntity {
+  id            String   @id @default(uuid(7)) @db.Uuid
+  contractId    String   @db.Uuid
+  legalEntityId String   @db.Uuid
+  /// CONTRACTING | COVERED | BILLING
+  role          String   @default("COVERED")
+  createdAt     DateTime @default(now())
+
+  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@unique([contractId, legalEntityId, role])
+  @@index([legalEntityId])
+}
+
+/// Upgrade, downgrade, add-on, renewal, pricing, entitlement, market addition and extension. Never a status.
+model ContractAmendment {
+  id              String    @id @default(uuid(7)) @db.Uuid
+  contractId      String    @db.Uuid
+  organizationId  String    @db.Uuid
+  /// The contract version this amendment starts from; the new version is fromVersion + 1 once applied.
+  fromVersion     Int
+  type            String
+  /// PROPOSED | ACCEPTED | APPLIED | REJECTED | CANCELLED
+  status          String    @default("PROPOSED")
+  effectiveMode   String    @default("IMMEDIATE")
+  effectiveAt     DateTime
+  targetPlanVersionId String? @db.Uuid
+  /// What changes: entitlement rows, add-on, price, market, new end date ...
+  change          Json
+  /// Snapshots so the previous contract version is always reconstructable.
+  fromSnapshot    Json
+  toSnapshot      Json
+  /// Commercial impact shown before acceptance: price difference, entitlement differences, excess usage.
+  impact          Json
+  reason          String?
+  forced          Boolean   @default(false)
+  requestedByUserId String  @db.Uuid
+  requestedByOrg  Boolean   @default(false)
+  approvedByUserId String?  @db.Uuid
+  approvedAt      DateTime?
+  acceptanceId    String?   @db.Uuid
+  appliedAt       DateTime?
+  createdAt       DateTime  @default(now())
+
+  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([contractId, status])
+  @@index([status, effectiveAt])
+  @@index([organizationId])
+}
+
+/// An authorised acceptance of commercial terms (plan, price, term, billing, renewal, maximum exposure). Immutable.
+model ContractAcceptance {
+  id               String   @id @default(uuid(7)) @db.Uuid
+  reference        String   @unique
+  contractId       String   @db.Uuid
+  amendmentId      String?  @db.Uuid
+  organizationId   String   @db.Uuid
+  legalEntityId    String?  @db.Uuid
+  userId           String   @db.Uuid
+  userRole         String?
+  userName         String?
+  /// Set when DealDash Admin recorded it for an authorised party.
+  onBehalfAuthorizationId String? @db.Uuid
+  planVersionId    String?  @db.Uuid
+  pricingVersionKey String?
+  termsVersion     String
+  currency         String
+  acceptedAmountMinor Int   @default(0)
+  maxExposureMinor Int      @default(0)
+  effectiveFrom    DateTime
+  billingCadence   String
+  approvalRef      String?
+  /// Exactly what was shown (plan, base price, setup, add-ons, usage pricing, term, billing frequency, renewal, tax where configured).
+  terms            Json
+  language         String   @default("en")
+  createdAt        DateTime @default(now())
+  ip               String?
+  userAgent        String?
+
+  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([contractId, createdAt])
+  @@index([organizationId])
+}
+
+model ContractAddOn {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  contractId    String    @db.Uuid
+  organizationId String   @db.Uuid
+  code          String
+  quantity      Int       @default(1)
+  priceMinor    Int       @default(0)
+  currency      String
+  cadence       String    @default("MONTHLY")
+  pricingVersionKey String?
+  startAt       DateTime
+  endAt         DateTime?
+  autoRenew     Boolean   @default(false)
+  /// PROPOSED | ACTIVE | ENDED | CANCELLED
+  status        String    @default("PROPOSED")
+  approvedByUserId String? @db.Uuid
+  acceptanceId  String?   @db.Uuid
+  createdByUserId String  @db.Uuid
+  createdAt     DateTime  @default(now())
+
+  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([contractId, status])
+}
+
+model ContractTrial {
+  id             String    @id @default(uuid(7)) @db.Uuid
+  contractId     String    @db.Uuid
+  trialPlanVersionId String @db.Uuid
+  startAt        DateTime
+  endAt          DateTime
+  entitlementSnapshot Json
+  priceMinor     Int       @default(0)
+  currency       String
+  postTrialPlanCode String?
+  promotionId    String?   @db.Uuid
+  approvedByUserId String? @db.Uuid
+  /// ACTIVE | CONVERTED | EXPIRED | CANCELLED
+  status         String    @default("ACTIVE")
+  createdAt      DateTime  @default(now())
+
+  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([contractId, status])
+  @@index([status, endAt])
+}
+
+model ContractPromotion {
+  id               String    @id @default(uuid(7)) @db.Uuid
+  contractId       String    @db.Uuid
+  /// FREE_ONBOARDING PROMOTIONAL_PRICE SETUP_WAIVER CAMPAIGN_CREDIT TEMPORARY_UPGRADE ENTERPRISE_TRIAL
+  kind             String
+  /// The item the promotion applies to (a price item code, a plan fee code, or SUBSCRIPTION).
+  itemCode         String
+  originalPriceMinor Int?
+  promoPriceMinor  Int?
+  discountBps      Int?
+  waived           Boolean   @default(false)
+  creditMinor      Int?
+  currency         String
+  startAt          DateTime
+  endAt            DateTime
+  /// REVERT_TO_STANDARD | CONVERT_TO_PLAN | END
+  postPromotion    String    @default("REVERT_TO_STANDARD")
+  postPlanCode     String?
+  approvedByUserId String?   @db.Uuid
+  approvalRef      String?
+  status           String    @default("ACTIVE")
+  createdByUserId  String    @db.Uuid
+  createdAt        DateTime  @default(now())
+
+  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([contractId, status])
+  @@index([status, endAt])
+}
+
+/// A negotiated rate for one price item on one contract, versioned (never overwritten).
+model ContractRate {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  contractId    String    @db.Uuid
+  itemCode      String
+  version       Int
+  model         String
+  amountMinor   Int?
+  rateBps       Int?
+  discountBps   Int?
+  waived        Boolean   @default(false)
+  currency      String
+  effectiveFrom DateTime  @default(now())
+  effectiveUntil DateTime?
+  approvalRef   String?
+  createdByUserId String  @db.Uuid
+  createdAt     DateTime  @default(now())
+
+  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@unique([contractId, itemCode, version])
+}
+
+/// Period usage meters (the second concept; resource counts are read live, billable events are UsageEvent).
+model UsageMeter {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  organizationId String   @db.Uuid
+  /// Empty string when the usage is not tied to a legal entity.
+  legalEntityKey String   @default("")
+  metricKey      String
+  periodStart    DateTime
+  periodEnd      DateTime
+  value          Int      @default(0)
+  updatedAt      DateTime @updatedAt
+
+  @@unique([organizationId, legalEntityKey, metricKey, periodStart])
+  @@index([organizationId, metricKey])
+}
+
+/// One recorded usage fact. Idempotent: the same source event can never be recorded twice.
+model UsageEvent {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  idempotencyKey String   @unique
+  organizationId String   @db.Uuid
+  legalEntityId  String?  @db.Uuid
+  contractId     String?  @db.Uuid
+  metricKey      String
+  quantity       Int      @default(1)
+  product        String?
+  feature        String?
+  market         String?
+  campaignId     String?  @db.Uuid
+  sourceType     String
+  sourceId       String
+  pricingVersionKey String?
+  occurredAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, metricKey, occurredAt])
+}
+
+/// The standard commercial / billing event Phase 5 consumes (invoices, AR). Nothing here posts to the ledger.
+model CommercialBillingEvent {
+  id                 String   @id @default(uuid(7)) @db.Uuid
+  idempotencyKey     String   @unique
+  organizationId     String   @db.Uuid
+  /// The business account (finance) reference when one exists.
+  businessAccountId  String?  @db.Uuid
+  legalEntityId      String?  @db.Uuid
+  /// Who is billed: the contract's billing entity, else the contracting entity. Never a brand or a branch.
+  billingLegalEntityId String? @db.Uuid
+  contractId         String?  @db.Uuid
+  planCode           String?
+  planVersionId      String?  @db.Uuid
+  product            String?
+  feature            String?
+  campaignId         String?  @db.Uuid
+  /// What triggered it in the product: a view id, a redemption id, an order id ...
+  sourceEventId      String?
+  pricingVersionKey  String?
+  quantity           Int      @default(1)
+  unit               String   @default("EACH")
+  unitRateMinor      Int?
+  amountMinor        Int?
+  currency           String
+  occurredAt         DateTime @default(now())
+  /// A BILLING_CATEGORY (revenue classification)
+  billingCategory    String
+  /// A BILLING_EVENT_TYPE
+  eventType          String
+  /// PENDING (waiting for Phase 5) | CONSUMED | VOID
+  status             String   @default("PENDING")
+  consumedAt         DateTime?
+  metadata           Json     @default("{}")
+  createdAt          DateTime @default(now())
+  /// Phase 5 (set once when consumed): how it is collected (INVOICE_DUE | PREPAID_DRAWDOWN | NETTED_FROM_PAYABLE | CAMPAIGN_CASE | NOT_BILLABLE),
+  /// what settled it, and the invoice line it became.
+  collection         String?
+  settlementRef      String?
+  invoiceLineId      String?  @db.Uuid
+
+  @@index([organizationId, occurredAt])
+  @@index([status, eventType])
+  @@index([contractId])
+}
+
+/// Domain events Phase 4 turns into alerts (an outbox; no alert engine here). One row per threshold per period.
+model CommercialSignal {
+  id             String    @id @default(uuid(7)) @db.Uuid
+  dedupeKey      String    @unique
+  type           String
+  organizationId String    @db.Uuid
+  legalEntityId  String?   @db.Uuid
+  contractId     String?   @db.Uuid
+  metricKey      String?
+  payload        Json      @default("{}")
+  createdAt      DateTime  @default(now())
+  consumedAt     DateTime?
+
+  @@index([organizationId, createdAt])
+  @@index([consumedAt, type])
+}
+// =====================================================================================================================================
+// Phase 4: visibility and operations
+// =====================================================================================================================================
+
+/// The governed analytics taxonomy for every product (ANALYTICS_EVENTS). Projected from the sources of truth; append-only and idempotent.
+/// Client engagement is never "verified"; outcomes (redemption, purchase, qualified view, points) come only from server records.
+model AnalyticsEvent {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  idempotencyKey String   @unique
+  name           String
+  product        String
+  /// ENGAGEMENT | INTENT | CREDENTIAL | VERIFIED_OUTCOME | FINANCIAL
+  eventClass     String
+  verified       Boolean  @default(false)
+  occurredAt     DateTime
+  recordedAt     DateTime @default(now())
+  organizationId String?  @db.Uuid
+  legalEntityId  String?  @db.Uuid
+  unitId         String?  @db.Uuid
+  branchId       String?  @db.Uuid
+  campaignId     String?  @db.Uuid
+  country        String?
+  city           String?
+  userId         String?  @db.Uuid
+  anonymousId    String?
+  quantity       Int      @default(1)
+  amountMinor    Int?
+  currency       String?
+  points         Int?
+  sourceType     String
+  sourceId       String
+  /// Performance-to-finance link: the utilisation event, billing event, payment or journal behind a financial outcome.
+  financeRefType String?
+  financeRefId   String?
+  metadata       Json     @default("{}")
+
+  @@index([organizationId, name, occurredAt])
+  @@index([campaignId, name, occurredAt])
+  @@index([branchId, occurredAt])
+  @@index([userId, occurredAt])
+  @@index([occurredAt])
+}
+
+/// How far the projector has read each source (timestamp watermark; events are idempotent, so overlap is safe).
+model AnalyticsWatermark {
+  source    String   @id
+  cursorAt  DateTime
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+/// Hourly and daily rollups per event name and dimension (recomputed idempotently; '' means "none").
+model MetricAggregate {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  /// HOUR | DAY
+  bucket         String
+  bucketStart    DateTime
+  name           String
+  product        String
+  organizationId String   @default("")
+  legalEntityId  String   @default("")
+  branchId       String   @default("")
+  campaignId     String   @default("")
+  country        String   @default("")
+  count          Int      @default(0)
+  amountMinor    BigInt   @default(0)
+  points         BigInt   @default(0)
+  currency       String   @default("")
+  computedAt     DateTime @default(now())
+
+  @@unique([bucket, bucketStart, name, organizationId, legalEntityId, branchId, campaignId, country, currency])
+  @@index([organizationId, bucket, bucketStart])
+  @@index([campaignId, bucket, bucketStart])
+}
+
+/// A target for a campaign, branch, legal entity or the whole business. Forecasts against it are estimates, never promises.
+model CampaignTarget {
+  id              String   @id @default(uuid(7)) @db.Uuid
+  organizationId  String   @db.Uuid
+  name            String
+  /// TARGET_METRICS key
+  metric          String
+  product         String?
+  campaignId      String?  @db.Uuid
+  branchId        String?  @db.Uuid
+  legalEntityId   String?  @db.Uuid
+  targetValue     Int
+  /// COUNT | MINOR | BPS | POINTS
+  unit            String
+  currency        String?
+  /// UP (more is better) | DOWN (less is better) | CAP (a ceiling)
+  direction       String   @default("UP")
+  periodStart     DateTime
+  periodEnd       DateTime
+  thresholds      Int[]    @default([25, 50, 75, 90, 100])
+  /// The highest milestone already announced (alerts fire once per milestone).
+  lastMilestone   Int      @default(0)
+  /// ACTIVE | ARCHIVED
+  status          String   @default("ACTIVE")
+  /// MANUAL | AI_DRAFT
+  source          String   @default("MANUAL")
+  createdByUserId String   @db.Uuid
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @default(now()) @updatedAt
+
+  @@index([organizationId, status])
+  @@index([campaignId])
+}
+
+/// Alert configuration (a business rule, or a DealDash platform default when organizationId is null).
+model AlertRule {
+  id               String   @id @default(uuid(7)) @db.Uuid
+  organizationId   String?  @db.Uuid
+  name             String
+  /// ALERT_CODES key
+  code             String
+  enabled          Boolean  @default(true)
+  /// Threshold override for the code (basis points, hours, days or a count, depending on the code)
+  threshold        Int?
+  /// Milestones for target alerts (25 / 50 / 75 / 90 / 100 / custom)
+  thresholds       Int[]    @default([])
+  /// IMMEDIATE | DIGEST | CRITICAL_ONLY
+  frequency        String   @default("IMMEDIATE")
+  severity         String?
+  channels         String[] @default(["IN_APP"])
+  recipientRoles   String[] @default([])
+  recipientUserIds String[] @default([])
+  legalEntityId    String?  @db.Uuid
+  country          String?
+  branchId         String?  @db.Uuid
+  product          String?
+  campaignId       String?  @db.Uuid
+  /// [{ afterMinutes, toRoles, channels }]
+  escalation       Json     @default("[]")
+  createdByUserId  String   @db.Uuid
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @default(now()) @updatedAt
+
+  @@index([organizationId, code])
+}
+
+/// One raised alert (deduplicated), with its escalation state and the action it offers.
+model AlertEvent {
+  id               String    @id @default(uuid(7)) @db.Uuid
+  ruleId           String?   @db.Uuid
+  organizationId   String?   @db.Uuid
+  code             String
+  category         String
+  severity         String
+  dedupeKey        String    @unique
+  subjectType      String
+  subjectId        String
+  legalEntityId    String?   @db.Uuid
+  branchId         String?   @db.Uuid
+  campaignId       String?   @db.Uuid
+  product          String?
+  /// Template variables for the translated title / body (never free text)
+  data             Json      @default("{}")
+  action           String?
+  actionHref       String?
+  actionPermission String?
+  /// OPEN | ACKNOWLEDGED | RESOLVED | EXPIRED
+  status           String    @default("OPEN")
+  escalationLevel  Int       @default(0)
+  nextEscalationAt DateTime?
+  acknowledgedById String?   @db.Uuid
+  acknowledgedAt   DateTime?
+  resolvedAt       DateTime?
+  createdAt        DateTime  @default(now())
+
+  deliveries AlertDelivery[]
+
+  @@index([organizationId, status, createdAt])
+  @@index([status, nextEscalationAt])
+}
+
+model AlertDelivery {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  alertId   String    @db.Uuid
+  userId    String?   @db.Uuid
+  channel   String
+  level     Int       @default(0)
+  /// SENT | QUEUED_DIGEST | SKIPPED_PREFERENCE | SKIPPED_SEVERITY | FAILED
+  status    String
+  error     String?
+  sentAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  alert AlertEvent @relation(fields: [alertId], references: [id], onDelete: Cascade)
+
+  @@unique([alertId, userId, channel, level])
+  @@index([userId, createdAt])
+}
+
+/// What a person wants to receive, per alert category ('ALL' is the fallback).
+model NotificationPreference {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  userId    String   @db.Uuid
+  category  String
+  channels  String[] @default(["IN_APP"])
+  frequency String   @default("IMMEDIATE")
+  muted     Boolean  @default(false)
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@unique([userId, category])
+}
+
+// =====================================================================================================================================
+// Phase 5: billing and finance
+// =====================================================================================================================================
+
+/// An invoice / note line. Frozen once its document is issued (corrections are notes).
+model InvoiceLine {
+  id                String   @id @default(uuid(7)) @db.Uuid
+  documentId        String   @db.Uuid
+  lineNo            Int
+  /// CHARGE | INFORMATIONAL (already funded / netted: not owed again) | CREDIT | ADJUSTMENT
+  kind              String   @default("CHARGE")
+  description       String
+  descriptionAr     String?
+  product           String?
+  campaignId        String?  @db.Uuid
+  contractId        String?  @db.Uuid
+  billingEventId    String?  @unique @db.Uuid
+  eventType         String?
+  quantity          Int      @default(1)
+  unitPriceMinor    Int?
+  amountMinor       Int
+  taxRateBps        Int?
+  taxMinor          Int      @default(0)
+  currency          String
+  pricingVersionKey String?
+  collection        String   @default("INVOICE_DUE")
+  settledByRef      String?
+  createdAt         DateTime @default(now())
+
+  document FinanceDocument @relation(fields: [documentId], references: [id], onDelete: Restrict)
+
+  @@unique([documentId, lineNo])
+}
+
+/// A payment (or part of one) applied to a document. Partial payments are allocations; what is not allocated stays as credit.
+model PaymentAllocation {
+  id                String    @id @default(uuid(7)) @db.Uuid
+  paymentId         String    @db.Uuid
+  documentId        String    @db.Uuid
+  amountMinor       Int
+  currency          String
+  allocatedByUserId String?   @db.Uuid
+  allocatedAt       DateTime  @default(now())
+  reversedAt        DateTime?
+  reversalReason    String?
+
+  payment  FinancePayment  @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  document FinanceDocument @relation(fields: [documentId], references: [id], onDelete: Restrict)
+
+  @@index([documentId])
+  @@index([paymentId])
+}
+
+/// A controlled exchange rate: entered by Finance, approved by a second person, recorded on every converted document.
+model FxRate {
+  id               String    @id @default(uuid(7)) @db.Uuid
+  baseCurrency     String
+  quoteCurrency    String
+  /// Decimal as text (exact); quote units per 1 base unit.
+  rate             String
+  source           String
+  rateDate         DateTime
+  /// PENDING_APPROVAL | APPROVED | REJECTED | RETIRED
+  status           String    @default("PENDING_APPROVAL")
+  createdByUserId  String    @db.Uuid
+  approvedByUserId String?   @db.Uuid
+  approvedAt       DateTime?
+  createdAt        DateTime  @default(now())
+
+  @@unique([baseCurrency, quoteCurrency, rateDate, source])
+  @@index([baseCurrency, quoteCurrency, status, rateDate])
+}
+
+// =====================================================================================================================================
+// Phase 5: governed AI agents
+// =====================================================================================================================================
+
+/// One request to an agent: who asked, in which organization / legal entity / role / scope, what was answered. Append-only.
+model AiInteraction {
+  id                 String   @id @default(uuid(7)) @db.Uuid
+  agent              String
+  userId             String   @db.Uuid
+  organizationId     String?  @db.Uuid
+  legalEntityId      String?  @db.Uuid
+  roleCode           String?
+  scope              Json     @default("{}")
+  locale             String   @default("en")
+  request            String
+  intent             String?
+  autonomyLevel      Int      @default(1)
+  /// ANSWERED | DENIED | ERROR
+  status             String
+  answer             Json     @default("{}")
+  provider           String
+  model              String
+  unitsIn            Int      @default(0)
+  unitsOut           Int      @default(0)
+  toolCalls          Int      @default(0)
+  estimatedCostMinor Int      @default(0)
+  createdAt          DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([organizationId, createdAt])
+}
+
+/// Every tool step of an interaction and every human decision on a draft. Append-only.
+model AiAction {
+  id               String   @id @default(uuid(7)) @db.Uuid
+  interactionId    String?  @db.Uuid
+  draftId          String?  @db.Uuid
+  tool             String
+  /// READ | DRAFT | EXECUTE
+  tier             String
+  /// SUGGESTED | DRAFTED | HUMAN_APPROVED | SYSTEM_EXECUTED | REJECTED | DENIED
+  state            String
+  input            Json     @default("{}")
+  outputSummary    Json     @default("{}")
+  actorUserId      String   @db.Uuid
+  organizationId   String?  @db.Uuid
+  createdAt        DateTime @default(now())
+
+  @@index([interactionId])
+  @@index([draftId])
+}
+
+/// Something an agent prepared for a person to approve. Approval executes it through the normal service as the approver.
+model AiDraft {
+  id                 String    @id @default(uuid(7)) @db.Uuid
+  interactionId      String    @db.Uuid
+  agent              String
+  kind               String
+  organizationId     String?   @db.Uuid
+  title              String
+  payload            Json
+  /// PENDING_APPROVAL | APPROVED | REJECTED | EXECUTED | EXPIRED
+  status             String    @default("PENDING_APPROVAL")
+  requiredPermission String
+  createdByUserId    String    @db.Uuid
+  decidedByUserId    String?   @db.Uuid
+  decidedAt          DateTime?
+  decisionReason     String?
+  executedAt         DateTime?
+  result             Json?
+  createdAt          DateTime  @default(now())
+
+  @@index([organizationId, status])
+}
+
+/// AI usage and estimated cost (commercial treatment of AI is configuration; nothing is priced now). Append-only.
+model AiUsageRecord {
+  id                 String   @id @default(uuid(7)) @db.Uuid
+  interactionId      String?  @db.Uuid
+  organizationId     String?  @db.Uuid
+  businessAccountId  String?  @db.Uuid
+  legalEntityId      String?  @db.Uuid
+  product            String?
+  campaignId         String?  @db.Uuid
+  agent              String
+  /// REQUEST | ANALYSIS | DRAFT | SUPPORT_ASSIST | TOOL_CALL | ACTION
+  kind               String
+  units              Int      @default(1)
+  provider           String
+  model              String
+  estimatedCostMinor Int      @default(0)
+  currency           String   @default("SAR")
+  occurredAt         DateTime @default(now())
+
+  @@index([organizationId, occurredAt])
+  @@index([agent, kind, occurredAt])
+}

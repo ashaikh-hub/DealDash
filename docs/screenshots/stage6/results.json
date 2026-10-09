@@ -1,0 +1,447 @@
+{
+  "at": "2026-10-09T08:36:45.346Z",
+  "tag": "bdc9ae",
+  "results": [
+    {
+      "name": "merchant sees Watch & Earn in the navigation with seeded campaigns and a money summary",
+      "ok": true,
+      "detail": "3 rows"
+    },
+    {
+      "name": "builder has the six campaign steps",
+      "ok": true,
+      "detail": "1 | 2 | 3 | 4 | 5 | 6"
+    },
+    {
+      "name": "the builder has no reward or points field (DealDash decides the reward)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the real WebM uploads, previews and its length is read (about 12 s)",
+      "ok": true,
+      "detail": "duration 12"
+    },
+    {
+      "name": "the next step names the missing Arabic text",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the price per verified view comes from DealDash and the cost is computed (SAR 10.00 for 10 views)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "adding the budget works (development payment is simulated)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "review confirms completeness and shows the customer preview",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "merchant submits the campaign (DealDash reviews every campaign in the pilot)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "campaign detail shows In review with Performance / Budget / Activity",
+      "ok": true,
+      "detail": "01a11fcc-aa8e-705c-b911-848be7c45f55"
+    },
+    {
+      "name": "admin sees Watch & Earn with the operational counts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the new campaign is in the review queue",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "review workbench shows the economics DealDash controls and the merchant details",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the video plays for the reviewer and both languages are side by side",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "admin approves with a recorded reason",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the approved campaign is live for customers",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Home has a Watch & Earn rail and the five-tab bar",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the new campaign shows on the Watch & Earn hub with its points reward (never a currency)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the hub says points are not cash and the daily progress is shown",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "detail shows the sponsored label, how it works and the not-cash note",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "watching the real video to the end qualifies and the reward confirmation appears",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the confirmation shows points and balance, never a currency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the hub balance is updated",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Rewards shows the balance and the earn entry in the activity",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "redeeming is disabled until there are enough points",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the same video cannot be repeated inside the window: the button is disabled and says when",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "opening the player directly is refused with a plain reason",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the merchant monitor shows the verified view and the budget spent (SAR 1.00)",
+      "ok": true,
+      "detail": "qualified 1"
+    },
+    {
+      "name": "the monitor shows verified numbers only: no customer names, fraud detail or invented revenue",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the budget tab lists the funding and says the legal treatment is not final",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "skipping ahead does not qualify and explains it in plain words",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "a view that does not count never mentions risk or detection",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "leaving the app for too long invalidates the view",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "DealDash can switch the still-watching check on (configuration, audited)",
+      "ok": true,
+      "detail": "200"
+    },
+    {
+      "name": "the server-scheduled \"still watching?\" prompt appears and confirming it lets the view qualify",
+      "ok": true,
+      "detail": "QUALIFIED"
+    },
+    {
+      "name": "two views that finish together both fit the last two paid views (never more than the budget)",
+      "ok": true,
+      "detail": "QUALIFIED,QUALIFIED"
+    },
+    {
+      "name": "once the paid views are used the campaign stops earning",
+      "ok": true,
+      "detail": "wins 2"
+    },
+    {
+      "name": "the seeded customer has points being checked (a held reward)",
+      "ok": true,
+      "detail": "held 20"
+    },
+    {
+      "name": "Rewards explains held points and shows no cash value",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "redeeming a sample reward spends points once and shows the code",
+      "ok": true,
+      "detail": "260 -> 230"
+    },
+    {
+      "name": "sample catalogue items are clearly flagged",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Risk sees the open case with a plain explanation that details are DealDash-only",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the case shows the signals, linked accounts and a timeline",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Risk reverses the held reward with a recorded reason",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the customer's held points are gone after the reversal",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the activity shows the removal in plain words",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Rewards admin shows liability, expiry off and no point value",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the balance check finds no differences between balances and the ledger",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the ledger lists entries with type, bucket and source",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the catalogue lists the sample rewards",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the live monitor lists active campaigns with delivery and budget used",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "a campaign whose paid views were all delivered is Completed and its unused budget is closed out",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer Watch & Earn hub (ar): RTL document with the Arabic font",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer Watch & Earn hub (ar): no horizontal overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer Watch & Earn hub (ar): numbers stay Western",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the five tabs are in Arabic",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer detail (ar): RTL document with the Arabic font",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer detail (ar): no horizontal overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer detail (ar): numbers stay Western",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer player outcome (ar, QUALIFIED): RTL document with the Arabic font",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer player outcome (ar, QUALIFIED): no horizontal overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer player outcome (ar, QUALIFIED): numbers stay Western",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer rewards (ar): RTL document with the Arabic font",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer rewards (ar): no horizontal overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer rewards (ar): numbers stay Western",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "merchant Watch & Earn hub (ar): RTL document with the Arabic font",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "merchant Watch & Earn hub (ar): no horizontal overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "merchant Watch & Earn hub (ar): numbers stay Western",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "merchant builder (ar): RTL document with the Arabic font",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "merchant builder (ar): no horizontal overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "merchant builder (ar): numbers stay Western",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "merchant campaign detail (ar): RTL document with the Arabic font",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "merchant campaign detail (ar): no horizontal overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "merchant campaign detail (ar): numbers stay Western",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "admin Watch & Earn (ar): RTL document with the Arabic font",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "admin Watch & Earn (ar): no horizontal overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "admin Watch & Earn (ar): numbers stay Western",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "admin Rewards (ar): RTL document with the Arabic font",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "admin Rewards (ar): no horizontal overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "admin Rewards (ar): numbers stay Western",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "admin Risk (ar): RTL document with the Arabic font",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "admin Risk (ar): no horizontal overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "admin Risk (ar): numbers stay Western",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "admin campaign review (ar): RTL document with the Arabic font",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "admin campaign review (ar): no horizontal overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "admin campaign review (ar): numbers stay Western",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Watch & Earn hub has no horizontal overflow on a tablet",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Watch & Earn hub has no horizontal overflow on 360px",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "consoleErrors": []
+}

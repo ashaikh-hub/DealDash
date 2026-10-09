@@ -1,0 +1,205 @@
+'use client';
+
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { Icon, categoryIcon, pickText, useApi, useAuth } from '@dealdash/app-shell';
+import { withLocale } from '@dealdash/localization';
+import { Button } from '@dealdash/ui';
+import type { DealCard } from '@dealdash/validation';
+import { useCustomer } from './customer-context';
+import { CardSkeletons, CityBar, LoadError, NoDeals, SearchBox, TrackedCard, useT } from './parts';
+import { useDealList } from './use-deals';
+
+interface Cat {
+  id: string;
+  code: string;
+  nameEn: string;
+  nameAr: string;
+}
+const SORTS = ['nearest', 'newest', 'ending_soon'] as const;
+const RADII = [1, 3, 5, 10, 20];
+
+export function ExplorePage() {
+  const { t, locale } = useT();
+  const { call } = useApi();
+  const { status } = useAuth();
+  const { city, coords, approximate } = useCustomer();
+  const params = useSearchParams();
+  const router = useRouter();
+  const [cats, setCats] = useState<Cat[]>([]);
+  const [filters, setFilters] = useState(false);
+
+  const category = params.get('category') ?? '';
+  const sort =
+    (params.get('sort') as (typeof SORTS)[number] | null) ?? (approximate ? 'newest' : 'nearest');
+  const radiusKm = params.get('radius') ?? '';
+  const elig = params.get('eligibility') === 'unlocked' ? 'unlocked' : 'all';
+
+  useEffect(() => {
+    void call<Cat[]>('GET', '/v1/app/categories').then((r) => r.ok && setCats(r.data ?? []));
+  }, [call]);
+
+  const set = (patch: Record<string, string | null>) => {
+    const next = new URLSearchParams(params.toString());
+    for (const [k, v] of Object.entries(patch)) {
+      if (v) next.set(k, v);
+      else next.delete(k);
+    }
+    router.replace(`${withLocale('/explore', locale)}${next.toString() ? `?${next}` : ''}`);
+  };
+
+  const list = useDealList('/v1/app/deals', {
+    city,
+    category: category || undefined,
+    sort,
+    eligibility: elig,
+    lat: approximate ? undefined : coords.lat,
+    lng: approximate ? undefined : coords.lng,
+    radiusMeters: radiusKm && !approximate ? Number(radiusKm) * 1000 : undefined,
+    limit: 12,
+  });
+  void status;
+  const activeFilters =
+    (radiusKm ? 1 : 0) +
+    (elig === 'unlocked' ? 1 : 0) +
+    (sort !== 'nearest' && sort !== 'newest' ? 1 : 0);
+
+  return (
+    <div className="dd-stack" style={{ gap: 14 }} data-testid="customer-explore">
+      <CityBar />
+      <h1 className="dd-title-xl">{t('cust.explore.title')}</h1>
+      <SearchBox />
+      <div className="dd-hscroll" role="tablist" aria-label={t('filter.category')}>
+        <Link
+          href={`${withLocale('/explore', locale)}${params.get('sort') ? `?sort=${params.get('sort')}` : ''}`}
+          className="dd-pill"
+          aria-current={!category}
+          style={!category ? { background: 'var(--dd-purple)', color: '#fff' } : undefined}
+        >
+          {t('cust.allDeals')}
+        </Link>
+        {cats.map((c) => (
+          <button
+            key={c.id}
+            type="button"
+            className={`dd-pill ${category === c.code ? 'dd-pill--active' : ''}`}
+            aria-pressed={category === c.code}
+            onClick={() => set({ category: category === c.code ? null : c.code })}
+          >
+            <Icon name={categoryIcon(c.code)} size={15} />{' '}
+            {pickText({ en: c.nameEn, ar: c.nameAr }, locale)}
+          </button>
+        ))}
+      </div>
+      <div className="dd-row" style={{ justifyContent: 'space-between' }}>
+        <button type="button" className="dd-pill" onClick={() => setFilters(true)}>
+          <Icon name="sliders" size={16} /> {t('filter.open')}
+          {activeFilters ? ` (${activeFilters})` : ''}
+        </button>
+        <label className="dd-caption dd-row" style={{ gap: 6 }}>
+          {t('filter.sort')}
+          <select
+            className="dd-select"
+            style={{ minBlockSize: 36, inlineSize: 'auto' }}
+            value={sort}
+            onChange={(e) => set({ sort: e.target.value })}
+          >
+            {SORTS.map((s) => (
+              <option key={s} value={s}>
+                {t(`sort.${s}` as never)}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      {list.loading ? (
+        <CardSkeletons />
+      ) : list.failed ? (
+        <LoadError onRetry={list.reload} />
+      ) : list.items.length === 0 ? (
+        <NoDeals />
+      ) : (
+        <div className="dd-cardgrid" aria-live="polite">
+          {list.items.map((d: DealCard) => (
+            <TrackedCard key={d.id} deal={d} variant="list" onChange={list.patch} />
+          ))}
+          {list.hasMore ? (
+            <Button variant="secondary" loading={list.loadingMore} onClick={list.more} block>
+              {t('cust.moreDeals')}
+            </Button>
+          ) : null}
+        </div>
+      )}
+
+      {filters ? (
+        <div
+          className="dd-sheet-overlay"
+          onMouseDown={(e) => e.target === e.currentTarget && setFilters(false)}
+        >
+          <div className="dd-sheet" role="dialog" aria-modal="true" aria-label={t('filter.title')}>
+            <div className="dd-sheet__head">
+              <h2 className="dd-title">{t('filter.title')}</h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                aria-label={t('loc.close')}
+                onClick={() => setFilters(false)}
+              >
+                <Icon name="x" size={18} />
+              </Button>
+            </div>
+            <fieldset className="dd-stack" style={{ border: 0, padding: 0, margin: 0 }}>
+              <legend className="dd-label">{t('filter.distance')}</legend>
+              <div className="dd-optrow">
+                <button
+                  type="button"
+                  className={`dd-pill ${!radiusKm ? 'dd-pill--active' : ''}`}
+                  onClick={() => set({ radius: null })}
+                >
+                  {t('filter.anyDistance')}
+                </button>
+                {RADII.map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    disabled={approximate}
+                    className={`dd-pill ${radiusKm === String(r) ? 'dd-pill--active' : ''}`}
+                    onClick={() => set({ radius: String(r) })}
+                  >
+                    {t('filter.within', { km: r })}
+                  </button>
+                ))}
+              </div>
+              {approximate ? <span className="dd-caption">{t('loc.note')}</span> : null}
+            </fieldset>
+            <fieldset className="dd-stack" style={{ border: 0, padding: 0, margin: 0 }}>
+              <legend className="dd-label">{t('filter.eligibility')}</legend>
+              {(['all', 'unlocked'] as const).map((v) => (
+                <label key={v} className="dd-checkbox">
+                  <input
+                    type="radio"
+                    name="elig"
+                    checked={elig === v}
+                    onChange={() => set({ eligibility: v === 'all' ? null : v })}
+                  />
+                  <span>{t(`filter.eligibility.${v}` as never)}</span>
+                </label>
+              ))}
+            </fieldset>
+            <div className="dd-row">
+              <Button
+                variant="outline"
+                onClick={() => set({ radius: null, eligibility: null, category: null, sort: null })}
+              >
+                {t('filter.reset')}
+              </Button>
+              <Button onClick={() => setFilters(false)}>{t('filter.apply')}</Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}

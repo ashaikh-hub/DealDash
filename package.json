@@ -1,0 +1,46 @@
+{
+  "name": "dealdash",
+  "version": "0.1.0",
+  "private": true,
+  "description": "DealDash MVP monorepo (modular monolith API + Next.js PWA/web apps)",
+  "packageManager": "pnpm@12.10.1",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "build:packages": "turbo run build --filter=./packages/*",
+    "dev": "turbo run dev --parallel",
+    "dev:api": "pnpm --filter @dealdash/api dev",
+    "dev:customer": "pnpm --filter @dealdash/customer dev",
+    "dev:merchant": "pnpm --filter @dealdash/merchant dev",
+    "dev:staff": "pnpm --filter @dealdash/staff dev",
+    "dev:partner": "pnpm --filter @dealdash/partner dev",
+    "dev:admin": "pnpm --filter @dealdash/admin dev",
+    "lint": "eslint .",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "format": "prettier --write \"**/*.{ts,tsx,mjs,json,css}\" --ignore-path .prettierignore",
+    "format:check": "prettier --check \"**/*.{ts,tsx,mjs,json,css}\" --ignore-path .prettierignore",
+    "db:setup": "pnpm --filter @dealdash/api db:setup",
+    "db:status": "pnpm --filter @dealdash/api db:status",
+    "db:postgis": "pnpm --filter @dealdash/api db:postgis",
+    "db:migrate": "pnpm --filter @dealdash/api db:migrate",
+    "db:seed": "pnpm --filter @dealdash/api db:seed",
+    "db:reset": "pnpm --filter @dealdash/api db:reset",
+    "db:test:reset": "pnpm --filter @dealdash/api db:test:reset",
+    "api:contract": "pnpm --filter @dealdash/api openapi:generate && pnpm --filter @dealdash/api-client generate",
+    "audit:deps": "pnpm audit --prod --audit-level high"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.30.0",
+    "eslint": "^9.30.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "globals": "^16.3.0",
+    "playwright-core": "^1.63.0",
+    "prettier": "^3.6.2",
+    "turbo": "^2.5.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.35.0"
+  }
+}

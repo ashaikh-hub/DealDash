@@ -1,0 +1,5 @@
+{
+  "extends": "@dealdash/tsconfig/library.json",
+  "include": ["src", "vitest.setup.ts"],
+  "compilerOptions": { "types": ["vitest/globals", "@testing-library/jest-dom"] }
+}

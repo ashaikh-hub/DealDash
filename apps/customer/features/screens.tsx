@@ -1,0 +1,560 @@
+'use client';
+
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
+import {
+  DealCardView,
+  DealDetailView,
+  Icon,
+  LoginPanel,
+  formatDistance,
+  openStatus,
+  pickText,
+  useApi,
+  useAuth,
+} from '@dealdash/app-shell';
+import { createTranslator, isolateLtr, withLocale } from '@dealdash/localization';
+import type { UnlockAction } from '@dealdash/types';
+import { Button, Card, EmptyState, ErrorState, LoadingState, Skeleton } from '@dealdash/ui';
+import type { DealCard, DealDetail, MerchantPage, PublicBranch } from '@dealdash/validation';
+import { useCustomer } from './customer-context';
+import {
+  CardSkeletons,
+  LoadError,
+  SearchBox,
+  SectionHead,
+  TrackedCard,
+  useHref,
+  useT,
+} from './parts';
+
+// ------------------------------------------------------------------ search
+interface SearchResult {
+  query: string;
+  deals: DealCard[];
+  merchants: Array<{
+    id: string;
+    name: { en: string; ar: string };
+    logoUrl: string | null;
+    category: { code: string; name: { en: string; ar: string } } | null;
+    dealCount: number;
+    distanceMeters: number | null;
+  }>;
+}
+
+export function SearchPage() {
+  const { t, locale } = useT();
+  const { call } = useApi();
+  const href = useHref();
+  const { city, coords, approximate } = useCustomer();
+  const q = (useSearchParams().get('q') ?? '').trim();
+  const [res, setRes] = useState<SearchResult | null>(null);
+  const [state, setState] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
+
+  const load = useCallback(async () => {
+    if (!q) return setState('idle');
+    setState('loading');
+    const r = await call<SearchResult>('GET', '/v1/app/search', {
+      query: {
+        q,
+        city,
+        limit: 20,
+        lat: approximate ? undefined : coords.lat,
+        lng: approximate ? undefined : coords.lng,
+      },
+    });
+    if (r.ok && r.data) {
+      setRes(r.data);
+      setState('ready');
+    } else setState('error');
+  }, [call, q, city, coords.lat, coords.lng, approximate]);
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const empty = state === 'ready' && res && !res.deals.length && !res.merchants.length;
+  return (
+    <div className="dd-stack" style={{ gap: 16 }} data-testid="customer-search">
+      <SearchBox initial={q} autoFocus={!q} />
+      {state === 'idle' ? <p className="dd-muted">{t('search.hint')}</p> : null}
+      {state === 'loading' ? <CardSkeletons /> : null}
+      {state === 'error' ? <LoadError onRetry={load} /> : null}
+      {empty ? (
+        <EmptyState title={t('search.noResults', { q })} description={t('search.noResultsBody')} />
+      ) : null}
+      {state === 'ready' && res && !empty ? (
+        <>
+          <h1 className="dd-title">{t('search.results', { q })}</h1>
+          {res.merchants.length ? (
+            <section className="dd-section">
+              <SectionHead title={t('search.merchants')} />
+              <div className="dd-stack">
+                {res.merchants.map((m) => (
+                  <Link
+                    key={m.id}
+                    href={href(`/merchants/${m.id}`)}
+                    className="dd-dd__branch"
+                    style={{ textDecoration: 'none', color: 'inherit' }}
+                  >
+                    {m.logoUrl ? (
+                      <img className="dd-logo" src={m.logoUrl} alt="" />
+                    ) : (
+                      <span className="dd-dd__branchicon">
+                        <Icon name="shopping" />
+                      </span>
+                    )}
+                    <div className="dd-grow">
+                      <strong>{pickText(m.name, locale)}</strong>
+                      <div className="dd-caption">
+                        {m.category ? pickText(m.category.name, locale) : ''}
+                        {m.distanceMeters !== null
+                          ? ` · ${formatDistance(locale, m.distanceMeters)}`
+                          : ''}
+                      </div>
+                    </div>
+                    <span className="dd-chip dd-chip--info">
+                      {t('cust.dealsCount', { count: m.dealCount })}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          ) : null}
+          {res.deals.length ? (
+            <section className="dd-section">
+              <SectionHead title={t('search.deals')} />
+              <div className="dd-cardgrid">
+                {res.deals.map((d) => (
+                  <TrackedCard
+                    key={d.id}
+                    deal={d}
+                    variant="list"
+                    onChange={(n) =>
+                      setRes((r) =>
+                        r ? { ...r, deals: r.deals.map((x) => (x.id === n.id ? n : x)) } : r,
+                      )
+                    }
+                  />
+                ))}
+              </div>
+            </section>
+          ) : null}
+        </>
+      ) : null}
+    </div>
+  );
+}
+
+// ------------------------------------------------------------------ deal detail
+export function DealPage({ id }: { id: string }) {
+  const { t, locale } = useT();
+  const { call } = useApi();
+  const { status } = useAuth();
+  const router = useRouter();
+  const href = useHref();
+  const { city, coords, approximate, track } = useCustomer();
+  const [detail, setDetail] = useState<DealDetail | null>(null);
+  const [state, setState] = useState<'loading' | 'ready' | 'missing' | 'error'>('loading');
+
+  const load = useCallback(async () => {
+    setState('loading');
+    const r = await call<DealDetail>('GET', `/v1/app/live-deals/${id}`, {
+      query: {
+        city,
+        lat: approximate ? undefined : coords.lat,
+        lng: approximate ? undefined : coords.lng,
+      },
+    });
+    if (r.ok && r.data) {
+      setDetail(r.data);
+      setState('ready');
+    } else setState(r.status === 404 ? 'missing' : 'error');
+  }, [call, id, city, coords.lat, coords.lng, approximate]);
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const viewed = detail?.id;
+  useEffect(() => {
+    if (viewed) track({ type: 'DETAIL_VIEW', dealId: viewed, branchId: detail?.nearestBranch?.id });
+    // one detail view per opened deal
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewed]);
+
+  const back = () => (window.history.length > 1 ? router.back() : router.push(href('/explore')));
+  const toggleSave = async () => {
+    if (!detail) return;
+    if (status !== 'authenticated') return router.push(href('/profile') + '?reason=save');
+    const next = !detail.saved;
+    setDetail({ ...detail, saved: next });
+    const r = await call(next ? 'POST' : 'DELETE', `/v1/app/saved/live-deals/${detail.id}`, {
+      body: next ? {} : undefined,
+    });
+    if (!r.ok) setDetail({ ...detail, saved: !next });
+  };
+  const directions = (b: PublicBranch) =>
+    track({ type: 'DIRECTIONS_CLICK', dealId: id, branchId: b.id });
+  const unlock = (a: UnlockAction) => {
+    if (a === 'SIGN_IN') router.push(href('/profile') + '?reason=unlock');
+  };
+
+  if (state === 'loading')
+    return (
+      <div className="dd-stack" style={{ margin: -16 }} aria-busy="true">
+        <Skeleton height={280} />
+        <div style={{ padding: 16, display: 'grid', gap: 10 }}>
+          <Skeleton height={32} width="50%" />
+          <Skeleton height={16} />
+          <Skeleton height={16} width="70%" />
+        </div>
+      </div>
+    );
+  if (state === 'error') return <LoadError onRetry={load} />;
+  if (state === 'missing' || !detail)
+    return (
+      <div className="dd-stack">
+        <Button variant="ghost" onClick={back}>
+          <Icon name="back" size={18} /> {t('cust.back')}
+        </Button>
+        <EmptyState
+          title={t('deal.notFound')}
+          description={t('deal.notFoundBody')}
+          action={
+            <Link className="dd-link" href={href('/explore')}>
+              {t('cust.explore.title')}
+            </Link>
+          }
+        />
+      </div>
+    );
+  return (
+    <div data-testid="customer-deal">
+      <DealDetailView
+        detail={detail}
+        locale={locale}
+        signedIn={status === 'authenticated'}
+        onBack={back}
+        onToggleSave={toggleSave}
+        onDirections={directions}
+        onUnlock={unlock}
+        merchantHref={`${href(`/merchants/${detail.merchantId}`)}?from=${detail.id}`}
+      />
+    </div>
+  );
+}
+
+// ------------------------------------------------------------------ merchant page
+export function MerchantPageView({ id }: { id: string }) {
+  const { t, locale } = useT();
+  const { call } = useApi();
+  const router = useRouter();
+  const href = useHref();
+  const from = useSearchParams().get('from') ?? undefined;
+  const { city, coords, approximate, track } = useCustomer();
+  const [page, setPage] = useState<MerchantPage | null>(null);
+  const [state, setState] = useState<'loading' | 'ready' | 'missing' | 'error'>('loading');
+  const [tab, setTab] = useState<'offers' | 'info'>('offers');
+
+  const load = useCallback(async () => {
+    setState('loading');
+    const r = await call<MerchantPage>('GET', `/v1/app/merchants/${id}`, {
+      query: {
+        city,
+        lat: approximate ? undefined : coords.lat,
+        lng: approximate ? undefined : coords.lng,
+      },
+    });
+    if (r.ok && r.data) {
+      setPage(r.data);
+      setState('ready');
+    } else setState(r.status === 404 ? 'missing' : 'error');
+  }, [call, id, city, coords.lat, coords.lng, approximate]);
+  useEffect(() => {
+    void load();
+  }, [load]);
+  const pid = page?.id;
+  useEffect(() => {
+    if (pid) track({ type: 'MERCHANT_PAGE_VIEW', merchantId: pid, sourceDealId: from });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pid]);
+
+  const back = () => (window.history.length > 1 ? router.back() : router.push(href('/')));
+  if (state === 'loading') return <CardSkeletons />;
+  if (state === 'error') return <LoadError onRetry={load} />;
+  if (state === 'missing' || !page)
+    return (
+      <div className="dd-stack">
+        <Button variant="ghost" onClick={back}>
+          <Icon name="back" size={18} /> {t('cust.back')}
+        </Button>
+        <EmptyState title={t('merch.notFound')} />
+      </div>
+    );
+  const nearest = page.branches[0] ?? null;
+  const st = nearest ? openStatus(nearest.hours) : null;
+  const gmaps =
+    nearest?.latitude != null && nearest.longitude != null
+      ? `https://www.google.com/maps/dir/?api=1&destination=${nearest.latitude},${nearest.longitude}`
+      : null;
+  const phone = nearest?.phone ?? page.phone;
+  return (
+    <div className="dd-stack" style={{ gap: 14 }} data-testid="customer-merchant">
+      <div className="dd-mp__head">
+        {page.coverUrl ? <img src={page.coverUrl} alt="" /> : null}
+        <div className="dd-mp__shade" />
+        <button type="button" className="dd-dd__back" onClick={back} aria-label={t('cust.back')}>
+          <Icon name="back" size={20} />
+        </button>
+        <div className="dd-mp__title">
+          <h1>{pickText(page.name, locale)}</h1>
+          <p style={{ margin: 0, opacity: 0.9 }}>
+            {page.category ? pickText(page.category.name, locale) : ''}
+            {nearest ? ` · ${pickText(nearest.address, locale)}` : ''}
+          </p>
+        </div>
+      </div>
+      <div className="dd-mp__card">
+        <div className="dd-row" style={{ justifyContent: 'space-between' }}>
+          {st ? (
+            <span className={st.open ? 'dd-open' : 'dd-closed'}>
+              {st.open ? t('merch.openNow') : t('merch.closedNow')}
+              {st.next
+                ? ` · ${st.open ? t('merch.closesAt', { time: st.next }) : t('merch.opensAt', { time: st.next })}`
+                : ''}
+            </span>
+          ) : (
+            <span className="dd-muted">{t('deal.hoursUnknown')}</span>
+          )}
+          {page.logoUrl ? <img className="dd-logo" src={page.logoUrl} alt="" /> : null}
+        </div>
+        <div className="dd-mp__actions">
+          <a
+            className="dd-mp__action"
+            href={phone ? `tel:${phone}` : undefined}
+            aria-disabled={!phone}
+          >
+            <Icon name="phone" /> {t('merch.call')}
+          </a>
+          <a
+            className="dd-mp__action"
+            href={gmaps ?? undefined}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-disabled={!gmaps}
+            onClick={() =>
+              nearest &&
+              track({ type: 'DIRECTIONS_CLICK', dealId: page.deals[0]?.id, branchId: nearest.id })
+            }
+          >
+            <Icon name="pin" /> {t('merch.directions')}
+          </a>
+        </div>
+      </div>
+      <div className="dd-dd__tabs" role="tablist" style={{ marginInline: 0 }}>
+        {(['offers', 'info'] as const).map((k) => (
+          <button
+            key={k}
+            role="tab"
+            type="button"
+            aria-selected={tab === k}
+            className="dd-dd__tab"
+            onClick={() => setTab(k)}
+          >
+            {k === 'offers' ? t('merch.offers', { n: page.deals.length }) : t('merch.info')}
+          </button>
+        ))}
+      </div>
+      {tab === 'offers' ? (
+        page.deals.length ? (
+          <div className="dd-cardgrid">
+            {page.deals.map((d) => (
+              <TrackedCard
+                key={d.id}
+                deal={d}
+                variant="list"
+                onChange={(n) =>
+                  setPage((p) =>
+                    p ? { ...p, deals: p.deals.map((x) => (x.id === n.id ? n : x)) } : p,
+                  )
+                }
+              />
+            ))}
+          </div>
+        ) : (
+          <EmptyState title={t('merch.noOffers')} description={t('merch.noOffersBody')} />
+        )
+      ) : (
+        <div className="dd-stack">
+          {pickText(page.description as { en: string; ar: string }, locale) ? (
+            <Card>
+              <h2 className="dd-title">{t('merch.about')}</h2>
+              <p>{pickText(page.description as { en: string; ar: string }, locale)}</p>
+            </Card>
+          ) : null}
+          <h2 className="dd-title">{t('merch.branches')}</h2>
+          {page.branches.map((b) => (
+            <BranchCard key={b.id} b={b} />
+          ))}
+          {page.phone ? (
+            <Card>
+              <strong>{t('merch.contact')}</strong>
+              <div className="dd-ltr">{isolateLtr(page.phone)}</div>
+            </Card>
+          ) : null}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BranchCard({ b }: { b: PublicBranch }) {
+  const { locale } = useAuth();
+  const t = createTranslator(locale);
+  const st = openStatus(b.hours);
+  const d = formatDistance(locale, b.distanceMeters);
+  return (
+    <div className="dd-dd__branch dd-dd__branch--card">
+      <div className="dd-grow">
+        <strong>{pickText(b.name, locale)}</strong>
+        <div className="dd-caption">{pickText(b.address, locale)}</div>
+        <div className="dd-caption">
+          {st ? (
+            <span className={st.open ? 'dd-open' : 'dd-closed'}>
+              {st.open ? t('merch.openNow') : t('merch.closedNow')}
+            </span>
+          ) : (
+            t('deal.hoursUnknown')
+          )}
+          {d ? <span className="dd-ltr"> · {d}</span> : null}
+        </div>
+      </div>
+      {b.latitude != null && b.longitude != null ? (
+        <a
+          className="dd-btn dd-btn--outline dd-btn--sm"
+          target="_blank"
+          rel="noopener noreferrer"
+          href={`https://www.google.com/maps/dir/?api=1&destination=${b.latitude},${b.longitude}`}
+        >
+          {t('merch.directions')}
+        </a>
+      ) : null}
+    </div>
+  );
+}
+
+// ------------------------------------------------------------------ saved
+export function SavedPage() {
+  const { t } = useT();
+  const { status } = useAuth();
+  const { call } = useApi();
+  const href = useHref();
+  const [items, setItems] = useState<DealCard[]>([]);
+  const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading');
+  const load = useCallback(async () => {
+    if (status !== 'authenticated') return;
+    setState('loading');
+    const r = await call<DealCard[]>('GET', '/v1/app/saved');
+    if (r.ok) {
+      setItems(r.data ?? []);
+      setState('ready');
+    } else setState('error');
+  }, [call, status]);
+  useEffect(() => {
+    void load();
+  }, [load]);
+  if (status === 'loading') return <LoadingState label={t('state.loading')} />;
+  if (status !== 'authenticated')
+    return (
+      <div className="dd-stack">
+        <h1 className="dd-title-xl">{t('saved.title')}</h1>
+        <EmptyState
+          title={t('saved.signIn')}
+          action={
+            <Link className="dd-btn dd-btn--primary" href={href('/profile')}>
+              {t('auth.signIn')}
+            </Link>
+          }
+        />
+      </div>
+    );
+  return (
+    <div className="dd-stack" data-testid="customer-saved">
+      <h1 className="dd-title-xl">{t('saved.title')}</h1>
+      {state === 'loading' ? (
+        <CardSkeletons />
+      ) : state === 'error' ? (
+        <LoadError onRetry={load} />
+      ) : items.length === 0 ? (
+        <EmptyState title={t('saved.empty')} description={t('saved.emptyBody')} />
+      ) : (
+        <div className="dd-cardgrid">
+          {items.map((d) => (
+            <TrackedCard
+              key={d.id}
+              deal={d}
+              variant="list"
+              onChange={(n) => !n.saved && setItems((c) => c.filter((x) => x.id !== n.id))}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ------------------------------------------------------------------ profile
+export function ProfilePage() {
+  const { t, locale } = useT();
+  const { status, me, signOut } = useAuth();
+  const href = useHref();
+  const reason = useSearchParams().get('reason');
+  if (status === 'loading') return <LoadingState label={t('state.loading')} />;
+  return (
+    <div className="dd-stack" style={{ gap: 16 }} data-testid="customer-profile">
+      <h1 className="dd-title-xl">{t('profile.title')}</h1>
+      {status !== 'authenticated' ? (
+        <>
+          <p>
+            {reason === 'save'
+              ? t('deal.saveSignIn')
+              : reason === 'earn'
+                ? t('wat.signInPrompt')
+                : t('profile.signInPrompt')}
+          </p>
+          <LoginPanel />
+        </>
+      ) : (
+        <Card>
+          <div className="dd-stack">
+            <strong>{me?.displayName}</strong>
+            <Link className="dd-link" href={href('/saved')}>
+              {t('profile.savedDeals')}
+            </Link>
+            <Link className="dd-link" href={href('/assistant')} data-testid="assistant-link">
+              {t('ai.agentName.CUSTOMER_BEST_DEAL')}
+            </Link>
+            <Button variant="outline" onClick={() => void signOut()}>
+              {t('auth.signOut')}
+            </Button>
+          </div>
+        </Card>
+      )}
+      <Card flat>
+        <strong>{t('profile.language')}</strong>
+        <div className="dd-row" style={{ marginBlockStart: 8 }}>
+          <Link className="dd-pill" href={withLocale('/profile', 'en')} hrefLang="en">
+            English
+          </Link>
+          <Link className="dd-pill" href={withLocale('/profile', 'ar')} hrefLang="ar">
+            العربية
+          </Link>
+        </div>
+      </Card>
+      <p className="dd-caption">{t('profile.laterStages')}</p>
+      <span hidden>{locale}</span>
+    </div>
+  );
+}
+
+export { ErrorState, DealCardView };

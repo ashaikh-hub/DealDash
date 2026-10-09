@@ -1,0 +1,512 @@
+{
+  "at": "2026-10-09T08:15:45.661Z",
+  "tag": "6fdc8d",
+  "results": [
+    {
+      "name": "merchant sees the Vouchers hub as a third Campaigns tab with seeded vouchers",
+      "ok": true,
+      "detail": "3 rows"
+    },
+    {
+      "name": "builder has the six voucher steps",
+      "ok": true,
+      "detail": "1 | 2 | 3 | 4 | 5 | 6"
+    },
+    {
+      "name": "a price above the voucher value is refused before anything is saved",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "reported savings are shown to the merchant live (SAR 30.00 / 25%)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the next step names the missing Arabic text",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "review confirms completeness, shows the refund and payable placeholder rules",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the customer preview exists in both languages and as card + detail",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "merchant submits the voucher (sent for review or published by the guardrails)",
+      "ok": true,
+      "detail": "Sent for review DealDash reviews every voucher before it goes on sale. You will "
+    },
+    {
+      "name": "voucher detail opens with a Monitor / Sales / Activity layout",
+      "ok": true,
+      "detail": "01a11fba-3ba8-7188-bf56-fe7a53bd2d6d"
+    },
+    {
+      "name": "admin sees Vouchers and Finance in the navigation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the new voucher is in the review queue",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "review workbench shows merchant legal entity, commercial checks and the placeholder rules",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "both languages are shown side by side (Arabic right-to-left)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "admin approves with a recorded reason",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the approved voucher is on sale for customers",
+      "ok": true,
+      "detail": "01a11fba-3ba8-7188-bf56-fe7a53bd2d6d"
+    },
+    {
+      "name": "Home shows a Vouchers rail",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the Vouchers list shows cards with price, value and savings",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "search finds exactly the new voucher",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "detail says \"Reported savings\", explains it, and never says \"guarantee\"",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "detail shows value, price, validity, terms access, branches and how it works",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "detail has no horizontal overflow on mobile",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "checkout shows voucher, merchant, value, price, quantity, amount payable and the payment method",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "checkout shows the hold countdown and no Phase 2 concept (gift, promo code, loyalty points, saved card, quantity stepper)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "paying without accepting the terms is refused",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the test payment page stands in for the provider (nothing is charged)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "a declined payment shows a clear failure, attempts left and creates no voucher",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "My Vouchers is still empty of this voucher after the failure",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "checkout after a failure explains it and still allows a retry",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "payment success shows a confirmation with a link to the voucher",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "My Vouchers shows the voucher with QR, manual code, expiry, terms and the refund option",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the QR is an opaque token (no database id inside)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "My Vouchers lists the voucher under Active",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the camera reads the voucher QR and shows a valid voucher with the value to honour",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the confirmation sheet is voucher-specific and warns it cannot be undone",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "redemption succeeds with a clear green result",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "replaying the same QR shows ALREADY REDEEMED (red) and offers no redeem button",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the redeemed voucher moved to Used",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "a used voucher shows no QR and no refund button",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the refund sheet explains the outcome and asks for a reason",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "a refund inside the policy window completes and the voucher stops working",
+      "ok": true,
+      "detail": "REFUNDED"
+    },
+    {
+      "name": "the voucher page shows the refund status in plain words",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "staff see REFUNDED (red) for a refunded voucher and cannot redeem it",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Monitor shows sold / used / refunded and verified money",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "settlement-eligible money exists only for the redeemed voucher (SAR 81.00 = 90.00 minus 10% fee)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Sales shows first names only (no phone, e-mail or payment data)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Finance shows held vs settlement-eligible and the placeholder legal note",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "ledger health reports balanced",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "order detail shows payments, terms accepted, ledger journals and merchant payable events",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the refund queue lists refunds with status and actions",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "approving a refund requires a recorded reason",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the approved refund moves on",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Support starts at the lookup and has no Overview tab",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Support sees provider references hidden",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "My Vouchers tab active renders (3 seeded)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "My Vouchers tab used renders (0 seeded)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "My Vouchers tab expired renders (0 seeded)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "My Vouchers tab refunded renders (0 seeded)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer vouchers (ar): RTL document with the Arabic font",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer vouchers (ar): no horizontal overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer vouchers (ar): numbers stay Western",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer card text is Arabic",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer voucher detail (ar): RTL document with the Arabic font",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer voucher detail (ar): no horizontal overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer voucher detail (ar): numbers stay Western",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "detail uses \"التوفير المُعلن\" (reported savings) and no guarantee wording",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer checkout (ar): RTL document with the Arabic font",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer checkout (ar): no horizontal overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer checkout (ar): numbers stay Western",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer payment success (ar): RTL document with the Arabic font",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer payment success (ar): no horizontal overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer payment success (ar): numbers stay Western",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer voucher ticket (ar): RTL document with the Arabic font",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer voucher ticket (ar): no horizontal overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer voucher ticket (ar): numbers stay Western",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "QR and manual code stay left-to-right in Arabic",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer My Vouchers (ar): RTL document with the Arabic font",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer My Vouchers (ar): no horizontal overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customer My Vouchers (ar): numbers stay Western",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "merchant voucher hub (ar): RTL document with the Arabic font",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "merchant voucher hub (ar): no horizontal overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "merchant voucher hub (ar): numbers stay Western",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "merchant voucher builder (ar): RTL document with the Arabic font",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "merchant voucher builder (ar): no horizontal overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "merchant voucher builder (ar): numbers stay Western",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "merchant voucher monitor (ar): RTL document with the Arabic font",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "merchant voucher monitor (ar): no horizontal overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "merchant voucher monitor (ar): numbers stay Western",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "merchant finance (ar): RTL document with the Arabic font",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "merchant finance (ar): no horizontal overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "merchant finance (ar): numbers stay Western",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "admin finance (ar): RTL document with the Arabic font",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "admin finance (ar): no horizontal overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "admin finance (ar): numbers stay Western",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "admin voucher review (ar): RTL document with the Arabic font",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "admin voucher review (ar): no horizontal overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "admin voucher review (ar): numbers stay Western",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "staff scan (ar): RTL document with the Arabic font",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "staff scan (ar): no horizontal overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "staff scan (ar): numbers stay Western",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Vouchers list has no horizontal overflow on a tablet",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Vouchers list has no horizontal overflow at 360px",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "consoleErrors": []
+}

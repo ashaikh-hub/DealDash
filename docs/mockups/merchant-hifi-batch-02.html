@@ -1,0 +1,1165 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DealDash Merchant Portal - Hi-fi Batch 02 (design mockups)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+
+/* ===== DealDash tokens (approved base + derived business tokens) ===== */
+:root{
+  --navy:#0F0C42; --navy2:#0A0830; --purple:#5B1AFC; --purple2:#7E4DFF; --purple600:#4A12D6;
+  --purple50:#F6F3FF; --purple300:#B9A4FF; --lilac:#EEE8FF; --bg:#F8F9FD; --card:#fff;
+  --ink2:#5B5E80; --ink3:#6F7296; --line:#E3E1F0; --slate100:#EEF0F8; --slateblue:#E6E8F5;
+  --mint:#1FBF8F; --amber:#F5A524; --red:#E93A52; --stage:#E9E7F5;
+  --s-bg:#E2F7F0; --s-tx:#0B7A5A; --w-bg:#FEF1D9; --w-tx:#8A5A00; --d-bg:#FDE8EB; --d-tx:#B3203A; --d-solid:#C9213D;
+  --hero:linear-gradient(135deg,#0F0C42 0%,#4313D6 100%);
+  --shadow:0 1px 2px rgba(20,22,58,.06),0 6px 18px rgba(20,22,58,.07);
+  --flat:0 1px 2px rgba(20,22,58,.06);
+  --font:'Plus Jakarta Sans',system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:var(--font);background:var(--bg);color:var(--navy);font-size:14px;line-height:22px;font-weight:500;-webkit-font-smoothing:antialiased}
+[dir=rtl] body, [dir=rtl] .shell, [dir=rtl] .modal, [dir=rtl] .drawer{font-family:'IBM Plex Sans Arabic','Plus Jakarta Sans',sans-serif}
+[dir=rtl] body{line-height:26px;font-size:15px}
+h1,h2,h3,h4,p{margin:0}
+button{font-family:inherit;cursor:pointer}
+svg.i{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex:none}
+svg.i.sm{width:16px;height:16px}svg.i.xs{width:14px;height:14px}svg.i.lg{width:24px;height:24px}
+[dir=rtl] .mirror{transform:scaleX(-1)}
+.num{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+
+/* ===== design review bar (not part of the product) ===== */
+.designbar{position:sticky;top:0;z-index:200;background:var(--navy2);color:#fff;display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:12px;flex-wrap:wrap;direction:ltr}
+.designbar b{font-weight:800;margin-inline-end:8px;color:#C9C3FF}
+.designbar button{background:rgba(255,255,255,.1);color:#fff;border:0;border-radius:99px;padding:6px 12px;font-weight:700;font-size:12px}
+.designbar button.on{background:#fff;color:var(--navy)}
+.screen{display:none}.screen.active{display:block}
+
+/* ===== shell ===== */
+.shell{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:calc(100vh - 44px)}
+.shell.collapsed{grid-template-columns:76px minmax(0,1fr)}
+.sidebar{background:#fff;border-inline-end:1px solid var(--line);padding:20px 14px;display:flex;flex-direction:column;position:sticky;top:44px;height:calc(100vh - 44px);overflow:auto}
+.brand{padding:4px 10px 18px;position:relative}
+.nav-toggle{position:absolute;top:6px;inset-inline-end:2px;width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--ink2);display:grid;place-items:center;padding:0}
+.nav-toggle:hover{background:var(--purple50);color:var(--purple)}
+.shell.collapsed .nav-toggle{position:static;margin:10px auto 0;display:grid}
+.shell.collapsed .nav-toggle svg{transform:scaleX(-1)}
+[dir=rtl] .shell.collapsed .nav-toggle svg{transform:none}
+.wordmark{font-weight:800;font-size:24px;letter-spacing:-.02em;line-height:28px;direction:ltr;display:inline-block}
+.wordmark .d1{color:var(--navy)}.wordmark .d2{color:var(--purple)}
+.brand small{display:block;color:var(--ink2);font-size:12px;font-weight:600;margin-top:0}
+.nav-label{font-size:11px;font-weight:700;color:var(--ink3);padding:16px 12px 6px;letter-spacing:.04em}
+[dir=rtl] .nav-label{letter-spacing:0;font-size:12px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;color:var(--ink2);font-weight:700;font-size:14px;text-decoration:none;position:relative}
+.nav-item:hover{background:var(--purple50);color:var(--navy)}
+.nav-item.active{background:var(--lilac);color:var(--purple)}
+.nav-item .dot{margin-inline-start:auto;width:8px;height:8px;border-radius:50%;background:var(--purple)}
+.nav-spacer{flex:1}
+.merchant-card{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--line);border-radius:16px;margin-top:12px;background:var(--purple50)}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px;flex:none}
+.avatar.logo{background:#fff;color:var(--navy);border:1px solid var(--line)}
+.merchant-card b{display:block;font-size:13px;line-height:18px}
+.verified{display:inline-flex;align-items:center;gap:4px;color:var(--s-tx);font-size:11px;font-weight:700}
+.shell.collapsed .nav-item span,.shell.collapsed .nav-label,.shell.collapsed .brand small,.shell.collapsed .mc-tx,.shell.collapsed .nav-item .dot,.shell.collapsed .wordmark{display:none}
+.mono{display:none;width:40px;height:40px;border-radius:14px;background:var(--purple);color:#fff;font-weight:800;font-size:20px;place-items:center;margin-inline:auto}
+.shell.collapsed .mono{display:grid}
+.shell.collapsed .nav-item{justify-content:center;padding:12px}
+.shell.collapsed .brand{padding:4px 0 14px;text-align:center}
+
+.shell.collapsed .merchant-card{justify-content:center;padding:8px}
+.main{min-width:0}
+.topbar{height:64px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:16px;padding:0 32px;position:sticky;top:44px;z-index:30}
+.tb-merchant{display:flex;align-items:center;gap:10px}
+.tb-merchant b{font-size:16px;font-weight:800}
+.branch-pill{display:flex;align-items:center;gap:8px;height:40px;padding:0 14px;border:1px solid var(--line);border-radius:99px;background:#fff;font-weight:700;color:var(--navy);font-size:13px}
+.search{flex:1;max-width:420px;margin-inline:auto;display:flex;align-items:center;gap:10px;height:40px;padding:0 16px;border-radius:99px;background:var(--purple50);color:var(--ink3);font-size:13px;border:1px solid transparent}
+.search kbd{margin-inline-start:auto;border:1px solid var(--line);border-radius:6px;padding:0 6px;font-size:11px;background:#fff;color:var(--ink2);font-family:inherit}
+.tb-right{display:flex;align-items:center;gap:6px;margin-inline-start:auto}
+.search + .tb-right{margin-inline-start:0}
+.icon-btn{width:40px;height:40px;border-radius:50%;border:0;background:transparent;color:var(--ink2);display:grid;place-items:center;position:relative}
+.icon-btn:hover{background:var(--purple50);color:var(--navy)}
+.icon-btn .badge{position:absolute;top:4px;inset-inline-end:3px;min-width:18px;height:18px;border-radius:9px;background:var(--purple);color:#fff;font-size:10px;font-weight:800;display:grid;place-items:center;padding:0 4px;border:2px solid #fff}
+.lang{display:flex;background:var(--lilac);border-radius:99px;padding:3px;margin-inline:6px}
+.lang span{padding:4px 10px;border-radius:99px;font-size:12px;font-weight:700;color:var(--ink2)}
+.lang span.on{background:#fff;color:var(--purple);box-shadow:var(--flat)}
+.page{padding:28px 32px 56px;max-width:1360px;margin-inline:auto}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:24px}
+.crumb{font-size:12px;color:var(--ink2);font-weight:600;display:flex;gap:6px;align-items:center;margin-bottom:6px}
+.crumb b{color:var(--navy);font-weight:700}
+.h-title{font-size:28px;line-height:36px;font-weight:800;letter-spacing:-.01em}
+[dir=rtl] .h-title{letter-spacing:0;line-height:42px}
+.h-sub{color:var(--ink2);margin-top:4px}
+.head-actions{display:flex;gap:10px;align-items:center}
+
+/* ===== components ===== */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:0 22px;border-radius:99px;border:1px solid transparent;font-weight:700;font-size:14px;white-space:nowrap;transition:.15s}
+.btn.sm{height:36px;padding:0 16px;font-size:13px}.btn.lg{height:48px;padding:0 26px;font-size:15px}
+.btn.primary{background:var(--purple);color:#fff}.btn.primary:hover{background:var(--purple2)}
+.btn.tonal{background:var(--lilac);color:var(--purple)}.btn.tonal:hover{background:#E4DBFF}
+.btn.outline{background:#fff;border-color:var(--line);color:var(--navy)}.btn.outline:hover{background:var(--purple50)}
+.btn.text{background:transparent;color:var(--purple);padding:0 10px}
+.btn.danger-t{background:var(--d-bg);color:var(--d-tx)}
+.btn.danger{background:var(--d-solid);color:#fff}
+.btn.onhero{background:#fff;color:var(--navy)}
+.btn.onhero-o{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.28)}
+.btn.onhero-d{background:rgba(255,120,140,.16);color:#FFD3DA;border-color:rgba(255,160,175,.35)}
+.btn[disabled]{background:var(--slate100);color:var(--ink3);cursor:not-allowed}
+.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:24px;box-shadow:var(--flat)}
+.card.flush{padding:0;overflow:hidden}
+.card-h{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.card-t{font-size:16px;line-height:24px;font-weight:800;display:flex;align-items:center;gap:8px}
+.card-t .count{background:var(--slate100);color:var(--ink2);border-radius:99px;font-size:12px;padding:0 8px;font-weight:700}
+.link{color:var(--purple);font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:4px;text-decoration:none;border:0;background:none;padding:0}
+.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:24px}
+.c4{grid-column:span 4}.c5{grid-column:span 5}.c6{grid-column:span 6}.c7{grid-column:span 7}.c8{grid-column:span 8}.c12{grid-column:span 12}
+.muted{color:var(--ink2)}.small{font-size:12px;line-height:16px}
+.strong{font-weight:700}
+.chip{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 12px;border-radius:99px;font-size:12px;font-weight:700;border:1px solid transparent;white-space:nowrap}
+.chip svg{width:14px;height:14px}
+.st-draft{background:var(--slate100);color:var(--ink2);border:1px dashed #C9CBE0}
+.st-pending{background:var(--lilac);color:var(--purple);border-color:rgba(91,26,252,.24)}
+.st-scheduled{background:#fff;color:var(--navy);border-color:var(--purple)}
+.st-live{background:var(--s-bg);color:var(--s-tx);border-color:rgba(31,191,143,.35)}
+.st-live .pulse{width:8px;height:8px;border-radius:50%;background:var(--mint);box-shadow:0 0 0 0 rgba(31,191,143,.5);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(31,191,143,.5)}70%{box-shadow:0 0 0 7px rgba(31,191,143,0)}100%{box-shadow:0 0 0 0 rgba(31,191,143,0)}}
+.st-paused{background:var(--slateblue);color:var(--navy);border-color:var(--line)}
+.st-expired{background:var(--slate100);color:var(--ink2);border-color:transparent}
+.st-rejected{background:var(--d-bg);color:var(--d-tx);border-color:rgba(233,58,82,.28)}
+.st-changes{background:var(--w-bg);color:var(--w-tx);border-color:rgba(245,165,36,.4)}
+.st-suspended{background:var(--d-solid);color:#fff}
+.type-chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--ink2)}
+.type-chip svg{width:14px;height:14px}
+.type-chip .flame{color:#F0701C}
+.type-chip .tpurple{color:var(--purple)}
+.seg{display:inline-flex;background:var(--lilac);border-radius:99px;padding:4px;gap:2px}
+.seg button{border:0;background:transparent;height:40px;padding:0 18px;border-radius:99px;font-weight:700;font-size:14px;color:var(--ink2);display:flex;align-items:center;gap:8px}
+.seg button .n{background:var(--slate100);color:var(--ink2);border-radius:99px;font-size:11px;padding:0 7px;line-height:18px}
+.seg button.on{background:#fff;color:var(--purple);box-shadow:var(--shadow)}
+.seg button.on .n{background:var(--lilac);color:var(--purple)}
+.seg.sm button{height:32px;padding:0 14px;font-size:13px}
+.input{height:48px;border:1px solid var(--line);border-radius:14px;padding:0 16px;font-size:14px;font-weight:500;color:var(--navy);width:100%;background:#fff;font-family:inherit}
+.input:focus{outline:0;border-color:var(--purple2);background:var(--purple50);box-shadow:0 0 0 3px rgba(126,77,255,.15)}
+textarea.input{height:auto;padding:12px 16px;line-height:22px}
+.field{display:flex;flex-direction:column;gap:6px}
+.label{font-size:13px;font-weight:600;line-height:18px;display:flex;align-items:center;gap:8px}
+.help{font-size:12px;color:var(--ink2);line-height:16px}
+.bi{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bi .tag{position:absolute;top:-9px;inset-inline-start:12px;background:#fff;padding:0 6px;font-size:10px;font-weight:800;color:var(--purple);letter-spacing:.04em}
+.bi .cell{position:relative}
+.bi .ar{direction:rtl;text-align:right;font-family:'IBM Plex Sans Arabic',sans-serif;font-size:15px}
+.bar{height:8px;border-radius:99px;background:var(--slate100);overflow:hidden;display:flex}
+.bar i{display:block;height:100%}
+.bar .p{background:var(--purple)}.bar .p2{background:var(--purple300)}.bar .n{background:var(--navy)}
+.bar.thick{height:12px}
+.kbd{font-size:12px;color:var(--ink2)}
+.stat{display:flex;flex-direction:column;gap:6px}
+.stat .l{font-size:13px;font-weight:600;color:var(--ink2)}
+.stat .v{font-size:32px;line-height:40px;font-weight:800;letter-spacing:-.01em}
+.stat .d{font-size:12px;font-weight:600;color:var(--ink2);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.delta{display:inline-flex;align-items:center;gap:2px;font-weight:700;color:var(--s-tx);background:var(--s-bg);border-radius:99px;padding:0 8px;line-height:20px;font-size:12px}
+.delta.neu{color:var(--ink2);background:var(--slate100)}
+.thumb{width:44px;height:44px;border-radius:12px;flex:none;position:relative;overflow:hidden}
+.ph1{background:radial-gradient(circle at 25% 30%,#f6c07a 0,transparent 38%),radial-gradient(circle at 75% 65%,#c2562f 0,transparent 45%),radial-gradient(circle at 60% 20%,#ffe3b0 0,transparent 25%),#2a1410}
+.ph2{background:radial-gradient(circle at 30% 70%,#7fc7a0 0,transparent 40%),radial-gradient(circle at 75% 30%,#e8c46a 0,transparent 38%),#1b2a22}
+.ph3{background:radial-gradient(circle at 70% 30%,#f2a1b8 0,transparent 40%),radial-gradient(circle at 25% 70%,#8a3b6b 0,transparent 45%),#2a1230}
+.ph4{background:radial-gradient(circle at 30% 30%,#8fb4ff 0,transparent 40%),radial-gradient(circle at 70% 70%,#5b1afc 0,transparent 45%),#15103f}
+.ph5{background:radial-gradient(circle at 40% 40%,#ffd9a0 0,transparent 35%),radial-gradient(circle at 80% 70%,#b0652d 0,transparent 45%),#3a1d12}
+.attn{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--line);border-radius:16px;position:relative;background:#fff}
+.attn::before{content:"";position:absolute;inset-block:12px;inset-inline-start:0;width:4px;border-radius:0 4px 4px 0;background:var(--amber)}
+[dir=rtl] .attn::before{border-radius:4px 0 0 4px}
+.attn.red::before{background:var(--d-solid)}
+.attn.purple::before{background:var(--purple)}
+.attn .ic{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;flex:none}
+.attn .ic.w{background:var(--w-bg);color:var(--w-tx)}.attn .ic.p{background:var(--lilac);color:var(--purple)}.attn .ic.d{background:var(--d-bg);color:var(--d-tx)}
+.attn .tx{flex:1;min-width:0}.attn .tx b{display:block;font-weight:700;line-height:20px}
+.attn .tx span{font-size:13px;color:var(--ink2)}
+.stack{display:flex;flex-direction:column;gap:10px}
+.qa{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.qa a{display:flex;flex-direction:column;gap:10px;padding:16px;border:1px solid var(--line);border-radius:18px;background:#fff;text-decoration:none;color:var(--navy);transition:.15s}
+.qa a:hover{border-color:var(--purple300);box-shadow:var(--shadow);background:var(--purple50)}
+.qa .ic{width:40px;height:40px;border-radius:50%;background:var(--lilac);color:var(--purple);display:grid;place-items:center}
+.qa b{font-weight:800;font-size:14px;line-height:20px}.qa span{font-size:12px;color:var(--ink2);line-height:16px}
+.flame-mark{color:#F0701C}
+.list-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.list-row:last-child{border-bottom:0}
+.list-row .tx{flex:1;min-width:0}.list-row b{display:block;font-weight:700;line-height:20px}
+.list-row .tm{font-size:12px;color:var(--ink2);font-weight:600;white-space:nowrap}
+.dot12{width:10px;height:10px;border-radius:50%;flex:none}
+.hero{background:var(--hero);color:#fff;border-radius:24px;padding:28px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;inset-inline-end:-80px;top:-80px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(126,77,255,.45),transparent 70%)}
+.hero .ht{font-size:20px;line-height:28px;font-weight:800}.hero .cap{color:#C9C3FF;font-size:13px;font-weight:600}
+.hero .hv{font-size:36px;line-height:44px;font-weight:800;letter-spacing:-.01em}
+.hero .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:22px;position:relative;z-index:1}
+.hero .metrics > div{padding-inline:20px;border-inline-start:1px solid rgba(255,255,255,.16)}
+.hero .metrics > div:first-child{padding-inline-start:0;border:0}
+.hero .metrics .ml{font-size:13px;color:#C9C3FF;font-weight:600}
+.hero .metrics .md{font-size:12px;color:#C9C3FF;margin-top:2px;display:flex;gap:6px;align-items:center}
+.hero .metrics .md em{font-style:normal;background:rgba(255,255,255,.14);padding:0 8px;border-radius:99px;font-weight:700;color:#fff;line-height:20px}
+.spark{display:flex;align-items:flex-end;gap:4px;height:32px;margin-top:18px;position:relative;z-index:1}
+.spark i{flex:1;background:rgba(255,255,255,.22);border-radius:4px 4px 0 0}
+.spark i.hi{background:rgba(255,255,255,.55)}
+.cd{font-variant-numeric:tabular-nums;font-weight:800;letter-spacing:-.01em;direction:ltr;display:inline-block}
+.pill-live{display:inline-flex;align-items:center;gap:6px;background:var(--s-bg);color:var(--s-tx);border-radius:99px;font-size:12px;font-weight:800;padding:0 10px;line-height:24px}
+.empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:36px 24px}
+.empty .ic{width:64px;height:64px;border-radius:50%;background:var(--lilac);color:var(--purple);display:grid;place-items:center}
+.empty b{font-size:18px;font-weight:800;line-height:26px}.empty p{color:var(--ink2);max-width:360px}
+.skel{background:linear-gradient(90deg,var(--slate100),#F6F7FC,var(--slate100));background-size:200% 100%;animation:sh 1.4s infinite;border-radius:10px;height:14px}
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){.skel,.st-live .pulse{animation:none}}
+.banner{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:16px;border:1px solid transparent}
+.banner b{display:block;font-weight:700}.banner .bx{flex:1;font-size:13px}
+.banner.info{background:var(--lilac);color:var(--navy)}.banner.info svg{color:var(--purple)}
+.banner.warn{background:var(--w-bg);color:#5a3b00}.banner.warn svg{color:var(--w-tx)}
+.banner.danger{background:var(--d-bg);color:#6b1020}.banner.danger svg{color:var(--d-tx)}
+.banner.ok{background:var(--s-bg);color:#064d3a}.banner.ok svg{color:var(--s-tx)}
+.banner.susp{background:var(--d-solid);color:#fff}
+
+
+.hub-head,.hub-row{display:grid;grid-template-columns:2.5fr 1.15fr 1.35fr 1.35fr 1.45fr 1.7fr 36px;gap:16px;align-items:center}
+.hub-head{padding:12px 32px;font-size:12px;font-weight:700;color:var(--ink2);background:var(--purple50)}
+.hub-row{padding:14px 20px;border-radius:16px;margin-top:6px;cursor:pointer;border:1px solid transparent;transition:.15s}
+.hub-row:hover{background:var(--purple50);border-color:var(--lilac)}
+.hub-row .name{display:flex;align-items:center;gap:14px;min-width:0}
+.hub-row .name b{display:block;font-weight:700;line-height:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hub-row .bn{font-size:13px;font-weight:600}
+.hub-row .dt{font-size:13px;font-weight:600}.hub-row .dt span{display:block;color:var(--ink2);font-weight:500;font-size:12px}
+.hub-row .pf{font-size:13px;font-weight:700}.hub-row .pf span{display:flex;align-items:center;gap:6px;color:var(--ink2);font-weight:500;font-size:12px}
+.hub-row .km{font-size:13px;font-weight:700}.hub-row .km .bar{margin-top:6px;height:6px}.hub-row .km span{display:block;color:var(--ink2);font-weight:500;font-size:12px}
+.up{color:var(--s-tx)}.dn{color:var(--d-tx)}
+
+
+#m11 .shell{min-height:calc(100vh - 44px)}
+#bld{position:relative}
+.b-head{display:flex;align-items:center;gap:12px;padding:0 32px;height:72px;background:#fff;border-bottom:1px solid var(--line)}
+.b-body{display:grid;grid-template-columns:264px minmax(0,1fr) 392px;gap:28px;padding:28px 32px 120px;align-items:start;max-width:1500px;margin-inline:auto}
+.rail{padding:20px;position:sticky;top:152px}
+.rail-top{display:flex;gap:14px;align-items:center;margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.ring{width:48px;height:48px;border-radius:50%;background:conic-gradient(var(--purple) 0 33%,var(--lilac) 0);display:grid;place-items:center;position:relative;flex:none}
+.ring::before{content:"";position:absolute;inset:5px;background:#fff;border-radius:50%}
+.ring span{position:relative;font-size:12px;font-weight:800}
+.rail ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;position:relative}
+.rail li{display:flex;gap:12px;align-items:flex-start;padding:10px;border-radius:14px;cursor:pointer;position:relative}
+.rail li i{width:28px;height:28px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-style:normal;font-weight:800;font-size:12px;color:var(--ink2);background:#fff;flex:none;position:relative;z-index:1}
+.rail li b{display:block;font-size:14px;line-height:20px}.rail li span{font-size:12px;color:var(--ink2);line-height:16px}
+.rail li::after{content:"";position:absolute;inset-inline-start:23px;top:40px;height:calc(100% - 22px);width:2px;background:var(--line)}
+.rail li:last-child::after{display:none}
+.rail li.done i{background:var(--purple);border-color:var(--purple);color:#fff}
+.rail li.done::after{background:var(--purple)}
+.rail li.cur{background:var(--lilac)}
+.rail li.cur i{border-color:var(--purple);color:var(--purple)}
+.rail li.cur b{color:var(--purple)}
+.rail li:hover:not(.cur){background:var(--purple50)}
+.step{display:none}
+.step.show{display:block}
+.step-h{margin-bottom:20px}
+.step-h h2{font-size:26px;line-height:34px;font-weight:800;letter-spacing:-.01em;margin:2px 0 4px}
+[dir=rtl] .step-h h2{letter-spacing:0;line-height:40px}
+.step-h p{color:var(--ink2)}
+.chips{display:flex;gap:10px;flex-wrap:wrap}
+.fc{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 18px;border-radius:99px;border:1px solid var(--line);background:#fff;font-weight:700;font-size:14px;color:var(--navy)}
+.fc.on{background:var(--lilac);color:var(--purple);border-color:var(--purple)}
+.choice3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.choice3 button{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:start;padding:18px;border:1px solid var(--line);border-radius:20px;background:#fff;color:var(--navy);transition:.15s}
+.choice3 button .ic{width:40px;height:40px;border-radius:50%;background:var(--slate100);color:var(--ink2);display:grid;place-items:center;margin-bottom:4px}
+.choice3 button b{font-size:15px;font-weight:800}.choice3 button span:last-child{font-size:12px;color:var(--ink2);line-height:16px}
+.choice3 button:hover{border-color:var(--purple300);background:var(--purple50)}
+.choice3 button.on{border:2px solid var(--purple);background:var(--purple50);padding:17px}
+.choice3 button.on .ic{background:var(--purple);color:#fff}
+.tgl{width:44px;height:24px;border-radius:99px;background:#CFCFE3;position:relative;flex:none;display:inline-block;transition:.15s}
+.tgl::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:.15s}
+.tgl.on{background:var(--purple)}.tgl.on::after{inset-inline-start:23px}
+.step-num{display:inline-flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:14px;height:48px;overflow:hidden;width:max-content;background:#fff}
+.step-num button{width:44px;height:100%;border:0;background:var(--purple50);color:var(--purple);font-size:18px;font-weight:800}
+.step-num b{min-width:52px;text-align:center}
+.locked-row{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px dashed #C9CBE0;border-radius:16px;background:var(--slate100);color:var(--ink2)}
+.locked-row b{display:block;color:var(--navy);line-height:20px}.locked-row span{font-size:12px}.locked-row div{flex:1}
+.inv-head,.inv-row,.inv-total{display:grid;grid-template-columns:2.1fr 1.4fr 1.3fr 1.3fr;gap:16px;align-items:center;padding:16px 24px}
+#bld[data-mode=time] .inv-head,#bld[data-mode=time] .inv-row,#bld[data-mode=time] .inv-total{grid-template-columns:2fr 1fr}
+.inv-head{background:var(--purple50);font-size:12px;font-weight:700;color:var(--ink2);padding-block:12px}
+.inv-row{border-top:1px solid var(--line)}
+.inv-row.off{opacity:.62}
+.inv-row .bn{display:flex;gap:14px;align-items:center}.inv-row .bn b{display:block;line-height:20px}.inv-row .bn span.x,.inv-row .bn div span{font-size:12px;color:var(--ink2);display:block}
+.inv-total{border-top:1px solid var(--line);background:var(--purple50);display:flex;justify-content:space-between}
+.pill-soft{background:var(--lilac);color:var(--purple);border-radius:99px;font-size:12px;font-weight:700;padding:4px 12px}
+.rcard{display:flex;align-items:center;gap:16px;padding:18px 20px;border:1px solid var(--line);border-radius:20px;background:#fff;text-align:start;width:100%;color:var(--navy)}
+.rcard .ic{width:44px;height:44px;border-radius:50%;background:var(--slate100);color:var(--ink2);display:grid;place-items:center;flex:none}
+.rcard div{flex:1}.rcard b{display:block;font-size:15px;font-weight:800}.rcard span:not(.ic){font-size:13px;color:var(--ink2)}
+.rcard .rdot{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);position:relative}
+.rcard.on{border:2px solid var(--purple);background:var(--purple50);padding:17px 19px}
+.rcard.on .ic{background:var(--purple);color:#fff}
+.rcard.on .rdot{border-color:var(--purple)}.rcard.on .rdot::after{content:"";position:absolute;inset:4px;border-radius:50%;background:var(--purple)}
+.gal{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.gt{aspect-ratio:16/10;border-radius:16px;position:relative;overflow:hidden}
+.gt.add{border:1.5px dashed var(--purple300);background:var(--purple50);color:var(--purple);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-weight:700;font-size:12px}
+.cover{position:absolute;top:8px;inset-inline-start:8px;background:var(--navy);color:#fff;border-radius:99px;font-size:11px;font-weight:700;padding:2px 10px}
+.ck{display:flex;align-items:center;gap:12px;font-weight:600}
+.ck i{width:22px;height:22px;border-radius:7px;border:2px solid var(--line);display:grid;place-items:center;color:#fff;flex:none}
+.ck i.on{background:var(--purple);border-color:var(--purple)}
+.sumcard{padding:8px 24px}
+.sr{display:grid;grid-template-columns:150px 1fr auto;gap:16px;padding:14px 0;border-bottom:1px solid var(--line);align-items:center}
+.sr:last-child{border:0}.sr span{color:var(--ink2);font-size:13px;font-weight:600}
+.result{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:56px 24px;background:#fff;border:1px solid var(--line);border-radius:24px}
+.ric{width:84px;height:84px;border-radius:50%;background:var(--s-bg);color:var(--s-tx);display:grid;place-items:center}
+.result h2{font-size:28px;font-weight:800;line-height:36px}.result p{color:var(--ink2);max-width:420px}
+.prev-col{position:sticky;top:152px;display:flex;flex-direction:column;gap:16px}
+.stage{background:var(--stage);border-radius:24px;padding:16px 16px 24px}
+.stage-top{display:flex;justify-content:space-between;margin-bottom:14px}
+.phone{width:312px;margin:0 auto;background:#fff;border-radius:34px;border:8px solid var(--navy);overflow:hidden;position:relative;box-shadow:0 20px 40px rgba(15,12,66,.25);height:560px}
+[dir=rtl] .phone{direction:rtl}
+.phone[data-lang=ar]{direction:rtl;font-family:'IBM Plex Sans Arabic',sans-serif}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:90px;height:18px;background:var(--navy);border-radius:0 0 14px 14px;z-index:3}
+.pv{height:100%;position:relative;display:flex;flex-direction:column;background:var(--bg)}
+.ph-hero{height:168px;position:relative;flex:none;color:#fff}
+.ph-hero .back{position:absolute;top:28px;inset-inline-start:12px;width:28px;height:28px;border-radius:9px;background:rgba(255,255,255,.22);display:grid;place-items:center}
+.ph-hero .cnt{position:absolute;top:30px;inset-inline-end:12px;background:rgba(15,12,66,.6);font-size:10px;font-weight:700;border-radius:99px;padding:1px 8px}
+.ph-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(15,12,66,.75))}
+.ph-title{position:absolute;bottom:34px;inset-inline-start:14px;z-index:2}
+.ph-title b{display:block;font-size:19px;font-weight:800;line-height:24px}.ph-title span{font-size:11px;opacity:.9}
+.ph-sheet{background:#fff;border-radius:20px 20px 0 0;margin-top:-22px;padding:14px;position:relative;z-index:2;flex:1;overflow:hidden}
+.ph-sheet .row{display:flex;justify-content:space-between;align-items:center}
+.ph-sheet .big{font-size:25px;font-weight:800;color:var(--purple);line-height:30px}
+.hot{display:inline-flex;align-items:center;gap:3px;background:#FFF0E6;color:#C2410C;border-radius:99px;font-size:10px;font-weight:800;padding:2px 8px}
+.ph-sheet .sub{font-size:11px;color:var(--ink2);margin:2px 0 8px}
+.sbar{height:6px;border-radius:99px;background:var(--lilac);overflow:hidden}.sbar i{display:block;height:100%;background:linear-gradient(90deg,#FF7A1A,#E93A52)}
+.srow{display:flex;justify-content:space-between;font-size:10px;margin-top:4px}.srow b{color:#E93A52;font-weight:800}.srow span{color:var(--ink2)}
+.ph-sheet .ok{display:flex;gap:8px;align-items:flex-start;background:var(--s-bg);color:var(--s-tx);border-radius:12px;padding:8px 10px;margin-top:10px;font-size:11px;line-height:15px}
+.ph-sheet .ok b{color:#064d3a}.ph-sheet .ok span{color:#0B7A5A}
+.ph-sheet .how{margin-top:10px;font-size:11px}.ph-sheet .how b{display:block;font-size:12px}.ph-sheet .how span{color:var(--ink2)}
+.ph-bar{position:absolute;bottom:0;inset-inline:0;background:#fff;border-top:1px solid var(--line);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;font-size:11px;z-index:3}
+.ph-bar b{font-size:15px}.ph-bar span{color:var(--ink2);font-size:10px}
+.ph-bar .cta{background:var(--purple);color:#fff!important;font-weight:800;border-radius:99px;padding:10px 18px;font-size:12px}
+.pc-img{height:200px;position:relative;margin:48px 12px 0;border-radius:20px}
+.pc-img .hot{position:absolute;top:10px;inset-inline-start:10px}
+.pc-left{position:absolute;bottom:10px;inset-inline-start:10px;background:rgba(15,12,66,.75);color:#fff;font-size:11px;font-weight:700;border-radius:99px;padding:2px 10px}
+.pc-body{background:#fff;margin:-18px 12px 0;border-radius:0 0 20px 20px;padding:24px 14px 14px;position:relative}
+.pc-body b{font-size:16px;display:block;line-height:22px}.pc-body .sub{font-size:12px;margin:2px 0 8px}
+.pc-time{font-size:12px;color:#E93A52;font-weight:800;display:flex;gap:6px;align-items:center;margin-bottom:10px}
+.pc-btn{background:var(--purple);color:#fff;text-align:center;border-radius:99px;padding:10px;font-weight:800;font-size:12px}
+.checks{padding:18px 20px}
+.ck-row{display:flex;gap:10px;align-items:center;font-size:13px;font-weight:600;padding:5px 0}
+.ck-row.ok svg{color:var(--s-tx)}.ck-row.warn svg{color:var(--w-tx)}
+.verdict{margin-top:10px;padding:10px 12px;border-radius:12px;background:var(--purple50);color:var(--purple);font-size:12px;font-weight:700}
+.b-foot{position:sticky;bottom:0;display:flex;align-items:center;gap:8px;padding:14px 32px;background:#fff;border-top:1px solid var(--line);z-index:40;box-shadow:0 -6px 18px rgba(20,22,58,.05)}
+#bld[data-mode=time] .v-qty{display:none!important}
+#bld[data-mode=qty] .v-time{display:none!important}
+#bld:not([data-mode=qty]) .v-qtyonly{display:none}
+#bld:not([data-mode=time]) .v-timeonly{display:none}
+@media (max-width:1280px){.b-body{grid-template-columns:220px minmax(0,1fr) 340px}.phone{width:280px;height:520px}}
+
+
+.scrim{position:fixed;inset:0;background:rgba(15,12,66,.4);z-index:300;display:none}
+.scrim.show{display:block}
+.modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:520px;max-width:92vw;background:#fff;border-radius:26px;padding:28px;box-shadow:0 20px 60px rgba(15,12,66,.2);z-index:310;display:none}
+.modal.show{display:block}
+.drawer{position:fixed;top:0;bottom:0;inset-inline-end:0;width:520px;max-width:96vw;background:#fff;z-index:310;border-radius:26px 0 0 26px;box-shadow:0 12px 40px rgba(15,12,66,.16);display:none;flex-direction:column}
+[dir=rtl] .drawer{border-radius:0 26px 26px 0}
+.drawer.show{display:flex}
+.dr-h{display:flex;justify-content:space-between;align-items:flex-start;padding:24px 24px 16px;border-bottom:1px solid var(--line)}
+.dr-b{padding:24px;overflow:auto;flex:1}.dr-f{padding:16px 24px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px}
+.inv-mini{display:flex;justify-content:space-between;align-items:center;gap:12px}.inv-mini b{display:block}
+.br-row{display:grid;grid-template-columns:130px 1fr 220px;gap:20px;align-items:center;padding:14px 0;border-top:1px solid var(--line)}
+.br-row:first-of-type{border-top:0}
+.br-row .bn b{display:block;line-height:20px}.br-row .bn span{font-size:12px;color:var(--ink2)}
+.br-row .bs{font-size:13px}.br-row .bs b{font-size:18px}.br-row .bs > span{display:block}
+.legend{display:flex;gap:18px;margin-top:8px;font-size:12px;color:var(--ink2);font-weight:600;flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-inline-end:6px}
+.act4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
+.act4 > div{background:var(--purple50);border-radius:16px;padding:12px 16px}.act4 b{display:block;font-size:24px;font-weight:800;line-height:30px}
+.kv{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px solid var(--line);font-size:13px}
+.kv:last-child{border:0}.kv span{color:var(--ink2);font-weight:600}.kv b{text-align:end;font-weight:700}
+.rs-head,.rs-row{display:grid;grid-template-columns:1.2fr 1.2fr 1.2fr .6fr 1.2fr 1fr;gap:16px;align-items:center;padding:14px 24px}
+.rs-head{background:var(--purple50);font-size:12px;font-weight:700;color:var(--ink2)}
+.rs-row{border-top:1px solid var(--line);font-size:13px;font-weight:600}
+.rs-row:hover{background:var(--purple50)}
+.rs-row .code{font-family:ui-monospace,Consolas,monospace;direction:ltr;text-align:start;font-weight:700;letter-spacing:.04em}
+.res-mini .rs-row{padding:12px 4px;grid-template-columns:1.1fr 1fr 1fr .5fr 1.1fr .9fr}
+.funnel{display:flex;flex-direction:column;gap:14px}
+.funnel > div{display:grid;grid-template-columns:150px 1fr 150px;gap:14px;align-items:center;font-size:13px;font-weight:600}
+.fb{height:36px;border-radius:12px;background:var(--navy);color:#fff;display:flex;align-items:center;padding-inline:14px}
+.funnel > div:nth-child(2) .fb{background:var(--purple)}.funnel > div:nth-child(3) .fb{background:var(--purple2)}.funnel > div:nth-child(4) .fb{background:var(--purple300);color:var(--navy)}
+.funnel em{font-style:normal;color:var(--ink2);font-size:12px}
+.hbars{display:flex;align-items:flex-end;gap:14px;height:170px;border-bottom:1px solid var(--line)}
+.hbars > div{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;position:relative}
+.hbars i{display:block;width:100%;max-width:34px;background:var(--purple);border-radius:8px 8px 0 0}
+.hbars span{position:absolute;bottom:-24px;font-size:12px;color:var(--ink2);font-weight:600}
+.hbars .now i{background:var(--purple300)}
+.tl{position:relative;padding-inline-start:28px}
+.tl::before{content:"";position:absolute;inset-inline-start:7px;top:6px;bottom:6px;width:2px;background:var(--line)}
+.tl > div{position:relative;padding-bottom:20px}.tl > div:last-child{padding-bottom:0}
+.tl i{position:absolute;inset-inline-start:-28px;top:3px;width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px var(--line)}
+.tl b{display:block;font-weight:700}.tl span{font-size:12px;color:var(--ink2)}
+
+
+.toast{display:flex;align-items:center;gap:12px;padding:12px 16px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);width:max-content;max-width:100%}
+
+/* ===== Batch 02 additions (same tokens) ===== */
+body[data-role=mkt] .fin-only{display:none!important}
+body[data-role=owner] .fin-alt{display:none!important}
+.pane{display:none}.pane.show{display:block}
+.tbl{width:100%;border-collapse:separate;border-spacing:0}
+.tbl th{background:var(--purple50);text-align:start;font-size:12px;font-weight:700;color:var(--ink2);padding:12px 16px;white-space:nowrap}
+.tbl td{padding:14px 16px;border-top:1px solid var(--line);font-size:13px;font-weight:600;vertical-align:middle}
+.tbl tbody tr{cursor:pointer;transition:.12s}.tbl tbody tr:hover td{background:var(--purple50)}
+.tbl .r{text-align:end}.tbl .sub{display:block;color:var(--ink2);font-weight:500;font-size:12px}
+.tbl .nm{display:flex;align-items:center;gap:12px}.tbl .nm b{display:block;line-height:20px}
+.toolbar{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.pager{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--line)}
+.head-card{display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:24px;padding:24px 28px;box-shadow:var(--flat)}
+.head-card .t{font-size:26px;line-height:34px;font-weight:800;letter-spacing:-.01em}
+.meta{display:flex;gap:16px;color:var(--ink2);font-size:13px;font-weight:600;flex-wrap:wrap;margin-top:4px}
+.meta span{display:inline-flex;gap:6px;align-items:center}
+.summary-lilac{background:linear-gradient(135deg,#EEE8FF 0%,#F6F3FF 100%);border:1px solid #E1D7FF;border-radius:24px;padding:24px 28px}
+.sumgrid{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:20px;align-items:center}
+.sumgrid .v{font-size:32px;line-height:40px;font-weight:800;letter-spacing:-.01em}
+.sumgrid .l{font-size:13px;font-weight:600;color:var(--ink2)}
+.sumgrid > div + div{border-inline-start:1px solid #D9CCFF;padding-inline-start:20px}
+/* auth */
+.auth{display:grid;grid-template-columns:1fr 1fr;min-height:calc(100vh - 88px)}
+.auth-l{background:linear-gradient(165deg,#EEE8FF 0%,#F8F9FD 75%);padding:48px 56px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+.auth-r{display:grid;place-items:center;padding:40px;background:#fff}
+.auth-card{width:100%;max-width:440px}
+.tiles{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:12px;margin-top:28px}
+.tiles div{border-radius:22px;aspect-ratio:3/4;box-shadow:var(--shadow)}
+.tiles div:nth-child(2){margin-top:28px}.tiles div:nth-child(3){margin-top:56px}
+.otp{display:flex;gap:10px}.otp i{width:54px;height:62px;border:1px solid var(--line);border-radius:14px;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:22px;background:#fff}
+.otp i.f{border-color:var(--purple2);background:var(--purple50);box-shadow:0 0 0 3px rgba(126,77,255,.15)}
+.minibar{height:64px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 32px}
+/* onboarding */
+.ob-body{display:grid;grid-template-columns:280px minmax(0,720px) 320px;gap:28px;justify-content:center;padding:32px 32px 120px;align-items:start}
+.drop{border:1.5px dashed var(--purple300);background:var(--purple50);border-radius:20px;padding:26px;text-align:center;color:var(--ink2)}
+.drop b{color:var(--navy);display:block;margin:6px 0 2px}
+.frow{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:#fff}
+.frow .fi{width:36px;height:36px;border-radius:10px;background:var(--lilac);color:var(--purple);display:grid;place-items:center;flex:none}
+.frow div{flex:1;min-width:0}.frow b{display:block;line-height:18px;font-size:13px}.frow span{font-size:12px;color:var(--ink2)}
+.why{background:var(--lilac);border-radius:20px;padding:18px 20px;display:flex;flex-direction:column;gap:6px}
+.why b{display:flex;gap:8px;align-items:center}.why p{font-size:13px;color:#3b3770}
+.cl{display:flex;flex-direction:column;gap:10px}.cl div{display:flex;gap:10px;align-items:center;font-weight:600;font-size:13px}
+.cl i{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;flex:none;color:#fff}
+.cl i.ok{background:var(--mint)}.cl i.no{background:var(--slate100);color:var(--ink3);border:1.5px solid var(--line)}
+.hrs{display:grid;grid-template-columns:110px 44px 1fr 1fr;gap:10px;align-items:center;font-size:13px;font-weight:600;padding:8px 0;border-bottom:1px solid var(--line)}
+.hrs:last-child{border:0}.hrs .tm{height:38px;border:1px solid var(--line);border-radius:12px;display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
+.agree{height:180px;overflow:auto;border:1px solid var(--line);border-radius:16px;padding:16px;font-size:13px;line-height:20px;color:var(--ink2);background:#fff}
+/* status page */
+.stat-hero{background:#fff;border:1px solid var(--line);border-radius:24px;padding:28px;box-shadow:var(--flat)}
+.tline5{display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin-top:22px}
+.tline5 > div{text-align:center;position:relative;font-size:12px;font-weight:700;color:var(--ink2)}
+.tline5 i{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;margin:0 auto 8px;background:#fff;border:2px solid var(--line);color:var(--ink3);font-style:normal;position:relative;z-index:1}
+.tline5 > div::before{content:"";position:absolute;top:14px;inset-inline-start:-50%;width:100%;height:2px;background:var(--line)}
+.tline5 > div:first-child::before{display:none}
+.tline5 .d i{background:var(--purple);border-color:var(--purple);color:#fff}.tline5 .d::before{background:var(--purple)}
+.tline5 .c i{border-color:var(--purple);color:var(--purple)}.tline5 .c{color:var(--purple)}.tline5 .c::before{background:var(--purple)}
+.vpanel{border-radius:20px;padding:22px 24px;display:flex;gap:16px;align-items:flex-start}
+.vpanel .vi{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;flex:none}
+.vpanel h3{font-size:18px;font-weight:800;line-height:26px}.vpanel p{margin-top:2px}
+.vp-info{background:var(--lilac)}.vp-info .vi{background:#fff;color:var(--purple)}
+.vp-warn{background:var(--w-bg)}.vp-warn .vi{background:#fff;color:var(--w-tx)}
+.vp-bad{background:var(--d-bg)}.vp-bad .vi{background:#fff;color:var(--d-tx)}
+.vp-ok{background:var(--s-bg)}.vp-ok .vi{background:#fff;color:var(--s-tx)}
+.fixrow{display:flex;align-items:center;gap:14px;background:#fff;border-radius:14px;padding:12px 14px;margin-top:10px}
+.fixrow div{flex:1}.fixrow b{display:block;line-height:18px}.fixrow span{font-size:12px;color:var(--ink2)}
+/* charts */
+.chart-line{width:100%}
+.donut{width:120px;height:120px;border-radius:50%;background:conic-gradient(var(--purple) 0 62%,var(--lilac) 0);display:grid;place-items:center;position:relative;flex:none}
+.donut::before{content:"";position:absolute;inset:14px;border-radius:50%;background:#fff}
+.donut b{position:relative;font-size:22px;font-weight:800}
+.mini-bars{display:flex;align-items:flex-end;gap:8px;height:120px}
+.mini-bars div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;height:100%;font-size:11px;color:var(--ink2);font-weight:600}
+.mini-bars i{display:block;width:100%;max-width:30px;background:var(--purple);border-radius:8px 8px 0 0}
+.mini-bars i.l{background:var(--purple300)}
+.cap{font-size:12px;color:var(--ink2)}
+.sig{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--ink2);background:var(--purple50);border-radius:12px;padding:10px 14px;margin-top:14px}
+/* support, settings, thread */
+.cat{display:flex;flex-direction:column;gap:10px;padding:20px;border:1px solid var(--line);border-radius:20px;background:#fff;transition:.15s}
+.cat:hover{border-color:var(--purple300);box-shadow:var(--shadow);background:var(--purple50)}
+.cat .ic{width:44px;height:44px;border-radius:50%;background:var(--lilac);color:var(--purple);display:grid;place-items:center}
+.cat b{font-size:15px}.cat span{font-size:13px;color:var(--ink2)}
+.bubble{max-width:80%;padding:12px 16px;border-radius:18px;font-size:13px;line-height:20px}
+.bubble.me{background:var(--purple);color:#fff;border-end-end-radius:6px;align-self:flex-end}
+.bubble.them{background:var(--slate100);border-end-start-radius:6px;align-self:flex-start}
+.thread{display:flex;flex-direction:column;gap:10px}
+.nmx{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;align-items:center;padding:14px 0;border-top:1px solid var(--line);font-size:13px;font-weight:600}
+.nmx:first-of-type{border-top:0}.nmx small{display:block;color:var(--ink2);font-weight:500;font-size:12px}
+.nmx .c{display:flex;justify-content:center}
+.ptoggle{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 16px;border:1px solid var(--line);border-radius:16px;background:#fff}
+.ptoggle b{display:block;line-height:20px}.ptoggle span{font-size:12px;color:var(--ink2)}
+.noaccess{display:none}
+body[data-role=mkt] .noaccess{display:flex}
+/* reel preview */
+.reel{height:100%;background:radial-gradient(circle at 30% 30%,#4a3a2a 0,transparent 45%),radial-gradient(circle at 70% 60%,#7a3b1e 0,transparent 50%),#14110d;position:relative;color:#fff;display:flex;flex-direction:column;justify-content:flex-end;padding:16px;gap:8px}
+.reel .top{position:absolute;top:30px;inset-inline:14px;display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700}
+.reel .prog{position:absolute;top:22px;inset-inline:14px;height:3px;border-radius:2px;background:rgba(255,255,255,.3)}.reel .prog i{display:block;height:100%;width:30%;background:#fff;border-radius:2px}
+.reel .side{position:absolute;inset-inline-end:12px;bottom:130px;display:flex;flex-direction:column;gap:16px;align-items:center;font-size:10px}
+.reel .side span{display:flex;flex-direction:column;align-items:center;gap:2px}
+.reel .who{display:flex;gap:8px;align-items:center;font-weight:800;font-size:13px}
+.reel .who i{width:30px;height:30px;border-radius:50%;background:#fff;color:var(--navy);display:grid;place-items:center;font-style:normal;font-size:11px;font-weight:800}
+.reel .wk{background:rgba(255,255,255,.14);border-radius:12px;padding:8px 10px;font-size:11px;display:flex;gap:6px;align-items:center}
+.reel .row{display:flex;gap:8px;align-items:center}
+.reel .vd{background:var(--purple);border-radius:99px;padding:9px 16px;font-size:12px;font-weight:800}
+.reel .rw{background:rgba(255,255,255,.16);border-radius:99px;padding:8px 12px;font-size:11px;font-weight:700}
+.dsplit{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.sw{display:inline-flex;gap:6px;align-items:center}
+.kpi-s{padding:18px 20px}
+.rolebadge{display:inline-flex;gap:6px;align-items:center;background:var(--lilac);color:var(--purple);border-radius:99px;font-size:11px;font-weight:700;padding:2px 10px}
+.lock-note{display:flex;gap:10px;align-items:center;color:var(--ink2);font-size:12px}
+@media (max-width:1280px){.ob-body{grid-template-columns:240px minmax(0,1fr) 280px}}
+
+/* review bar wraps to several lines in batch 02: keep it static, pin shell to the viewport top */
+.designbar{position:relative}
+.sidebar{top:0;height:100vh}
+.topbar{top:0}
+.shell{min-height:calc(100vh - 110px)}
+.rail{top:96px}
+.auth{min-height:calc(100vh - 110px)}
+</style>
+</head>
+<body data-role="owner">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+<symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol>
+<symbol id="i-layers" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></symbol>
+<symbol id="i-tag" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></symbol>
+<symbol id="i-ticket" viewBox="0 0 24 24"><path d="M3 9a2 2 0 0 0 0 6v3a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-3a2 2 0 0 0 0-6V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1z"/><line x1="14" y1="5" x2="14" y2="19" stroke-dasharray="2 3"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></symbol>
+<symbol id="i-check-sq" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></symbol>
+<symbol id="i-bars" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></symbol>
+<symbol id="i-card" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></symbol>
+<symbol id="i-store" viewBox="0 0 24 24"><path d="M3 9l1.5-5h15L21 9"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/><path d="M5 12v8h14v-8"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+<symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+<symbol id="i-sliders" viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+<symbol id="i-check-c" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></symbol>
+<symbol id="i-down" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></symbol>
+<symbol id="i-right" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></symbol>
+<symbol id="i-left" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+<symbol id="i-flame" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></symbol>
+<symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></symbol>
+<symbol id="i-stop" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/></symbol>
+<symbol id="i-edit" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></symbol>
+<symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="i-more" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></symbol>
+<symbol id="i-arrow" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></symbol>
+<symbol id="i-filter" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></symbol>
+<symbol id="i-slash" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></symbol>
+<symbol id="i-xc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></symbol>
+<symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol>
+<symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol>
+<symbol id="i-gift" viewBox="0 0 24 24"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></symbol>
+<symbol id="i-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+<symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+<symbol id="i-smart" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></symbol></defs>
+</svg>
+<div class="designbar" id="designbar">
+  <b>Merchant Portal &middot; Hi-fi batch 02 (design mockups, not production code)</b>
+  <button data-go="m01" class="on">M01 Sign in</button><button data-go="m02">M02 Onboarding</button><button data-go="m03">M03 Status</button><button data-go="m06">M06 Live Deal</button><button data-go="m08">M08 Voucher</button><button data-go="m09">M09 Watch &amp; Earn</button><button data-go="m10">M10 Live builder</button><button data-go="m12">M12 Voucher builder</button><button data-go="m13">M13 W&amp;E builder</button><button data-go="m14">M14 Redemptions</button><button data-go="m15">M15 Insights</button><button data-go="m16">M16 Business</button><button data-go="m17">M17 Team</button><button data-go="m18">M18 Finance</button><button data-go="m19">M19 Statement</button><button data-go="m20">M20 Support</button><button data-go="m21">M21 Settings</button>
+  <span style="margin-inline-start:auto;display:flex;gap:8px;align-items:center"><span style="color:#C9C3FF">View as:</span><button data-role="owner" class="on">Owner</button><button data-role="mkt">Marketing (no finance)</button><button id="rtlbtn">RTL layout</button><button data-go="m04">Batch 01 (M04, M05, M07, M11) &rarr;</button></span>
+</div>
+<!-- ================= M01 SIGN IN / REGISTER ================= -->
+<section class="screen" id="m01">
+  <div class="auth">
+    <div class="auth-l">
+      <div>
+        <span class="wordmark" style="font-size:30px"><span class="d1">Deal</span><span class="d2">Dash</span></span><span class="muted" style="margin-inline-start:8px;font-weight:600">for Business</span>
+        <h1 style="font-size:44px;line-height:52px;font-weight:800;letter-spacing:-.02em;margin-top:56px;max-width:460px">Reach nearby customers. Fill quiet moments.</h1>
+        <p style="font-size:16px;line-height:26px;color:var(--ink2);margin-top:14px;max-width:440px">Launch deals, vouchers and video campaigns in minutes. Customers around you are already looking.</p>
+        <div class="tiles"><div class="ph1"></div><div class="ph3"></div><div class="ph2"></div></div>
+      </div>
+      <div class="cl" style="margin-top:28px;max-width:440px">
+        <div><i class="ok"><svg class="i xs"><use href="#i-check"/></svg></i>Hot Deals fill empty tables and slow hours</div>
+        <div><i class="ok"><svg class="i xs"><use href="#i-check"/></svg></i>Vouchers bring revenue forward</div>
+        <div><i class="ok"><svg class="i xs"><use href="#i-check"/></svg></i>Watch &amp; Earn puts your story in front of nearby customers</div>
+      </div>
+    </div>
+    <div class="auth-r">
+      <div class="auth-card">
+        <div class="seg" data-tabs="auth" style="margin-bottom:24px"><button class="on" data-pane="signin">Sign in</button><button data-pane="register">Register</button></div>
+        <div class="pane show" data-g="auth" data-p="signin">
+          <h2 style="font-size:28px;line-height:36px;font-weight:800">Welcome back</h2><p class="muted" style="margin:4px 0 22px">Sign in to manage your DealDash campaigns.</p>
+          <div class="stack" style="gap:16px">
+            <div class="field"><div class="label">Email</div><input class="input" value="akif@nobu-riyadh.com"></div>
+            <div class="field"><div class="label">Password <a class="link" style="margin-inline-start:auto">Forgot password?</a></div><input class="input" type="password" value="password123"></div>
+            <button class="btn primary lg" style="width:100%" data-go="m04">Sign in</button>
+          </div>
+        </div>
+        <div class="pane" data-g="auth" data-p="register">
+          <h2 style="font-size:28px;line-height:36px;font-weight:800">Create your business account</h2><p class="muted" style="margin:4px 0 22px">It takes about 10 minutes. You can save and finish later.</p>
+          <div class="stack" style="gap:16px">
+            <div class="field"><div class="label">Business name</div><div class="bi"><div class="cell"><span class="tag">EN</span><input class="input" value="Nobu Riyadh"></div><div class="cell"><span class="tag">AR</span><input class="input ar" value="نوبو الرياض"></div></div></div>
+            <div class="field"><div class="label">Work email</div><input class="input" value="akif@nobu-riyadh.com"></div>
+            <div class="field"><div class="label">Password</div><input class="input" type="password" value="password123"><div class="help">At least 10 characters with a number.</div></div>
+            <button class="btn primary lg" style="width:100%" data-set="auth:verify">Create account</button>
+            <p class="help" style="text-align:center">By continuing you agree to the DealDash Business Terms and Privacy Policy.</p>
+          </div>
+        </div>
+        <div class="pane" data-g="auth" data-p="verify">
+          <div class="ric" style="width:56px;height:56px;background:var(--lilac);color:var(--purple);margin-bottom:16px"><svg class="i"><use href="#i-check-sq"/></svg></div>
+          <h2 style="font-size:28px;line-height:36px;font-weight:800">Check your email</h2><p class="muted" style="margin:4px 0 22px">We sent a 6-digit code to <b style="color:var(--navy)">akif@nobu-riyadh.com</b>.</p>
+          <div class="otp"><i>4</i><i>8</i><i>2</i><i class="f">1</i><i></i><i></i></div>
+          <div class="help" style="margin:10px 0 20px">Resend code in <b class="num">00:42</b></div>
+          <button class="btn primary lg" style="width:100%" data-go="m02">Verify and continue</button>
+          <div class="banner danger" style="margin-top:16px"><svg class="i"><use href="#i-xc"/></svg><div class="bx"><b>Error state example</b>That code has expired. We sent you a new one.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= M02 ONBOARDING WIZARD ================= -->
+<section class="screen" id="m02">
+  <div class="minibar"><span class="wordmark"><span class="d1">Deal</span><span class="d2">Dash</span></span><span style="display:flex;gap:12px;align-items:center"><span class="muted small">Saved just now</span><button class="btn outline sm">Save &amp; exit</button><div class="lang"><span class="on">EN</span><span>عربي</span></div></span></div>
+  <div class="ob-body" id="ob">
+    <aside class="rail card" style="top:96px">
+      <div class="rail-top"><div class="ring" id="obring"><span class="num" id="obringtxt">2/8</span></div><div><b>Set up your shop window</b><div class="muted small" id="obsub">Step 2 of 8 · Documents</div></div></div>
+      <ol class="obsteps" id="obsteps" style="list-style:none;margin:0;padding:0">
+        <li data-s="1"><i>1</i><div><b>Business details</b><span>Who you are</span></div></li>
+        <li data-s="2"><i>2</i><div><b>Documents</b><span>One-time check</span></div></li>
+        <li data-s="3"><i>3</i><div><b>Representative</b><span>Who signs</span></div></li>
+        <li data-s="4"><i>4</i><div><b>Brand &amp; category</b><span>How you look</span></div></li>
+        <li data-s="5"><i>5</i><div><b>Branches &amp; hours</b><span>Where and when</span></div></li>
+        <li data-s="6"><i>6</i><div><b>Payouts</b><span>Where we pay you</span></div></li>
+        <li data-s="7"><i>7</i><div><b>Agreement</b><span>Read and sign</span></div></li>
+        <li data-s="8"><i>8</i><div><b>Review &amp; submit</b><span>Last look</span></div></li>
+      </ol>
+      <div class="muted small" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)">You can save and finish later. Nothing is lost.</div>
+    </aside>
+
+    <div>
+      <div class="pane" data-g="ob" data-p="1"><div class="step-h"><div class="muted small">Step 1 of 8</div><h2>Tell us about your business</h2><p>This is how your business appears to customers and in our records.</p></div>
+        <div class="card stack" style="gap:18px">
+          <div class="field"><div class="label">Legal business name *</div><div class="bi"><div class="cell"><span class="tag">EN</span><input class="input" value="Nobu Riyadh Trading Co."></div><div class="cell"><span class="tag">AR</span><input class="input ar" value="شركة نوبو الرياض التجارية"></div></div></div>
+          <div class="field"><div class="label">Trade name shown to customers *</div><div class="bi"><div class="cell"><span class="tag">EN</span><input class="input" value="Nobu Riyadh"></div><div class="cell"><span class="tag">AR</span><input class="input ar" value="نوبو الرياض"></div></div></div>
+          <div class="dsplit"><div class="field"><div class="label">Commercial Registration number *</div><input class="input" value="1010 123 456"></div><div class="field"><div class="label">Tax registration number</div><input class="input" placeholder="If you have one"></div></div>
+          <div class="field"><div class="label">Registered address *</div><input class="input" value="Olaya Street, Riyadh"></div></div></div>
+
+      <div class="pane show" data-g="ob" data-p="2"><div class="step-h"><div class="muted small">Step 2 of 8</div><h2>Upload your documents</h2><p>We check your business details once, so customers can trust every DealDash merchant.</p></div>
+        <div class="stack" style="gap:20px">
+          <div class="card stack" style="gap:14px"><div class="card-t">Commercial Registration / trade licence <span class="chip st-expired" style="height:22px;font-size:11px">Required</span></div>
+            <div class="frow"><span class="fi"><svg class="i sm"><use href="#i-check-sq"/></svg></span><div><b>cr_nobu_riyadh.pdf</b><span>1.2 MB · uploaded</span></div><span class="chip st-live" style="height:24px"><svg class="i"><use href="#i-check"/></svg>Uploaded</span><button class="icon-btn" style="width:32px;height:32px"><svg class="i sm"><use href="#i-x"/></svg></button></div>
+            <div class="field" style="max-width:260px"><div class="label">Expiry date</div><input class="input" value="12 / 2027"></div></div>
+          <div class="card stack" style="gap:14px"><div class="card-t">Other documents we may need</div>
+            <div class="drop"><svg class="i lg" style="color:var(--purple)"><use href="#i-plus"/></svg><b>Drag a file here, or Browse</b><span class="small">PDF, JPG or PNG, up to 10 MB</span></div>
+            <div class="frow"><span class="fi" style="background:var(--w-bg);color:var(--w-tx)"><svg class="i sm"><use href="#i-alert"/></svg></span><div><b>municipality_licence.jpg</b><span>Could you upload a clearer copy? Some text is hard to read.</span></div><span class="chip st-changes" style="height:24px">Needs a clearer copy</span></div></div>
+          <div class="banner info"><svg class="i"><use href="#i-info"/></svg><div class="bx"><b>Not sure what to upload?</b>Exact document requirements are confirmed during review. If anything is missing we will tell you exactly what to add.</div></div>
+        </div></div>
+
+      <div class="pane" data-g="ob" data-p="3"><div class="step-h"><div class="muted small">Step 3 of 8</div><h2>Who signs for the business?</h2><p>The authorised representative accepts the DealDash agreement.</p></div>
+        <div class="card stack" style="gap:18px"><div class="dsplit"><div class="field"><div class="label">Full name *</div><input class="input" value="Akif Khan"></div><div class="field"><div class="label">Role *</div><input class="input" value="Owner"></div></div>
+          <div class="dsplit"><div class="field"><div class="label">National ID / Iqama *</div><input class="input" value="1•••••••89"></div><div class="field"><div class="label">Mobile *</div><input class="input" value="+966 55 000 0000"></div></div>
+          <div class="field"><div class="label">Email *</div><input class="input" value="akif@nobu-riyadh.com"></div>
+          <div style="display:flex;gap:12px;align-items:center"><span class="tgl on"></span><b>This person will sign the agreement</b></div></div></div>
+
+      <div class="pane" data-g="ob" data-p="4"><div class="step-h"><div class="muted small">Step 4 of 8</div><h2>Show customers who you are</h2><p>Your logo, cover photo and a short description appear on your merchant page.</p></div>
+        <div class="stack" style="gap:20px"><div class="card stack" style="gap:16px"><div class="card-t">Category</div><div class="chips"><span class="fc on">Restaurants<svg class="i xs"><use href="#i-check"/></svg></span><span class="fc">Cafés</span><span class="fc">Fashion</span><span class="fc">Beauty</span><span class="fc">Groceries</span><span class="fc">Services</span></div></div>
+          <div class="card stack" style="gap:16px"><div class="card-t">Photos</div><div class="gal"><div class="gt ph1"><span class="cover">Cover</span></div><div class="gt ph5"></div><div class="gt add"><svg class="i"><use href="#i-plus"/></svg>Logo</div><div class="gt add"><svg class="i"><use href="#i-plus"/></svg>Add photo</div></div>
+            <div class="bi"><div class="cell"><span class="tag">EN</span><textarea class="input" rows="3">Contemporary Japanese dining with a sushi counter and tasting menus.</textarea></div><div class="cell"><span class="tag">AR</span><textarea class="input ar" rows="3">مطعم ياباني عصري مع كاونتر سوشي وقوائم تذوق.</textarea></div></div></div></div></div>
+
+      <div class="pane" data-g="ob" data-p="5"><div class="step-h"><div class="muted small">Step 5 of 8</div><h2>Add your branches</h2><p>Customers use this to find you and to see when you are open.</p></div>
+        <div class="stack" style="gap:16px">
+          <div class="card stack" style="gap:14px"><div style="display:flex;justify-content:space-between;align-items:center"><div class="card-t">Olaya <span class="chip st-live" style="height:22px">Open now</span></div><a class="link">Remove</a></div>
+            <div class="dsplit"><div class="field"><div class="label">Address *</div><input class="input" value="Olaya St, Riyadh"></div><div class="field"><div class="label">Phone</div><input class="input" value="+966 11 000 0000"></div></div>
+            <div class="ph4" style="height:130px;border-radius:16px;position:relative"><span class="pill-soft" style="position:absolute;inset-inline-start:12px;top:12px;background:#fff">Drag the pin to your door</span></div>
+            <div class="card-t" style="margin-top:6px">Opening hours</div>
+            <div><div class="hrs"><b>Sunday</b><span class="tgl on"></span><span class="tm">12:00 PM</span><span class="tm">12:00 AM</span></div><div class="hrs"><b>Monday</b><span class="tgl on"></span><span class="tm">12:00 PM</span><span class="tm">12:00 AM</span></div><div class="hrs"><b>Friday</b><span class="tgl on"></span><span class="tm">1:00 PM</span><span class="tm">12:00 AM</span></div></div>
+            <a class="link">Copy these hours to all days</a></div>
+          <button class="btn tonal" style="align-self:flex-start"><svg class="i sm"><use href="#i-plus"/></svg>Add another branch</button></div></div>
+
+      <div class="pane" data-g="ob" data-p="6"><div class="step-h"><div class="muted small">Step 6 of 8</div><h2>Where should we pay you?</h2><p>Payouts go to this account. The account name must match your business.</p></div>
+        <div class="card stack" style="gap:18px"><div class="field"><div class="label">IBAN *</div><input class="input" value="SA03 8000 0000 6080 1016 7519" style="font-variant-numeric:tabular-nums;letter-spacing:.04em"><div class="help">Bank detected: <b>Al Rajhi Bank</b></div></div>
+          <div class="field"><div class="label">Account holder name *</div><input class="input" value="Nobu Riyadh Trading Co."></div>
+          <div class="banner info"><svg class="i"><use href="#i-info"/></svg><div class="bx"><b>Why we ask</b>We pay merchants by bank transfer. If you change these details later we will re-check them, and payouts pause until they are verified.</div></div></div></div>
+
+      <div class="pane" data-g="ob" data-p="7"><div class="step-h"><div class="muted small">Step 7 of 8</div><h2>Read and sign the agreement</h2><p>This is the DealDash Merchant Agreement, version 1.0.</p></div>
+        <div class="card stack" style="gap:16px"><div class="seg sm" style="align-self:flex-start"><button class="on">English</button><button>العربية</button></div>
+          <div class="agree"><b style="color:var(--navy)">1. Parties</b><br>This agreement is between DealDash and the merchant named in your application...<br><br><b style="color:var(--navy)">2. Campaigns and customer commitments</b><br>You agree to honour the offers you publish, including vouchers sold and reservations made...<br><br><b style="color:var(--navy)">3. Payments and settlement</b><br>Amounts become payable after redemption in line with the settlement terms...</div>
+          <div class="field"><div class="label">Signed by (authorised signatory)</div><input class="input" value="Akif Khan" style="font-weight:700"></div>
+          <label class="ck"><i class="on"><svg class="i xs"><use href="#i-check"/></svg></i>I accept the Merchant Agreement on behalf of Nobu Riyadh Trading Co.</label>
+          <div style="display:flex;gap:10px"><button class="btn tonal sm"><svg class="i sm"><use href="#i-copy"/></svg>Download PDF</button></div></div></div>
+
+      <div class="pane" data-g="ob" data-p="8"><div class="step-h"><div class="muted small">Step 8 of 8</div><h2>Review and submit</h2><p>Check everything looks right. We usually review applications within a couple of working days.</p></div>
+        <div class="stack" style="gap:14px"><div class="banner ok"><svg class="i"><use href="#i-check-c"/></svg><div class="bx"><b>You have everything we need</b>7 of 7 sections complete.</div></div>
+          <div class="card sumcard"><div class="sr"><span>Business</span><b>Nobu Riyadh Trading Co. · CR 1010 123 456</b><a class="link">Edit</a></div><div class="sr"><span>Documents</span><b>2 uploaded (1 needs a clearer copy)</b><a class="link">Edit</a></div><div class="sr"><span>Representative</span><b>Akif Khan · Owner</b><a class="link">Edit</a></div><div class="sr"><span>Brand</span><b>Restaurants · logo and 3 photos</b><a class="link">Edit</a></div><div class="sr"><span>Branches</span><b>Olaya, Riyadh Park (2)</b><a class="link">Edit</a></div><div class="sr"><span>Payouts</span><b>Al Rajhi Bank · SA03 •••• 7519</b><a class="link">Edit</a></div><div class="sr"><span>Agreement</span><b>v1.0 · signed by Akif Khan</b><a class="link">Edit</a></div></div>
+          <label class="ck"><i class="on"><svg class="i xs"><use href="#i-check"/></svg></i>I confirm the information is accurate to the best of my knowledge.</label></div></div>
+    </div>
+
+    <aside class="stack" style="gap:16px">
+      <div class="why"><b><svg class="i sm" style="color:var(--purple)"><use href="#i-info"/></svg>Why we ask</b><p id="obwhy">We check your business details once, so customers can trust every DealDash merchant. It also lets us pay you.</p></div>
+      <div class="card" style="padding:20px"><div class="card-t" style="margin-bottom:12px">What you will need</div><div class="cl"><div><i class="ok"><svg class="i xs"><use href="#i-check"/></svg></i>Commercial Registration</div><div><i class="ok"><svg class="i xs"><use href="#i-check"/></svg></i>Your bank IBAN</div><div><i class="no"></i>A photo of your venue</div></div></div>
+      <div class="card" style="padding:20px"><div class="card-t" style="margin-bottom:6px">Need help?</div><p class="muted" style="font-size:13px">Chat with our team, or call 800 000 0000.</p><button class="btn tonal sm" style="margin-top:12px">Contact support</button></div>
+    </aside>
+  </div>
+  <div class="b-foot"><button class="btn outline" id="obback"><svg class="i sm mirror"><use href="#i-left"/></svg>Back</button><span class="muted small" style="margin-inline-start:8px">You can save and finish later.</span><span style="margin-inline-start:auto;display:flex;gap:10px"><button class="btn text">Save draft</button><button class="btn primary lg" id="obnext">Save &amp; continue<svg class="i sm mirror"><use href="#i-arrow"/></svg></button></span></div>
+</section>
+
+<!-- ================= M03 APPLICATION STATUS ================= -->
+<section class="screen" id="m03">
+  <div class="minibar"><span class="wordmark"><span class="d1">Deal</span><span class="d2">Dash</span></span><span style="display:flex;gap:12px;align-items:center"><div class="lang"><span class="on">EN</span><span>عربي</span></div><div class="avatar">AK</div></span></div>
+  <div class="page" style="max-width:920px">
+    <div style="display:flex;justify-content:center;margin-bottom:20px"><div class="seg sm" data-tabs="app"><button class="on" data-pane="rev">In review</button><button data-pane="chg">Needs changes</button><button data-pane="rej">Rejected</button><button data-pane="appr">Approved</button><button data-pane="susp">Suspended</button></div></div>
+    <div class="banner susp" id="suspbanner" style="display:none;margin-bottom:16px"><svg class="i"><use href="#i-lock"/></svg><div class="bx"><b>Your account is suspended</b>New campaigns, sales and reservations are paused. Existing customers are being looked after.</div></div>
+    <div class="stat-hero">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px"><div><div class="muted small">Application DD-M-1042 · Submitted 12 Oct</div><h1 style="font-size:28px;line-height:36px;font-weight:800;margin-top:2px" id="apptitle">We are reviewing your application</h1></div><span id="appchip"></span></div>
+      <div class="tline5" id="tl5"><div class="d"><i><svg class="i xs"><use href="#i-check"/></svg></i>Submitted</div><div class="c"><i><svg class="i xs"><use href="#i-clock"/></svg></i>In review</div><div><i>3</i>Decision</div><div><i>4</i>Agreement</div><div><i>5</i>Activated</div></div>
+    </div>
+    <div style="margin-top:20px">
+      <div class="pane show" data-g="app" data-p="rev"><div class="vpanel vp-info"><div class="vi"><svg class="i"><use href="#i-clock"/></svg></div><div><h3>We are checking your documents</h3><p class="muted">This usually takes a couple of working days. We will email you the moment there is news. You do not need to do anything.</p></div></div>
+        <div class="vpanel vp-info" style="margin-top:12px;background:#F6F3FF"><div class="vi"><svg class="i"><use href="#i-info"/></svg></div><div><h3>A few extra checks are in progress</h3><p class="muted">This is routine for some applications and does not mean anything is wrong. (Shown only when enhanced review applies.)</p></div></div></div>
+      <div class="pane" data-g="app" data-p="chg"><div class="vpanel vp-warn"><div class="vi"><svg class="i"><use href="#i-edit"/></svg></div><div style="flex:1"><h3>A few things need your attention</h3><p class="muted">Please update the items below and send your application again.</p>
+        <div class="fixrow"><div><b>Documents · Municipality licence</b><span>The copy is hard to read. Please upload a clearer photo or scan.</span></div><button class="btn tonal sm">Fix</button></div>
+        <div class="fixrow"><div><b>Payouts · Account holder name</b><span>The name should match your registered business name.</span></div><button class="btn tonal sm">Fix</button></div>
+        <div style="margin-top:14px"><button class="btn primary">Fix &amp; resubmit</button></div></div></div></div>
+      <div class="pane" data-g="app" data-p="rej"><div class="vpanel vp-bad"><div class="vi"><svg class="i"><use href="#i-xc"/></svg></div><div><h3>We could not approve this application</h3><p class="muted">The business registration could not be verified. You may apply again with updated documents.</p><div style="display:flex;gap:10px;margin-top:12px"><button class="btn tonal sm">Appeal this decision</button><button class="btn text sm">Contact support</button></div></div></div></div>
+      <div class="pane" data-g="app" data-p="appr"><div class="vpanel vp-ok"><div class="vi"><svg class="i"><use href="#i-check-c"/></svg></div><div style="flex:1"><h3>You are approved</h3><p class="muted">Welcome to DealDash. Sign your agreement and your shop window goes live.</p><div style="display:flex;gap:10px;margin-top:12px"><button class="btn primary">Sign agreement</button><button class="btn tonal" data-go="m04">Go to dashboard</button></div></div></div>
+        <div class="card" style="margin-top:12px"><div class="card-t" style="margin-bottom:12px">Get started</div><div class="cl"><div><i class="ok"><svg class="i xs"><use href="#i-check"/></svg></i>Application approved</div><div><i class="no"></i>Add your team and branch staff</div><div><i class="no"></i>Create your first campaign</div></div></div></div>
+      <div class="pane" data-g="app" data-p="susp"><div class="vpanel vp-bad"><div class="vi"><svg class="i"><use href="#i-lock"/></svg></div><div><h3>Your account is suspended</h3><p class="muted"><b style="color:var(--navy)">Paused:</b> new campaigns, new voucher sales and new reservations. <b style="color:var(--navy)">Continuing:</b> customers who already bought or reserved are being looked after by DealDash. Contact us to resolve this.</p><div style="display:flex;gap:10px;margin-top:12px"><button class="btn primary sm">Contact support</button><button class="btn tonal sm">Appeal</button></div></div></div></div>
+    </div>
+    <div class="card" style="margin-top:20px"><div class="card-t" style="margin-bottom:10px">Your application</div><div class="kv"><span>Business</span><b>Nobu Riyadh Trading Co.</b></div><div class="kv"><span>Branches</span><b>2</b></div><div class="kv"><span>Contact</span><b>akif@nobu-riyadh.com</b></div></div>
+  </div>
+</section>
+
+<!-- ================= M06 LIVE DEAL DETAIL ================= -->
+<section class="screen" id="m06" data-nav="campaigns"><div class="shell"><aside class="sidebar"></aside><div class="main"><header class="topbar"></header><div class="page">
+  <div class="crumb"><a class="link" data-go="m05" style="font-weight:600;color:var(--ink2)">Campaigns</a><svg class="i xs mirror"><use href="#i-right"/></svg><span>Live Deals</span><svg class="i xs mirror"><use href="#i-right"/></svg><b>30% off tasting menu</b></div>
+  <div class="head-card"><div style="display:flex;gap:18px;align-items:center"><div class="thumb ph1" style="width:72px;height:72px;border-radius:18px"></div><div><div style="display:flex;gap:10px;align-items:center;margin-bottom:4px"><span class="chip st-live"><span class="pulse"></span>Live</span><span class="type-chip"><svg class="i tpurple"><use href="#i-tag"/></svg>Live Deal</span></div><div class="t">30% off tasting menu</div><div class="meta"><span><svg class="i sm"><use href="#i-pin"/></svg>All branches (3)</span><span><svg class="i sm"><use href="#i-cal"/></svg>4 Oct – 11 Oct · ends in 4 days</span></div></div></div>
+    <div style="display:flex;gap:10px"><button class="btn primary"><svg class="i sm"><use href="#i-edit"/></svg>Edit</button><button class="btn outline"><svg class="i sm"><use href="#i-pause"/></svg>Pause</button><button class="icon-btn" style="background:var(--lilac);color:var(--purple)"><svg class="i"><use href="#i-more"/></svg></button></div></div>
+  <div class="banner info" style="margin:16px 0 0"><svg class="i"><use href="#i-info"/></svg><div class="bx"><b>Editing a live deal</b>Small edits (photos, description, extending dates) publish instantly. Changing the discount, eligibility or terms is reviewed first.</div></div>
+  <div style="margin:20px 0"><div class="seg" data-tabs="m06"><button class="on" data-pane="ov">Overview</button><button data-pane="pf">Performance</button><button data-pane="ac">Activity</button></div></div>
+  <div class="pane show" data-g="m06" data-p="ov">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
+      <div class="card"><div class="stat"><span class="l">Impressions</span><span class="v num" style="font-size:28px">12,400</span><span class="d"><span class="delta num">↑ 6%</span>this week</span></div></div>
+      <div class="card"><div class="stat"><span class="l">Detail views</span><span class="v num" style="font-size:28px">3,980</span><span class="d"><span class="delta neu num">32%</span>of impressions</span></div></div>
+      <div class="card"><div class="stat"><span class="l">Saves</span><span class="v num" style="font-size:28px">412</span><span class="d"><span class="delta neu num">10%</span>of detail views</span></div></div>
+      <div class="card"><div class="stat"><span class="l">Directions clicks</span><span class="v num" style="font-size:28px">322</span><span class="d"><span class="delta neu num">8%</span>of detail views</span></div></div>
+    </div>
+    <div class="grid">
+      <div class="c8 stack" style="gap:24px"><div class="card"><div class="card-h"><div class="card-t">Deal summary</div><a class="link">Edit allowed fields</a></div>
+        <div class="kv"><span>Offer</span><b>30% off the tasting menu for two</b></div><div class="kv"><span>Branches</span><b>Olaya · Riyadh Park · KAFD</b></div><div class="kv"><span>Dates</span><b>4 Oct – 11 Oct</b></div><div class="kv"><span>Eligibility</span><b>Everyone</b></div><div class="kv"><span>Customer journey</span><b>Discover → View → Visit (no code, no reservation)</b></div><div class="kv"><span>Controlled redemption</span><b><span class="chip st-draft" style="height:22px">Off</span></b></div><div class="kv"><span>Terms</span><b>Full-price items · Dine-in only</b></div></div></div>
+      <div class="c4 stack" style="gap:24px"><div class="card" style="background:var(--purple50)"><div class="card-t" style="margin-bottom:6px"><svg class="i sm" style="color:var(--purple)"><use href="#i-play"/></svg>Reach more customers</div><p class="muted" style="font-size:13px">Promote this deal with a Watch &amp; Earn video campaign. It has its own budget and results.</p><button class="btn tonal sm" style="margin-top:12px">Promote with Watch &amp; Earn</button></div>
+        <div class="card"><div class="card-t" style="margin-bottom:10px">Customers see</div><div style="border:1px solid var(--line);border-radius:18px;overflow:hidden"><div class="ph1" style="height:90px;position:relative"><span class="chip st-live" style="position:absolute;inset-inline-start:10px;top:10px;background:#E93A52;color:#fff;border:0;height:22px;font-size:11px">LIVE</span></div><div style="padding:12px"><div class="muted small">Japanese · Olaya</div><b>Nobu Riyadh</b><div style="color:var(--purple);font-weight:800;font-size:20px;line-height:26px">30% off</div><div class="muted small">Just see and go. No code needed.</div></div></div></div></div>
+    </div></div>
+  <div class="pane" data-g="m06" data-p="pf"><div class="grid"><div class="c8"><div class="card"><div class="card-h"><div class="card-t">From discovery to directions</div><span class="muted small">Last 7 days</span></div>
+      <div class="funnel"><div><span>Impressions</span><div class="fb" style="width:100%"><b class="num">12,400</b></div></div><div><span>Detail views</span><div class="fb" style="width:64%;background:var(--purple)"><b class="num">3,980</b></div><em class="num">32% of impressions</em></div><div><span>Saves</span><div class="fb" style="width:20%;background:var(--purple2)"><b class="num">412</b></div><em class="num">10% of detail views</em></div><div><span>Directions clicks</span><div class="fb" style="width:16%;background:var(--purple300);color:var(--navy)"><b class="num">322</b></div><em class="num">8% of detail views</em></div><div><span>Merchant page visits</span><div class="fb" style="width:14%;background:var(--slate100);color:var(--navy)"><b class="num">287</b></div><em class="num">7% of detail views</em></div></div>
+      <div class="sig"><svg class="i sm"><use href="#i-info"/></svg>Discovery signals. They do not prove visits or sales, so DealDash does not show revenue for Live Deals.</div></div></div>
+    <div class="c4"><div class="card"><div class="card-t" style="margin-bottom:10px">By branch</div><div class="kv"><span>Olaya</span><b class="num">142 directions</b></div><div class="kv"><span>Riyadh Park</span><b class="num">118 directions</b></div><div class="kv"><span>KAFD</span><b class="num">62 directions</b></div></div></div></div></div>
+  <div class="pane" data-g="m06" data-p="ac"><div class="card" style="max-width:760px"><div class="card-h"><div class="card-t">Activity</div></div><div class="tl">
+    <div><i style="background:var(--mint)"></i><b>Photos updated (minor edit, published instantly)</b><span>Sara · 6 Oct, 15:20 · logged</span></div><div><i style="background:var(--mint)"></i><b>Went live</b><span>System · 4 Oct, 12:00</span></div><div><i style="background:var(--purple)"></i><b>Approved</b><span>DealDash · 4 Oct, 11:41</span></div><div><i style="background:var(--navy)"></i><b>Submitted for review</b><span>Akif · 4 Oct, 11:20</span></div></div></div></div>
+</div></div></div></section>
+
+<!-- ================= M08 VOUCHER DETAIL ================= -->
+<section class="screen" id="m08" data-nav="campaigns"><div class="shell"><aside class="sidebar"></aside><div class="main"><header class="topbar"></header><div class="page">
+  <div class="crumb"><a class="link" data-go="m05" style="font-weight:600;color:var(--ink2)">Campaigns</a><svg class="i xs mirror"><use href="#i-right"/></svg><span>Vouchers</span><svg class="i xs mirror"><use href="#i-right"/></svg><b>Pay 80, get 100</b></div>
+  <div class="head-card"><div style="display:flex;gap:18px;align-items:center"><div class="thumb ph4" style="width:72px;height:72px;border-radius:18px"></div><div><div style="display:flex;gap:10px;align-items:center;margin-bottom:4px"><span class="chip st-live"><span class="pulse"></span>On sale</span><span class="type-chip"><svg class="i tpurple"><use href="#i-ticket"/></svg>Voucher</span></div><div class="t">Pay SAR 80, get SAR 100</div><div class="meta"><span><svg class="i sm"><use href="#i-pin"/></svg>All branches (3)</span><span><svg class="i sm"><use href="#i-cal"/></svg>Sale ends 24 Oct · valid 90 days</span></div></div></div>
+    <div style="display:flex;gap:10px"><button class="btn primary"><svg class="i sm"><use href="#i-pause"/></svg>Pause sales</button><button class="btn outline"><svg class="i sm"><use href="#i-plus"/></svg>Add stock</button><button class="icon-btn" style="background:var(--lilac);color:var(--purple)"><svg class="i"><use href="#i-more"/></svg></button></div></div>
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin:20px 0">
+    <div class="card"><div class="stat"><span class="l">Sold</span><span class="v num" style="font-size:28px">48</span><span class="d">52 left of 100</span></div></div>
+    <div class="card"><div class="stat"><span class="l">Redeemed</span><span class="v num" style="font-size:28px">31</span><span class="d"><span class="delta neu num">65%</span>of sold</span></div></div>
+    <div class="card"><div class="stat"><span class="l">Refunded</span><span class="v num" style="font-size:28px">2</span><span class="d">before redemption</span></div></div>
+    <div class="card"><div class="stat"><span class="l">Expiring soon</span><span class="v num" style="font-size:28px">0</span><span class="d">none in 14 days</span></div></div>
+    <div class="card fin-only" style="background:var(--purple50)"><div class="stat"><span class="l">Voucher revenue <span class="rolebadge">Owner / Finance</span></span><span class="v num" style="font-size:28px">SAR 3,840</span><span class="d">48 × SAR 80 · attributable to DealDash</span></div></div>
+    <div class="card fin-alt"><div class="stat"><span class="l">Voucher revenue</span><span class="lock-note"><svg class="i sm"><use href="#i-lock"/></svg>Visible to the Owner and Finance</span></div></div>
+  </div>
+  <div style="margin-bottom:20px"><div class="seg" data-tabs="m08"><button class="on" data-pane="ov">Overview</button><button data-pane="sr">Sales &amp; redemptions <span class="n">48</span></button><button data-pane="rf">Refunds <span class="n">2</span></button><button data-pane="ac">Activity</button></div></div>
+  <div class="pane show" data-g="m08" data-p="ov"><div class="grid"><div class="c8 stack" style="gap:24px">
+    <div class="card"><div class="card-h"><div class="card-t">Stock</div><span class="muted small">100 vouchers</span></div><div class="bar thick"><i class="n" style="width:31%"></i><i class="p2" style="width:17%"></i><i style="width:52%;background:var(--slate100)"></i></div><div class="legend"><span><i style="background:var(--navy)"></i>Redeemed 31</span><span><i style="background:var(--purple300)"></i>Sold, not yet redeemed 17</span><span><i style="background:#D8DAEC"></i>Available 52</span></div></div>
+    <div class="card"><div class="card-h"><div class="card-t">Voucher summary</div><span class="chip st-draft" style="height:24px"><svg class="i xs"><use href="#i-lock"/></svg>Price and validity locked after first sale</span></div><div class="kv"><span>Face value</span><b>SAR 100</b></div><div class="kv"><span>Selling price</span><b>SAR 80 (save 20%)</b></div><div class="kv"><span>Validity</span><b>90 days from purchase</b></div><div class="kv"><span>Redemption</span><b>In full, in one visit</b></div><div class="kv"><span>Limit per customer</span><b>5</b></div><div class="kv"><span>Refunds</span><b>Full refund before redemption (window set by DealDash)</b></div></div></div>
+    <div class="c4"><div class="card"><div class="card-t" style="margin-bottom:10px">Customers see</div><div style="border:1px solid var(--line);border-radius:18px;padding:16px;background:#fff"><div style="color:var(--purple);font-weight:800;font-size:22px;line-height:28px">Pay 80, get 100</div><div class="muted small" style="margin:2px 0 10px">A SAR 100 voucher for SAR 80. Save SAR 20.</div><div class="bar"><i class="p" style="width:48%"></i></div><div class="cap" style="margin-top:6px">Valid 90 days after purchase</div><div class="btn primary sm" style="width:100%;margin-top:12px">Buy now</div></div></div></div></div></div>
+  <div class="pane" data-g="m08" data-p="sr"><div class="card flush"><div class="toolbar"><div class="search" style="margin:0;max-width:300px;flex:1"><svg class="i sm"><use href="#i-search"/></svg>Search by code</div><div class="seg sm"><button class="on">All</button><button>Active</button><button>Redeemed</button><button>Expired</button><button>Refunded</button></div><button class="btn outline sm" style="margin-inline-start:auto"><svg class="i sm"><use href="#i-copy"/></svg>Export</button></div>
+    <table class="tbl"><thead><tr><th>Purchased</th><th>Customer</th><th>Qty</th><th>Status</th><th>Redeemed at</th><th class="r fin-only">Amount</th></tr></thead><tbody id="vsales"></tbody></table><div class="pager"><span class="muted small">Showing 8 of 48 · customer first names only</span></div></div></div>
+  <div class="pane" data-g="m08" data-p="rf"><div class="card flush"><table class="tbl"><thead><tr><th>Date</th><th>Customer</th><th>Reason</th><th>State</th><th class="r fin-only">Refunded</th></tr></thead><tbody><tr><td>3 Oct<span class="sub">12:14</span></td><td>Sara M.</td><td>Changed plans (before redemption)</td><td><span class="chip st-live" style="height:24px">Completed</span></td><td class="r fin-only">SAR 80</td></tr><tr><td>29 Sep<span class="sub">19:02</span></td><td>Omar T.</td><td>Duplicate purchase</td><td><span class="chip st-live" style="height:24px">Completed</span></td><td class="r fin-only">SAR 80</td></tr></tbody></table></div></div>
+  <div class="pane" data-g="m08" data-p="ac"><div class="card" style="max-width:760px"><div class="card-h"><div class="card-t">Activity</div></div><div class="tl"><div><i style="background:var(--purple)"></i><b>Stock raised: 80 to 100 vouchers</b><span>Akif · 2 Oct · logged</span></div><div><i style="background:var(--mint)"></i><b>Approved automatically</b><span>DealDash · 24 Sep</span></div><div><i style="background:var(--navy)"></i><b>Submitted</b><span>Sara · 24 Sep</span></div></div></div></div>
+</div></div></div></section>
+
+<!-- ================= M09 WATCH & EARN DETAIL ================= -->
+<section class="screen" id="m09" data-nav="campaigns"><div class="shell"><aside class="sidebar"></aside><div class="main"><header class="topbar"></header><div class="page">
+  <div class="crumb"><a class="link" data-go="m05" style="font-weight:600;color:var(--ink2)">Campaigns</a><svg class="i xs mirror"><use href="#i-right"/></svg><span>Watch &amp; Earn</span><svg class="i xs mirror"><use href="#i-right"/></svg><b>Lunch reel</b></div>
+  <div class="hero" style="padding:28px 32px"><div style="display:flex;gap:20px;align-items:flex-start;justify-content:space-between;position:relative;z-index:1;flex-wrap:wrap">
+    <div style="display:flex;gap:18px;align-items:center"><div class="thumb ph3" style="width:84px;height:84px;border-radius:20px;border:2px solid rgba(255,255,255,.25)"></div><div><div style="display:flex;gap:10px;align-items:center;margin-bottom:6px"><span class="chip st-live" style="background:#fff"><span class="pulse"></span>Live</span><span class="type-chip" style="color:#C9C3FF"><svg class="i"><use href="#i-play"/></svg>Watch &amp; Earn</span><span class="chip" style="background:rgba(255,255,255,.14);color:#fff;height:24px"><svg class="i"><use href="#i-check"/></svg>Video approved</span></div><div class="hv" style="font-size:30px;line-height:38px">Lunch reel</div><div class="cap" style="display:flex;gap:16px;margin-top:4px;flex-wrap:wrap"><span>Links to: Hot Deal “Dinner for Two”</span><span>1 – 31 Oct · Riyadh · 5 km</span></div></div></div>
+    <div style="display:flex;gap:10px"><button class="btn onhero"><svg class="i sm"><use href="#i-pause"/></svg>Pause</button><button class="btn onhero-o fin-only"><svg class="i sm"><use href="#i-plus"/></svg>Add budget</button><button class="btn onhero-o fin-alt"><svg class="i sm"><use href="#i-send"/></svg>Send for funding</button></div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:36px;margin-top:26px;position:relative;z-index:1;align-items:start">
+      <div><div class="cap">Paid views delivered</div><div class="hv num" style="font-size:44px;line-height:48px">620 <span class="cap" style="font-size:15px">of 1,000</span></div></div>
+      <div><div class="cap">Qualification rate</div><div class="hv num" style="font-size:44px;line-height:48px">61%</div></div>
+      <div class="fin-only"><div class="cap">Campaign spend</div><div class="hv num" style="font-size:44px;line-height:48px">SAR 744 <span class="cap" style="font-size:15px">of 1,200</span></div></div>
+    </div>
+    <div class="bar thick" style="background:rgba(255,255,255,.16);height:14px;margin-top:20px;position:relative;z-index:1"><i style="width:62%;background:#fff"></i></div></div>
+  <div style="margin:22px 0 20px"><div class="seg" data-tabs="m09"><button class="on" data-pane="mo">Monitor</button><button data-pane="pf">Performance</button><button data-pane="pz">Prizes</button><button data-pane="bg" class="fin-only">Budget &amp; unused balance</button><button data-pane="ac">Activity</button></div></div>
+  <div class="pane show" data-g="m09" data-p="mo"><div class="grid"><div class="c7 stack" style="gap:24px">
+    <div class="card"><div class="card-h"><div class="card-t">Views</div><span class="muted small">Only verified qualifying views are billed</span></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px"><div class="stat"><span class="l">Started</span><span class="v num" style="font-size:28px">1,030</span></div><div class="stat"><span class="l">Qualified (billed)</span><span class="v num" style="font-size:28px">620</span></div><div class="stat"><span class="l">Not counted</span><span class="v num" style="font-size:28px">410</span></div></div>
+      <div class="card-t" style="font-size:14px;margin-bottom:8px">Why views were not counted</div>
+      <div class="stack" style="gap:10px"><div class="br-row" style="grid-template-columns:200px 1fr 50px;padding:4px 0;border:0"><span>Not watched to the end</span><div class="bar"><i class="p" style="width:52%"></i></div><b class="num">214</b></div><div class="br-row" style="grid-template-columns:200px 1fr 50px;padding:4px 0;border:0"><span>Still-watching check missed</span><div class="bar"><i class="p" style="width:23%"></i></div><b class="num">96</b></div><div class="br-row" style="grid-template-columns:200px 1fr 50px;padding:4px 0;border:0"><span>Over the repeat limit</span><div class="bar"><i class="p" style="width:18%"></i></div><b class="num">72</b></div><div class="br-row" style="grid-template-columns:200px 1fr 50px;padding:4px 0;border:0"><span>Flagged by fraud checks</span><div class="bar"><i class="p" style="width:7%"></i></div><b class="num">28</b></div></div></div>
+    <div class="card"><div class="card-h"><div class="card-t">Pace</div><span class="muted small">Delivered vs schedule</span></div><div dir="ltr"><svg viewBox="0 0 600 150" width="100%" height="150"><g stroke="#E3E1F0"><line x1="0" y1="30" x2="600" y2="30"/><line x1="0" y1="80" x2="600" y2="80"/><line x1="0" y1="130" x2="600" y2="130"/></g><path d="M0 130 L600 36" stroke="#B9A4FF" stroke-width="2" stroke-dasharray="5 5" fill="none"/><path d="M0 130 C80 124 160 112 240 94 S380 70 420 66" stroke="#5B1AFC" stroke-width="2.5" fill="none" stroke-linecap="round"/><circle cx="420" cy="66" r="5" fill="#fff" stroke="#5B1AFC" stroke-width="2.5"/></svg></div><div class="legend"><span><i style="background:var(--purple)"></i>Delivered</span><span><i style="background:var(--purple300)"></i>Scheduled pace</span></div></div></div>
+  <div class="c5 stack" style="gap:24px"><div class="card"><div class="card-t" style="margin-bottom:10px">Campaign settings</div><div class="kv"><span>Audience</span><b>Everyone nearby · Food &amp; Drink</b></div><div class="kv"><span>Repeat limit</span><b>DealDash minimum</b></div><div class="kv"><span>Prize</span><b>Free pastry · 37 left</b></div><div class="kv"><span>What customers earn</span><b>Set by DealDash</b></div></div>
+    <div class="banner warn"><svg class="i"><use href="#i-alert"/></svg><div class="bx"><b>92% of paid views used</b>80 paid views left. Add budget to keep the campaign running.</div></div>
+    <div class="card" style="background:var(--purple50)"><div class="card-t" style="margin-bottom:6px">Reel preview</div><div style="display:flex;gap:12px;align-items:center"><div class="ph3" style="width:56px;height:96px;border-radius:12px"></div><div class="muted" style="font-size:13px">Customers who finish the video can open <b style="color:var(--navy)">Dinner for Two</b>.</div></div></div></div></div></div>
+  <div class="pane" data-g="m09" data-p="pf"><div class="grid"><div class="c12"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px"><div class="card"><div class="stat"><span class="l">Completion rate</span><span class="v num" style="font-size:28px">74%</span></div></div><div class="card"><div class="stat"><span class="l">Call-to-action clicks</span><span class="v num" style="font-size:28px">188</span></div></div><div class="card"><div class="stat"><span class="l">Detail views on linked deal</span><span class="v num" style="font-size:28px">164</span></div></div><div class="card"><div class="stat"><span class="l">Prizes issued</span><span class="v num" style="font-size:28px">13</span></div></div></div></div></div></div>
+  <div class="pane" data-g="m09" data-p="pz"><div class="card flush"><div class="toolbar"><div class="card-t">Prize inventory</div><button class="btn tonal sm" style="margin-inline-start:auto"><svg class="i sm"><use href="#i-plus"/></svg>Add prize</button></div><table class="tbl"><thead><tr><th>Prize</th><th>Total</th><th>Issued</th><th>Redeemed</th><th>Left</th><th>Valid</th><th>Branches</th></tr></thead><tbody><tr><td><div class="nm"><div class="thumb ph5" style="width:36px;height:36px"></div><b>Free pastry</b></div></td><td class="num">50</td><td class="num">13</td><td class="num">9</td><td class="num"><b>37</b></td><td>30 days</td><td>Olaya, Riyadh Park</td></tr></tbody></table></div></div>
+  <div class="pane" data-g="m09" data-p="bg"><div class="grid"><div class="c5"><div class="card"><div class="card-t" style="margin-bottom:12px">Budget account</div><div class="kv"><span>Funded</span><b class="num">SAR 1,200</b></div><div class="kv"><span>Consumed (qualified views)</span><b class="num">SAR 744</b></div><div class="kv" style="background:var(--purple50);margin:0 -24px;padding-inline:24px"><span><b style="color:var(--navy)">Unused balance</b> (kept separate)</span><b class="num">SAR 456</b></div><div class="help" style="margin-top:10px">What happens to any unused balance when the campaign ends is set by DealDash policy and shown here once confirmed.</div><button class="btn primary" style="margin-top:14px;width:100%" data-open="mFund"><svg class="i sm"><use href="#i-plus"/></svg>Add budget</button></div></div>
+    <div class="c7"><div class="card flush"><div class="toolbar"><div class="card-t">Funding history</div></div><table class="tbl"><thead><tr><th>Date</th><th>Type</th><th class="r">Amount</th></tr></thead><tbody><tr><td>1 Oct</td><td>Budget funded (card)</td><td class="r num">+ SAR 1,200</td></tr><tr><td>Today</td><td>Consumed by 620 qualified views</td><td class="r num">– SAR 744</td></tr></tbody></table></div></div></div></div>
+  <div class="pane" data-g="m09" data-p="ac"><div class="card" style="max-width:760px"><div class="card-h"><div class="card-t">Activity</div></div><div class="tl"><div><i style="background:var(--mint)"></i><b>Went live</b><span>System · 1 Oct</span></div><div><i style="background:var(--purple)"></i><b>Video approved</b><span>DealDash moderation · 1 Oct</span></div><div><i style="background:var(--purple)"></i><b>Budget funded SAR 1,200</b><span>Akif · 1 Oct</span></div></div></div></div>
+</div></div></div></section>
+
+<!-- ================= BUILDERS (rendered by JS) ================= -->
+<section class="screen" id="m10" data-nav="campaigns"><div class="shell collapsed"><aside class="sidebar"></aside><div class="main"><header class="topbar"></header><div class="bld" data-b="m10"></div></div></div></section>
+<section class="screen" id="m12" data-nav="campaigns"><div class="shell collapsed"><aside class="sidebar"></aside><div class="main"><header class="topbar"></header><div class="bld" data-b="m12"></div></div></div></section>
+<section class="screen" id="m13" data-nav="campaigns"><div class="shell collapsed"><aside class="sidebar"></aside><div class="main"><header class="topbar"></header><div class="bld" data-b="m13"></div></div></div></section>
+
+<!-- ================= M14 REDEMPTIONS ================= -->
+<section class="screen" id="m14" data-nav="redemptions"><div class="shell"><aside class="sidebar"></aside><div class="main"><header class="topbar"></header><div class="page">
+  <div class="page-head"><div><div class="h-title">Redemptions</div><div class="h-sub">Every voucher, reservation and prize your staff have redeemed.</div></div><div class="head-actions"><button class="btn outline"><svg class="i sm"><use href="#i-copy"/></svg>Export CSV</button></div></div>
+  <div style="margin-bottom:16px"><div class="seg" data-tabs="m14"><button class="on" data-pane="hi">History</button><button data-pane="lk">Code lookup</button></div></div>
+  <div class="pane show" data-g="m14" data-p="hi"><div class="card flush">
+    <div class="toolbar"><div class="search" style="margin:0;max-width:300px;flex:1"><svg class="i sm"><use href="#i-search"/></svg>Search code or item</div><button class="btn outline sm"><svg class="i sm"><use href="#i-filter"/></svg>Type<svg class="i xs"><use href="#i-down"/></svg></button><button class="btn outline sm"><svg class="i sm"><use href="#i-pin"/></svg>All branches<svg class="i xs"><use href="#i-down"/></svg></button><button class="btn outline sm"><svg class="i sm"><use href="#i-cal"/></svg>Last 7 days<svg class="i xs"><use href="#i-down"/></svg></button><button class="btn outline sm">Result<svg class="i xs"><use href="#i-down"/></svg></button></div>
+    <table class="tbl"><thead><tr><th>Time</th><th>Branch</th><th>Type</th><th>Item</th><th class="r">Value</th><th>Staff</th><th>Result</th></tr></thead><tbody id="redrows"></tbody></table>
+    <div class="pager"><span class="muted small">Rows per page <b style="color:var(--navy)">25 ▾</b> · 1–8 of 112</span><div class="seg sm"><button class="on">1</button><button>2</button><button>3</button><button>…</button></div></div></div></div>
+  <div class="pane" data-g="m14" data-p="lk"><div class="card" style="max-width:640px"><div class="card-t" style="margin-bottom:6px">Check a code</div><p class="muted" style="margin-bottom:14px">Enter any voucher, reservation or prize code to see its current status. This does not redeem it. Redemption happens in the Staff app.</p><div style="display:flex;gap:10px"><input class="input" value="MG5-X9QR" style="font-family:ui-monospace,Consolas,monospace;letter-spacing:.06em;font-weight:700"><button class="btn primary">Check</button></div>
+    <div class="card" style="margin-top:16px;background:var(--purple50);box-shadow:none"><div style="display:flex;justify-content:space-between;align-items:center"><div><b>Dinner for Two · Reservation</b><div class="muted small">Olaya · 2 units · Sara M.</div></div><span class="chip st-pending">Reserved</span></div><div class="kv" style="margin-top:10px"><span>Valid until</span><b>14:42 today (24 min left)</b></div><div class="kv"><span>Valid at</span><b>Olaya only</b></div></div></div></div>
+</div></div></div></section>
+
+<!-- ================= M15 INSIGHTS ================= -->
+<section class="screen" id="m15" data-nav="insights"><div class="shell"><aside class="sidebar"></aside><div class="main"><header class="topbar"></header><div class="page">
+  <div class="page-head"><div><div class="h-title">Insights</div><div class="h-sub">Understand how customers find and use your campaigns.</div></div><div class="head-actions"><button class="btn outline"><svg class="i sm"><use href="#i-pin"/></svg>All branches<svg class="i sm"><use href="#i-down"/></svg></button><button class="btn outline"><svg class="i sm"><use href="#i-cal"/></svg>Last 30 days<svg class="i sm"><use href="#i-down"/></svg></button><button class="btn tonal"><svg class="i sm"><use href="#i-copy"/></svg>Export</button></div></div>
+  <div style="margin-bottom:20px"><div class="seg" data-tabs="m15"><button class="on" data-pane="ov">Overview</button><button data-pane="lv"><svg class="i sm"><use href="#i-tag"/></svg>Live Deals</button><button data-pane="ht"><svg class="i sm"><use href="#i-flame"/></svg>Hot Deals</button><button data-pane="vc"><svg class="i sm"><use href="#i-ticket"/></svg>Vouchers</button><button data-pane="we"><svg class="i sm"><use href="#i-play"/></svg>Watch &amp; Earn</button></div></div>
+  <div class="pane show" data-g="m15" data-p="ov"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
+    <div class="card"><div class="stat"><span class="l">Live Deal impressions</span><span class="v num">48.2K</span><span class="d"><span class="delta num">↑ 9%</span>discovery signal</span></div></div>
+    <div class="card"><div class="stat"><span class="l">Hot Deal reservations</span><span class="v num">186</span><span class="d"><span class="delta num">↑ 21%</span>41% redeemed</span></div></div>
+    <div class="card"><div class="stat"><span class="l">Vouchers sold</span><span class="v num">212</span><span class="d fin-only"><span class="delta num">SAR 16,960</span>revenue</span><span class="d fin-alt">units only</span></div></div>
+    <div class="card"><div class="stat"><span class="l">Qualifying views</span><span class="v num">7,914</span><span class="d"><span class="delta num">↑ 12%</span>Watch &amp; Earn</span></div></div></div>
+    <div class="grid"><div class="c8"><div class="card"><div class="card-h"><div class="card-t">Customer activity</div><div class="legend" style="margin:0"><span><i style="background:var(--purple)"></i>Detail views</span><span><i style="background:var(--navy)"></i>Reservations + voucher sales</span></div></div><div dir="ltr"><svg viewBox="0 0 700 200" width="100%" height="200"><g stroke="#E3E1F0"><line x1="0" y1="40" x2="700" y2="40"/><line x1="0" y1="100" x2="700" y2="100"/><line x1="0" y1="160" x2="700" y2="160"/></g><path d="M0 150 C80 140 140 110 220 118 S340 70 420 80 S560 50 700 40" stroke="#5B1AFC" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M0 170 C90 166 160 150 240 154 S360 128 440 132 S580 110 700 104" stroke="#0F0C42" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg></div></div></div>
+    <div class="c4"><div class="card"><div class="card-t" style="margin-bottom:10px">Top campaigns</div><div class="list-row"><div class="thumb ph1" style="width:36px;height:36px"></div><div class="tx"><b>Dinner for Two</b><span class="muted small">Hot Deal</span></div><b class="num">41</b></div><div class="list-row"><div class="thumb ph4" style="width:36px;height:36px"></div><div class="tx"><b>Pay 80, get 100</b><span class="muted small">Voucher</span></div><b class="num">48</b></div><div class="list-row"><div class="thumb ph1" style="width:36px;height:36px"></div><div class="tx"><b>30% off tasting menu</b><span class="muted small">Live Deal</span></div><b class="num">322</b></div></div></div></div></div>
+  <div class="pane" data-g="m15" data-p="lv"><div class="card"><div class="card-h"><div class="card-t">From discovery to directions</div></div><div class="funnel"><div><span>Impressions</span><div class="fb" style="width:100%"><b class="num">48,200</b></div></div><div><span>Detail views</span><div class="fb" style="width:62%;background:var(--purple)"><b class="num">15,300</b></div><em class="num">32%</em></div><div><span>Saves</span><div class="fb" style="width:20%;background:var(--purple2)"><b class="num">1,640</b></div><em class="num">11%</em></div><div><span>Directions clicks</span><div class="fb" style="width:15%;background:var(--purple300);color:var(--navy)"><b class="num">1,210</b></div><em class="num">8%</em></div><div><span>Merchant page visits</span><div class="fb" style="width:12%;background:var(--slate100);color:var(--navy)"><b class="num">980</b></div><em class="num">6%</em></div></div><div class="sig"><svg class="i sm"><use href="#i-info"/></svg>Discovery signals. They do not prove visits or sales. DealDash does not show revenue for Live Deals.</div></div></div>
+  <div class="pane" data-g="m15" data-p="ht"><div class="grid"><div class="c5"><div class="card" style="display:flex;gap:24px;align-items:center"><div class="donut"><b class="num">41%</b></div><div><div class="card-t">Reserved → redeemed</div><div class="muted" style="margin-top:4px">76 of 186 reservations were confirmed by staff.</div></div></div></div><div class="c7"><div class="card"><div class="card-t" style="margin-bottom:10px">Reservation outcomes</div><div class="kv"><span>Redeemed (confirmed)</span><b class="num">76</b></div><div class="kv"><span>Expired (hold timed out)</span><b class="num">84</b></div><div class="kv"><span>No-show (meets the rule)</span><b class="num">9</b></div><div class="kv"><span>Cancelled by customer</span><b class="num">17</b></div></div></div></div></div>
+  <div class="pane" data-g="m15" data-p="vc"><div class="grid"><div class="c8"><div class="card"><div class="card-h"><div class="card-t">Vouchers sold per week</div></div><div class="mini-bars"><div><i style="height:40%"></i>W1</div><div><i style="height:62%"></i>W2</div><div><i style="height:55%"></i>W3</div><div><i style="height:88%"></i>W4</div></div></div></div><div class="c4 stack" style="gap:16px"><div class="card fin-only" style="background:var(--purple50)"><div class="stat"><span class="l">Voucher revenue <span class="rolebadge">Owner / Finance</span></span><span class="v num" style="font-size:28px">SAR 16,960</span><span class="d">212 sold · attributable to DealDash</span></div></div><div class="card"><div class="kv"><span>Redeemed</span><b class="num">64%</b></div><div class="kv"><span>Expired unredeemed</span><b class="num">3%</b></div><div class="kv"><span>Refunded</span><b class="num">2%</b></div></div></div></div></div>
+  <div class="pane" data-g="m15" data-p="we"><div class="grid"><div class="c5"><div class="card"><div class="card-t" style="margin-bottom:10px">Views quality</div><div style="display:flex;gap:20px;align-items:center"><div class="donut"><b class="num">61%</b></div><div class="muted">of started views qualified and were billed.</div></div></div></div><div class="c7"><div class="card"><div class="card-t" style="margin-bottom:10px">Campaign results</div><div class="kv fin-only"><span>Campaign spend</span><b class="num">SAR 3,118</b></div><div class="kv"><span>Qualifying views</span><b class="num">7,914</b></div><div class="kv"><span>Call-to-action clicks</span><b class="num">742</b></div><div class="kv"><span>Detail views on linked items</span><b class="num">688</b></div></div></div></div></div>
+</div></div></div></section>
+
+<!-- ================= M16 BUSINESS ================= -->
+<section class="screen" id="m16" data-nav="business"><div class="shell"><aside class="sidebar"></aside><div class="main"><header class="topbar"></header><div class="page">
+  <div class="page-head"><div><div class="h-title" style="display:flex;gap:12px;align-items:center">Nobu Riyadh <span class="verified" style="font-size:13px"><svg class="i sm"><use href="#i-check-c"/></svg>Verified</span></div><div class="h-sub">Your business profile, branches and documents.</div></div><div class="head-actions"><button class="btn outline">Preview customer page</button><button class="btn primary">Save changes</button></div></div>
+  <div style="margin-bottom:20px"><div class="seg" data-tabs="m16"><button class="on" data-pane="pf">Profile &amp; branding</button><button data-pane="br">Branches <span class="n">3</span></button><button data-pane="dc">Documents &amp; agreement</button></div></div>
+  <div class="pane show" data-g="m16" data-p="pf"><div class="grid"><div class="c7 stack" style="gap:24px">
+    <div class="card stack" style="gap:16px"><div class="card-t">Identity</div><div class="field"><div class="label">Trade name</div><div class="bi"><div class="cell"><span class="tag">EN</span><input class="input" value="Nobu Riyadh"></div><div class="cell"><span class="tag">AR</span><input class="input ar" value="نوبو الرياض"></div></div></div><div class="dsplit"><div class="field"><div class="label">Legal name</div><input class="input" value="Nobu Riyadh Trading Co." disabled style="background:var(--slate100)"><div class="help">To change legal details, contact support.</div></div><div class="field"><div class="label">Category</div><div class="input" style="display:flex;align-items:center;justify-content:space-between">Restaurants<svg class="i sm"><use href="#i-down"/></svg></div></div></div></div>
+    <div class="card stack" style="gap:16px"><div class="card-t">Branding</div><div class="gal"><div class="gt ph1"><span class="cover">Cover</span></div><div class="gt ph5"></div><div class="gt ph2"></div><div class="gt add"><svg class="i"><use href="#i-plus"/></svg>Add</div></div><div class="bi"><div class="cell"><span class="tag">EN</span><textarea class="input" rows="3">Contemporary Japanese dining with a sushi counter and tasting menus.</textarea></div><div class="cell"><span class="tag">AR</span><textarea class="input ar" rows="3">مطعم ياباني عصري مع كاونتر سوشي وقوائم تذوق.</textarea></div></div></div>
+    <div class="card stack" style="gap:16px"><div class="card-t">Contact</div><div class="dsplit"><div class="field"><div class="label">Phone</div><input class="input" value="+966 11 000 0000"></div><div class="field"><div class="label">WhatsApp</div><input class="input" value="+966 55 000 0000"></div></div></div></div>
+    <div class="c5"><div class="card" style="position:sticky;top:152px"><div class="card-h"><div class="card-t">How customers see you</div><div class="seg sm"><button class="on">EN</button><button>AR</button></div></div><div style="border:1px solid var(--line);border-radius:22px;overflow:hidden;background:var(--bg)"><div class="ph1" style="height:130px;position:relative"><div style="position:absolute;bottom:10px;inset-inline-start:14px;color:#fff"><b style="font-size:18px">Nobu Riyadh</b><div style="font-size:11px">Japanese · Olaya, Riyadh</div></div></div><div style="padding:14px;background:#fff"><div style="display:flex;justify-content:space-between;align-items:center"><span><b>4.9</b> ★ (1.2K)</span><span class="btn primary sm">Follow</span></div><div class="cap" style="margin-top:6px;color:var(--s-tx);font-weight:700">Open now · closes 12 am</div></div></div></div></div></div></div>
+  <div class="pane" data-g="m16" data-p="br"><div class="card flush"><div class="toolbar"><div class="search" style="margin:0;max-width:300px;flex:1"><svg class="i sm"><use href="#i-search"/></svg>Search branches</div><button class="btn primary sm" style="margin-inline-start:auto" data-open="drBranch"><svg class="i sm"><use href="#i-plus"/></svg>Add branch</button></div>
+    <table class="tbl"><thead><tr><th>Branch</th><th>Today's hours</th><th>Status</th><th class="r">Campaigns</th><th class="r">Staff</th><th></th></tr></thead><tbody><tr data-open="drBranch"><td><div class="nm"><div class="avatar" style="background:var(--lilac);color:var(--purple)"><svg class="i sm"><use href="#i-pin"/></svg></div><div><b>Olaya</b><span class="sub">Olaya St, Riyadh</span></div></div></td><td>12 pm – 12 am <span class="sub">Open now</span></td><td><span class="chip st-live" style="height:24px">Active</span></td><td class="r num">4</td><td class="r num">5</td><td class="r"><svg class="i sm"><use href="#i-right"/></svg></td></tr><tr data-open="drBranch"><td><div class="nm"><div class="avatar" style="background:var(--lilac);color:var(--purple)"><svg class="i sm"><use href="#i-pin"/></svg></div><div><b>Riyadh Park</b><span class="sub">Riyadh Park Mall</span></div></div></td><td>10 am – 11 pm <span class="sub">Open now</span></td><td><span class="chip st-live" style="height:24px">Active</span></td><td class="r num">3</td><td class="r num">4</td><td class="r"><svg class="i sm"><use href="#i-right"/></svg></td></tr><tr data-open="drBranch"><td><div class="nm"><div class="avatar" style="background:var(--slate100);color:var(--ink3)"><svg class="i sm"><use href="#i-pin"/></svg></div><div><b>KAFD</b><span class="sub">KAFD Metro</span></div></div></td><td>Closed today</td><td><span class="chip st-paused" style="height:24px">Inactive</span></td><td class="r num">0</td><td class="r num">0</td><td class="r"><svg class="i sm"><use href="#i-right"/></svg></td></tr></tbody></table></div></div>
+  <div class="pane" data-g="m16" data-p="dc"><div class="grid"><div class="c7"><div class="card"><div class="card-t" style="margin-bottom:10px">Documents</div><div class="stack"><div class="frow"><span class="fi"><svg class="i sm"><use href="#i-check-sq"/></svg></span><div><b>Commercial Registration</b><span>Expires 12 / 2027</span></div><span class="chip st-live" style="height:24px">Accepted</span></div><div class="frow"><span class="fi" style="background:var(--w-bg);color:var(--w-tx)"><svg class="i sm"><use href="#i-clock"/></svg></span><div><b>Municipality licence</b><span>Expires in 38 days</span></div><span class="chip st-changes" style="height:24px">Expiring soon</span><button class="btn tonal sm">Upload new</button></div></div></div></div>
+    <div class="c5"><div class="card"><div class="card-t" style="margin-bottom:10px">Merchant agreement</div><div class="kv"><span>Version</span><b>1.0</b></div><div class="kv"><span>Signed by</span><b>Akif Khan</b></div><div class="kv"><span>Date</span><b>14 Sep 2026 · 10:42</b></div><div class="kv"><span>Status</span><b><span class="chip st-live" style="height:22px">Accepted</span></b></div><button class="btn tonal sm" style="margin-top:12px"><svg class="i sm"><use href="#i-copy"/></svg>Download executed copy</button></div></div></div></div>
+</div></div></div></section>
+
+<!-- ================= M17 TEAM ================= -->
+<section class="screen" id="m17" data-nav="team"><div class="shell"><aside class="sidebar"></aside><div class="main"><header class="topbar"></header><div class="page">
+  <div class="page-head"><div><div class="h-title">Team</div><div class="h-sub">Invite people, choose their role and which branches they can see.</div></div><div class="head-actions"><button class="btn primary" data-open="mInvite"><svg class="i sm"><use href="#i-plus"/></svg>Invite user</button></div></div>
+  <div style="margin-bottom:16px"><div class="seg" data-tabs="m17"><button class="on" data-pane="us">Users <span class="n">8</span></button><button data-pane="rl">Roles reference</button></div></div>
+  <div class="pane show" data-g="m17" data-p="us"><div class="card flush"><div class="toolbar"><div class="search" style="margin:0;max-width:300px;flex:1"><svg class="i sm"><use href="#i-search"/></svg>Search name, email or mobile</div><button class="btn outline sm">Role<svg class="i xs"><use href="#i-down"/></svg></button><button class="btn outline sm">Branch<svg class="i xs"><use href="#i-down"/></svg></button><button class="btn outline sm">Status<svg class="i xs"><use href="#i-down"/></svg></button></div>
+    <table class="tbl"><thead><tr><th>Name</th><th>Role</th><th>Branches</th><th>Finance access</th><th>Status</th><th>Last active</th></tr></thead><tbody id="teamrows"></tbody></table></div></div>
+  <div class="pane" data-g="m17" data-p="rl"><div class="card flush"><table class="tbl"><thead><tr><th>Capability</th><th>Owner</th><th>Admin</th><th>Marketing</th><th>Branch Mgr</th><th>Staff</th></tr></thead><tbody id="rolerows"></tbody></table><div class="pager"><span class="muted small">Finance access is a separate permission (view / manage) that the Owner grants to any role. Admin has none by default.</span></div></div></div>
+</div></div></div></section>
+
+<!-- ================= M18 FINANCE ================= -->
+<section class="screen" id="m18" data-nav="finance"><div class="shell"><aside class="sidebar"></aside><div class="main"><header class="topbar"></header><div class="page">
+  <div class="noaccess" style="flex-direction:column;align-items:center;text-align:center;gap:10px;padding:80px 24px"><div class="ric" style="background:var(--slate100);color:var(--ink2);width:72px;height:72px"><svg class="i lg"><use href="#i-lock"/></svg></div><h2 style="font-size:24px;font-weight:800">You do not have access to Finance</h2><p class="muted" style="max-width:420px">Finance information is available to the Owner and people the Owner has given Finance access. Ask the Owner to grant you view or manage access.</p></div>
+  <div class="fin-only">
+  <div class="page-head"><div><div class="h-title">Finance</div><div class="h-sub">Statements, payouts and what you spend on campaigns.</div></div><div class="head-actions"><button class="btn outline"><svg class="i sm"><use href="#i-copy"/></svg>Download statements</button></div></div>
+  <div class="summary-lilac" style="margin-bottom:24px"><div class="sumgrid"><div><div class="l">Next payout</div><div class="v num">SAR 8,420</div><div class="muted small">Expected after the next settlement run</div></div><div><div class="l">Settlement-eligible</div><div class="v num" style="font-size:26px">SAR 9,100</div></div><div><div class="l">Held until redeemed</div><div class="v num" style="font-size:26px">SAR 2,300</div></div><div><div class="l">Carried forward</div><div class="v num" style="font-size:26px;color:var(--ink2)">SAR 0</div></div></div></div>
+  <div style="margin-bottom:16px"><div class="seg" data-tabs="m18"><button class="on" data-pane="st">Statements</button><button data-pane="po">Payouts</button><button data-pane="cs">Campaign spend</button><button data-pane="iv">Invoices</button><button data-pane="bk">Bank details</button></div></div>
+  <div class="pane show" data-g="m18" data-p="st"><div class="card flush"><table class="tbl"><thead><tr><th>Period</th><th class="r">Redemptions</th><th class="r">Platform fees</th><th class="r">Refunds</th><th class="r">Adjustments</th><th class="r">Net payable</th><th>Status</th></tr></thead><tbody><tr data-go="m19"><td><b>1 – 15 Oct</b><span class="sub">Issued 16 Oct</span></td><td class="r num">SAR 10,100</td><td class="r num">– 1,010</td><td class="r num">– 520</td><td class="r num">– 150</td><td class="r num"><b>SAR 8,420</b></td><td><span class="chip st-pending" style="height:24px">Issued</span></td></tr><tr data-go="m19"><td><b>16 – 30 Sep</b><span class="sub">Paid 2 Oct</span></td><td class="r num">SAR 8,640</td><td class="r num">– 864</td><td class="r num">– 160</td><td class="r num">0</td><td class="r num"><b>SAR 7,616</b></td><td><span class="chip st-live" style="height:24px">Paid</span></td></tr><tr data-go="m19"><td><b>1 – 15 Sep</b><span class="sub">Paid 17 Sep</span></td><td class="r num">SAR 6,980</td><td class="r num">– 698</td><td class="r num">0</td><td class="r num">0</td><td class="r num"><b>SAR 6,282</b></td><td><span class="chip st-changes" style="height:24px">Disputed</span></td></tr></tbody></table></div></div>
+  <div class="pane" data-g="m18" data-p="po"><div class="card flush"><table class="tbl"><thead><tr><th>Payout date</th><th>Account</th><th>Statement</th><th class="r">Amount</th><th>Status</th></tr></thead><tbody><tr><td>2 Oct</td><td>Al Rajhi •••• 7519</td><td>16 – 30 Sep</td><td class="r num"><b>SAR 7,616</b></td><td><span class="chip st-live" style="height:24px">Paid</span></td></tr><tr><td>17 Sep</td><td>Al Rajhi •••• 7519</td><td>1 – 15 Sep</td><td class="r num"><b>SAR 6,282</b></td><td><span class="chip st-live" style="height:24px">Paid</span></td></tr></tbody></table></div></div>
+  <div class="pane" data-g="m18" data-p="cs"><div class="card flush"><table class="tbl"><thead><tr><th>Campaign</th><th class="r">Funded</th><th class="r">Consumed</th><th class="r">Unused (separate)</th><th>Status</th></tr></thead><tbody><tr><td><b>Lunch reel</b></td><td class="r num">SAR 1,200</td><td class="r num">SAR 744</td><td class="r num"><b>SAR 456</b></td><td><span class="chip st-live" style="height:24px">Live</span></td></tr><tr><td><b>Spring launch reel</b></td><td class="r num">SAR 800</td><td class="r num">SAR 520</td><td class="r num"><b>SAR 280</b></td><td><span class="chip st-suspended" style="height:24px">Suspended</span></td></tr></tbody></table><div class="pager"><span class="muted small">How unused balances are treated when a campaign ends follows DealDash policy and appears here once confirmed.</span></div></div></div>
+  <div class="pane" data-g="m18" data-p="iv"><div class="card flush"><table class="tbl"><thead><tr><th>Number</th><th>Date</th><th>Type</th><th class="r">Amount</th><th></th></tr></thead><tbody><tr><td>INV-2026-0412</td><td>16 Oct</td><td>Platform fees</td><td class="r num">SAR 1,010</td><td class="r"><a class="link">Download</a></td></tr><tr><td>RCPT-0098</td><td>1 Oct</td><td>Campaign funding</td><td class="r num">SAR 1,200</td><td class="r"><a class="link">Download</a></td></tr></tbody></table></div></div>
+  <div class="pane" data-g="m18" data-p="bk"><div class="grid"><div class="c6"><div class="card"><div class="card-t" style="margin-bottom:10px">Payout account</div><div class="kv"><span>Bank</span><b>Al Rajhi Bank</b></div><div class="kv"><span>IBAN</span><b class="num">SA03 •••• •••• •••• 7519</b></div><div class="kv"><span>Account holder</span><b>Nobu Riyadh Trading Co.</b></div><div class="kv"><span>Status</span><b><span class="chip st-live" style="height:22px">Verified</span></b></div><button class="btn tonal sm" style="margin-top:12px">Request a change</button><div class="help" style="margin-top:8px">Only the Owner can request a change. We re-check new details and pause payouts until they are verified.</div></div></div><div class="c6"><div class="banner warn"><svg class="i"><use href="#i-alert"/></svg><div class="bx"><b>Payout hold (example banner)</b>Payouts are on hold while we verify your new bank details.</div></div></div></div></div>
+  </div>
+</div></div></div></section>
+
+<!-- ================= M19 STATEMENT DETAIL ================= -->
+<section class="screen" id="m19" data-nav="finance"><div class="shell"><aside class="sidebar"></aside><div class="main"><header class="topbar"></header><div class="page">
+  <div class="crumb"><a class="link" data-go="m18" style="font-weight:600;color:var(--ink2)">Finance</a><svg class="i xs mirror"><use href="#i-right"/></svg><span>Statements</span><svg class="i xs mirror"><use href="#i-right"/></svg><b>1 – 15 Oct</b></div>
+  <div class="head-card"><div><div style="display:flex;gap:10px;align-items:center;margin-bottom:4px"><span class="chip st-pending">Issued</span><span class="muted small">Issued 16 Oct · Statement ST-2026-1015</span></div><div class="t">Statement 1 – 15 October</div></div><div style="display:flex;gap:10px"><button class="btn primary"><svg class="i sm"><use href="#i-copy"/></svg>Download PDF</button><button class="btn outline"><svg class="i sm"><use href="#i-alert"/></svg>Dispute</button></div></div>
+  <div class="grid" style="margin-top:24px"><div class="c5"><div class="card"><div class="card-t" style="margin-bottom:12px">How we calculated this</div><div class="kv"><span>Settlement-eligible redemptions</span><b class="num">SAR 10,100</b></div><div class="kv"><span>Platform fees</span><b class="num">– SAR 1,010</b></div><div class="kv"><span>Refunds and reversals</span><b class="num">– SAR 520</b></div><div class="kv"><span>Adjustments</span><b class="num">– SAR 150</b></div><div class="kv" style="background:var(--purple50);margin:0 -24px;padding:14px 24px"><span><b style="color:var(--navy);font-size:15px">Net payable</b></span><b class="num" style="font-size:22px">SAR 8,420</b></div></div><div class="card" style="margin-top:16px"><div class="card-t" style="margin-bottom:6px">Carried forward</div><div class="kv"><span>Previous negative balance</span><b class="num">SAR 0</b></div><div class="help">If refunds ever exceed your eligible balance, the difference is carried forward and netted against future statements.</div></div></div>
+    <div class="c7"><div class="card flush"><div class="toolbar"><div class="card-t">Lines</div><div class="seg sm" style="margin-inline-start:auto"><button class="on">All</button><button>Redemptions</button><button>Refunds</button><button>Fees</button></div></div><table class="tbl"><thead><tr><th>Date</th><th>Type</th><th>Reference</th><th class="r">Amount</th></tr></thead><tbody><tr><td>14 Oct</td><td>Redemption</td><td>Voucher NG7-4DX9 · Olaya</td><td class="r num">+ SAR 100</td></tr><tr><td>14 Oct</td><td>Platform fee</td><td>10% on SAR 100</td><td class="r num">– SAR 10</td></tr><tr><td>13 Oct</td><td>Refund</td><td>Voucher KP2-84TD</td><td class="r num">– SAR 80</td></tr><tr><td>12 Oct</td><td>Adjustment</td><td>Goodwill credit to customer</td><td class="r num">– SAR 150</td></tr><tr><td>12 Oct</td><td>Redemption</td><td>Voucher QD1-55HV · Riyadh Park</td><td class="r num">+ SAR 100</td></tr></tbody></table><div class="pager"><span class="muted small">Showing 5 of 118 lines</span></div></div></div></div>
+</div></div></div></section>
+
+<!-- ================= M20 SUPPORT ================= -->
+<section class="screen" id="m20" data-nav="support"><div class="shell"><aside class="sidebar"></aside><div class="main"><header class="topbar"></header><div class="page">
+  <div class="page-head"><div><div class="h-title">Support</div><div class="h-sub">Find answers, or talk to the DealDash team.</div></div><div class="head-actions"><button class="btn primary" data-open="mCase"><svg class="i sm"><use href="#i-plus"/></svg>Create case</button></div></div>
+  <div style="margin-bottom:20px"><div class="seg" data-tabs="m20"><button class="on" data-pane="hp">Help centre</button><button data-pane="cs">My cases <span class="n">2</span></button></div></div>
+  <div class="pane show" data-g="m20" data-p="hp"><div class="search" style="max-width:none;margin:0 0 20px;height:52px;background:#fff;border:1px solid var(--line)"><svg class="i sm"><use href="#i-search"/></svg>Search help articles in English or Arabic</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px"><div class="cat"><div class="ic"><svg class="i"><use href="#i-layers"/></svg></div><b>Campaigns</b><span>Create, edit and understand approvals</span></div><div class="cat"><div class="ic"><svg class="i"><use href="#i-check-sq"/></svg></div><b>Redemptions</b><span>Codes, staff app and reversals</span></div><div class="cat"><div class="ic"><svg class="i"><use href="#i-card"/></svg></div><b>Payments &amp; statements</b><span>Payouts, fees and refunds</span></div><div class="cat"><div class="ic"><svg class="i"><use href="#i-users"/></svg></div><b>Account &amp; team</b><span>Roles, branches and security</span></div></div>
+    <div class="card"><div class="card-t" style="margin-bottom:6px">Popular articles</div><div class="list-row"><div class="tx"><b>How Hot Deal reservations work</b></div><svg class="i sm mirror" style="color:var(--ink3)"><use href="#i-right"/></svg></div><div class="list-row"><div class="tx"><b>Why was my campaign sent for review?</b></div><svg class="i sm mirror" style="color:var(--ink3)"><use href="#i-right"/></svg></div><div class="list-row"><div class="tx"><b>When do I get paid for vouchers?</b></div><svg class="i sm mirror" style="color:var(--ink3)"><use href="#i-right"/></svg></div></div></div>
+  <div class="pane" data-g="m20" data-p="cs"><div class="card flush"><table class="tbl"><thead><tr><th>Case</th><th>Category</th><th>Status</th><th>Last update</th></tr></thead><tbody><tr data-open="drCase"><td><b>Payout for 16 – 30 Sep looks lower</b><span class="sub">#C-2210</span></td><td>Payments</td><td><span class="chip st-pending" style="height:24px">In progress</span></td><td>Today 09:12</td></tr><tr data-open="drCase"><td><b>Staff cannot scan a voucher</b><span class="sub">#C-2188</span></td><td>Redemptions</td><td><span class="chip st-live" style="height:24px">Resolved</span></td><td>3 Oct</td></tr></tbody></table></div></div>
+</div></div></div></section>
+
+<!-- ================= M21 SETTINGS ================= -->
+<section class="screen" id="m21" data-nav="settings"><div class="shell"><aside class="sidebar"></aside><div class="main"><header class="topbar"></header><div class="page" style="max-width:920px">
+  <div class="page-head"><div><div class="h-title">Settings</div><div class="h-sub">Your personal account preferences.</div></div></div>
+  <div style="margin-bottom:20px"><div class="seg" data-tabs="m21"><button class="on" data-pane="ac">Account</button><button data-pane="lg">Language &amp; region</button><button data-pane="nt">Notifications</button><button data-pane="sc">Security</button></div></div>
+  <div class="pane show" data-g="m21" data-p="ac"><div class="card stack" style="gap:18px"><div style="display:flex;gap:16px;align-items:center"><div class="avatar" style="width:64px;height:64px;font-size:20px">AK</div><div><b style="font-size:16px">Akif Khan</b><div class="muted">Owner · Nobu Riyadh</div></div></div><div class="dsplit"><div class="field"><div class="label">Full name</div><input class="input" value="Akif Khan"></div><div class="field"><div class="label">Email</div><input class="input" value="akif@nobu-riyadh.com"></div></div><div class="field" style="max-width:420px"><div class="label">Mobile</div><div style="display:flex;gap:10px"><input class="input" value="+966 55 000 0000"><button class="btn tonal">Change</button></div><div class="help">Changing your mobile number needs a one-time code.</div></div><div><button class="btn primary">Save changes</button></div></div></div>
+  <div class="pane" data-g="m21" data-p="lg"><div class="card stack" style="gap:20px"><div class="field"><div class="label">Interface language</div><div class="seg" style="align-self:flex-start"><button class="on">English</button><button>العربية</button></div></div><div class="field"><div class="label">Dates</div><div class="seg" style="align-self:flex-start"><button class="on">Gregorian</button><button>Hijri (later)</button></div></div><div class="kv"><span>Time zone</span><b>Riyadh (GMT+3)</b></div><div class="kv"><span>Currency</span><b>Saudi riyal (SAR)</b></div></div></div>
+  <div class="pane" data-g="m21" data-p="nt"><div class="card"><div class="nmx" style="font-weight:700;color:var(--ink2);font-size:12px"><span>Notification</span><span class="c">In app</span><span class="c">Email</span></div><div class="nmx"><span>Campaign approved, rejected or needs changes<small>Always on</small></span><span class="c"><span class="tgl on" style="opacity:.5"></span></span><span class="c"><span class="tgl on"></span></span></div><div class="nmx"><span>Stock low or sold out</span><span class="c"><span class="tgl on"></span></span><span class="c"><span class="tgl"></span></span></div><div class="nmx"><span>New reservations</span><span class="c"><span class="tgl on"></span></span><span class="c"><span class="tgl"></span></span></div><div class="nmx"><span>Watch &amp; Earn budget low<small>Owner and Finance only</small></span><span class="c"><span class="tgl on"></span></span><span class="c"><span class="tgl on"></span></span></div><div class="nmx"><span>Statements and payouts<small>Owner and Finance only · Always on</small></span><span class="c"><span class="tgl on" style="opacity:.5"></span></span><span class="c"><span class="tgl on" style="opacity:.5"></span></span></div></div></div>
+  <div class="pane" data-g="m21" data-p="sc"><div class="stack" style="gap:20px"><div class="card stack" style="gap:14px"><div class="card-t">Password</div><div class="dsplit"><div class="field"><div class="label">New password</div><input class="input" type="password"></div><div class="field"><div class="label">Confirm</div><input class="input" type="password"></div></div><div><button class="btn tonal">Update password</button></div></div><div class="ptoggle"><div><b>Two-step verification</b><span>Recommended for the Owner and anyone with Finance access.</span></div><span class="tgl"></span></div><div class="card"><div class="card-t" style="margin-bottom:10px">Active sessions</div><div class="list-row"><div class="tx"><b>Chrome · Riyadh <span class="chip st-live" style="height:20px;font-size:11px">This device</span></b><span class="muted small">Signed in today 09:02</span></div></div><div class="list-row"><div class="tx"><b>Safari on iPad · Riyadh</b><span class="muted small">Signed in 5 Oct</span></div><a class="link">Sign out</a></div></div></div></div>
+</div></div></div></section>
+
+<!-- ================= shared overlays ================= -->
+<div class="scrim" id="scrim"></div>
+<div class="modal" id="mRev" role="dialog" aria-label="Reverse redemption">
+  <div style="display:flex;gap:16px;align-items:flex-start"><div class="ric" style="width:48px;height:48px;background:var(--d-bg);color:var(--d-tx)"><svg class="i"><use href="#i-alert"/></svg></div><div><h3 style="font-size:20px;font-weight:800;line-height:28px">Reverse this redemption?</h3><p class="muted" style="margin-top:4px">The voucher returns to <b style="color:var(--navy)">Active</b> if it is still valid, and the amount goes back to held. This is recorded in the audit log.</p></div></div>
+  <div class="field" style="margin-top:20px"><div class="label">Reason <span class="muted small" style="font-weight:500">(required)</span></div><div class="input" style="display:flex;align-items:center;justify-content:space-between">Redeemed by mistake<svg class="i sm"><use href="#i-down"/></svg></div></div>
+  <div class="field" style="margin-top:12px"><div class="label">Note</div><textarea class="input" rows="2" placeholder="Add details for the audit log"></textarea></div>
+  <div class="banner warn" style="margin-top:14px"><svg class="i"><use href="#i-clock"/></svg><div class="bx">You can reverse this for another <b class="num">02:14:30</b>. After that, contact DealDash support.</div></div>
+  <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:22px"><button class="btn outline" data-close>Cancel</button><button class="btn danger" data-close>Reverse redemption</button></div>
+</div>
+<div class="modal" id="mInvite" role="dialog" aria-label="Invite user">
+  <h3 style="font-size:20px;font-weight:800;line-height:28px">Invite a team member</h3><p class="muted" style="margin:4px 0 18px">They will get an email or SMS with a link to join.</p>
+  <div class="stack" style="gap:14px"><div class="dsplit"><div class="field"><div class="label">Name</div><input class="input" value="Lina Saleh"></div><div class="field"><div class="label">Email or mobile</div><input class="input" value="lina@nobu-riyadh.com"></div></div>
+    <div class="field"><div class="label">Role</div><div class="chips"><span class="fc">Admin</span><span class="fc">Marketing Manager</span><span class="fc">Finance</span><span class="fc">Branch Manager</span><span class="fc on">Redemption Staff<svg class="i xs"><use href="#i-check"/></svg></span></div><div class="help">Staff scan and redeem codes on their phone. They cannot see money or create campaigns. They sign in with a one-time code.</div></div>
+    <div class="field"><div class="label">Branches</div><div class="chips"><span class="fc on">Olaya<svg class="i xs"><use href="#i-check"/></svg></span><span class="fc">Riyadh Park</span><span class="fc">KAFD</span></div></div></div>
+  <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:22px"><button class="btn outline" data-close>Cancel</button><button class="btn primary" data-close>Send invite</button></div>
+</div>
+<div class="modal" id="mCase" role="dialog" aria-label="Create case">
+  <h3 style="font-size:20px;font-weight:800;line-height:28px">How can we help?</h3><p class="muted" style="margin:4px 0 18px">We usually reply within one working day.</p>
+  <div class="stack" style="gap:14px"><div class="field"><div class="label">Category</div><div class="input" style="display:flex;align-items:center;justify-content:space-between">Payments and statements<svg class="i sm"><use href="#i-down"/></svg></div></div><div class="field"><div class="label">Related to</div><div class="input" style="display:flex;align-items:center;justify-content:space-between;color:var(--ink3)">Choose a statement or campaign (optional)<svg class="i sm"><use href="#i-down"/></svg></div></div><div class="field"><div class="label">Subject</div><input class="input" value="Payout for 16 – 30 Sep looks lower"></div><div class="field"><div class="label">Message</div><textarea class="input" rows="3">I expected SAR 7,900. The statement shows SAR 7,616.</textarea></div><div class="drop" style="padding:14px"><b style="margin:0">Attach files</b><span class="small">Screenshots or PDFs, up to 10 MB</span></div></div>
+  <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:22px"><button class="btn outline" data-close>Cancel</button><button class="btn primary" data-close>Send</button></div>
+</div>
+<div class="modal" id="mFund" role="dialog" aria-label="Add campaign budget">
+  <h3 style="font-size:20px;font-weight:800;line-height:28px">Add budget to “Lunch reel”</h3><p class="muted" style="margin:4px 0 18px">Budget pays for verified qualifying views only. You can top up any time.</p>
+  <div class="chips"><span class="fc">SAR 300</span><span class="fc on">SAR 600<svg class="i xs"><use href="#i-check"/></svg></span><span class="fc">SAR 1,200</span><span class="fc">Custom</span></div>
+  <div class="card" style="margin:16px 0;background:var(--purple50);box-shadow:none"><div class="kv"><span>About</span><b class="num">≈ 500 more paid views</b></div><div class="kv"><span>New budget total</span><b class="num">SAR 1,800</b></div></div>
+  <div class="frow"><span class="fi"><svg class="i sm"><use href="#i-card"/></svg></span><div><b>Pay by card or Apple Pay</b><span>Secure payment by DealDash’s payment provider</span></div></div>
+  <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:22px"><button class="btn outline" data-close>Cancel</button><button class="btn primary" data-close>Pay SAR 600</button></div>
+</div>
+<div class="drawer" id="drRed" role="dialog" aria-label="Redemption details">
+  <div class="dr-h"><div><h3 style="font-size:20px;font-weight:800;line-height:28px">Redemption</h3><span class="muted small">Voucher · Pay 80, get 100</span></div><button class="icon-btn" data-close aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button></div>
+  <div class="dr-b stack" style="gap:18px"><span class="chip st-live" style="align-self:flex-start"><svg class="i"><use href="#i-check"/></svg>Redeemed</span>
+    <div class="card" style="box-shadow:none"><div class="kv"><span>Code</span><b style="font-family:ui-monospace,Consolas,monospace">NG7-4DX9</b></div><div class="kv"><span>Branch</span><b>Olaya</b></div><div class="kv"><span>Redeemed by</span><b>Omar T. (staff)</b></div><div class="kv"><span>Customer</span><b>Sara M.</b></div><div class="kv"><span>Time</span><b>Today 10:41</b></div><div class="kv"><span>Value</span><b class="num">SAR 100</b></div></div>
+    <div class="card" style="box-shadow:none"><div class="card-t" style="margin-bottom:10px">Audit trail</div><div class="tl"><div><i style="background:var(--mint)"></i><b>Redeemed</b><span>Omar T. · 10:41 · device Olaya-iPhone</span></div><div><i style="background:var(--purple)"></i><b>Validated by scan</b><span>10:41</span></div></div></div>
+    <div class="banner warn"><svg class="i"><use href="#i-clock"/></svg><div class="bx">Reversible for <b class="num">02:14:30</b> by an Owner, Admin or Branch Manager. Staff cannot reverse.</div></div></div>
+  <div class="dr-f"><button class="btn outline" data-close>Close</button><button class="btn danger-t" data-open="mRev">Reverse redemption…</button></div>
+</div>
+<div class="drawer" id="drBranch" role="dialog" aria-label="Branch details">
+  <div class="dr-h"><div><h3 style="font-size:20px;font-weight:800;line-height:28px">Olaya</h3><span class="muted small">Branch details and opening hours</span></div><button class="icon-btn" data-close aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button></div>
+  <div class="dr-b stack" style="gap:18px"><div class="bi"><div class="cell"><span class="tag">EN</span><input class="input" value="Olaya"></div><div class="cell"><span class="tag">AR</span><input class="input ar" value="العليا"></div></div><div class="field"><div class="label">Address</div><input class="input" value="Olaya St, Riyadh"></div><div class="ph4" style="height:110px;border-radius:16px"></div>
+    <div class="card" style="box-shadow:none"><div class="card-t" style="margin-bottom:6px">Opening hours</div><div class="hrs"><b>Sunday</b><span class="tgl on"></span><span class="tm">12:00 PM</span><span class="tm">12:00 AM</span></div><div class="hrs"><b>Monday</b><span class="tgl on"></span><span class="tm">12:00 PM</span><span class="tm">12:00 AM</span></div><div class="hrs"><b>Friday</b><span class="tgl on"></span><span class="tm">1:00 PM</span><span class="tm">12:00 AM</span></div><a class="link" style="margin-top:8px">Copy to all days</a></div>
+    <div class="locked-row"><svg class="i sm"><use href="#i-info"/></svg><div><b>Deactivating a branch</b><span>Deals only assigned to this branch pause. Existing reservations are looked after.</span></div><button class="btn danger-t sm">Deactivate</button></div></div>
+  <div class="dr-f"><button class="btn outline" data-close>Cancel</button><button class="btn primary" data-close>Save branch</button></div>
+</div>
+<div class="drawer" id="drUser" role="dialog" aria-label="User details">
+  <div class="dr-h"><div style="display:flex;gap:12px;align-items:center"><div class="avatar" style="width:44px;height:44px">SM</div><div><h3 style="font-size:20px;font-weight:800;line-height:28px">Sara Mansour</h3><span class="muted small">sara@nobu-riyadh.com</span></div></div><button class="icon-btn" data-close aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button></div>
+  <div class="dr-b stack" style="gap:18px"><div class="field"><div class="label">Role</div><div class="chips"><span class="fc">Admin</span><span class="fc on">Marketing Manager<svg class="i xs"><use href="#i-check"/></svg></span><span class="fc">Branch Manager</span></div></div><div class="field"><div class="label">Branches</div><div class="chips"><span class="fc on">All branches<svg class="i xs"><use href="#i-check"/></svg></span></div></div>
+    <div class="card stack" style="gap:12px;box-shadow:none"><div class="card-t">Finance access <span class="rolebadge">Granted by the Owner</span></div><div class="ptoggle"><div><b>Finance: view</b><span>See statements, payouts, campaign spend and revenue figures</span></div><span class="tgl"></span></div><div class="ptoggle"><div><b>Finance: manage</b><span>Dispute statements, export, and fund campaign budgets</span></div><span class="tgl"></span></div><div class="help">View and manage are separate. Admin does not get finance access automatically.</div></div>
+    <div class="locked-row"><svg class="i sm"><use href="#i-info"/></svg><div><b>Deactivate</b><span>Signs this person out of every device straight away.</span></div><button class="btn danger-t sm">Deactivate</button></div></div>
+  <div class="dr-f"><button class="btn outline" data-close>Cancel</button><button class="btn primary" data-close>Save changes</button></div>
+</div>
+<div class="drawer" id="drCase" role="dialog" aria-label="Case">
+  <div class="dr-h"><div><h3 style="font-size:20px;font-weight:800;line-height:28px">Payout for 16 – 30 Sep looks lower</h3><span class="muted small">#C-2210 · Payments</span></div><button class="icon-btn" data-close aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button></div>
+  <div class="dr-b"><span class="chip st-pending" style="margin-bottom:16px">In progress</span><div class="thread"><div class="bubble me">I expected SAR 7,900. The statement shows SAR 7,616.</div><div class="bubble them">Thanks Akif. We are checking the two refunds on 28 Sep and will reply today.</div></div></div>
+  <div class="dr-f"><input class="input" placeholder="Write a reply" style="flex:1"><button class="btn primary">Send</button></div>
+</div>
+
+<script>
+/* Design-review interactions only (static mockup). Not production code. */
+const B1 = ['m04','m05','m07','m11','m04ar'];
+const NAVMAP = {dashboard:'m04',campaigns:'m05',redemptions:'m14',insights:'m15',finance:'m18',business:'m16',team:'m17'};
+const NAV = [
+  ['RUN',[['dashboard','home'],['campaigns','layers'],['redemptions','check-sq']]],
+  ['UNDERSTAND',[['insights','bars'],['finance','card']]],
+  ['MANAGE',[['business','store'],['team','users']]]
+];
+const LBL = {dashboard:'Dashboard',campaigns:'Campaigns',redemptions:'Redemptions',insights:'Insights',finance:'Finance',business:'Business',team:'Team'};
+function buildShell(sec){
+  const active = sec.dataset.nav, sb = sec.querySelector('.sidebar'), tb = sec.querySelector('.topbar');
+  if(!sb||!tb) return;
+  let h = `<div class="brand"><span class="wordmark"><span class="d1">Deal</span><span class="d2">Dash</span></span><small>for Business</small><span class="mono">D</span><button class="nav-toggle" aria-label="Collapse or expand navigation" title="Collapse / expand navigation"><svg class="i sm mirror"><use href="#i-left"/></svg></button></div>`;
+  NAV.forEach(([g,items])=>{ h += `<div class="nav-label">${g}</div>`;
+    items.forEach(([k,ic])=>{ const on=(k===active)?' active':''; const dot=(k==='campaigns')?'<i class="dot"></i>':''; const fin=(k==='finance')?' fin-only':'';
+      h += `<a class="nav-item${on}${fin}" href="#" data-go="${NAVMAP[k]}" title="${LBL[k]}"><svg class="i"><use href="#i-${ic}"/></svg><span>${LBL[k]}</span>${dot}</a>`; }); });
+  h += `<div class="nav-spacer"></div>
+    <a class="nav-item${active==='support'?' active':''}" href="#" data-go="m20" title="Support"><svg class="i"><use href="#i-help"/></svg><span>Support</span></a>
+    <a class="nav-item${active==='settings'?' active':''}" href="#" data-go="m21" title="Settings"><svg class="i"><use href="#i-sliders"/></svg><span>Settings</span></a>
+    <div class="merchant-card"><div class="avatar logo" style="font-size:12px">NR</div><div class="mc-tx"><b>Nobu Riyadh</b><span class="verified"><svg class="i xs"><use href="#i-check-c"/></svg>Verified</span></div></div>`;
+  sb.innerHTML = h;
+  tb.innerHTML = `<div class="tb-merchant"><div class="avatar logo" style="width:34px;height:34px;font-size:12px">NR</div><b>Nobu Riyadh</b><svg class="i sm" style="color:var(--mint)"><use href="#i-check-c"/></svg></div>
+    <div class="branch-pill"><svg class="i sm"><use href="#i-pin"/></svg>All branches<svg class="i xs"><use href="#i-down"/></svg></div>
+    <div class="search"><svg class="i sm"><use href="#i-search"/></svg>Search campaigns or codes<kbd>/</kbd></div>
+    <div class="tb-right"><button class="icon-btn" aria-label="Help"><svg class="i"><use href="#i-help"/></svg></button><button class="icon-btn" aria-label="Notifications"><svg class="i"><use href="#i-bell"/></svg><span class="badge num">3</span></button><div class="lang"><span class="on">EN</span><span>عربي</span></div><div class="avatar">AK</div></div>`;
+}
+document.querySelectorAll('.screen').forEach(buildShell);
+
+/* ---- router ---- */
+function show(id){
+  if(B1.includes(id)){ location.href = 'merchant-hifi-batch-01.html#'+id; return; }
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active', s.id===id));
+  document.querySelectorAll('#designbar [data-go]').forEach(b=>b.classList.toggle('on', b.dataset.go===id));
+  closeOv(); window.scrollTo(0,0);
+}
+function setPane(g,p){
+  document.querySelectorAll(`.pane[data-g="${g}"]`).forEach(x=>x.classList.toggle('show', x.dataset.p===p));
+  document.querySelectorAll(`.seg[data-tabs="${g}"] button`).forEach(b=>b.classList.toggle('on', b.dataset.pane===p));
+}
+const scrim = document.getElementById('scrim');
+function closeOv(){ scrim.classList.remove('show'); document.querySelectorAll('.modal,.drawer').forEach(x=>x.classList.remove('show')); }
+function openOv(id){ document.querySelectorAll('.modal,.drawer').forEach(x=>x.classList.remove('show')); scrim.classList.add('show'); document.getElementById(id).classList.add('show'); }
+document.addEventListener('click',e=>{
+  const nt = e.target.closest('.nav-toggle'); if(nt){ nt.closest('.shell').classList.toggle('collapsed'); return; }
+  const r = e.target.closest('#designbar [data-role]'); if(r){ document.body.dataset.role=r.dataset.role; document.querySelectorAll('#designbar [data-role]').forEach(b=>b.classList.toggle('on',b===r)); return; }
+  if(e.target.closest('#rtlbtn')){ const d=document.documentElement.dir==='rtl'?'ltr':'rtl'; document.documentElement.dir=d; e.target.closest('#rtlbtn').classList.toggle('on',d==='rtl'); return; }
+  const op = e.target.closest('[data-open]'); if(op){ e.preventDefault(); openOv(op.dataset.open); return; }
+  if(e.target.closest('[data-close]')){ closeOv(); return; }
+  const tb = e.target.closest('.seg[data-tabs] button[data-pane]'); if(tb){ setPane(tb.closest('.seg').dataset.tabs, tb.dataset.pane); if(tb.closest('.seg').dataset.tabs==='app') appVariant(tb.dataset.pane); return; }
+  const st = e.target.closest('[data-set]'); if(st){ const [g,p]=st.dataset.set.split(':'); setPane(g,p); return; }
+  const g = e.target.closest('[data-go]'); if(g){ e.preventDefault(); show(g.dataset.go); return; }
+});
+scrim.addEventListener('click',closeOv);
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeOv(); });
+
+/* ---- generated tables ---- */
+const RC={redeemed:['st-live','Redeemed'],reversed:['st-paused','Reversed']};
+const RED=[['10:41 today','Olaya','Voucher','Pay 80, get 100','SAR 100','Omar T.','redeemed'],['10:32 today','Riyadh Park','Reservation','Dinner for Two','—','Lina S.','redeemed'],['10:05 today','Olaya','Voucher','Pay 80, get 100','SAR 100','Omar T.','redeemed'],['09:58 today','Olaya','Voucher','Pay 80, get 100','SAR 100','Omar T.','reversed'],['09:48 today','Riyadh Park','Prize','Free pastry (Watch & Earn)','—','Lina S.','redeemed'],['Yesterday 21:12','Olaya','Reservation','Dinner for Two','—','Omar T.','redeemed'],['Yesterday 20:40','Riyadh Park','Voucher','Pay 80, get 100','SAR 100','Lina S.','redeemed'],['Yesterday 19:18','Olaya','Voucher','Pay 80, get 100','SAR 100','Omar T.','redeemed']];
+document.getElementById('redrows').innerHTML=RED.map(r=>`<tr data-open="drRed"><td><b>${r[0]}</b></td><td>${r[1]}</td><td><span class="type-chip">${r[2]}</span></td><td>${r[3]}</td><td class="r num">${r[4]}</td><td>${r[5]}</td><td><span class="chip ${RC[r[6]][0]}" style="height:24px">${RC[r[6]][1]}</span></td></tr>`).join('');
+const VS=[['Today 10:12','Sara M.',1,'redeemed','Olaya 10:41','SAR 80'],['Today 09:30','Omar T.',2,'active','—','SAR 160'],['Yesterday','Lina S.',1,'active','—','SAR 80'],['Yesterday','Faisal A.',1,'redeemed','Riyadh Park','SAR 80'],['3 Oct','Noor H.',1,'refunded','—','SAR 80'],['2 Oct','Hassan K.',3,'redeemed','Olaya','SAR 240'],['30 Sep','Reem D.',1,'redeemed','Riyadh Park','SAR 80'],['29 Sep','Khalid B.',1,'refunded','—','SAR 80']];
+const VC={active:['st-pending','Active'],redeemed:['st-live','Redeemed'],refunded:['st-paused','Refunded'],expired:['st-expired','Expired']};
+document.getElementById('vsales').innerHTML=VS.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td class="num">${r[2]}</td><td><span class="chip ${VC[r[3]][0]}" style="height:24px">${VC[r[3]][1]}</span></td><td>${r[4]}</td><td class="r num fin-only">${r[5]}</td></tr>`).join('');
+const TEAM=[['Akif Khan','akif@nobu-riyadh.com','Owner','All branches','View + manage','active','Today'],['Sara Mansour','sara@nobu-riyadh.com','Marketing Manager','All branches','None','active','Yesterday'],['Noor Hamad','noor@nobu-riyadh.com','Finance','All branches','View + manage','active','Today'],['Faisal Ali','faisal@nobu-riyadh.com','Admin','All branches','None (not automatic)','active','2 days ago'],['Hassan Kareem','hassan@nobu-riyadh.com','Branch Manager','Riyadh Park','None','active','Today'],['Omar Taha','+966 55 111 2222','Redemption Staff','Olaya','—','active','Today'],['Lina Saleh','lina@nobu-riyadh.com','Redemption Staff','Olaya','—','invited','—'],['Reem Dosari','+966 55 333 4444','Redemption Staff','Riyadh Park','—','off','3 weeks ago']];
+const TC={active:['st-live','Active'],invited:['st-pending','Invited'],off:['st-paused','Deactivated']};
+document.getElementById('teamrows').innerHTML=TEAM.map(r=>`<tr data-open="drUser"><td><div class="nm"><div class="avatar">${r[0].split(' ').map(x=>x[0]).join('')}</div><div><b>${r[0]}</b><span class="sub">${r[1]}</span></div></div></td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td><span class="chip ${TC[r[5]][0]}" style="height:24px">${TC[r[5]][1]}</span></td><td class="muted">${r[6]}</td></tr>`).join('');
+const RM=[['Create and edit campaigns','✓','✓','✓','—','—'],['Pause or end campaigns','✓','✓','✓','—','—'],['Fund Watch & Earn budgets','✓','If Finance: manage','—','—','—'],['See statements, payouts, revenue','✓','If Finance: view','—','—','—'],['Reverse a redemption','✓','✓','—','✓ own branch','—'],['Manage team and roles','✓','✓','—','—','—'],['Scan and redeem (Staff app)','—','—','—','✓','✓']];
+document.getElementById('rolerows').innerHTML=RM.map(r=>`<tr style="cursor:default"><td><b>${r[0]}</b></td>${r.slice(1).map(c=>`<td style="${c==='—'?'color:var(--ink3)':''}">${c}</td>`).join('')}</tr>`).join('');
+
+/* ---- application status variants (M03) ---- */
+const AV={rev:['We are reviewing your application','<span class="chip st-pending"><svg class="i"><use href="#i-clock"/></svg>In review</span>',1],chg:['A few things need your attention','<span class="chip st-changes"><svg class="i"><use href="#i-alert"/></svg>Needs changes</span>',1],rej:['We could not approve this application','<span class="chip st-rejected"><svg class="i"><use href="#i-xc"/></svg>Rejected</span>',2],appr:['You are approved','<span class="chip st-live"><span class="pulse"></span>Approved</span>',3],susp:['Your account is suspended','<span class="chip st-suspended"><svg class="i"><use href="#i-lock"/></svg>Suspended</span>',4]};
+function appVariant(p){ const v=AV[p]; document.getElementById('apptitle').textContent=v[0]; document.getElementById('appchip').innerHTML=v[1];
+  document.getElementById('suspbanner').style.display = p==='susp'?'flex':'none';
+  document.querySelectorAll('#tl5 > div').forEach((d,i)=>{ d.className = i<v[2]?'d':(i===v[2]?'c':''); d.querySelector('i').innerHTML = i<v[2]?'<svg class="i xs"><use href="#i-check"/></svg>':(i+1); }); }
+appVariant('rev');
+
+/* ---- onboarding wizard (M02) ---- */
+const WHY=['We use these details to create your business record and show customers who you are.','We check your business details once, so customers can trust every DealDash merchant. It also lets us pay you.','The authorised representative accepts the agreement on behalf of the business.','Good photos and a clear description help customers choose you.','Customers use your branches to find you and to see when you are open.','We pay merchants by bank transfer. The account name has to match your business.','The agreement explains how campaigns, vouchers and payouts work. You can download it any time.','One last look. After you submit, we usually review applications within a couple of working days.'];
+const OBN=['Business details','Documents','Representative','Brand & category','Branches & hours','Payouts','Agreement','Review & submit'];
+let obStep=2;
+function goOb(n){ obStep=Math.max(1,Math.min(8,n)); setPane('ob',String(obStep));
+  document.querySelectorAll('#obsteps li').forEach(li=>{ const s=+li.dataset.s; li.className=s<obStep?'done':(s===obStep?'cur':''); li.querySelector('i').innerHTML = s<obStep?'<svg class="i xs" style="width:14px;height:14px"><use href="#i-check"/></svg>':s; });
+  document.getElementById('obring').style.background=`conic-gradient(var(--purple) 0 ${Math.round(obStep/8*100)}%,var(--lilac) 0)`;
+  document.getElementById('obringtxt').textContent=obStep+'/8'; document.getElementById('obsub').textContent=`Step ${obStep} of 8 · ${OBN[obStep-1]}`;
+  document.getElementById('obwhy').textContent=WHY[obStep-1];
+  document.getElementById('obnext').innerHTML = obStep===8 ? 'Submit application<svg class="i sm mirror"><use href="#i-arrow"/></svg>' : 'Save &amp; continue<svg class="i sm mirror"><use href="#i-arrow"/></svg>';
+  document.getElementById('obback').disabled = obStep===1; }
+document.getElementById('obsteps').addEventListener('click',e=>{ const li=e.target.closest('li'); if(li) goOb(+li.dataset.s); });
+document.getElementById('obnext').addEventListener('click',()=>{ if(obStep===8){ show('m03'); } else goOb(obStep+1); });
+document.getElementById('obback').addEventListener('click',()=>goOb(obStep-1));
+goOb(2);
+
+/* ================= BUILDERS (M10, M12, M13) ================= */
+const C={
+ head:(n,t,d)=>`<div class="step-h"><div class="muted small">Step ${n} of 9</div><h2>${t}</h2><p>${d}</p></div>`,
+ card:(t,inner)=>`<div class="card stack" style="gap:16px">${t?`<div class="card-t">${t}</div>`:''}${inner}</div>`,
+ bi:(label,en,ar,multi)=>`<div class="field"><div class="label">${label}</div><div class="bi"><div class="cell"><span class="tag">EN</span>${multi?`<textarea class="input" rows="3">${en}</textarea>`:`<input class="input" value="${en}">`}</div><div class="cell"><span class="tag">AR</span>${multi?`<textarea class="input ar" rows="3">${ar}</textarea>`:`<input class="input ar" value="${ar}">`}</div></div></div>`,
+ chips:(a,on)=>`<div class="chips">${a.map((x,i)=>`<span class="fc${i===on?' on':''}">${x}${i===on?'<svg class="i xs"><use href="#i-check"/></svg>':''}</span>`).join('')}</div>`,
+ rc:(a,on)=>a.map((x,i)=>`<button class="rcard${i===on?' on':''}"><span class="ic"><svg class="i"><use href="#i-${x[0]}"/></svg></span><div><b>${x[1]}</b><span>${x[2]}</span></div><i class="rdot"></i></button>`).join(''),
+ banner:(k,t,x)=>`<div class="banner ${k}"><svg class="i"><use href="#i-${k==='ok'?'check-c':k==='warn'?'alert':k==='danger'?'xc':'info'}"/></svg><div class="bx">${t?`<b>${t}</b>`:''}${x}</div></div>`,
+ locked:(t,d,c)=>`<div class="locked-row"><svg class="i sm"><use href="#i-lock"/></svg><div><b>${t}</b><span>${d}</span></div><span class="chip st-draft" style="height:24px">${c||'Coming later'}</span></div>`,
+ branches:()=>C.card('Where will it run?',['Olaya|Olaya St, Riyadh|1','Riyadh Park|Riyadh Park Mall|1','KAFD|KAFD Metro|1'].map(s=>{const[a,b,c]=s.split('|');return `<div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-top:1px solid var(--line)"><span class="tgl on"></span><div style="flex:1"><b>${a}</b><div class="muted small">${b}</div></div><span class="muted small">Open today</span></div>`}).join('')+`<div class="help">Customers see your deal at the branches you choose.</div>`),
+ gallery:()=>C.card('Photos',`<div class="gal"><div class="gt ph1"><span class="cover">Cover</span></div><div class="gt ph5"></div><div class="gt ph2"></div><div class="gt add"><svg class="i"><use href="#i-plus"/></svg>Add photo</div></div><div class="help">Add 1 to 5 photos. The first one is the cover. JPG or PNG, at least 1200 px wide.</div>`),
+ terms:(extra)=>C.card('Common terms',`<label class="ck"><i class="on"><svg class="i xs"><use href="#i-check"/></svg></i>Valid on full-price items only</label><label class="ck"><i></i>Minimum spend applies</label><label class="ck"><i class="on"><svg class="i xs"><use href="#i-check"/></svg></i>Dine-in only</label><label class="ck"><i></i>Cannot be combined with other offers</label>`)+C.card('Anything else?',`<div class="bi"><div class="cell"><span class="tag">EN</span><textarea class="input" rows="3" placeholder="e.g. One per table."></textarea></div><div class="cell"><span class="tag">AR</span><textarea class="input ar" rows="3" placeholder="مثال: واحد لكل طاولة."></textarea></div></div>`)+(extra||''),
+ review:(rows,msg)=>C.banner('ok','Within pre-approved rules',msg)+`<div class="card sumcard">${rows.map(r=>`<div class="sr"><span>${r[0]}</span><b>${r[1]}</b><a class="link">Edit</a></div>`).join('')}</div>`,
+ result:(t,d,btns,note)=>`<div class="result"><div class="ric"><svg class="i lg" style="width:36px;height:36px"><use href="#i-check"/></svg></div><h2>${t}</h2><p>${d}</p><div style="display:flex;gap:12px;margin-top:8px">${btns}</div><div class="muted small" style="margin-top:16px">${note}</div></div>`,
+ elig:()=>C.card('',C.rc([['users','Everyone','Any DealDash customer nearby can see this.'],['card','Customers with an eligible bank card','Others see it locked with “Add your eligible bank card to unlock”.'],['store','Verified employees of a partner company','Others see it locked with “Verify your employer to unlock”.']],0))
+};
+const PHL=(opt)=>`<div class="pv pv-detail"><div class="ph-hero ph1"><span class="back"><svg class="i sm mirror"><use href="#i-left"/></svg></span><span class="cnt">1/3</span><div class="ph-title"><b data-en="Nobu Riyadh" data-ar="نوبو الرياض">Nobu Riyadh</b><span data-en="Japanese · Olaya · 0.8 km away" data-ar="ياباني · العليا · 0.8 كم">Japanese · Olaya · 0.8 km away</span></div></div><div class="ph-sheet"><div class="row"><div class="big" data-en="${opt.big}" data-ar="${opt.bigAr}">${opt.big}</div><span class="${opt.cls}">${opt.tag}</span></div><div class="sub" data-en="${opt.sub}" data-ar="${opt.subAr}">${opt.sub}</div>${opt.body}</div><div class="ph-bar"><div><b>${opt.price}</b><br><span>${opt.priceSub}</span></div><span class="cta" data-en="${opt.cta}" data-ar="${opt.ctaAr}">${opt.cta}</span></div></div>`;
+const PREV={
+ m10:PHL({big:'30% off',bigAr:'خصم 30٪',cls:'pill-live',tag:'Live',sub:'Dinner for two: 30% off the tasting menu.',subAr:'عشاء لشخصين: خصم 30٪ على قائمة التذوق.',price:'Free',priceSub:'No code, no reservation',cta:'Get directions',ctaAr:'احصل على الاتجاهات',body:`<div class="ok"><svg class="i xs"><use href="#i-check"/></svg><div><b data-en="Open to everyone" data-ar="متاح للجميع">Open to everyone</b><br><span>No card or employer needed.</span></div></div><div class="how"><b data-en="Just see and go" data-ar="شاهد وتوجه مباشرة">Just see and go</b><span>Nothing to book and no code to show. Visit during valid hours.</span></div>`}),
+ m12:PHL({big:'Pay 80, get 100',bigAr:'ادفع 80 واحصل على 100',cls:'hot" style="background:#EEE8FF;color:#5B1AFC',tag:'Voucher',sub:'A SAR 100 voucher for SAR 80. Save SAR 20.',subAr:'قسيمة بقيمة 100 ريال مقابل 80 ريال. وفّر 20 ريال.',price:'SAR 80',priceSub:'you pay now',cta:'Buy now',ctaAr:'اشترِ الآن',body:`<div class="ok"><svg class="i xs"><use href="#i-check"/></svg><div><b data-en="Open to everyone" data-ar="متاح للجميع">Open to everyone</b><br><span>Sale ends in 12 days</span></div></div><div class="how"><b>How it works</b><span>Buy now · Visit within 90 days · Spend the full SAR 100 in one visit.</span></div>`}),
+ m13:`<div class="pv"><div class="reel"><div class="prog"><i></i></div><div class="top"><span>Reels</span><svg class="i sm"><use href="#i-x"/></svg></div><div class="side"><span><svg class="i"><use href="#i-eye"/></svg>1.2K</span><span><svg class="i"><use href="#i-tag"/></svg>Save</span></div><div class="who"><i>NR</i><span data-en="Nobu Riyadh" data-ar="نوبو الرياض">Nobu Riyadh</span></div><b style="font-size:16px" data-en="Lunch reel" data-ar="فيديو الغداء">Lunch reel</b><div class="wk"><svg class="i sm"><use href="#i-gift"/></svg><span data-en="Watch to unlock: Free pastry · 37 left" data-ar="شاهد لتفتح: معجنات مجانية · تبقّى 37">Watch to unlock: Free pastry · 37 left</span></div><div class="row"><span class="vd" data-en="View deal" data-ar="عرض العرض">View deal</span><span class="rw" data-en="Earn rewards · 15s" data-ar="اربح مكافآت · 15 ث">Earn rewards · 15s</span></div></div></div>`
+};
+const CHK={
+ m10:[['ok','Valid campaign dates'],['ok','Arabic & English content supplied'],['ok','Branches selected'],['ok','Frictionless: no code, no reservation (default)']],
+ m12:[['ok','Price is below face value'],['ok','Arabic & English content supplied'],['warn','Large inventory (100): may be reviewed'],['ok','Validity meets the platform minimum']],
+ m13:[['ok','Video within length and size limits'],['ok','Arabic & English content supplied'],['warn','Video will be reviewed before going live'],['ok','Budget within DealDash limits']]
+};
+const STEPS={
+ m10:[
+  ['Basics','Name & description',C.head(1,'Name your Live Deal','Keep it short and clear. Customers see this first.')+C.card('',C.bi('Deal name','30% off tasting menu','خصم 30٪ على قائمة التذوق')+C.bi('Short description','30% off the tasting menu for two. Just visit and enjoy.','خصم 30٪ على قائمة التذوق لشخصين. تفضّل بالزيارة.',true))],
+  ['Offer','What customers get',C.head(2,'What do customers get?','Choose the type of offer and its value.')+C.card('Offer type',`<div class="seg" style="align-self:flex-start;flex-wrap:wrap"><button class="on">% off</button><button>SAR off</button><button>Buy 1 get 1</button><button>Bundle</button><button>Meal deal</button><button>Service</button></div>`)+C.card('Discount',C.chips(['10%','20%','30%','40%','50%'],2)+`<div class="help">Up to 50% off fits DealDash’s pre-approved rules.</div>`)],
+  ['Branches','Where it runs',C.head(3,'Choose branches','Pick where customers can use this deal.')+C.branches()],
+  ['Eligibility','Who can use it',C.head(4,'Who can use this deal?','Most Live Deals are open to everyone.')+`<div class="stack" style="gap:12px">${C.rc([['users','Everyone','Any DealDash customer nearby can see this.'],['card','Customers with an eligible bank card','Others see it locked with “Add your eligible bank card to unlock”.'],['store','Verified employees of a partner company','Others see it locked with “Verify your employer to unlock”.']],0)}</div>`],
+  ['Dates','Start and end',C.head(5,'When does it run?','All times are Riyadh time.')+C.card('Start',`<div class="seg" style="align-self:flex-start"><button class="on">Start now</button><button>Schedule for later</button></div>`)+C.card('End',`<div style="display:flex;align-items:center;gap:12px"><span class="tgl on"></span><div><b>Keep it running until I stop it</b><div class="muted small">We will ask you to reconfirm every 60 days.</div></div></div><div class="field" style="max-width:280px"><div class="label">Or choose an end date</div><input class="input" value="11 Oct 2026" disabled style="background:var(--slate100)"></div>`)],
+  ['Content','Photos and video',C.head(6,'Add photos','Good photos get more visits.')+C.gallery()+C.card('Optional video',`<div class="frow"><span class="fi"><svg class="i sm"><use href="#i-play"/></svg></span><div><b>Add a short video</b><span>Shown on your deal page like a photo.</span></div><button class="btn tonal sm">Upload</button></div>`+C.banner('info','','Want customers to earn rewards for watching? That is a separate <b>Watch &amp; Earn</b> campaign.'))],
+  ['Terms','The fine print',C.head(7,'Terms','Tell customers the fine print so there are no surprises.')+C.terms(C.card('Controlled redemption <span class="chip st-draft" style="height:22px;font-size:11px">Optional · Off</span>',`<div style="display:flex;gap:14px;align-items:flex-start"><span class="tgl"></span><div><b>Ask customers for a code</b><div class="muted" style="font-size:13px">Most Live Deals need nothing: customers discover, view and visit. Turn this on only if you need a code or a per-customer limit.</div></div></div>`))],
+  ['Review & preview','Check everything',C.head(8,'Review & preview','Check the summary and see exactly what customers will see.')+C.review([['Deal','30% off · tasting menu for two'],['Branches','Olaya · Riyadh Park · KAFD'],['Eligibility','Everyone'],['Dates','Now · until I stop it'],['Journey','Discover → View → Visit (no code)'],['Terms','Full-price items · Dine-in only']],'This Live Deal should go live instantly after you submit.')],
+  ['Publish / submit','Go live',C.result('Your Live Deal is live','Customers nearby can find it now.',`<button class="btn primary" data-go="m06">View campaign</button><button class="btn tonal">Promote with Watch &amp; Earn</button>`,'Other outcomes: Scheduled · Pending review · Needs changes')]
+ ],
+ m12:[
+  ['Basics','Name & description',C.head(1,'Name your voucher','Say what the customer gets in a few words.')+C.card('',C.bi('Voucher name','Pay 80, get 100','ادفع 80 واحصل على 100')+C.bi('Short description','A SAR 100 voucher for SAR 80.','قسيمة بقيمة 100 ريال مقابل 80 ريال.',true))],
+  ['Pricing','Face value and price',C.head(2,'Set the price','Customers pay the selling price and spend the full face value.')+C.card('',`<div class="dsplit"><div class="field"><div class="label">Face value (what it is worth)</div><div style="position:relative"><input class="input" value="100" style="padding-inline-end:70px;font-weight:800"><span class="pill-soft" style="position:absolute;inset-inline-end:10px;top:11px">SAR</span></div></div><div class="field"><div class="label">Selling price (what customers pay)</div><div style="position:relative"><input class="input" value="80" style="padding-inline-end:70px;font-weight:800"><span class="pill-soft" style="position:absolute;inset-inline-end:10px;top:11px">SAR</span></div></div></div><div class="banner info" style="align-items:center"><svg class="i"><use href="#i-tag"/></svg><div class="bx"><b>Customers pay SAR 80 · get SAR 100 · save 20%</b>Savings up to 40% fit DealDash’s pre-approved rules.</div></div>`)],
+  ['Branches','Where it works',C.head(3,'Choose branches','Customers can redeem the voucher at these branches.')+C.branches()],
+  ['Eligibility','Who can buy',C.head(4,'Who can buy this voucher?','Vouchers are open to everyone at launch.')+`<div class="stack" style="gap:12px">${C.rc([['users','Everyone','Any DealDash customer can buy it.']],0)}${C.locked('Card-restricted vouchers','Limiting a voucher to certain bank cards is coming later.')}</div>`],
+  ['Inventory & validity','Stock, limits, expiry',C.head(5,'Stock, limits and validity','Control how many are sold and how long they last.')+C.card('Inventory',`<div class="dsplit"><div class="field"><div class="label">Vouchers for sale</div><div class="step-num"><button>−</button><b class="num">100</b><button>+</button></div></div><div class="field"><div class="label">Maximum per customer</div><div class="step-num"><button>−</button><b class="num">5</b><button>+</button></div></div></div>`)+C.card('Validity',`<div class="seg" style="align-self:flex-start"><button class="on">Days from purchase</button><button>Fixed date</button></div><div class="step-num"><button>−</button><b class="num">90</b><button>+</button></div><div class="help">Minimum validity is set by DealDash. Customers redeem the whole voucher in one visit.</div>`)+C.banner('info','Refunds','Customers can get a full refund before they redeem. The refund window is set by DealDash.')],
+  ['Content','Photos',C.head(6,'Add photos','Show what the voucher is good for.')+C.gallery()],
+  ['Terms','The fine print',C.head(7,'Terms','Tell customers the rules before they buy.')+C.terms(C.locked('Set by DealDash','Refund and expiry handling follow platform rules and are shown to customers automatically.','Read-only'))],
+  ['Review & preview','Check everything',C.head(8,'Review & preview','Check the summary and see exactly what customers will see.')+C.review([['Voucher','Pay SAR 80, get SAR 100 (save 20%)'],['Stock','100 vouchers · max 5 per customer'],['Validity','90 days from purchase'],['Branches','Olaya · Riyadh Park · KAFD'],['Redemption','In full, in one visit'],['Terms','Full-price items · Dine-in only']],'Large stock may be reviewed first. Most vouchers publish instantly.')],
+  ['Publish / submit','Go on sale',C.result('Your voucher is on sale','Customers can buy it now.',`<button class="btn primary" data-go="m08">View voucher</button><button class="btn tonal">Create another</button>`,'Other outcomes: Scheduled · Pending review · Needs changes')]
+ ],
+ m13:[
+  ['Basics','Name & link',C.head(1,'Name your campaign and choose where it leads','After watching, customers can open one of your offers.')+C.card('',C.bi('Campaign name','Lunch reel','فيديو الغداء'))+C.card('Where should customers go next?',`<div class="chips"><span class="fc">Merchant page</span><span class="fc">Live Deal</span><span class="fc on">Hot Deal<svg class="i xs"><use href="#i-check"/></svg></span><span class="fc">Voucher</span><span class="fc">Product or service</span></div><div class="frow"><span class="fi"><svg class="i sm"><use href="#i-flame"/></svg></span><div><b>Dinner for Two · 30% off</b><span>Hot Deal · Live now</span></div><button class="btn tonal sm">Change</button></div>`)],
+  ['Configuration','Budget, views, prizes',C.head(2,'Budget and views','You pay only for verified qualifying views. DealDash decides what customers earn.')+C.card('Paid views',`<div class="dsplit"><div class="field"><div class="label">Paid views to buy</div><div class="step-num"><button>−</button><b class="num">1,000</b><button>+</button></div></div><div class="field"><div class="label">Estimated cost</div><div class="input" style="display:flex;align-items:center;font-weight:800;background:var(--purple50)">SAR 1,200</div><div class="help">From DealDash’s rate card. Final cost is per qualified view.</div></div></div>`+C.banner('info','You do not set rewards','DealDash controls what customers earn and which views qualify. You only choose how many verified views to pay for.'))+C.card('Repeat limit <span class="chip st-draft" style="height:22px;font-size:11px">Optional</span>',C.chips(['DealDash minimum','Once a day','Once a week'],0)+`<div class="help">You can only make this stricter than DealDash’s minimum.</div>`)+C.card('Prize <span class="chip st-draft" style="height:22px;font-size:11px">Optional</span>',`<div style="display:flex;align-items:center;gap:12px"><span class="tgl on"></span><div><b>Offer a prize for watching</b><div class="muted small">Redeemed in store through the normal redemption flow.</div></div></div><div class="bi"><div class="cell"><span class="tag">EN</span><input class="input" value="Free pastry"></div><div class="cell"><span class="tag">AR</span><input class="input ar" value="معجنات مجانية"></div></div><div class="dsplit"><div class="field"><div class="label">Quantity</div><div class="step-num"><button>−</button><b class="num">50</b><button>+</button></div></div><div class="field"><div class="label">Valid for</div><div class="step-num"><button>−</button><b class="num">30 d</b><button>+</button></div></div></div>`)],
+  ['Locations','Where it is shown',C.head(3,'Where should customers see it?','Choose areas of Riyadh or a distance around your branches.')+C.card('Areas',C.chips(['Olaya','Al Malqa','Riyadh Park','Al Nakheel','KAFD','Diriyah'],0).replace('class="fc"','class="fc on"'))+C.card('Or around your branches',`<div class="seg" style="align-self:flex-start"><button>2 km</button><button class="on">5 km</button><button>10 km</button></div>`)],
+  ['Audience','Who sees it',C.head(4,'Who should see it?','Reach the right customers. Targeting by age or gender is not offered.')+C.card('',C.rc([['users','Everyone nearby','The widest reach.'],['card','Customers with an eligible bank card','Shown only to matching card holders.'],['store','Verified employees of a partner company','Shown only to verified employees.']],0))+C.card('Interests',C.chips(['Food & Drink','Cafés','Groceries','Fashion'],0).replace('class="fc"','class="fc on"'))],
+  ['Dates','Start and end',C.head(5,'When does it run?','The campaign also ends when all paid views are delivered.')+C.card('',`<div class="dsplit"><div class="field"><div class="label">Starts</div><input class="input" value="1 Oct 2026"></div><div class="field"><div class="label">Ends</div><input class="input" value="31 Oct 2026"></div></div><div class="help">At this pace about 33 views a day.</div>`)],
+  ['Content','Video',C.head(6,'Upload your video','A short vertical video works best. Customers watch it to the end to earn.')+C.card('Video',`<div class="frow"><span class="fi"><svg class="i sm"><use href="#i-play"/></svg></span><div><b>lunch-reel.mp4</b><span>0:15 · 12 MB · ready</span></div><span class="chip st-live" style="height:24px"><svg class="i"><use href="#i-check"/></svg>Processed</span></div><div class="drop" style="padding:14px"><b style="margin:0">Replace video</b><span class="small">MP4 up to 100 MB, 15 to 30 seconds</span></div>`)+C.card('Thumbnail and button',`<div class="gal"><div class="gt ph3"></div><div class="gt ph1"></div><div class="gt ph5"></div><div class="gt add"><svg class="i"><use href="#i-plus"/></svg>Upload</div></div><div class="chips"><span class="fc on">View deal<svg class="i xs"><use href="#i-check"/></svg></span><span class="fc">Reserve</span><span class="fc">Visit us</span></div>`)+C.banner('info','Reviewed before going live','Every video is checked by DealDash first. You will be notified of the result.')],
+  ['Terms','Campaign terms',C.head(7,'Terms','Add anything customers should know about the prize or the campaign.')+C.card('Prize terms',`<div class="bi"><div class="cell"><span class="tag">EN</span><textarea class="input" rows="3">One pastry per customer. Show the code at the counter.</textarea></div><div class="cell"><span class="tag">AR</span><textarea class="input ar" rows="3">معجنة واحدة لكل عميل. أظهر الرمز عند الكاونتر.</textarea></div></div>`)],
+  ['Review & fund','Check and pay',C.head(8,'Review and fund','Check everything. You fund the campaign before it can go live.')+C.review([['Campaign','Lunch reel → Hot Deal “Dinner for Two”'],['Audience','Everyone nearby · Food & Drink · 5 km'],['Dates','1 – 31 Oct'],['Paid views','1,000 views'],['Prize','Free pastry × 50'],['Video','lunch-reel.mp4 · 0:15']],'Your budget only pays for verified qualifying views.')+`<div class="card fin-only" style="margin-top:12px"><div class="kv"><span>Budget to fund</span><b class="num" style="font-size:18px">SAR 1,200</b></div><div class="help">Paid securely by DealDash’s payment provider. Unused budget is tracked separately.</div></div><div class="banner info fin-alt" style="margin-top:12px"><svg class="i"><use href="#i-info"/></svg><div class="bx"><b>Funding needs the Owner or Finance</b>You can submit this campaign. We will ask the Owner or Finance to fund it.</div></div>`],
+  ['Publish / submit','Funded or awaiting',`<div class="fin-only">${C.result('Funded. Your video is in review','We will notify you as soon as it is approved and live.',`<button class="btn primary" data-go="m09">View campaign</button><button class="btn tonal">Create another</button>`,'Other outcomes: Live · Scheduled · Needs changes · Payment failed (retry)')}</div><div class="fin-alt">${C.result('Sent for funding','The Owner or Finance has been asked to fund “Lunch reel”. It will start moving once funded.',`<button class="btn primary" data-go="m09">View campaign</button>`,'Status: Awaiting funding')}</div>`]
+ ]
+};
+const TITLE={m10:'New Live Deal',m12:'New Voucher',m13:'New Watch & Earn campaign'};
+const FOOT={m10:'Frictionless by default: no code, no reservation.',m12:'Vouchers are redeemed in full, in one visit.',m13:'You pay only for verified qualifying views.'};
+function renderBuilder(el){
+  const id=el.dataset.b, steps=STEPS[id]; let cur=5;
+  el.innerHTML=`<div class="b-head"><a class="link" data-go="m05"><svg class="i sm mirror"><use href="#i-left"/></svg>Campaigns</a><span class="muted">/</span><div class="h-title" style="font-size:20px;line-height:28px">${TITLE[id]}</div><span class="chip st-draft"><svg class="i"><use href="#i-edit"/></svg>Draft</span><span class="muted small">Saved just now</span><span style="margin-inline-start:auto;display:flex;gap:10px;align-items:center"><span class="chip st-live"><svg class="i"><use href="#i-check"/></svg>EN + AR complete</span><button class="btn text sm">Ask DealDash to help translate</button></span></div>
+  <div class="b-body"><aside class="rail card"><div class="rail-top"><div class="ring" data-r><span class="num" data-rt></span></div><div><b data-rn></b><div class="muted small" data-rs></div></div></div><ol data-rl>${steps.map((s,i)=>`<li data-s="${i+1}"><i>${i+1}</i><div><b>${s[0]}</b><span>${s[1]}</span></div></li>`).join('')}</ol></aside>
+  <div class="form-col">${steps.map((s,i)=>`<div class="step" data-step="${i+1}">${s[2]}</div>`).join('')}</div>
+  <aside class="prev-col"><div class="stage"><div class="stage-top"><div class="seg sm" data-pl><button class="on" data-l="en">EN</button><button data-l="ar">AR</button></div><span class="muted small">Customer preview</span></div><div class="phone" data-ph>${PREV[id]}</div></div>
+  <div class="card checks"><div class="card-t" style="margin-bottom:10px"><svg class="i sm" style="color:var(--purple)"><use href="#i-check-c"/></svg>DealDash checks</div>${CHK[id].map(c=>`<div class="ck-row ${c[0]}"><svg class="i sm"><use href="#i-${c[0]==='ok'?'check':'alert'}"/></svg>${c[1]}</div>`).join('')}<div class="verdict">${id==='m13'?'Reviewed first, then live once funded.':'Likely to publish instantly.'}</div></div></aside></div>
+  <div class="b-foot" data-ft><button class="btn outline" data-bb><svg class="i sm mirror"><use href="#i-left"/></svg>Back</button><span class="muted small" style="margin-inline-start:8px">${FOOT[id]} Drafts save automatically.</span><span style="margin-inline-start:auto;display:flex;gap:10px"><button class="btn text">Save draft</button><button class="btn tonal"><svg class="i sm"><use href="#i-eye"/></svg>Preview</button><button class="btn primary lg" data-bn>Continue<svg class="i sm mirror"><use href="#i-arrow"/></svg></button></span></div>`;
+  const go=n=>{ cur=Math.max(1,Math.min(9,n));
+    el.querySelectorAll('.step').forEach(s=>s.classList.toggle('show',+s.dataset.step===cur));
+    el.querySelectorAll('[data-rl] li').forEach(li=>{ const s=+li.dataset.s; li.className=s<cur?'done':(s===cur?'cur':''); li.querySelector('i').innerHTML=s<cur?'<svg class="i xs" style="width:14px;height:14px"><use href="#i-check"/></svg>':s; });
+    el.querySelector('[data-r]').style.background=`conic-gradient(var(--purple) 0 ${Math.round(cur/9*100)}%,var(--lilac) 0)`;
+    el.querySelector('[data-rt]').textContent=cur+'/9'; el.querySelector('[data-rn]').textContent=TITLE[id].replace('New ','')+' setup'; el.querySelector('[data-rs]').textContent=`Step ${cur} of 9 · ${steps[cur-1][0]}`;
+    el.querySelector('[data-bb]').disabled=cur===1;
+    el.querySelector('[data-bn]').innerHTML=(cur===8?(id==='m13'?'<span class="fin-only">Fund &amp; submit</span><span class="fin-alt">Send for funding</span>':'Submit'):'Continue')+'<svg class="i sm mirror"><use href="#i-arrow"/></svg>';
+    el.querySelector('[data-ft]').style.display=cur===9?'none':'flex'; window.scrollTo({top:0}); };
+  el.querySelector('[data-rl]').addEventListener('click',e=>{ const li=e.target.closest('li'); if(li) go(+li.dataset.s); });
+  el.querySelector('[data-bn]').addEventListener('click',()=>go(cur+1)); el.querySelector('[data-bb]').addEventListener('click',()=>go(cur-1));
+  el.querySelector('[data-pl]').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; el.querySelectorAll('[data-pl] button').forEach(x=>x.classList.toggle('on',x===b)); const ph=el.querySelector('[data-ph]'); ph.dataset.lang=b.dataset.l; ph.querySelectorAll('[data-en]').forEach(t=>{ t.textContent=t.dataset[b.dataset.l]; }); });
+  el._go=go; go(+(el.dataset.start||5));
+}
+document.querySelectorAll('.bld').forEach(renderBuilder);
+
+/* ---- init ---- */
+(function(){
+  const h=location.hash.replace('#',''); const [id,arg]=h.split(':');
+  if(id && document.getElementById(id) && !B1.includes(id)){ show(id);
+    const sec=document.getElementById(id);
+    if(arg){ if(sec.querySelector('.bld')){ sec.querySelector('.bld')._go(+arg); }
+      else if(id==='m02'){ goOb(+arg); }
+      else if(id==='m03'){ setPane('app',arg); appVariant(arg); }
+      else if(sec.querySelector('.seg[data-tabs]')){ const g=sec.querySelector('.seg[data-tabs]').dataset.tabs; setPane(g,arg); } }
+    const ov=location.hash.split(':')[2]; if(ov) openOv(ov);
+  } else { show('m01'); }
+})();
+</script>
+</body>
+</html>

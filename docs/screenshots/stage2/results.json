@@ -1,0 +1,155 @@
+{
+  "at": "2026-10-09T12:37:48.357Z",
+  "results": [
+    {
+      "name": "merchant can sign up, verify email, and lands in onboarding",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "business details save",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "client validation marks the empty required field",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "logo and cover upload through the storage adapter, category saves",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "authorised representative saves",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "branch with opening hours is created",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "document uploads and is attached with an expiry date",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "a file whose content is not a real PDF is rejected",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "an invalid IBAN is refused",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "IBAN is shown masked after saving",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "agreement signed by the named signatory",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "application submitted; merchant sees a read-only status page",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "admin sees the submitted application in the review queue",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "typing in a dialog keeps focus (every character lands)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "admin requests changes on the document",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "merchant sees the requested changes with the reviewer message",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "merchant replaces the document and resubmits",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "admin sees what changed since the previous submission",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "admin approves; merchant account becomes active",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "after approval the merchant reaches Team and Branches",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "invited administrator accepts the invitation and sets a password",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "branch staff are invited by mobile with a branch",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "a user can be deactivated with a reason",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Arabic merchant page is rtl with lang=ar",
+      "ok": true,
+      "detail": "dir=rtl lang=ar"
+    },
+    {
+      "name": "no horizontal overflow in Arabic merchant page",
+      "ok": true,
+      "detail": "overflow=0"
+    },
+    {
+      "name": "Arabic layout puts the navigation sidebar on the right",
+      "ok": true,
+      "detail": "sidebar=right"
+    },
+    {
+      "name": "Arabic UI shows Arabic labels (no English fallbacks in the branch editor)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "no horizontal overflow in Arabic admin pages",
+      "ok": true,
+      "detail": "overflow=0"
+    },
+    {
+      "name": "sign-up has no horizontal scroll at phone width",
+      "ok": true,
+      "detail": "overflow=0"
+    },
+    {
+      "name": "no unexpected console errors in the merchant app",
+      "ok": true,
+      "detail": ""
+    }
+  ]
+}

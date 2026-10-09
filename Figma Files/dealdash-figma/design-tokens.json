@@ -1,0 +1,97 @@
+{
+  "name": "DealDash design tokens",
+  "font": {
+    "family": "Plus Jakarta Sans",
+    "weights": [
+      400,
+      500,
+      600,
+      700,
+      800
+    ],
+    "source": "Google Fonts (free in Figma)"
+  },
+  "color": {
+    "light": {
+      "navy": "#0F0C42",
+      "navy-2": "#0A0830",
+      "purple": "#5B1AFC",
+      "purple-2": "#7E4DFF",
+      "lilac": "#EEE8FF",
+      "mint": "#1FBF8F",
+      "amber": "#F5A524",
+      "red": "#E93A52",
+      "bg": "#F8F9FD",
+      "card": "#FFFFFF",
+      "ink": "#0F0C42",
+      "ink-2": "#5B5E80",
+      "line": "#E3E1F0",
+      "stage": "#E9E7F5"
+    },
+    "dark": {
+      "bg": "#0C0E2B",
+      "card": "#171A47",
+      "ink": "#F2F1FF",
+      "ink-2": "#A6A9D3",
+      "line": "#2A2E66",
+      "lilac": "#25226B",
+      "stage": "#070819"
+    },
+    "semantic": {
+      "live": "#E93A52",
+      "hot-gradient": [
+        "#FF7A1A",
+        "#E93A52"
+      ],
+      "verified": "#1FBF8F",
+      "warning": "#F5A524",
+      "instant-badge": [
+        "#FFB020",
+        "#FF8A00"
+      ]
+    }
+  },
+  "radius": {
+    "chip": 99,
+    "card": 20,
+    "card-large": 22,
+    "hero": 24,
+    "sheet": 26,
+    "tile": 22,
+    "input": 14
+  },
+  "shadow": {
+    "card": "0 1px 2px rgba(20,22,58,.06),0 6px 18px rgba(20,22,58,.07)"
+  },
+  "spacing": {
+    "screen-padding": 16,
+    "section-gap": 24,
+    "card-gap": 12
+  },
+  "frame": {
+    "width": 390,
+    "device": "iPhone 14 / 390 x 844"
+  },
+  "type": {
+    "title-xl": {
+      "size": 28,
+      "weight": 800
+    },
+    "title": {
+      "size": 18,
+      "weight": 800
+    },
+    "body": {
+      "size": 14,
+      "weight": 500
+    },
+    "caption": {
+      "size": 12,
+      "weight": 500
+    },
+    "button": {
+      "size": 15,
+      "weight": 700
+    }
+  }
+}
