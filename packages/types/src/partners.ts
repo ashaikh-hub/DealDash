@@ -171,6 +171,13 @@ export type PartnerBenefitKind = (typeof PARTNER_BENEFIT_KINDS)[number];
 export const BIN_PREFIX_PATTERN = /^\d{6,8}$/;
 /** Anything that looks like a full card number (13–19 digits, optionally spaced) is refused wherever text is accepted. */
 export const PAN_LIKE_PATTERN = /(?:\d[ -]?){13,19}/;
+const UUID_IN_TEXT = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
+/**
+ * Stage 8 fix: does this text look like it carries a card number? Identifiers DealDash itself issues (UUIDs, for example an
+ * organization reference in an eligibility rule) are removed first: their digit groups joined by hyphens could otherwise match the
+ * PAN pattern at random and refuse a valid value.
+ */
+export const looksLikeCardNumber = (text: string) => PAN_LIKE_PATTERN.test(text.replace(UUID_IN_TEXT, ' '));
 export const CARD_PROGRAM_STATUSES = ['DRAFT', 'ACTIVE', 'RETIRED'] as const;
 export type CardProgramStatus = (typeof CARD_PROGRAM_STATUSES)[number];
 /** How a customer's link to a programme / employer is established. VERIFIED states need evidence from the named method. */

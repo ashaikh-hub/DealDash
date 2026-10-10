@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { PermissionCode } from '@dealdash/types';
+import { CASE_OPEN_STATUSES, RECON_EXCEPTION_STATUSES, type PermissionCode } from '@dealdash/types';
 import { PrismaService } from '../prisma/prisma.service';
 
 export type InboxPriority = 'LOW' | 'NORMAL' | 'HIGH' | 'CRITICAL';
@@ -132,22 +132,42 @@ export class InboxService {
         createdAt: f.createdAt.toISOString(),
         requiredPermission: 'admin.conflicts.manage',
       });
-    for (const d of await this.prisma.disputeCase.findMany({ where: { status: { in: ['OPEN', 'IN_REVIEW'] } }, orderBy: { slaDueAt: 'asc' }, take: 100 })) {
+    for (const d of await this.prisma.disputeCase.findMany({ where: { status: { in: [...CASE_OPEN_STATUSES] } }, orderBy: { slaDueAt: 'asc' }, take: 100 })) {
       const late = d.slaDueAt < now;
       add({
-        kind: 'DISPUTE',
+        kind: d.status === 'AWAITING_APPROVAL' ? 'CASE_APPROVAL' : 'DISPUTE',
         title: `${d.reference}: ${d.title}`,
         subject: `${d.reference}: ${d.title}`,
-        detail: late ? 'SLA_MISSED' : null,
+        detail: late ? 'SLA_MISSED' : d.status === 'AWAITING_APPROVAL' ? 'APPROVAL_REQUIRED' : null,
         priority: late ? 'CRITICAL' : (d.priority as InboxPriority),
         organizationId: d.organizationId,
         entityType: 'DisputeCase',
         entityId: d.id,
         dueAt: d.slaDueAt.toISOString(),
         createdAt: d.createdAt.toISOString(),
-        requiredPermission: 'admin.disputes.read',
+        requiredPermission: d.status === 'AWAITING_APPROVAL' ? 'admin.disputes.manage' : 'admin.disputes.read',
       });
     }
+    // ---- Stage 8: approvals and exception queues (derived from state, so they never go stale)
+    for (const a of await this.prisma.adjustmentRequest.findMany({ where: { status: 'PENDING_APPROVAL' }, orderBy: { createdAt: 'asc' }, take: 100 }))
+      add({ kind: 'ADJUSTMENT_APPROVAL', title: `Financial adjustment waiting for approval: ${a.reference}`, subject: a.reference, detail: a.kind, priority: 'HIGH', organizationId: a.organizationId, entityType: 'AdjustmentRequest', entityId: a.id, dueAt: null, createdAt: a.createdAt.toISOString(), requiredPermission: 'admin.finance.approve' });
+    for (const r of await this.prisma.operationalRestriction.findMany({ where: { status: 'PENDING_APPROVAL' }, orderBy: { createdAt: 'asc' }, take: 100 }))
+      add({ kind: 'RESTRICTION_APPROVAL', title: `Restriction waiting for approval: ${r.reference}`, subject: r.reference, detail: r.kind, priority: 'HIGH', organizationId: r.organizationId, entityType: 'OperationalRestriction', entityId: r.id, dueAt: null, createdAt: r.createdAt.toISOString(), requiredPermission: 'admin.restrictions.approve' });
+    for (const r of await this.prisma.refund.findMany({ where: { status: { in: ['REQUESTED', 'UNDER_REVIEW'] } }, orderBy: { createdAt: 'asc' }, take: 100 }))
+      add({ kind: 'REFUND_REVIEW', title: `Refund waiting for a decision: ${r.reference}`, subject: r.reference, detail: r.status, priority: 'NORMAL', organizationId: r.organizationId, entityType: 'Refund', entityId: r.id, dueAt: null, createdAt: r.createdAt.toISOString(), requiredPermission: 'admin.refunds.manage' });
+    for (const s of await this.prisma.settlement.findMany({ where: { status: { in: ['HELD', 'DISPUTE_HOLD', 'FAILED'] } }, take: 100 }))
+      add({ kind: 'SETTLEMENT_EXCEPTION', title: `Settlement needs attention: ${s.reference}`, subject: s.reference, detail: s.status, priority: s.status === 'FAILED' ? 'HIGH' : 'NORMAL', organizationId: s.organizationId, entityType: 'Settlement', entityId: s.id, dueAt: null, createdAt: s.updatedAt.toISOString(), requiredPermission: 'admin.settlements.manage' });
+    for (const i of await this.prisma.reconciliationItem.findMany({ where: { status: { in: [...RECON_EXCEPTION_STATUSES] } }, orderBy: { createdAt: 'asc' }, take: 100 }))
+      add({ kind: 'RECONCILIATION_EXCEPTION', title: `Reconciliation exception: ${i.reference}`, subject: i.reference, detail: i.status, priority: 'NORMAL', organizationId: i.organizationId, entityType: 'ReconciliationItem', entityId: i.id, dueAt: null, createdAt: i.createdAt.toISOString(), requiredPermission: 'admin.reconciliation.manage' });
+    for (const f of await this.prisma.riskFlag.findMany({ where: { status: { in: ['OPEN', 'IN_REVIEW'] }, domain: { not: 'WATCH' } }, orderBy: { createdAt: 'asc' }, take: 100 }))
+      add({ kind: 'FRAUD_REVIEW', title: `Risk flag to review: ${f.ruleCode ?? f.domain}`, subject: f.ruleCode, detail: f.domain, priority: f.decision === 'BLOCK' ? 'HIGH' : 'NORMAL', organizationId: f.subjectOrganizationId, entityType: 'RiskFlag', entityId: f.id, dueAt: null, createdAt: f.createdAt.toISOString(), requiredPermission: 'admin.risk.manage' });
+    for (const m of await this.prisma.moderationItem.findMany({ where: { status: { in: ['PENDING_REVIEW', 'REPORTED'] } }, orderBy: { createdAt: 'asc' }, take: 100 }))
+      add({ kind: 'MODERATION_REVIEW', title: `Content to moderate: ${m.subjectType}`, subject: m.subjectType, detail: m.status, priority: 'NORMAL', organizationId: m.organizationId, entityType: 'ModerationItem', entityId: m.id, dueAt: null, createdAt: m.createdAt.toISOString(), requiredPermission: 'admin.content.manage' });
+    for (const r of await this.prisma.dataRequest.findMany({ where: { status: 'PENDING_APPROVAL' }, take: 100 }))
+      add({ kind: 'DATA_REQUEST', title: `Data request waiting for approval: ${r.reference}`, subject: r.reference, detail: r.type, priority: 'NORMAL', organizationId: null, entityType: 'DataRequest', entityId: r.id, dueAt: null, createdAt: r.createdAt.toISOString(), requiredPermission: 'admin.privacy.approve' });
+    const failedDeliveries = await this.prisma.notificationDelivery.count({ where: { status: 'FAILED' } });
+    if (failedDeliveries)
+      add({ kind: 'NOTIFICATION_FAILURE', title: `Notifications that could not be delivered: ${failedDeliveries}`, subject: String(failedDeliveries), detail: 'FAILED', priority: 'NORMAL', organizationId: null, entityType: 'NotificationDelivery', entityId: 'FAILED', dueAt: null, createdAt: now.toISOString(), requiredPermission: 'admin.notifications.manage' });
     // ---- Stage 7: partner onboarding review, activation approval (second person) and partner benefits waiting for DealDash
     for (const p of await this.prisma.partner.findMany({ where: { OR: [{ lifecycle: 'UNDER_REVIEW' }, { pendingLifecycle: { not: null } }] }, include: { organization: { select: { nameEn: true } } }, take: 100 }))
       add({
@@ -177,7 +197,14 @@ export class InboxService {
         createdAt: (b.merchantDecidedAt ?? b.createdAt).toISOString(),
         requiredPermission: 'admin.partners.review',
       });
-    for (const t of await this.prisma.approvalTask.findMany({ where: { status: 'OPEN' }, take: 100 }))
+    // newest first; an SLA escalation shows once per escalated record (its latest level), not once per level
+    const seenEscalations = new Set<string>();
+    for (const t of await this.prisma.approvalTask.findMany({ where: { status: 'OPEN' }, orderBy: { createdAt: 'desc' }, take: 100 })) {
+      if (t.kind === 'SLA_ESCALATION') {
+        const k = `${t.entityType}:${t.entityId}`;
+        if (seenEscalations.has(k)) continue;
+        seenEscalations.add(k);
+      }
       add({
         kind: t.kind,
         title: t.title,
@@ -191,6 +218,7 @@ export class InboxService {
         createdAt: t.createdAt.toISOString(),
         requiredPermission: t.requiredPermission as PermissionCode,
       });
+    }
     return out.sort(byUrgency);
   }
 
@@ -233,13 +261,13 @@ export class InboxService {
         createdAt: r.createdAt.toISOString(),
         requiredPermission: loyaltyPerm,
       });
-    for (const d of await this.prisma.disputeCase.findMany({ where: { organizationId, status: { in: ['OPEN', 'IN_REVIEW'] } }, take: 100 }))
+    for (const d of await this.prisma.disputeCase.findMany({ where: { organizationId, status: { in: [...CASE_OPEN_STATUSES] } }, take: 100 }))
       out.push({
-        kind: 'DISPUTE',
+        kind: d.status === 'AWAITING_MERCHANT' || d.status === 'AWAITING_PARTNER' ? 'CASE_RESPONSE_REQUIRED' : 'DISPUTE',
         title: `${d.reference}: ${d.title}`,
         subject: `${d.reference}: ${d.title}`,
         detail: d.slaDueAt < now ? 'SLA_MISSED' : null,
-        priority: d.priority as InboxPriority,
+        priority: d.status === 'AWAITING_MERCHANT' || d.status === 'AWAITING_PARTNER' ? 'HIGH' : (d.priority as InboxPriority),
         organizationId,
         entityType: 'DisputeCase',
         entityId: d.id,

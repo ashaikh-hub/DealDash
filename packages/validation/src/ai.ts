@@ -13,6 +13,8 @@ export const aiAskSchema = z.object({
       lng: z.number().min(-180).max(180).optional(),
       category: z.string().trim().max(60).optional(),
       customerUserId: z.string().uuid().optional(),
+      // Stage 8: the operations copilot works on one case
+      caseId: z.string().uuid().optional(),
     })
     .strict()
     .optional(),

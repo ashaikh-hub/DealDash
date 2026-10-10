@@ -52,6 +52,33 @@
               "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
               "type": "string"
             }
+          },
+          {
+            "name": "entityId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "name": "correlationId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "name": "market",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 8,
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -11396,17 +11423,105 @@
         "parameters": [
           {
             "name": "status",
-            "required": true,
+            "required": false,
             "in": "query",
             "schema": {
+              "maxLength": 30,
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 60,
+              "type": "string"
+            }
+          },
+          {
+            "name": "team",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 40,
+              "type": "string"
+            }
+          },
+          {
+            "name": "queue",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 40,
+              "type": "string"
+            }
+          },
+          {
+            "name": "market",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 4,
+              "type": "string"
+            }
+          },
+          {
+            "name": "severity",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 20,
+              "type": "string"
+            }
+          },
+          {
+            "name": "slaState",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 20,
               "type": "string"
             }
           },
           {
             "name": "organizationId",
-            "required": true,
+            "required": false,
             "in": "query",
             "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerUserId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "open",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 100,
               "type": "string"
             }
           }
@@ -11456,6 +11571,194 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-operations"
+        ]
+      }
+    },
+    "/v1/admin/disputes/{id}/history": {
+      "get": {
+        "operationId": "AdminOperationsController_disputeHistory_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-operations"
+        ]
+      }
+    },
+    "/v1/admin/disputes/{id}/transition": {
+      "post": {
+        "operationId": "AdminOperationsController_transition_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransitionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-operations"
+        ]
+      }
+    },
+    "/v1/admin/disputes/{id}/update": {
+      "post": {
+        "operationId": "AdminOperationsController_updateCase_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaseUpdateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-operations"
+        ]
+      }
+    },
+    "/v1/admin/disputes/{id}/contacts": {
+      "post": {
+        "operationId": "AdminOperationsController_contact_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContactDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-operations"
+        ]
+      }
+    },
+    "/v1/admin/disputes/{id}/approval": {
+      "post": {
+        "operationId": "AdminOperationsController_requestApproval_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApprovalRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-operations"
+        ]
+      }
+    },
+    "/v1/admin/disputes/{id}/approval/decide": {
+      "post": {
+        "operationId": "AdminOperationsController_decideApproval_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApprovalDecisionDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": ""
@@ -11818,6 +12121,14 @@
             "name": "orgId",
             "required": true,
             "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": true,
+            "in": "query",
             "schema": {
               "type": "string"
             }
@@ -22578,6 +22889,1836 @@
         ]
       }
     },
+    "/v1/admin/ops/exceptions": {
+      "get": {
+        "operationId": "AdminOpsController_exceptions_v1",
+        "parameters": [
+          {
+            "name": "market",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minLength": 2,
+              "maxLength": 2,
+              "type": "string"
+            }
+          },
+          {
+            "name": "legalEntityId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "organizationId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "brandId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "city",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 80,
+              "type": "string"
+            }
+          },
+          {
+            "name": "branchId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "product",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 30,
+              "type": "string"
+            }
+          },
+          {
+            "name": "campaignId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/reports": {
+      "get": {
+        "operationId": "AdminOpsController_report_v1",
+        "parameters": [
+          {
+            "name": "days",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/reports.csv": {
+      "get": {
+        "operationId": "AdminOpsController_reportCsv_v1",
+        "parameters": [
+          {
+            "name": "days",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/sla": {
+      "get": {
+        "operationId": "AdminOpsController_slaOverview_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/sla/sweep": {
+      "post": {
+        "operationId": "AdminOpsController_slaSweep_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/config": {
+      "get": {
+        "operationId": "AdminOpsController_getConfig_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      },
+      "put": {
+        "operationId": "AdminOpsController_putConfig_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfigDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/reasons": {
+      "get": {
+        "operationId": "AdminOpsController_reasons_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/config/history": {
+      "get": {
+        "operationId": "AdminOpsController_configHistory_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/adjustments": {
+      "get": {
+        "operationId": "AdminOpsController_listAdjustments_v1",
+        "parameters": [
+          {
+            "name": "status",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kind",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "caseId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      },
+      "post": {
+        "operationId": "AdminOpsController_requestAdjustment_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdjustmentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/adjustments/{id}": {
+      "get": {
+        "operationId": "AdminOpsController_getAdjustment_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/adjustments/{id}/decide": {
+      "post": {
+        "operationId": "AdminOpsController_decideAdjustment_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/adjustments/{id}/retry": {
+      "post": {
+        "operationId": "AdminOpsController_retryAdjustment_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/settlements": {
+      "get": {
+        "operationId": "AdminOpsController_listSettlements_v1",
+        "parameters": [
+          {
+            "name": "status",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "organizationId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "market",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "exceptions",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/settlements/{id}": {
+      "get": {
+        "operationId": "AdminOpsController_getSettlement_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/settlements/run": {
+      "post": {
+        "operationId": "AdminOpsController_run_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/settlements/{id}/hold": {
+      "post": {
+        "operationId": "AdminOpsController_hold_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/settlements/{id}/release": {
+      "post": {
+        "operationId": "AdminOpsController_release_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/settlements/{id}/payout": {
+      "post": {
+        "operationId": "AdminOpsController_payout_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayoutDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/settlements/{id}/fail": {
+      "post": {
+        "operationId": "AdminOpsController_fail_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/settlements/{id}/reverse": {
+      "post": {
+        "operationId": "AdminOpsController_reverse_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/reconciliation/items": {
+      "get": {
+        "operationId": "AdminOpsController_reconItems_v1",
+        "parameters": [
+          {
+            "name": "status",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "source",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "exceptions",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "runId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/reconciliation/runs": {
+      "get": {
+        "operationId": "AdminOpsController_reconRuns_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/reconciliation/statements": {
+      "post": {
+        "operationId": "AdminOpsController_importStatement_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatementDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/reconciliation/consistency": {
+      "post": {
+        "operationId": "AdminOpsController_consistency_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/reconciliation/items/{id}/assign": {
+      "post": {
+        "operationId": "AdminOpsController_reconAssign_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/reconciliation/items/{id}/review": {
+      "post": {
+        "operationId": "AdminOpsController_reconReview_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/reconciliation/items/{id}/resolve": {
+      "post": {
+        "operationId": "AdminOpsController_reconResolve_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolveDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/reconciliation/items/{id}/case": {
+      "post": {
+        "operationId": "AdminOpsController_reconCase_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/risk/flags": {
+      "get": {
+        "operationId": "AdminOpsController_riskFlags_v1",
+        "parameters": [
+          {
+            "name": "status",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "domain",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/risk/flags/{id}": {
+      "get": {
+        "operationId": "AdminOpsController_riskFlag_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/risk/scan": {
+      "post": {
+        "operationId": "AdminOpsController_riskScan_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/risk/flags/{id}/decide": {
+      "post": {
+        "operationId": "AdminOpsController_riskDecide_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RiskDecideDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/risk/flags/{id}/case": {
+      "post": {
+        "operationId": "AdminOpsController_riskCase_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/restrictions": {
+      "get": {
+        "operationId": "AdminOpsController_listRestrictions_v1",
+        "parameters": [
+          {
+            "name": "status",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kind",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "subjectId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      },
+      "post": {
+        "operationId": "AdminOpsController_requestRestriction_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestrictionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/restrictions/{id}/decide": {
+      "post": {
+        "operationId": "AdminOpsController_decideRestriction_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/restrictions/{id}/lift": {
+      "post": {
+        "operationId": "AdminOpsController_liftRestriction_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/moderation": {
+      "get": {
+        "operationId": "AdminOpsController_moderation_v1",
+        "parameters": [
+          {
+            "name": "status",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "subjectType",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/moderation/{id}/decide": {
+      "post": {
+        "operationId": "AdminOpsController_moderate_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModerationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/reviews/{id}/remove": {
+      "post": {
+        "operationId": "AdminOpsController_removeReview_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/notifications": {
+      "get": {
+        "operationId": "AdminOpsController_deliveries_v1",
+        "parameters": [
+          {
+            "name": "status",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "channel",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/notifications/{id}/retry": {
+      "post": {
+        "operationId": "AdminOpsController_retryDelivery_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/notifications/sweep": {
+      "post": {
+        "operationId": "AdminOpsController_sweepDeliveries_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/customers/{id}/summary": {
+      "get": {
+        "operationId": "AdminOpsController_customerSummary_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/support-requests": {
+      "get": {
+        "operationId": "AdminOpsController_supportRequests_v1",
+        "parameters": [
+          {
+            "name": "status",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/support-requests/{id}/escalate": {
+      "post": {
+        "operationId": "AdminOpsController_escalate_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EscalateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/refunds": {
+      "get": {
+        "operationId": "AdminOpsController_refundQueue_v1",
+        "parameters": [
+          {
+            "name": "status",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/refunds/eligibility": {
+      "get": {
+        "operationId": "AdminOpsController_refundEligibility_v1",
+        "parameters": [
+          {
+            "name": "instanceId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/refunds/order": {
+      "post": {
+        "operationId": "AdminOpsController_orderRefund_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderRefundDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/refunds/{id}/case": {
+      "post": {
+        "operationId": "AdminOpsController_linkRefund_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkCaseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/data-requests": {
+      "get": {
+        "operationId": "AdminOpsController_dataRequestList_v1",
+        "parameters": [
+          {
+            "name": "status",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerUserId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      },
+      "post": {
+        "operationId": "AdminOpsController_createDataRequest_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DataRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/admin/ops/data-requests/{id}/decide": {
+      "post": {
+        "operationId": "AdminOpsController_decideDataRequest_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-ops"
+        ]
+      }
+    },
+    "/v1/merchants/{orgId}/settlements": {
+      "get": {
+        "operationId": "MerchantOpsController_list_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "merchant-ops"
+        ]
+      }
+    },
+    "/v1/merchants/{orgId}/settlements/{id}": {
+      "get": {
+        "operationId": "MerchantOpsController_get_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "merchant-ops"
+        ]
+      }
+    },
+    "/v1/merchants/{orgId}/reviews": {
+      "get": {
+        "operationId": "MerchantOpsController_reviewsList_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "merchant-ops"
+        ]
+      }
+    },
+    "/v1/merchants/{orgId}/reviews/{id}/report": {
+      "post": {
+        "operationId": "MerchantOpsController_report_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "merchant-ops"
+        ]
+      }
+    },
+    "/v1/app/merchants/{orgId}/reviews": {
+      "get": {
+        "operationId": "CustomerOpsController_merchantReviews_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "customer-ops"
+        ]
+      },
+      "post": {
+        "operationId": "CustomerOpsController_write_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "customer-ops"
+        ]
+      }
+    },
+    "/v1/app/reviews/{id}/report": {
+      "post": {
+        "operationId": "CustomerOpsController_report_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "customer-ops"
+        ]
+      }
+    },
+    "/v1/app/reports": {
+      "post": {
+        "operationId": "CustomerOpsController_reportContent_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContentReportDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "customer-ops"
+        ]
+      }
+    },
+    "/v1/app/me/cases": {
+      "get": {
+        "operationId": "CustomerOpsController_myCases_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "customer-ops"
+        ]
+      }
+    },
+    "/v1/app/me/data-requests": {
+      "get": {
+        "operationId": "CustomerOpsController_myDataRequests_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "customer-ops"
+        ]
+      },
+      "post": {
+        "operationId": "CustomerOpsController_requestData_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MyDataRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "customer-ops"
+        ]
+      }
+    },
     "/v1/customers/me": {
       "get": {
         "operationId": "CustomersController_me_v1",
@@ -24065,6 +26206,44 @@
                     "string",
                     "null"
                   ]
+                },
+                "previousState": {},
+                "newState": {},
+                "scope": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "market": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "legalEntityId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "approvalRef": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "correlationId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "source": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
                 }
               },
               "required": [
@@ -24729,7 +26908,14 @@
                         "partner.commercial.approve_finance",
                         "partner.network.manage",
                         "admin.partners.manage",
-                        "admin.partners.approve"
+                        "admin.partners.approve",
+                        "admin.restrictions.manage",
+                        "admin.restrictions.approve",
+                        "admin.reconciliation.manage",
+                        "admin.notifications.manage",
+                        "admin.privacy.manage",
+                        "admin.privacy.approve",
+                        "customer.reviews.manage"
                       ]
                     }
                   }
@@ -25237,7 +27423,14 @@
                     "partner.commercial.approve_finance",
                     "partner.network.manage",
                     "admin.partners.manage",
-                    "admin.partners.approve"
+                    "admin.partners.approve",
+                    "admin.restrictions.manage",
+                    "admin.restrictions.approve",
+                    "admin.reconciliation.manage",
+                    "admin.notifications.manage",
+                    "admin.privacy.manage",
+                    "admin.privacy.approve",
+                    "customer.reviews.manage"
                   ]
                 }
               },
@@ -26821,7 +29014,14 @@
                             "partner.commercial.approve_finance",
                             "partner.network.manage",
                             "admin.partners.manage",
-                            "admin.partners.approve"
+                            "admin.partners.approve",
+                            "admin.restrictions.manage",
+                            "admin.restrictions.approve",
+                            "admin.reconciliation.manage",
+                            "admin.notifications.manage",
+                            "admin.privacy.manage",
+                            "admin.privacy.approve",
+                            "customer.reviews.manage"
                           ]
                         }
                       }
@@ -52656,7 +54856,9 @@
                         "REWARD_REVERSED",
                         "REWARD_EXPIRING",
                         "CAMPAIGN_COMPLETED",
-                        "ALERT"
+                        "ALERT",
+                        "CASE_UPDATED",
+                        "ACCOUNT_RESTRICTION"
                       ]
                     },
                     "data": {
@@ -62777,25 +64979,110 @@
       "AdjustmentDto": {
         "type": "object",
         "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "INVOICE_CORRECTION",
+              "CREDIT_NOTE",
+              "DEBIT_NOTE",
+              "SETTLEMENT_ADJUSTMENT",
+              "RECONCILIATION_ADJUSTMENT",
+              "POINTS_ADJUSTMENT",
+              "REWARD_REVERSAL",
+              "FUNDING_ADJUSTMENT",
+              "CAMPAIGN_UTILIZATION_CORRECTION",
+              "ADMIN_ADJUSTMENT"
+            ]
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "CREDIT",
+              "DEBIT"
+            ]
+          },
+          "amountMinor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          "points": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000000
+          },
+          "currency": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3
+          },
           "organizationId": {
             "type": "string",
             "format": "uuid",
-            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
           },
-          "amountHalalas": {
-            "type": "integer",
-            "minimum": -100000000,
-            "maximum": 100000000
+          "businessAccountId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
+          },
+          "customerUserId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
+          },
+          "legalEntityId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
+          },
+          "contractId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
+          },
+          "sourceType": {
+            "type": "string",
+            "maxLength": 60,
+            "nullable": true
+          },
+          "sourceId": {
+            "type": "string",
+            "maxLength": 100,
+            "nullable": true
+          },
+          "caseId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
+          },
+          "reasonCode": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 60
           },
           "reason": {
             "type": "string",
             "minLength": 3,
-            "maxLength": 500
+            "maxLength": 1000
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 100,
+            "nullable": true
           }
         },
         "required": [
-          "organizationId",
-          "amountHalalas",
+          "kind",
+          "direction",
+          "reasonCode",
           "reason"
         ]
       },
@@ -62959,22 +65246,60 @@
       "CaseUpdateDto": {
         "type": "object",
         "properties": {
-          "status": {
+          "severity": {
             "type": "string",
             "enum": [
-              "OPEN",
-              "IN_PROGRESS",
-              "RESOLVED"
+              "LOW",
+              "MEDIUM",
+              "HIGH",
+              "CRITICAL"
             ]
           },
-          "note": {
+          "priority": {
             "type": "string",
-            "maxLength": 500
+            "enum": [
+              "LOW",
+              "NORMAL",
+              "HIGH",
+              "CRITICAL"
+            ]
+          },
+          "assignedTeam": {
+            "type": "string",
+            "enum": [
+              "SUPPORT",
+              "OPERATIONS",
+              "FINANCE",
+              "RISK",
+              "MERCHANT_MANAGEMENT",
+              "PARTNER_MANAGEMENT",
+              null
+            ],
+            "nullable": true
+          },
+          "queue": {
+            "type": "string",
+            "maxLength": 40,
+            "nullable": true
+          },
+          "financialImpactMinor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000,
+            "nullable": true
+          },
+          "currency": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3,
+            "nullable": true
+          },
+          "proposedResolution": {
+            "type": "string",
+            "maxLength": 1000,
+            "nullable": true
           }
-        },
-        "required": [
-          "status"
-        ]
+        }
       },
       "AdminCaseResponse": {
         "type": "object",
@@ -69544,6 +71869,78 @@
           "meta"
         ]
       },
+      "ContactDto": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "enum": [
+              "PHONE",
+              "EMAIL",
+              "CHAT",
+              "IN_APP",
+              "IN_PERSON"
+            ]
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "INBOUND",
+              "OUTBOUND"
+            ]
+          },
+          "body": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "channel",
+          "direction",
+          "body"
+        ]
+      },
+      "ApprovalRequestDto": {
+        "type": "object",
+        "properties": {
+          "proposedResolution": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 1000
+          },
+          "financialImpactMinor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000,
+            "nullable": true
+          }
+        },
+        "required": [
+          "proposedResolution"
+        ]
+      },
+      "ApprovalDecisionDto": {
+        "type": "object",
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "APPROVE",
+              "REJECT"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "decision",
+          "reason"
+        ]
+      },
       "OpenDto": {
         "type": "object",
         "properties": {
@@ -69598,6 +71995,91 @@
             "format": "uuid",
             "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
             "nullable": true
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH",
+              "CRITICAL",
+              null
+            ],
+            "nullable": true
+          },
+          "market": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 2,
+            "nullable": true
+          },
+          "legalEntityId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
+          },
+          "businessAccountId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
+          },
+          "assignedTeam": {
+            "type": "string",
+            "enum": [
+              "SUPPORT",
+              "OPERATIONS",
+              "FINANCE",
+              "RISK",
+              "MERCHANT_MANAGEMENT",
+              "PARTNER_MANAGEMENT",
+              null
+            ],
+            "nullable": true
+          },
+          "queue": {
+            "type": "string",
+            "maxLength": 40,
+            "nullable": true
+          },
+          "reasonCode": {
+            "type": "string",
+            "maxLength": 60,
+            "nullable": true
+          },
+          "sourceEvent": {
+            "type": "string",
+            "maxLength": 60,
+            "nullable": true
+          },
+          "sourceEventId": {
+            "type": "string",
+            "maxLength": 100,
+            "nullable": true
+          },
+          "transactionRef": {
+            "type": "string",
+            "maxLength": 100,
+            "nullable": true
+          },
+          "financialImpactMinor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000,
+            "nullable": true
+          },
+          "currency": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3,
+            "nullable": true
+          },
+          "supportCaseId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
           }
         },
         "required": [
@@ -69636,161 +72118,33 @@
       "AssignDto": {
         "type": "object",
         "properties": {
-          "organizationId": {
-            "type": "string",
-            "format": "uuid",
-            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-          },
-          "legalEntityId": {
-            "type": "string",
-            "format": "uuid",
-            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
-            "default": null,
-            "nullable": true
-          },
-          "billingLegalEntityId": {
-            "type": "string",
-            "format": "uuid",
-            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
-            "default": null,
-            "nullable": true
-          },
-          "coveredLegalEntityIds": {
-            "default": [],
-            "maxItems": 50,
-            "type": "array",
-            "items": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-            }
-          },
-          "planCode": {
-            "type": "string",
-            "minLength": 2,
-            "maxLength": 60
-          },
-          "market": {
-            "type": "string",
-            "minLength": 2,
-            "maxLength": 2
-          },
-          "name": {
-            "type": "string",
-            "minLength": 2,
-            "maxLength": 120
-          },
-          "reference": {
-            "type": "string",
-            "maxLength": 80
-          },
-          "effectiveFrom": {
-            "type": "string",
-            "format": "date-time",
-            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-          },
-          "effectiveUntil": {
-            "type": "string",
-            "format": "date-time",
-            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
-            "default": null,
-            "nullable": true
-          },
-          "cadence": {
-            "type": "string",
-            "enum": [
-              "NONE",
-              "MONTHLY",
-              "ANNUAL",
-              "MULTI_YEAR",
-              "MANUAL",
-              "CUSTOM"
-            ]
-          },
-          "renewalState": {
-            "default": "AUTO_RENEW",
-            "type": "string",
-            "enum": [
-              "AUTO_RENEW",
-              "MANUAL_RENEWAL",
-              "NON_RENEWING",
-              "RENEWAL_PENDING"
-            ]
-          },
-          "accountManager": {
-            "type": "string",
-            "maxLength": 120
-          },
-          "trial": {
-            "type": "object",
-            "properties": {
-              "days": {
-                "type": "integer",
-                "minimum": 1,
-                "maximum": 365
-              },
-              "postTrialPlanCode": {
-                "type": "string",
-                "maxLength": 60,
-                "default": null,
-                "nullable": true
-              },
-              "approvalRef": {
-                "type": "string",
-                "maxLength": 80
-              }
-            },
-            "default": null,
-            "nullable": true
-          },
-          "approvalRef": {
-            "type": "string",
-            "maxLength": 80
-          },
-          "activate": {
-            "default": false,
-            "type": "boolean"
-          },
-          "developmentFixture": {
-            "default": false,
-            "type": "boolean"
-          },
-          "onBehalfAuthorizationId": {
+          "ownerUserId": {
             "type": "string",
             "format": "uuid",
             "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
           }
         },
         "required": [
-          "organizationId",
-          "planCode"
+          "ownerUserId"
         ]
       },
       "ResolveDto": {
         "type": "object",
         "properties": {
-          "outcome": {
-            "type": "string",
-            "enum": [
-              "UPHELD",
-              "REJECTED"
-            ]
-          },
-          "creditMinor": {
-            "type": "integer",
-            "exclusiveMinimum": true,
-            "maximum": 1000000000000,
-            "minimum": 0
-          },
-          "reason": {
+          "resolution": {
             "type": "string",
             "minLength": 3,
-            "maxLength": 500
+            "maxLength": 1000
+          },
+          "adjustmentRequestId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
           }
         },
         "required": [
-          "outcome",
-          "reason"
+          "resolution"
         ]
       },
       "IntentDto": {
@@ -81904,35 +84258,113 @@
       "StatementDto": {
         "type": "object",
         "properties": {
-          "from": {
+          "source": {
             "type": "string",
-            "format": "date-time",
-            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+            "enum": [
+              "PAYMENT_GATEWAY",
+              "VOUCHER_PURCHASE",
+              "VOUCHER_REDEMPTION",
+              "MERCHANT_PAYABLE",
+              "SPONSOR_FUNDING",
+              "INVOICE",
+              "RECEIPT",
+              "SETTLEMENT",
+              "REFUND",
+              "WATCH_FUNDING",
+              "LOYALTY_FUNDING"
+            ]
           },
-          "to": {
+          "currency": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3
+          },
+          "fileName": {
+            "type": "string",
+            "maxLength": 160,
+            "nullable": true
+          },
+          "periodFrom": {
             "type": "string",
             "format": "date-time",
-            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "nullable": true
+          },
+          "periodTo": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "nullable": true
+          },
+          "lines": {
+            "maxItems": 5000,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "reference": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                },
+                "amountMinor": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "currency": {
+                  "type": "string",
+                  "minLength": 3,
+                  "maxLength": 3
+                },
+                "occurredAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                }
+              },
+              "required": [
+                "reference",
+                "amountMinor",
+                "occurredAt"
+              ]
+            }
           }
         },
         "required": [
-          "from",
-          "to"
+          "source",
+          "lines"
         ]
       },
       "RunDto": {
         "type": "object",
         "properties": {
+          "market": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 2
+          },
           "organizationId": {
             "type": "string",
             "format": "uuid",
-            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
           },
-          "force": {
-            "default": false,
-            "type": "boolean"
+          "currency": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3
+          },
+          "periodTo": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "nullable": true
           }
-        }
+        },
+        "required": [
+          "market"
+        ]
       },
       "ReasonDto": {
         "type": "object",
@@ -82119,6 +84551,11 @@
                 "type": "string",
                 "format": "uuid",
                 "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "caseId": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
               }
             },
             "additionalProperties": false
@@ -82168,6 +84605,11 @@
                 "maxLength": 60
               },
               "customerUserId": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "caseId": {
                 "type": "string",
                 "format": "uuid",
                 "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
@@ -83690,6 +86132,432 @@
         },
         "required": [
           "decision"
+        ]
+      },
+      "ConfigDto": {
+        "type": "object",
+        "properties": {
+          "value": {},
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "value",
+          "reason"
+        ]
+      },
+      "PayoutDto": {
+        "type": "object",
+        "properties": {
+          "amountMinor": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 1000000000,
+            "nullable": true
+          },
+          "externalRef": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 100
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 100,
+            "nullable": true
+          }
+        },
+        "required": [
+          "externalRef"
+        ]
+      },
+      "RiskDecideDto": {
+        "type": "object",
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "CLEAR",
+              "CONFIRM"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 1000
+          },
+          "restriction": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "CUSTOMER_RESTRICTION",
+                  "MERCHANT_CAMPAIGN_HOLD",
+                  "BRANCH_REDEMPTION_HOLD",
+                  "USER_SUSPENSION",
+                  "INTEGRATION_SUSPENSION",
+                  "FINANCIAL_HOLD"
+                ]
+              },
+              "days": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 365
+              },
+              "reasonCode": {
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 60
+              }
+            },
+            "required": [
+              "kind",
+              "reasonCode"
+            ],
+            "nullable": true
+          }
+        },
+        "required": [
+          "outcome",
+          "reason"
+        ]
+      },
+      "RestrictionDto": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "CUSTOMER_RESTRICTION",
+              "MERCHANT_CAMPAIGN_HOLD",
+              "BRANCH_REDEMPTION_HOLD",
+              "USER_SUSPENSION",
+              "INTEGRATION_SUSPENSION",
+              "FINANCIAL_HOLD"
+            ]
+          },
+          "subjectId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "scope": {
+            "maxItems": 10,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 40
+            }
+          },
+          "reasonCode": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 60
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 1000
+          },
+          "endsAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "nullable": true
+          },
+          "days": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 365,
+            "nullable": true
+          },
+          "caseId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
+          },
+          "riskFlagId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
+          }
+        },
+        "required": [
+          "kind",
+          "subjectId",
+          "reasonCode",
+          "reason"
+        ]
+      },
+      "ModerationDto": {
+        "type": "object",
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "APPROVE",
+              "REJECT",
+              "HIDE",
+              "RESTORE"
+            ]
+          },
+          "reasonCode": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 60
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "decision",
+          "reasonCode",
+          "reason"
+        ]
+      },
+      "EscalateDto": {
+        "type": "object",
+        "properties": {
+          "priority": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "NORMAL",
+              "HIGH",
+              "CRITICAL"
+            ]
+          },
+          "targetOrganizationId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
+          }
+        }
+      },
+      "OrderRefundDto": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "paymentId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "DUPLICATE_PAYMENT",
+              "FAILED_ISSUANCE",
+              "PAYMENT_REVERSAL"
+            ]
+          },
+          "note": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 1000
+          },
+          "caseId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
+          }
+        },
+        "required": [
+          "orderId",
+          "paymentId",
+          "reason",
+          "note"
+        ]
+      },
+      "LinkCaseDto": {
+        "type": "object",
+        "properties": {
+          "caseId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "caseId"
+        ]
+      },
+      "DataRequestDto": {
+        "type": "object",
+        "properties": {
+          "customerUserId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "EXPORT",
+              "DELETION"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 1000,
+            "nullable": true
+          }
+        },
+        "required": [
+          "customerUserId",
+          "type"
+        ]
+      },
+      "ReportDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "enum": [
+              "SPAM",
+              "OFFENSIVE",
+              "FALSE_INFORMATION",
+              "CONFLICT_OF_INTEREST",
+              "PRIVACY",
+              "ILLEGAL",
+              "OTHER"
+            ]
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 500,
+            "nullable": true
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "ReviewDto": {
+        "type": "object",
+        "properties": {
+          "rating": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "ar"
+            ]
+          },
+          "subjectType": {
+            "type": "string",
+            "enum": [
+              "MERCHANT",
+              "LIVE_DEAL",
+              "EXCLUSIVE",
+              "VOUCHER"
+            ]
+          },
+          "subjectId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
+          }
+        },
+        "required": [
+          "rating",
+          "text"
+        ]
+      },
+      "ContentReportDto": {
+        "type": "object",
+        "properties": {
+          "subjectType": {
+            "type": "string",
+            "enum": [
+              "MERCHANT_PROFILE",
+              "CAMPAIGN",
+              "MEDIA"
+            ]
+          },
+          "subjectId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "product": {
+            "type": "string",
+            "enum": [
+              "LIVE_DEAL",
+              "EXCLUSIVE",
+              "VOUCHER",
+              "WATCH",
+              null
+            ],
+            "nullable": true
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "SPAM",
+              "OFFENSIVE",
+              "FALSE_INFORMATION",
+              "CONFLICT_OF_INTEREST",
+              "PRIVACY",
+              "ILLEGAL",
+              "OTHER"
+            ]
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 500,
+            "nullable": true
+          }
+        },
+        "required": [
+          "subjectType",
+          "subjectId",
+          "reason"
+        ]
+      },
+      "MyDataRequestDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "EXPORT",
+              "DELETION"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 1000,
+            "nullable": true
+          }
+        },
+        "required": [
+          "type"
         ]
       },
       "CustomerResponse": {

@@ -29,6 +29,7 @@ import { BillingEventService } from '../subscription/billing-event.service';
 import { SystemConfigService } from '../system-config/system-config.service';
 import { PricingService, type ResolvedPricing } from './pricing.service';
 import { MarketService } from '../platform/markets/market.service';
+import { RestrictionCheckService } from '../operations/restriction-check.service';
 import {
   amendmentDelta,
   calculateQuote,
@@ -78,6 +79,8 @@ export class CommercialService {
     @Optional() private readonly systemConfig?: SystemConfigService,
     @Optional() private readonly billingEvents?: BillingEventService,
     @Optional() private readonly markets?: MarketService,
+    // Stage 8: governed restrictions / holds (global operations module)
+    @Optional() private readonly restrictions?: RestrictionCheckService,
   ) {}
 
   // ---------------------------------------------------------------- numbering (statutory formats are configuration / VALIDATE-KSA)
@@ -865,9 +868,17 @@ export class CommercialService {
     return caseId;
   }
 
-  /** Customer entry points (a new reservation, purchase or view) ask this; redemption, refund and reward paths never do. */
-  assertCustomerExposureAllowed(organizationId: string) {
-    return this.entitlements.assertLiveCampaignOpen(organizationId);
+  /**
+   * Customer entry points (a new reservation, purchase or view) ask this; redemption, refund and reward paths never do. Stage 8:
+   * a governed merchant campaign hold and a customer's temporary restriction also stop NEW exposure here (issued rights stay).
+   */
+  async assertCustomerExposureAllowed(
+    organizationId: string,
+    customer?: { userId: string; scope: 'NEW_RESERVATIONS' | 'NEW_PURCHASES' | 'NEW_VIEWS' },
+  ) {
+    await this.entitlements.assertLiveCampaignOpen(organizationId);
+    await this.restrictions?.assertMerchantOpen(organizationId);
+    if (customer) await this.restrictions?.assertCustomerAllowed(customer.userId, customer.scope);
   }
 
   /** The decisive gate: nothing goes live (manual approval, auto-approval, scheduled activation) with open blockers. */

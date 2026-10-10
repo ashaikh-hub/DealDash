@@ -18,6 +18,7 @@ import { createTranslator, isolateLtr, withLocale } from '@dealdash/localization
 import type { UnlockAction } from '@dealdash/types';
 import { Button, Card, EmptyState, ErrorState, LoadingState, Skeleton } from '@dealdash/ui';
 import type { DealCard, DealDetail, MerchantPage, PublicBranch } from '@dealdash/validation';
+import { MerchantReviews } from './care';
 import { useCustomer } from './customer-context';
 import {
   CardSkeletons,
@@ -297,7 +298,7 @@ export function MerchantPageView({ id }: { id: string }) {
   const { city, coords, approximate, track } = useCustomer();
   const [page, setPage] = useState<MerchantPage | null>(null);
   const [state, setState] = useState<'loading' | 'ready' | 'missing' | 'error'>('loading');
-  const [tab, setTab] = useState<'offers' | 'info'>('offers');
+  const [tab, setTab] = useState<'offers' | 'info' | 'reviews'>('offers');
 
   const load = useCallback(async () => {
     setState('loading');
@@ -395,7 +396,7 @@ export function MerchantPageView({ id }: { id: string }) {
         </div>
       </div>
       <div className="dd-dd__tabs" role="tablist" style={{ marginInline: 0 }}>
-        {(['offers', 'info'] as const).map((k) => (
+        {(['offers', 'info', 'reviews'] as const).map((k) => (
           <button
             key={k}
             role="tab"
@@ -404,11 +405,13 @@ export function MerchantPageView({ id }: { id: string }) {
             className="dd-dd__tab"
             onClick={() => setTab(k)}
           >
-            {k === 'offers' ? t('merch.offers', { n: page.deals.length }) : t('merch.info')}
+            {k === 'offers' ? t('merch.offers', { n: page.deals.length }) : k === 'info' ? t('merch.info') : t('s8.rev.title')}
           </button>
         ))}
       </div>
-      {tab === 'offers' ? (
+      {tab === 'reviews' ? (
+        <MerchantReviews merchantId={page.id} />
+      ) : tab === 'offers' ? (
         page.deals.length ? (
           <div className="dd-cardgrid">
             {page.deals.map((d) => (
@@ -573,6 +576,12 @@ export function ProfilePage() {
             <strong>{me?.displayName}</strong>
             <Link className="dd-link" href={href('/saved')}>
               {t('profile.savedDeals')}
+            </Link>
+            <Link className="dd-link" href={href('/cases')} data-testid="my-cases-link">
+              {t('s8.cust.cases')}
+            </Link>
+            <Link className="dd-link" href={href('/my-data')} data-testid="my-data-link">
+              {t('s8.cust.data')}
             </Link>
             <Link className="dd-link" href={href('/assistant')} data-testid="assistant-link">
               {t('ai.agentName.CUSTOMER_BEST_DEAL')}

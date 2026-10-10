@@ -1145,3 +1145,15 @@ approved partner feed, tokenized mechanism, other approved source); BIN metadata
 authorized banks, schemes and partners create / import Live Deals from their merchant networks where publication rights are confirmed,
 on the existing master data / provenance architecture, without giving the merchant any controlled capability. Details:
 `docs/STAGE7_PARTNER_PORTAL.md` ("Founder decisions").
+
+## Addendum (Oct 2026) — Stage 8: Operational Gap Closure & Admin Operations (awaiting founder approval)
+Stage 8 adds the daily operating layer on the shared engines (no new product, no redesign of frozen stages): one case framework (16
+types, configurable lifecycle, routing, SLA, maker-checker resolution), customer support workspace, refund / adjustment /
+settlement / reconciliation operations, rule-based fraud review, restrictions and holds that stop new actions only, reviews and
+moderation (Verified only with a tracked merchant interaction; Watch & Earn never counts), notification delivery tracking, SLA and
+escalation, versioned rules and controls, operational reports, audit completeness, privacy data requests and an operations copilot
+that executes only after human approval. Full description and gap audit: `docs/STAGE8_OPERATIONAL_GAP_CLOSURE.md`.
+## Stage 8 founder approval (2026-10-10): APPROVED AND FROZEN
+Stage 8 Operational Gap Closure is founder approved and frozen (docs/STAGE8_OPERATIONAL_GAP_CLOSURE.md). B8 closed (partner "Add a merchant" Stage 7
+compatibility fix, now part of the frozen Stage 7 baseline); B9 monitored, not a regression. Pre-pilot items B1–B7 remain open for Stage 9 /
+pilot readiness; VALIDATE-market items remain central. Stage 9 not started.

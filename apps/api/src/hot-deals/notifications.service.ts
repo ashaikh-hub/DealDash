@@ -1,9 +1,11 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
+import { CONFIG_KEYS } from '@dealdash/config';
 import type { NotificationType } from '@dealdash/types';
 import type { Prisma } from '../generated/prisma/client';
 import { AppError } from '../common/errors';
 import { PrismaService } from '../prisma/prisma.service';
 import { PUSH_PROVIDER, type PushProvider } from '../providers/interfaces';
+import { SystemConfigService } from '../system-config/system-config.service';
 
 export interface NotificationInput {
   userId: string;
@@ -44,39 +46,35 @@ const TITLES: Record<NotificationType, { en: string; ar: string }> = {
     en: 'Your campaign delivered all its views',
     ar: 'حملتك أنجزت جميع مشاهداتها',
   },
+  CASE_UPDATED: { en: 'Update on your support request', ar: 'تحديث على طلب الدعم الخاص بك' },
+  ACCOUNT_RESTRICTION: { en: 'Your account status changed', ar: 'تغيّرت حالة حسابك' },
 };
 
-/** Push channel through the existing provider abstraction (mock in development: logs, never fails the caller). */
-class PushChannel implements NotificationChannel {
-  readonly name = 'push';
-  constructor(private readonly push: PushProvider) {}
-  async deliver(n: NotificationInput & { id: string }) {
-    const t = TITLES[n.type];
-    await this.push.send({
-      userId: n.userId,
-      title: t.en,
-      body: String(n.data.dealTitleEn ?? n.data.voucherTitleEn ?? ''),
-      data: { type: n.type, notificationId: n.id },
-    });
-  }
+interface NotificationOpsConfig {
+  maxAttempts: number;
+  retryMinutes: number[];
+  templates: Record<string, { version: number; channels: string[] }>;
 }
+const DEFAULT_OPS: NotificationOpsConfig = { maxAttempts: 3, retryMinutes: [5, 30, 120], templates: {} };
 
 /**
  * Notification foundation: events are written to the in-app inbox (the source of truth) inside the caller's
  * transaction, and delivered to other channels only AFTER the transaction commits. A delivery failure never fails the
- * business action. Real SMS/push vendors plug in by adding a channel.
+ * business action. Real SMS/push vendors plug in behind the provider interfaces.
+ *
+ * Stage 8: every delivery is TRACKED per channel (NotificationDelivery: provider, template and version, consent / preference
+ * outcome, attempts, failure reason) with retries on the configured schedule and a FAILED state that operations can retry; a
+ * notification created outside this service (alerts, cases, restrictions) is picked up by the delivery sweep.
  */
 @Injectable()
 export class NotificationsService {
   private readonly logger = new Logger('Notifications');
-  private readonly channels: NotificationChannel[];
 
   constructor(
     private readonly prisma: PrismaService,
-    @Inject(PUSH_PROVIDER) push: PushProvider,
-  ) {
-    this.channels = [new PushChannel(push)];
-  }
+    @Inject(PUSH_PROVIDER) private readonly push: PushProvider,
+    @Optional() private readonly config?: SystemConfigService,
+  ) {}
 
   /** Writes the in-app notification. Returns the rows created (empty when it already existed) for `dispatch`. */
   async emit(tx: Prisma.TransactionClient, items: NotificationInput[]) {
@@ -98,16 +96,100 @@ export class NotificationsService {
     return created;
   }
 
-  /** Call after commit. */
+  /** Call after commit. Never throws: a delivery problem is recorded and retried, it does not fail the business action. */
   async dispatch(items: Array<NotificationInput & { id: string }>) {
     for (const n of items)
-      for (const ch of this.channels) {
-        try {
-          await ch.deliver(n);
-        } catch (e) {
-          this.logger.warn(`Channel ${ch.name} failed for ${n.type}: ${(e as Error).message}`);
-        }
+      await this.deliverTracked(n).catch((e) =>
+        this.logger.warn(`Delivery tracking failed for ${n.type}: ${(e as Error).message}`),
+      );
+  }
+
+  private async ops(): Promise<NotificationOpsConfig> {
+    const c = (await this.config?.get<{ notifications?: NotificationOpsConfig }>(CONFIG_KEYS.OPERATIONS).catch(() => null)) ?? null;
+    return { ...DEFAULT_OPS, ...(c?.notifications ?? {}) };
+  }
+
+  /** In-app is delivered by storing it; the other configured channels are attempted through their providers. */
+  async deliverTracked(n: { id: string; userId: string; type: NotificationType; data: Record<string, unknown> }) {
+    const cfg = await this.ops();
+    const tpl = cfg.templates[n.type] ?? { version: 1, channels: ['IN_APP', 'PUSH'] };
+    const body = String(n.data.dealTitleEn ?? n.data.voucherTitleEn ?? '');
+    const base = { notificationId: n.id, userId: n.userId, templateCode: `notification.${n.type}`, templateVersion: tpl.version, maxAttempts: cfg.maxAttempts, payload: { type: n.type, body } as Prisma.InputJsonValue };
+    await this.prisma.notificationDelivery.createMany({ data: [{ ...base, channel: 'IN_APP', provider: 'in-app', status: 'DELIVERED', attempts: 1, consentChecked: true, lastAttemptAt: new Date(), dedupeKey: `${n.id}:IN_APP` }], skipDuplicates: true });
+    // an ALERT's other channels belong to the alert engine (rules, preferences, escalation): only its in-app copy is tracked here
+    if (n.type === 'ALERT') return;
+    for (const channel of tpl.channels.filter((c) => c !== 'IN_APP')) {
+      const dedupeKey = `${n.id}:${channel}`;
+      if (await this.prisma.notificationDelivery.findUnique({ where: { dedupeKey }, select: { id: true } })) continue;
+      if (channel !== 'PUSH') {
+        // email / SMS for customer notifications are not configured until a provider and consent rules are set (Stage 9)
+        await this.prisma.notificationDelivery.create({ data: { ...base, channel, provider: 'none', status: 'SUPPRESSED', suppressedReason: 'CHANNEL_NOT_CONFIGURED', consentChecked: true, dedupeKey } });
+        continue;
       }
+      const d = await this.prisma.notificationDelivery.create({ data: { ...base, channel, provider: 'mock-push', status: 'QUEUED', dedupeKey } });
+      await this.attempt(d.id, cfg);
+    }
+  }
+
+  /** One attempt of a tracked delivery: consent / preference first, then the provider, then retry or fail. */
+  private async attempt(deliveryId: string, cfg: NotificationOpsConfig) {
+    const d = await this.prisma.notificationDelivery.findUniqueOrThrow({ where: { id: deliveryId } });
+    const user = d.userId ? await this.prisma.user.findUnique({ where: { id: d.userId }, select: { status: true, locale: true } }) : null;
+    const pref = d.userId ? await this.prisma.notificationPreference.findFirst({ where: { userId: d.userId, category: 'ALL' } }) : null;
+    const now = new Date();
+    if (!user || user.status !== 'ACTIVE' || pref?.muted || (pref && !pref.channels.includes(d.channel))) {
+      await this.prisma.notificationDelivery.update({ where: { id: d.id }, data: { status: 'SUPPRESSED', suppressedReason: !user || user.status !== 'ACTIVE' ? 'ACCOUNT_NOT_ACTIVE' : 'PREFERENCE', consentChecked: true, lastAttemptAt: now, nextRetryAt: null } });
+      return;
+    }
+    const payload = d.payload as { type?: NotificationType; body?: string };
+    const type = payload.type ?? 'ALERT';
+    const t = TITLES[type] ?? TITLES.ALERT;
+    try {
+      const res = await this.push.send({ userId: d.userId!, title: t.en, body: payload.body ?? '', data: { type, notificationId: d.notificationId ?? '' } });
+      await this.prisma.notificationDelivery.update({ where: { id: d.id }, data: { status: res.delivered ? 'DELIVERED' : 'SENT', providerMessageId: res.providerRef, attempts: { increment: 1 }, consentChecked: true, lastAttemptAt: now, nextRetryAt: null, failureReason: null, locale: user.locale } });
+    } catch (e) {
+      const attempts = d.attempts + 1;
+      const failed = attempts >= d.maxAttempts;
+      const wait = cfg.retryMinutes[Math.min(attempts - 1, cfg.retryMinutes.length - 1)] ?? 30;
+      await this.prisma.notificationDelivery.update({
+        where: { id: d.id },
+        data: { status: failed ? 'FAILED' : 'RETRYING', attempts, consentChecked: true, lastAttemptAt: now, failureReason: (e as Error).message.slice(0, 300), nextRetryAt: failed ? null : new Date(now.getTime() + wait * 60_000), locale: user.locale },
+      });
+      this.logger.warn(`Push delivery ${d.id} ${failed ? 'failed' : 'will be retried'}: ${(e as Error).message}`);
+    }
+  }
+
+  /** Retries due deliveries (job). Returns how many were attempted. */
+  async retryDue(now = new Date()) {
+    const cfg = await this.ops();
+    const due = await this.prisma.notificationDelivery.findMany({ where: { status: 'RETRYING', nextRetryAt: { lte: now } }, take: 200 });
+    for (const d of due) await this.attempt(d.id, cfg);
+    return due.length;
+  }
+
+  /** Operations retries a FAILED delivery now (one more attempt, counted). */
+  async retryNow(deliveryId: string) {
+    const d = await this.prisma.notificationDelivery.findUnique({ where: { id: deliveryId } });
+    if (!d) throw AppError.notFound();
+    if (d.status !== 'FAILED') throw new AppError('INVALID_STATE', 'Only a failed delivery can be retried', 409);
+    await this.prisma.notificationDelivery.update({ where: { id: d.id }, data: { status: 'RETRYING', maxAttempts: d.attempts + 1, nextRetryAt: new Date() } });
+    await this.attempt(d.id, await this.ops());
+    return this.prisma.notificationDelivery.findUniqueOrThrow({ where: { id: d.id } });
+  }
+
+  /** Notifications written outside this service (alerts, cases, restrictions) get their delivery tracked (job). */
+  async sweepUntracked(now = new Date()) {
+    const since = new Date(now.getTime() - 86_400_000);
+    const rows = await this.prisma.notification.findMany({ where: { createdAt: { gte: since } }, orderBy: { createdAt: 'asc' }, take: 500, select: { id: true, userId: true, type: true, data: true } });
+    if (!rows.length) return 0;
+    const tracked = new Set((await this.prisma.notificationDelivery.findMany({ where: { notificationId: { in: rows.map((r) => r.id) }, channel: 'IN_APP' }, select: { notificationId: true } })).map((r) => r.notificationId));
+    let n = 0;
+    for (const r of rows)
+      if (!tracked.has(r.id)) {
+        await this.deliverTracked({ id: r.id, userId: r.userId, type: r.type, data: (r.data ?? {}) as Record<string, unknown> });
+        n++;
+      }
+    return n;
   }
 
   // ---------------------------------------------------------------- inbox

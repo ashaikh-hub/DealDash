@@ -91,6 +91,10 @@ export const auditQuerySchema = paginationQuerySchema.extend({
   action: z.string().max(100).optional(),
   entityType: z.string().max(100).optional(),
   organizationId: uuidSchema.optional(),
+  // Stage 8: find the full trail of one record, one operation or one market
+  entityId: z.string().max(100).optional(),
+  correlationId: z.string().max(100).optional(),
+  market: z.string().max(8).optional(),
 });
 
 export const organizationsQuerySchema = paginationQuerySchema.extend({
@@ -229,6 +233,15 @@ export const auditLogViewSchema = z.object({
   subjectOrganizationId: uuidSchema.nullable().optional(),
   reason: z.string().nullable(),
   requestId: z.string().nullable(),
+  // Stage 8: audit completeness (previous / new value, scope, market, legal entity, approval, correlation, source)
+  previousState: z.unknown().optional(),
+  newState: z.unknown().optional(),
+  scope: z.string().nullable().optional(),
+  market: z.string().nullable().optional(),
+  legalEntityId: z.string().nullable().optional(),
+  approvalRef: z.string().nullable().optional(),
+  correlationId: z.string().nullable().optional(),
+  source: z.string().nullable().optional(),
 });
 
 export const configViewSchema = z.object({

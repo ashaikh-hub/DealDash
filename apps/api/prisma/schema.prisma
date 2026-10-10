@@ -449,6 +449,9 @@ model AuditLog {
   correlationId         String?
   approvalRef           String?
   source                String?
+  /// Stage 8: the market and legal entity the action is about (audit completeness).
+  market                String?
+  legalEntityId         String?  @db.Uuid
 
   @@index([occurredAt])
   @@index([correlationId])
@@ -1207,6 +1210,9 @@ enum NotificationType {
   CAMPAIGN_COMPLETED
   /// Phase 4: an operational alert (target milestone, early warning, finance, integration, risk)
   ALERT
+  /// Stage 8: a case about the customer changed; a restriction was placed / lifted
+  CASE_UPDATED
+  ACCOUNT_RESTRICTION
 }
 
 /// Hot Deal: urgent, limited by time and/or quantity, free reservation (no payment in the MVP). Own lifecycle, own table.
@@ -1559,6 +1565,9 @@ enum LedgerJournalType {
   FUNDING_UTILIZED
   FUNDING_RELEASED
   DOCUMENT_ADJUSTMENT
+  /// Stage 8: a recorded merchant settlement payout and its reversal
+  SETTLEMENT_PAYOUT
+  SETTLEMENT_REVERSAL
 }
 
 enum PayableEventType {
@@ -1777,6 +1786,8 @@ model Refund {
   createdAt               DateTime     @default(now())
   updatedAt               DateTime     @updatedAt
   refundedAt              DateTime?
+  /// Stage 8: the operational case this refund belongs to (refund operations)
+  caseId                  String?      @db.Uuid
 
   order    VoucherOrder     @relation(fields: [orderId], references: [id])
   payment  Payment          @relation(fields: [paymentId], references: [id])
@@ -2231,10 +2242,21 @@ model RiskFlag {
   reviewedAt        DateTime?
   reviewReason      String?
   createdAt         DateTime       @default(now())
+  // ---- Stage 8: fraud / risk operations beyond Watch & Earn (rule based)
+  /// WATCH (Stage 6) | REDEMPTION | REFUND | LOYALTY | BRANCH | CUSTOMER | MERCHANT | PARTNER
+  domain                String   @default("WATCH")
+  ruleCode              String?
+  subjectOrganizationId String?  @db.Uuid
+  branchId              String?  @db.Uuid
+  market                String?
+  caseId                String?  @db.Uuid
+  /// One flag per rule, subject and window (re-running the detector never duplicates it)
+  dedupeKey             String?  @unique
 
   @@index([status, createdAt])
   @@index([subjectUserId])
   @@index([campaignId, status])
+  @@index([domain, status])
 }
 
 /// Blocklist for earning (account or device). Never reveals detection logic to the customer (FR-34).
@@ -3898,12 +3920,47 @@ model DisputeCase {
   evidence               Json      @default("[]")
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
+  // ---- Stage 8: the shared exception / case framework
+  market                    String?
+  legalEntityId             String?   @db.Uuid
+  businessAccountId         String?   @db.Uuid
+  /// LOW | MEDIUM | HIGH | CRITICAL (impact), separate from priority (urgency)
+  severity                  String    @default("MEDIUM")
+  assignedTeam              String?
+  queue                     String?
+  reasonCode                String?
+  /// The event that raised the case (for example REFUND_FAILED, RECON_MISMATCH, RISK_FLAG) and its record id.
+  sourceEvent               String?
+  sourceEventId             String?
+  /// A business reference shown to people (order / voucher / payment / settlement reference).
+  transactionRef            String?
+  financialImpactMinor      Int?
+  currency                  String?
+  proposedResolution        String?
+  /// NOT_REQUIRED | PENDING | APPROVED | REJECTED (a resolution with a financial impact above the configured threshold)
+  approvalState             String    @default("NOT_REQUIRED")
+  approvalRequestedByUserId String?   @db.Uuid
+  approvalRequestedAt       DateTime?
+  approvalDecidedByUserId   String?   @db.Uuid
+  approvalDecidedAt         DateTime?
+  approvalReason            String?
+  /// ON_TRACK | WARNING | BREACHED | MET (computed by the SLA sweep)
+  slaState                  String    @default("ON_TRACK")
+  slaWarnAt                 DateTime?
+  escalationLevel           Int       @default(0)
+  lastEscalatedAt           DateTime?
+  /// The customer support case this case escalates (Stage 5 SupportCase).
+  supportCaseId             String?   @db.Uuid
+  customerNotifiedAt        DateTime?
 
   notes CaseNote[]
 
   @@index([status, slaDueAt])
   @@index([organizationId, status])
   @@index([customerUserId])
+  @@index([market, status])
+  @@index([assignedTeam, status])
+  @@index([slaState, status])
 }
 
 model CaseNote {
@@ -3915,6 +3972,11 @@ model CaseNote {
   visibility           String   @default("INTERNAL")
   body                 String
   createdAt            DateTime @default(now())
+  /// Stage 8: NOTE | CONTACT (a logged customer / business contact) | ESCALATION | SYSTEM
+  kind                 String   @default("NOTE")
+  /// For CONTACT: PHONE | EMAIL | CHAT | IN_APP | IN_PERSON, and INBOUND | OUTBOUND
+  channel              String?
+  direction            String?
 
   case DisputeCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
 
@@ -4746,4 +4808,379 @@ model AiUsageRecord {
 
   @@index([organizationId, occurredAt])
   @@index([agent, kind, occurredAt])
+}
+
+
+// =====================================================================================================================
+// Stage 8: operational gap closure
+// =====================================================================================================================
+
+/// A governed financial adjustment (maker-checker by configuration). The original record is never changed: applying an approved
+/// request posts a NEW reversing / adjusting record through the existing engine (ledger journal, finance adjustment, payable
+/// adjustment, points adjustment) and links it here.
+model AdjustmentRequest {
+  id                 String    @id @default(uuid(7)) @db.Uuid
+  reference          String    @unique
+  /// ADJUSTMENT_KINDS
+  kind               String
+  /// PENDING_APPROVAL | APPROVED | APPLIED | REJECTED | FAILED
+  status             String    @default("PENDING_APPROVAL")
+  /// CREDIT (in favour of the business / customer) | DEBIT
+  direction          String
+  amountMinor        Int       @default(0)
+  points             Int       @default(0)
+  currency           String    @default("SAR")
+  market             String?
+  legalEntityId      String?   @db.Uuid
+  contractId         String?   @db.Uuid
+  organizationId     String?   @db.Uuid
+  businessAccountId  String?   @db.Uuid
+  customerUserId     String?   @db.Uuid
+  /// The record being corrected (for example FinanceDocument, Settlement, ReconciliationItem, RewardEntry, FundingCommitment)
+  sourceType         String?
+  sourceId           String?
+  caseId             String?   @db.Uuid
+  reasonCode         String
+  reason             String
+  requiresApproval   Boolean
+  requestedByUserId  String    @db.Uuid
+  requestedByRole    String?
+  decidedByUserId    String?   @db.Uuid
+  decidedAt          DateTime?
+  decisionReason     String?
+  /// What applying produced: { kind: 'JOURNAL' | 'FINANCE_ADJUSTMENT' | 'PAYABLE_ADJUSTMENT' | 'REWARD_ADJUSTMENT', id }
+  appliedRef         Json?
+  appliedAt          DateTime?
+  failureReason      String?
+  idempotencyKey     String    @unique
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([status, createdAt])
+  @@index([organizationId, createdAt])
+  @@index([kind, status])
+}
+
+/// A merchant settlement run: the settlement-eligible payable of one business, currency and period, under an APPROVED market
+/// settlement rule (no cycle is invented here). Payouts are recorded (manual payout in the MVP; a payout provider is VALIDATE).
+model Settlement {
+  id                   String    @id @default(uuid(7)) @db.Uuid
+  reference            String    @unique
+  organizationId       String    @db.Uuid
+  legalEntityId        String?   @db.Uuid
+  market               String
+  currency             String
+  product              String?
+  settlementRuleId     String?   @db.Uuid
+  periodFrom           DateTime
+  periodTo             DateTime
+  /// PENDING | ELIGIBLE | HELD | DISPUTE_HOLD | PARTIALLY_PAID | COMPLETED | FAILED | REVERSED
+  status               String    @default("PENDING")
+  grossMinor           Int       @default(0)
+  feesMinor            Int       @default(0)
+  taxMinor             Int       @default(0)
+  adjustmentsMinor     Int       @default(0)
+  /// Negative balance carried in from the previous settlement of the same business and currency (never paid out).
+  carriedForwardMinor  Int       @default(0)
+  /// When this settlement ended negative: the later settlement its balance was carried into (carried once).
+  carriedIntoId        String?   @db.Uuid
+  /// Who placed the current hold (the release is a different person)
+  heldByUserId         String?   @db.Uuid
+  payableMinor         Int       @default(0)
+  paidMinor            Int       @default(0)
+  settlementDate       DateTime?
+  /// Reference / masked destination only (never an account number).
+  destinationRef       String?
+  /// UNRECONCILED | MATCHED | EXCEPTION
+  reconciliationStatus String    @default("UNRECONCILED")
+  holdReason           String?
+  failureReason        String?
+  createdByUserId      String?   @db.Uuid
+  approvedByUserId     String?   @db.Uuid
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  items   SettlementItem[]
+  payouts SettlementPayout[]
+
+  @@index([organizationId, status])
+  @@index([status, createdAt])
+  @@index([market, status])
+}
+
+/// The payable events a settlement covers (append-only events are linked here, never edited). An event belongs to at most one
+/// settlement that is not REVERSED (enforced by the run under a per-business lock); a reversed settlement frees its events.
+model SettlementItem {
+  id             String     @id @default(uuid(7)) @db.Uuid
+  settlementId   String     @db.Uuid
+  payableEventId String     @db.Uuid
+  type           String
+  amountMinor    Int
+  feeMinor       Int        @default(0)
+  createdAt      DateTime   @default(now())
+
+  settlement Settlement @relation(fields: [settlementId], references: [id], onDelete: Cascade)
+
+  @@index([settlementId])
+  @@index([payableEventId])
+}
+
+/// A recorded payout against a settlement (append-only; a failure or reversal is a new row).
+model SettlementPayout {
+  id              String     @id @default(uuid(7)) @db.Uuid
+  settlementId    String     @db.Uuid
+  /// PAID | FAILED | REVERSED
+  status          String
+  amountMinor     Int
+  externalRef     String?
+  journalId       String?    @db.Uuid
+  reason          String?
+  recordedByUserId String?   @db.Uuid
+  idempotencyKey  String     @unique
+  createdAt       DateTime   @default(now())
+
+  settlement Settlement @relation(fields: [settlementId], references: [id], onDelete: Cascade)
+
+  @@index([settlementId, createdAt])
+}
+
+/// A reconciliation run: an external statement (payment gateway, bank, settlement) matched against DealDash records, or an internal
+/// consistency check. The statement lines themselves become ReconciliationItems.
+model ReconciliationRun {
+  id              String    @id @default(uuid(7)) @db.Uuid
+  reference       String    @unique
+  /// RECON_SOURCES or INTERNAL
+  source          String
+  kind            String    @default("STATEMENT")
+  fileName        String?
+  periodFrom      DateTime?
+  periodTo        DateTime?
+  currency        String?
+  totals          Json      @default("{}")
+  createdByUserId String?   @db.Uuid
+  createdAt       DateTime  @default(now())
+
+  items ReconciliationItem[]
+
+  @@index([source, createdAt])
+}
+
+/// One reconciliation line and its outcome. Exceptions are worked to RESOLVED with an owner, a resolution and, where money moves,
+/// a link to the governed adjustment (never an edit of the original records).
+model ReconciliationItem {
+  id                   String    @id @default(uuid(7)) @db.Uuid
+  reference            String    @unique
+  runId                String?   @db.Uuid
+  source               String
+  /// MATCHED | PARTIAL_MATCH | MISSING_INTERNAL | MISSING_EXTERNAL | AMOUNT_MISMATCH | DUPLICATE | TIMING_DIFFERENCE | MANUAL_REVIEW | RESOLVED
+  status               String
+  /// The status found by matching (kept when the item is later RESOLVED)
+  matchStatus          String
+  externalReference    String?
+  externalAmountMinor  Int?
+  externalAt           DateTime?
+  internalType         String?
+  internalId           String?
+  internalReference    String?
+  internalAmountMinor  Int?
+  internalAt           DateTime?
+  varianceMinor        Int       @default(0)
+  currency             String    @default("SAR")
+  market               String?
+  organizationId       String?   @db.Uuid
+  ownerUserId          String?   @db.Uuid
+  resolution           String?
+  adjustmentRequestId  String?   @db.Uuid
+  caseId               String?   @db.Uuid
+  resolvedByUserId     String?   @db.Uuid
+  resolvedAt           DateTime?
+  dedupeKey            String?   @unique
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  run ReconciliationRun? @relation(fields: [runId], references: [id])
+
+  @@index([status, createdAt])
+  @@index([source, status])
+  @@index([organizationId, status])
+}
+
+/// A governed restriction or hold (customer restriction, campaign hold, branch redemption hold, user suspension, integration
+/// suspension, financial hold). It is applied through the existing enforcement point of each kind; issued customer rights are never
+/// invalidated by it.
+model OperationalRestriction {
+  id                String    @id @default(uuid(7)) @db.Uuid
+  reference         String    @unique
+  kind              String
+  /// PENDING_APPROVAL | ACTIVE | LIFTED | EXPIRED | REJECTED
+  status            String    @default("PENDING_APPROVAL")
+  subjectType       String
+  subjectId         String
+  organizationId    String?   @db.Uuid
+  branchId          String?   @db.Uuid
+  market            String?
+  /// What is restricted, for example ["NEW_RESERVATIONS","NEW_PURCHASES"] or ["REDEMPTION"]
+  scope             String[]  @default([])
+  reasonCode        String
+  reason            String
+  startsAt          DateTime  @default(now())
+  endsAt            DateTime
+  requiresApproval  Boolean
+  requestedByUserId String    @db.Uuid
+  decidedByUserId   String?   @db.Uuid
+  decidedAt         DateTime?
+  decisionReason    String?
+  liftedByUserId    String?   @db.Uuid
+  liftedAt          DateTime?
+  liftReason        String?
+  caseId            String?   @db.Uuid
+  riskFlagId        String?   @db.Uuid
+  /// The record the enforcement point created (CustomerRestriction, FinancialHold ...) so lifting undoes exactly that
+  appliedRef        Json?
+  notifiedAt        DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([kind, status])
+  @@index([subjectType, subjectId, status])
+  @@index([branchId, status])
+  @@index([status, endsAt])
+}
+
+/// A customer review of a merchant (MR-52 / FDC-05). Verified only with evidence of a DealDash-tracked merchant interaction;
+/// Watch & Earn viewing never qualifies.
+model Review {
+  id                      String    @id @default(uuid(7)) @db.Uuid
+  merchantOrganizationId  String    @db.Uuid
+  customerUserId          String    @db.Uuid
+  /// LIVE_DEAL | EXCLUSIVE | VOUCHER | MERCHANT
+  subjectType             String
+  subjectId               String?
+  rating                  Int
+  text                    String
+  locale                  String    @default("en")
+  /// PENDING_REVIEW | PUBLISHED | REPORTED | HIDDEN | REMOVED
+  status                  String
+  verified                Boolean   @default(false)
+  verifiedInteractionType String?
+  verifiedInteractionId   String?   @db.Uuid
+  reportCount             Int       @default(0)
+  moderatedByUserId       String?   @db.Uuid
+  moderatedAt             DateTime?
+  moderationReason        String?
+  createdAt               DateTime  @default(now())
+  editedAt                DateTime?
+
+  reports ReviewReport[]
+
+  @@index([merchantOrganizationId, status, createdAt])
+  @@index([customerUserId, merchantOrganizationId])
+  @@index([status, createdAt])
+}
+
+model ReviewReport {
+  id                     String    @id @default(uuid(7)) @db.Uuid
+  reviewId               String    @db.Uuid
+  /// CUSTOMER | MERCHANT
+  reporterType           String
+  reporterUserId         String    @db.Uuid
+  reporterOrganizationId String?   @db.Uuid
+  reason                 String
+  note                   String?
+  /// OPEN | UPHELD | DISMISSED
+  status                 String    @default("OPEN")
+  decidedByUserId        String?   @db.Uuid
+  decidedAt              DateTime?
+  createdAt              DateTime  @default(now())
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, reporterUserId])
+  @@index([status, createdAt])
+}
+
+/// The moderation queue for reviews and other content (merchant profile, campaign content, media metadata, reported content).
+model ModerationItem {
+  id               String    @id @default(uuid(7)) @db.Uuid
+  /// REVIEW | MERCHANT_PROFILE | CAMPAIGN | MEDIA
+  subjectType      String
+  subjectId        String
+  /// For CAMPAIGN: LIVE_DEAL | EXCLUSIVE | VOUCHER | WATCH
+  product          String?
+  organizationId   String?   @db.Uuid
+  /// PENDING_REVIEW | REPORTED | APPROVED | REJECTED | HIDDEN | RESTORED
+  status           String
+  source           String    @default("REPORT")
+  reasons          String[]  @default([])
+  reportCount      Int       @default(0)
+  decidedByUserId  String?   @db.Uuid
+  decidedAt        DateTime?
+  decisionReason   String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@unique([subjectType, subjectId])
+  @@index([status, createdAt])
+}
+
+/// One delivery attempt record per notification and channel (in-app, email, push, SMS): status, provider, template version,
+/// consent / preference outcome, retries and failure reason. Providers stay mock / configured until Stage 9.
+model NotificationDelivery {
+  id                String    @id @default(uuid(7)) @db.Uuid
+  notificationId    String?   @db.Uuid
+  alertId           String?   @db.Uuid
+  userId            String?   @db.Uuid
+  organizationId    String?   @db.Uuid
+  channel           String
+  provider          String
+  templateCode      String
+  templateVersion   Int       @default(1)
+  market            String?
+  locale            String?
+  /// QUEUED | SENT | DELIVERED | FAILED | RETRYING | SUPPRESSED
+  status            String
+  attempts          Int       @default(0)
+  maxAttempts       Int       @default(3)
+  failureReason     String?
+  suppressedReason  String?
+  providerMessageId String?
+  consentChecked    Boolean   @default(false)
+  payload           Json      @default("{}")
+  nextRetryAt       DateTime?
+  lastAttemptAt     DateTime?
+  escalatedAt       DateTime?
+  dedupeKey         String    @unique
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([status, nextRetryAt])
+  @@index([userId, createdAt])
+  @@index([channel, status, createdAt])
+}
+
+/// A customer data request (export or deletion). Deletion anonymises personal data and keeps the records the law requires
+/// (financial, audit); the retention periods are VALIDATE-<market>.
+model DataRequest {
+  id                String    @id @default(uuid(7)) @db.Uuid
+  reference         String    @unique
+  /// EXPORT | DELETION
+  type              String
+  /// REQUESTED | PENDING_APPROVAL | COMPLETED | REJECTED
+  status            String
+  customerUserId    String    @db.Uuid
+  market            String?
+  requestedByUserId String    @db.Uuid
+  /// CUSTOMER | SUPPORT
+  requestedVia      String
+  reason            String?
+  decidedByUserId   String?   @db.Uuid
+  decidedAt         DateTime?
+  decisionReason    String?
+  result            Json?
+  completedAt       DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([status, createdAt])
+  @@index([customerUserId])
 }

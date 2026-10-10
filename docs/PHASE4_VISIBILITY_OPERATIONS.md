@@ -53,3 +53,8 @@ Merchant `/performance` (Overview, Drill-down report, Targets, Alerts, Alert rul
 ## 9. Verification
 
 API: `apps/api/test/visibility.e2e.test.ts` (17 tests). Components: `apps/merchant/features/performance.test.tsx`, `apps/admin/features/visibility.test.tsx`. Browser: `node tooling/e2e/phase45-browser.mjs` (59 checks incl. Arabic RTL and phone width; screenshots in `docs/screenshots/phase45`).
+
+## Stage 8 (Oct 2026)
+Command Centre gains the Exceptions tab (15 areas, drill-down Global → … → Campaign). Timeline kinds ELIGIBILITY, REVIEW, RESTRICTION,
+CONTACT; alert codes SLA_WARNING, SLA_BREACHED, NOTIFICATION_FAILURE, FRAUD_FLAG_RAISED, SETTLEMENT_EXCEPTION, RECONCILIATION_EXCEPTION,
+RESTRICTION_PLACED, RESTRICTION_LIFTED; alert actions VIEW_CASES, VIEW_NOTIFICATIONS.

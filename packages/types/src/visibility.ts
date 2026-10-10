@@ -366,6 +366,15 @@ export const ALERT_CODES = {
   SUBSCRIPTION_LIMIT: { category: 'SUBSCRIPTION', severity: 'WARNING', action: 'VIEW_PLAN' },
   SUBSCRIPTION_LIFECYCLE: { category: 'SUBSCRIPTION', severity: 'WARNING', action: 'VIEW_PLAN' },
   FINANCIAL_HOLD: { category: 'FINANCE', severity: 'CRITICAL', action: 'VIEW_PLAN' },
+  // Stage 8: operations (SLA escalation, delivery failures, fraud flags, settlement / reconciliation exceptions)
+  SLA_WARNING: { category: 'OPERATIONS', severity: 'WARNING', action: 'VIEW_CASES' },
+  SLA_BREACHED: { category: 'OPERATIONS', severity: 'CRITICAL', action: 'VIEW_CASES' },
+  NOTIFICATION_FAILURE: { category: 'OPERATIONS', severity: 'WARNING', action: 'VIEW_NOTIFICATIONS' },
+  FRAUD_FLAG_RAISED: { category: 'RISK', severity: 'WARNING', action: 'VIEW_RISK' },
+  SETTLEMENT_EXCEPTION: { category: 'FINANCE', severity: 'WARNING', action: 'VIEW_SETTLEMENT' },
+  RECONCILIATION_EXCEPTION: { category: 'FINANCE', severity: 'WARNING', action: 'VIEW_RECONCILIATION' },
+  RESTRICTION_PLACED: { category: 'OPERATIONS', severity: 'CRITICAL', action: 'VIEW_CASES' },
+  RESTRICTION_LIFTED: { category: 'OPERATIONS', severity: 'INFO', action: 'VIEW_CASES' },
 } as const satisfies Record<
   string,
   { category: AlertCategory; severity: AlertSeverity; action: string }
@@ -390,6 +399,8 @@ export const ALERT_ACTIONS = [
   'VIEW_RECONCILIATION',
   'REVIEW_CAMPAIGN',
   'VIEW_PLAN',
+  'VIEW_CASES',
+  'VIEW_NOTIFICATIONS',
 ] as const;
 export type AlertAction = (typeof ALERT_ACTIONS)[number];
 
@@ -435,5 +446,10 @@ export const TIMELINE_KINDS = [
   'DISPUTE',
   'RISK',
   'NOTIFICATION',
+  // Stage 8: consolidated support timeline
+  'ELIGIBILITY',
+  'REVIEW',
+  'RESTRICTION',
+  'CONTACT',
 ] as const;
 export type TimelineKind = (typeof TIMELINE_KINDS)[number];

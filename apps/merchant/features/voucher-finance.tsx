@@ -11,6 +11,7 @@ import {
 import { Alert, Button, Card, EmptyState, LoadingState } from '@dealdash/ui';
 import type { PayableEventRow, PayableSummary } from '@dealdash/validation';
 import { useOrgId } from './deal-utils';
+import { MerchantSettlements } from './settlements-reviews';
 
 export function MerchantFinancePage() {
   return (
@@ -150,6 +151,7 @@ function FinanceInner() {
           </Button>
         </div>
       ) : null}
+      <MerchantSettlements />
     </div>
   );
 }

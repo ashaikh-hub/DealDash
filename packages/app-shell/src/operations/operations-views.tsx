@@ -4,6 +4,7 @@ import { useCallback, useState, type ReactNode } from 'react';
 import { createTranslator, dictionaries, formatDateTime, formatNumber, type DictionaryKey } from '@dealdash/localization';
 import { Alert, Button, Card, EmptyState, Field, FileField, Input, LoadingState, Select, StatusChip, Tabs, Textarea } from '@dealdash/ui';
 import type { StatusTone } from '@dealdash/ui';
+import { CASE_SEVERITIES, CASE_STATUSES, CASE_TEAMS, CASE_TERMINAL_STATUSES, CASE_TYPES as STAGE8_CASE_TYPES, CONTACT_CHANNELS, LEGACY_CASE_TYPES, SLA_STATES } from '@dealdash/types';
 import { useApi, useResource } from '../api';
 import { useAuth } from '../auth-context';
 import { errorMessage } from '../gates';
@@ -15,7 +16,20 @@ const k = (p: string, v: string) => `${p}.${v}` as DictionaryKey;
 const has = (key: string): key is DictionaryKey => key in dictionaries.en;
 
 const PRIORITY_TONE: Record<string, StatusTone> = { LOW: 'neutral', NORMAL: 'info', HIGH: 'warning', CRITICAL: 'danger' };
-const CASE_TONE: Record<string, StatusTone> = { OPEN: 'info', IN_REVIEW: 'warning', WAITING: 'warning', RESOLVED: 'success', CLOSED: 'neutral' };
+const CASE_TONE: Record<string, StatusTone> = {
+  OPEN: 'info',
+  IN_REVIEW: 'warning',
+  WAITING: 'warning',
+  INVESTIGATING: 'warning',
+  AWAITING_CUSTOMER: 'warning',
+  AWAITING_MERCHANT: 'warning',
+  AWAITING_PARTNER: 'warning',
+  AWAITING_FINANCE: 'warning',
+  AWAITING_APPROVAL: 'warning',
+  RESOLVED: 'success',
+  CLOSED: 'neutral',
+  REJECTED: 'danger',
+};
 const RULE_TONE: Record<string, StatusTone> = { DRAFT: 'neutral', PENDING_APPROVAL: 'warning', ACTIVE: 'success', PAUSED: 'neutral', ENDED: 'neutral', REJECTED: 'danger' };
 
 /** Runs a command and reports the translated result. */
@@ -192,14 +206,23 @@ export function InboxPanel({
 }
 
 // ====================================================================================== cases
-const CASE_TYPES = ['REWARD_REFUSED', 'REDEMPTION_DISPUTE', 'SPONSOR_CHARGE_DISPUTE', 'DUPLICATE_FUNDING', 'SETTLEMENT_MISMATCH', 'INVALID_VOUCHER_REDEMPTION', 'IMPORT_CONFLICT', 'FEED_DISCREPANCY', 'RECONCILIATION_BREAK', 'OTHER'] as const;
+// Stage 8: the shared exception types first, then the Phase 3 types that existing cases keep
+const CASE_TYPES = [...STAGE8_CASE_TYPES, ...LEGACY_CASE_TYPES] as const;
 const PRIORITIES = ['LOW', 'NORMAL', 'HIGH', 'CRITICAL'] as const;
 const EVIDENCE_TYPES = ['DOCUMENT', 'SCREENSHOT', 'CONTRACT', 'RECEIPT', 'OTHER'] as const;
+const TERMINAL: readonly string[] = CASE_TERMINAL_STATUSES;
+/** Statuses a person moves a case to by hand (closing uses resolve; AWAITING_APPROVAL uses the approval request). */
+const MOVABLE = CASE_STATUSES.filter((s) => !TERMINAL.includes(s) && s !== 'AWAITING_APPROVAL' && s !== 'IN_REVIEW' && s !== 'WAITING' && s !== 'OPEN');
+const SEVERITY_TONE: Record<string, StatusTone> = { LOW: 'neutral', MEDIUM: 'info', HIGH: 'warning', CRITICAL: 'danger' };
+const SLA_TONE: Record<string, StatusTone> = { ON_TRACK: 'success', WARNING: 'warning', BREACHED: 'danger', MET: 'neutral' };
 
 interface CaseNote {
   id: string;
   visibility: 'INTERNAL' | 'SHARED';
   body: string;
+  kind?: string;
+  channel?: string | null;
+  direction?: string | null;
   fromBusiness: boolean;
   createdAt: string;
 }
@@ -230,13 +253,34 @@ interface CaseView {
   financialAdjustmentId: string | null;
   notes: CaseNote[];
   attachments: CaseAttachment[];
+  // ---- Stage 8 (business views receive nulls for internal routing and approval details)
+  severity?: string;
+  market?: string | null;
+  assignedTeam?: string | null;
+  queue?: string | null;
+  transactionRef?: string | null;
+  financialImpactMinor?: number | null;
+  currency?: string | null;
+  proposedResolution?: string | null;
+  approvalState?: string | null;
+  approvalRequestedByUserId?: string | null;
+  slaState?: string;
+  escalationLevel?: number;
+  awaitingYou?: boolean;
 }
 
 export function CasesPanel({ scope, canManage, openId }: { scope: OpsScope; canManage: boolean; openId?: string | null }) {
   const { locale } = useAuth();
   const t = createTranslator(locale);
   const [status, setStatus] = useState('');
-  const list = useResource<CaseView[]>(`${baseOf(scope)}/disputes`, { status: status || undefined });
+  const [team, setTeam] = useState('');
+  const [severity, setSeverity] = useState('');
+  const [sla, setSla] = useState('');
+  const adminScope = scope.audience === 'admin';
+  const list = useResource<CaseView[]>(
+    `${baseOf(scope)}/disputes`,
+    adminScope ? { status: status || undefined, team: team || undefined, severity: severity || undefined, slaState: sla || undefined } : { status: status || undefined },
+  );
   const cmd = useCommand();
   const [selected, setSelected] = useState<string | null>(openId ?? null);
   const [form, setForm] = useState({ type: 'OTHER', title: '', description: '', priority: 'NORMAL', organizationId: '' });
@@ -263,14 +307,42 @@ export function CasesPanel({ scope, canManage, openId }: { scope: OpsScope; canM
       <div className="dd-row" style={{ justifyContent: 'space-between' }}>
         <h2 className="dd-title">{t('op.case.title')}</h2>
         <div className="dd-row">
-          <Select aria-label={t('op.col.status')} value={status} onChange={(e) => setStatus(e.target.value)}>
+          <Select aria-label={t('op.col.status')} value={status} onChange={(e) => setStatus(e.target.value)} data-testid="op-case-filter-status">
             <option value="">{t('op.act.all')}</option>
-            {(['OPEN', 'IN_REVIEW', 'WAITING', 'RESOLVED', 'CLOSED'] as const).map((s) => (
+            {CASE_STATUSES.map((s) => (
               <option key={s} value={s}>
                 {t(k('op.dstatus', s))}
               </option>
             ))}
           </Select>
+          {adminScope ? (
+            <>
+              <Select aria-label={t('op.case.team')} value={team} onChange={(e) => setTeam(e.target.value)} data-testid="op-case-filter-team">
+                <option value="">{t('op.case.allTeams')}</option>
+                {CASE_TEAMS.map((x) => (
+                  <option key={x} value={x}>
+                    {t(k('op.team', x))}
+                  </option>
+                ))}
+              </Select>
+              <Select aria-label={t('op.case.severity')} value={severity} onChange={(e) => setSeverity(e.target.value)}>
+                <option value="">{t('op.case.allSeverities')}</option>
+                {CASE_SEVERITIES.map((x) => (
+                  <option key={x} value={x}>
+                    {t(k('op.sev', x))}
+                  </option>
+                ))}
+              </Select>
+              <Select aria-label={t('op.case.slaState')} value={sla} onChange={(e) => setSla(e.target.value)} data-testid="op-case-filter-sla">
+                <option value="">{t('op.case.allSla')}</option>
+                {SLA_STATES.map((x) => (
+                  <option key={x} value={x}>
+                    {t(k('op.sla', x))}
+                  </option>
+                ))}
+              </Select>
+            </>
+          ) : null}
           {canManage ? (
             <Button onClick={() => setShowNew((v) => !v)} data-testid="op-case-new">
               {t('op.case.new')}
@@ -346,9 +418,20 @@ export function CasesPanel({ scope, canManage, openId }: { scope: OpsScope; canM
                   </td>
                   <td>
                     <StatusChip tone={PRIORITY_TONE[c.priority] ?? 'neutral'}>{t(k('op.priority', c.priority))}</StatusChip>
+                    {c.severity ? (
+                      <div style={{ marginTop: 4 }}>
+                        <StatusChip tone={SEVERITY_TONE[c.severity] ?? 'neutral'}>{t(k('op.sev', c.severity))}</StatusChip>
+                      </div>
+                    ) : null}
                   </td>
                   <td>
                     <StatusChip tone={CASE_TONE[c.status] ?? 'neutral'}>{t(k('op.dstatus', c.status))}</StatusChip>
+                    {c.awaitingYou && !adminScope ? (
+                      <>
+                        {' '}
+                        <StatusChip tone="warning">{t('op.case.awaitingYou')}</StatusChip>
+                      </>
+                    ) : null}
                     {c.overdue ? (
                       <>
                         {' '}
@@ -356,7 +439,14 @@ export function CasesPanel({ scope, canManage, openId }: { scope: OpsScope; canM
                       </>
                     ) : null}
                   </td>
-                  <td>{formatDateTime(locale, c.slaDueAt)}</td>
+                  <td>
+                    {formatDateTime(locale, c.slaDueAt)}
+                    {adminScope && c.slaState && !c.overdue ? (
+                      <div style={{ marginTop: 4 }}>
+                        <StatusChip tone={SLA_TONE[c.slaState] ?? 'neutral'}>{t(k('op.sla', c.slaState))}</StatusChip>
+                      </div>
+                    ) : null}
+                  </td>
                   <td>
                     <Button variant="outline" size="sm" onClick={() => setSelected(selected === c.id ? null : c.id)} data-testid={`op-case-open-${c.reference}`}>
                       {t('op.case.view')}
@@ -383,7 +473,7 @@ function CaseDetail({ scope, id, canManage, onChanged }: { scope: OpsScope; id: 
   const [note, setNote] = useState('');
   const [vis, setVis] = useState<'INTERNAL' | 'SHARED'>('SHARED');
   const [resolution, setResolution] = useState('');
-  const [outcome, setOutcome] = useState<'RESOLVED' | 'CLOSED'>('RESOLVED');
+  const [outcome, setOutcome] = useState<'RESOLVED' | 'CLOSED' | 'REJECTED'>('RESOLVED');
   const [finance, setFinance] = useState('');
   const c = res.data;
   const after = async () => {
@@ -391,8 +481,9 @@ function CaseDetail({ scope, id, canManage, onChanged }: { scope: OpsScope; id: 
     onChanged();
   };
   if (!c) return <LoadingState label={t('state.loading')} />;
-  const closed = c.status === 'RESOLVED' || c.status === 'CLOSED';
+  const closed = TERMINAL.includes(c.status);
   const admin = scope.audience === 'admin';
+  const awaitingApproval = c.status === 'AWAITING_APPROVAL';
   return (
     <Card data-testid="op-case-detail">
       <div className="dd-stack" style={{ gap: 14 }}>
@@ -402,14 +493,60 @@ function CaseDetail({ scope, id, canManage, onChanged }: { scope: OpsScope; id: 
           </h3>
           <p style={{ margin: 0 }}>{c.title}</p>
           {c.description ? <p className="dd-muted">{c.description}</p> : null}
-          <div className="dd-row">
+          <div className="dd-row" style={{ flexWrap: 'wrap' }}>
             <StatusChip tone={CASE_TONE[c.status] ?? 'neutral'}>{t(k('op.dstatus', c.status))}</StatusChip>
+            {c.severity ? <StatusChip tone={SEVERITY_TONE[c.severity] ?? 'neutral'}>{t(k('op.sev', c.severity))}</StatusChip> : null}
+            {admin && c.slaState ? (
+              <span data-testid="op-case-sla-state">
+                <StatusChip tone={SLA_TONE[c.slaState] ?? 'neutral'}>{t(k('op.sla', c.slaState))}</StatusChip>
+              </span>
+            ) : null}
             <span className="dd-caption">
               {t('op.case.sla')}: <span>{formatDateTime(locale, c.slaDueAt)}</span>
             </span>
           </div>
+          {admin ? (
+            <dl className="dd-caption dd-row" style={{ flexWrap: 'wrap', gap: 12, margin: '8px 0 0' }} data-testid="op-case-facts">
+              {c.assignedTeam ? (
+                <span>
+                  {t('op.case.team')}: {t(k('op.team', c.assignedTeam))}
+                </span>
+              ) : null}
+              {c.market ? (
+                <span>
+                  {t('op.case.market')}: <span className="dd-ltr">{c.market}</span>
+                </span>
+              ) : null}
+              {c.transactionRef ? (
+                <span>
+                  {t('op.case.transaction')}: <span className="dd-ltr">{c.transactionRef}</span>
+                </span>
+              ) : null}
+              {c.financialImpactMinor ? (
+                <span>
+                  {t('op.case.impact')}: <span className="dd-ltr">{formatNumber(locale, c.financialImpactMinor / 100)} {c.currency ?? ''}</span>
+                </span>
+              ) : null}
+              {c.escalationLevel ? (
+                <span>
+                  {t('op.case.escalation')}: {c.escalationLevel}
+                </span>
+              ) : null}
+            </dl>
+          ) : null}
         </div>
         {cmd.banner}
+        {c.awaitingYou && !admin ? <Alert tone="warning">{t('op.case.awaitingYouNote')}</Alert> : null}
+        {awaitingApproval && admin ? (
+          <div data-testid="op-case-awaiting-approval">
+            <Alert tone="warning">
+              {t('op.case.awaitingApprovalNote')} {c.proposedResolution}
+            </Alert>
+          </div>
+        ) : null}
+        {admin && canManage && !closed ? (
+          <CaseWorkActions path={path} c={c} meId={me?.id ?? null} run={cmd.run} busy={cmd.busy} after={after} />
+        ) : null}
 
         <section aria-label={t('op.case.notes')} className="dd-stack" style={{ gap: 8 }}>
           <h4 className="dd-title-sm">{t('op.case.notes')}</h4>
@@ -418,6 +555,8 @@ function CaseDetail({ scope, id, canManage, onChanged }: { scope: OpsScope; id: 
             <div key={n.id} className="dd-note" data-testid="op-note">
               <div className="dd-caption">
                 {n.fromBusiness ? t('op.case.fromBusiness') : t('op.case.fromDealdash')} · <span>{formatDateTime(locale, n.createdAt)}</span>
+                {n.kind && n.kind !== 'NOTE' ? <> · {t(k('op.noteKind', n.kind))}</> : null}
+                {n.channel ? <> · {t(k('op.channel', n.channel))}</> : null}
                 {admin && n.visibility === 'INTERNAL' ? (
                   <>
                     {' '}
@@ -462,22 +601,14 @@ function CaseDetail({ scope, id, canManage, onChanged }: { scope: OpsScope; id: 
 
         <EvidenceSection scope={scope} c={c} canManage={canManage && !closed} onChanged={after} call={call} />
 
-        {admin && canManage && !closed ? (
+        {admin && canManage && !closed && !awaitingApproval ? (
           <section className="dd-stack" style={{ gap: 8 }} aria-label={t('op.case.resolveTitle')}>
-            <div>
-              <Button
-                variant="outline"
-                onClick={() => me && void cmd.run('POST', `${path}/assign`, { ownerUserId: me.id }, t('op.case.assigned'), after)}
-                data-testid="op-case-assign"
-              >
-                {t('op.case.assignMe')}
-              </Button>
-            </div>
             <h4 className="dd-title-sm">{t('op.case.resolveTitle')}</h4>
             <Field label={t('op.case.outcome')} htmlFor="op-case-outcome">
-              <Select id="op-case-outcome" value={outcome} onChange={(e) => setOutcome(e.target.value as 'RESOLVED' | 'CLOSED')}>
+              <Select id="op-case-outcome" value={outcome} onChange={(e) => setOutcome(e.target.value as 'RESOLVED' | 'CLOSED' | 'REJECTED')}>
                 <option value="RESOLVED">{t('op.case.outcome.RESOLVED')}</option>
                 <option value="CLOSED">{t('op.case.outcome.CLOSED')}</option>
+                <option value="REJECTED">{t('op.case.outcome.REJECTED')}</option>
               </Select>
             </Field>
             <Field label={t('op.case.resolution')} htmlFor="op-case-resolution">
@@ -506,6 +637,187 @@ function CaseDetail({ scope, id, canManage, onChanged }: { scope: OpsScope; id: 
         ) : null}
       </div>
     </Card>
+  );
+}
+
+type RunCommand = ReturnType<typeof useCommand>['run'];
+
+/**
+ * Stage 8 case work for DealDash staff: assignment, severity and team, moving the case through the configured lifecycle, logging a
+ * customer / business contact, and the maker-checker approval of a proposed resolution. The server enforces every rule (lifecycle,
+ * second person, finance approver); this panel only offers the actions.
+ */
+function CaseWorkActions({ path, c, meId, run, busy, after }: { path: string; c: CaseView; meId: string | null; run: RunCommand; busy: boolean; after: () => Promise<void> }) {
+  const { locale } = useAuth();
+  const t = createTranslator(locale);
+  const [team, setTeam] = useState(c.assignedTeam ?? '');
+  const [severity, setSeverity] = useState(c.severity ?? 'MEDIUM');
+  const [to, setTo] = useState<string>(MOVABLE[0] ?? 'INVESTIGATING');
+  const [moveNote, setMoveNote] = useState('');
+  const [channel, setChannel] = useState<string>(CONTACT_CHANNELS[0] ?? 'PHONE');
+  const [direction, setDirection] = useState<'INBOUND' | 'OUTBOUND'>('OUTBOUND');
+  const [contact, setContact] = useState('');
+  const [proposal, setProposal] = useState('');
+  const [impact, setImpact] = useState('');
+  const [reason, setReason] = useState('');
+  const [showHistory, setShowHistory] = useState(false);
+  const awaitingApproval = c.status === 'AWAITING_APPROVAL';
+  const iRequested = !!meId && c.approvalRequestedByUserId === meId;
+  const impactMinor = impact.trim() ? Math.round(Number(impact) * 100) : null;
+  return (
+    <section className="dd-stack" style={{ gap: 12 }} aria-label={t('op.case.work')} data-testid="op-case-work">
+      <h4 className="dd-title-sm">{t('op.case.work')}</h4>
+      <div className="dd-row" style={{ flexWrap: 'wrap', alignItems: 'flex-end' }}>
+        <Field label={t('op.case.team')} htmlFor="op-case-team">
+          <Select id="op-case-team" value={team} onChange={(e) => setTeam(e.target.value)}>
+            <option value="">{t('op.case.noTeam')}</option>
+            {CASE_TEAMS.map((x) => (
+              <option key={x} value={x}>
+                {t(k('op.team', x))}
+              </option>
+            ))}
+          </Select>
+        </Field>
+        <Button variant="outline" disabled={busy || !meId} onClick={() => meId && void run('POST', `${path}/assign`, { ownerUserId: meId, team: team || null }, t('op.case.assigned'), after)} data-testid="op-case-assign">
+          {t('op.case.assignMe')}
+        </Button>
+        <Field label={t('op.case.severity')} htmlFor="op-case-sev">
+          <Select id="op-case-sev" value={severity} onChange={(e) => setSeverity(e.target.value)}>
+            {CASE_SEVERITIES.map((x) => (
+              <option key={x} value={x}>
+                {t(k('op.sev', x))}
+              </option>
+            ))}
+          </Select>
+        </Field>
+        <Button variant="outline" disabled={busy} onClick={() => void run('POST', `${path}/update`, { severity, assignedTeam: team || null }, t('op.case.updated'), after)} data-testid="op-case-update">
+          {t('op.case.saveRouting')}
+        </Button>
+      </div>
+
+      {!awaitingApproval ? (
+        <div className="dd-row" style={{ flexWrap: 'wrap', alignItems: 'flex-end' }}>
+          <Field label={t('op.case.moveTo')} htmlFor="op-case-to">
+            <Select id="op-case-to" value={to} onChange={(e) => setTo(e.target.value)} data-testid="op-case-to">
+              {MOVABLE.map((s) => (
+                <option key={s} value={s}>
+                  {t(k('op.dstatus', s))}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field label={t('op.case.moveNote')} htmlFor="op-case-move-note">
+            <Input id="op-case-move-note" value={moveNote} maxLength={2000} onChange={(e) => setMoveNote(e.target.value)} />
+          </Field>
+          <Button
+            variant="secondary"
+            disabled={busy}
+            onClick={() => void run('POST', `${path}/transition`, { to, note: moveNote.trim() || null }, t('op.case.moved'), async () => { setMoveNote(''); await after(); })}
+            data-testid="op-case-move"
+          >
+            {t('op.case.move')}
+          </Button>
+        </div>
+      ) : null}
+
+      <div className="dd-stack" style={{ gap: 8 }}>
+        <div className="dd-row" style={{ flexWrap: 'wrap' }}>
+          <Field label={t('op.case.channel')} htmlFor="op-contact-channel">
+            <Select id="op-contact-channel" value={channel} onChange={(e) => setChannel(e.target.value)}>
+              {CONTACT_CHANNELS.map((x) => (
+                <option key={x} value={x}>
+                  {t(k('op.channel', x))}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field label={t('op.case.direction')} htmlFor="op-contact-dir">
+            <Select id="op-contact-dir" value={direction} onChange={(e) => setDirection(e.target.value as 'INBOUND' | 'OUTBOUND')}>
+              <option value="OUTBOUND">{t('op.case.dir.OUTBOUND')}</option>
+              <option value="INBOUND">{t('op.case.dir.INBOUND')}</option>
+            </Select>
+          </Field>
+        </div>
+        <Field label={t('op.case.contactBody')} htmlFor="op-contact-body">
+          <Textarea id="op-contact-body" value={contact} maxLength={2000} onChange={(e) => setContact(e.target.value)} />
+        </Field>
+        <div>
+          <Button
+            variant="outline"
+            disabled={contact.trim().length < 3 || busy}
+            onClick={() => void run('POST', `${path}/contacts`, { channel, direction, body: contact }, t('op.case.contactLogged'), async () => { setContact(''); await after(); })}
+            data-testid="op-contact-log"
+          >
+            {t('op.case.logContact')}
+          </Button>
+        </div>
+      </div>
+
+      {awaitingApproval ? (
+        iRequested ? (
+          <p className="dd-muted" data-testid="op-case-own-request">{t('op.case.ownRequest')}</p>
+        ) : (
+          <div className="dd-stack" style={{ gap: 8 }} data-testid="op-case-approval">
+            <Field label={t('op.case.decisionReason')} htmlFor="op-case-decision-reason">
+              <Textarea id="op-case-decision-reason" value={reason} maxLength={500} onChange={(e) => setReason(e.target.value)} />
+            </Field>
+            <div className="dd-row">
+              <Button disabled={reason.trim().length < 3 || busy} onClick={() => void run('POST', `${path}/approval/decide`, { decision: 'APPROVE', reason }, t('op.case.approved'), after)} data-testid="op-case-approve">
+                {t('op.case.approve')}
+              </Button>
+              <Button variant="outline" disabled={reason.trim().length < 3 || busy} onClick={() => void run('POST', `${path}/approval/decide`, { decision: 'REJECT', reason }, t('op.case.sentBack'), after)} data-testid="op-case-reject">
+                {t('op.case.sendBack')}
+              </Button>
+            </div>
+          </div>
+        )
+      ) : (
+        <div className="dd-stack" style={{ gap: 8 }}>
+          <Field label={t('op.case.proposal')} htmlFor="op-case-proposal" help={t('op.case.proposalHelp')}>
+            <Textarea id="op-case-proposal" value={proposal} maxLength={1000} onChange={(e) => setProposal(e.target.value)} />
+          </Field>
+          <Field label={t('op.case.impactInput')} htmlFor="op-case-impact">
+            <Input id="op-case-impact" className="dd-ltr" inputMode="decimal" value={impact} onChange={(e) => setImpact(e.target.value)} />
+          </Field>
+          <div>
+            <Button
+              variant="secondary"
+              disabled={proposal.trim().length < 3 || busy || (impactMinor !== null && !(impactMinor >= 0))}
+              onClick={() => void run('POST', `${path}/approval`, { proposedResolution: proposal, financialImpactMinor: impactMinor }, t('op.case.approvalRequested'), after)}
+              data-testid="op-case-request-approval"
+            >
+              {t('op.case.requestApproval')}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <div>
+        <Button variant="ghost" size="sm" onClick={() => setShowHistory((v) => !v)} data-testid="op-case-history-toggle">
+          {t('op.case.history')}
+        </Button>
+      </div>
+      {showHistory ? <CaseHistory path={path} /> : null}
+    </section>
+  );
+}
+
+function CaseHistory({ path }: { path: string }) {
+  const { locale } = useAuth();
+  const t = createTranslator(locale);
+  const res = useResource<{ at: string; action: string; actorRole: string | null; reason: string | null }[]>(`${path}/history`);
+  if (res.loading && !res.data) return <LoadingState label={t('state.loading')} />;
+  if (res.errors.length) return <Alert tone="danger">{errorMessage(locale, res.errors)}</Alert>;
+  return (
+    <ol className="dd-stack" style={{ gap: 4, margin: 0, paddingInlineStart: 18 }} data-testid="op-case-history">
+      {(res.data ?? []).map((h, i) => (
+        <li key={i} className="dd-caption">
+          <span>{formatDateTime(locale, h.at)}</span> · <span className="dd-ltr">{h.action}</span>
+          {h.actorRole ? <> · {h.actorRole}</> : null}
+          {h.reason ? <> · {h.reason}</> : null}
+        </li>
+      ))}
+    </ol>
   );
 }
 

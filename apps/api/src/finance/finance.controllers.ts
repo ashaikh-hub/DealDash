@@ -35,6 +35,8 @@ import { AppError } from '../common/errors';
 import type { Actor, RequestMeta } from '../common/request-context';
 import { TenantService } from '../identity/tenant.service';
 import { AccessScopeService } from '../platform/access-scope.service';
+import { SystemConfigService } from '../system-config/system-config.service';
+import { assertDirectAdjustmentAllowed } from '../ops/ops-util';
 import type { PermissionCode } from '@dealdash/types';
 import { CommercialService } from './commercial.service';
 import { FinanceAdminService } from './finance-admin.service';
@@ -209,6 +211,7 @@ export class AdminFinanceController {
   constructor(
     private readonly commercial: CommercialService,
     private readonly finance: FinanceAdminService,
+    private readonly config: SystemConfigService,
   ) {}
 
   @Get('overview')
@@ -441,7 +444,8 @@ export class AdminFinanceController {
   @Idempotent()
   @RequirePermissions('admin.finance.manage')
   @ApiOkResponse({ type: IdResponse })
-  adjust(@Body() b: AdjustDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async adjust(@Body() b: AdjustDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+    await assertDirectAdjustmentAllowed(this.config, b.amountHalalas);
     return this.finance.adjust(actor, b, meta);
   }
 

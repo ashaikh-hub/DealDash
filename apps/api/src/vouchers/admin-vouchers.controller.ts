@@ -36,6 +36,8 @@ import { RefundsService } from './refunds.service';
 import { SupportCasesService } from './support-cases.service';
 import { VoucherRedemptionService } from './voucher-redemption.service';
 import { VoucherReviewService } from './voucher-review.service';
+import { SystemConfigService } from '../system-config/system-config.service';
+import { assertDirectAdjustmentAllowed } from '../ops/ops-util';
 
 /**
  * DealDash voucher review and live controls. Cross-tenant by design, so gated by admin permissions only: review decisions
@@ -181,6 +183,7 @@ export class AdminFinanceController {
     private readonly refunds: RefundsService,
     private readonly redemption: VoucherRedemptionService,
     private readonly cases: SupportCasesService,
+    private readonly config: SystemConfigService,
   ) {}
 
   @Get('overview')
@@ -293,7 +296,8 @@ export class AdminFinanceController {
   @HttpCode(201)
   @RequirePermissions('admin.settlements.manage')
   @ApiOkResponse({ type: JournalCreatedResponse })
-  adjust(@Body() body: AdjustmentDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async adjust(@Body() body: AdjustmentDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+    await assertDirectAdjustmentAllowed(this.config, body.amountHalalas);
     return this.finance.adjust(actor, body, meta);
   }
 

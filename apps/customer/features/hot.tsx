@@ -275,7 +275,17 @@ interface NotificationItem {
     | 'VOUCHER_ISSUED'
     | 'VOUCHER_EXPIRING'
     | 'REFUND_UPDATED'
-    | 'VOUCHER_REDEEMED';
+    | 'VOUCHER_REDEEMED'
+    // Watch & Earn and Stage 8 types the same list can return
+    | 'REWARD_EARNED'
+    | 'REWARD_HELD'
+    | 'REWARD_RELEASED'
+    | 'REWARD_REVERSED'
+    | 'REWARD_EXPIRING'
+    | 'CAMPAIGN_COMPLETED'
+    | 'ALERT'
+    | 'CASE_UPDATED'
+    | 'ACCOUNT_RESTRICTION';
   data: Record<string, unknown>;
   createdAt: string;
   readAt: string | null;
@@ -454,11 +464,20 @@ function NotificationRow({ n }: { n: NotificationItem }) {
   const merchant = locale === 'ar' ? d.merchantNameAr : d.merchantNameEn;
   const deal =
     (locale === 'ar' ? d.dealTitleAr || d.voucherTitleAr : d.dealTitleEn || d.voucherTitleEn) ?? '';
-  const target = d.instanceId
-    ? href(`/my-vouchers/${d.instanceId}`)
-    : d.orderId
-      ? href(`/orders/${d.orderId}`)
-      : href(`/reservations/${d.reservationId}`);
+  // Stage 8: case updates open "My requests", account changes the profile, Watch & Earn rewards the rewards page
+  const target = d.caseId
+    ? href('/cases')
+    : n.type === 'ACCOUNT_RESTRICTION'
+      ? href('/profile')
+      : n.type.startsWith('REWARD_')
+        ? href('/rewards')
+        : d.instanceId
+          ? href(`/my-vouchers/${d.instanceId}`)
+          : d.orderId
+            ? href(`/orders/${d.orderId}`)
+            : d.reservationId
+              ? href(`/reservations/${d.reservationId}`)
+              : href('/');
   return (
     <Link
       href={target}

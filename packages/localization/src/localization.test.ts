@@ -10,7 +10,41 @@ import { arSubscription, enSubscription } from './dictionaries.subscription';
 import { arPhase45, enPhase45 } from './dictionaries.phase45';
 import { arMarkets, enMarkets } from './dictionaries.markets';
 import { arPartners, enPartners } from './dictionaries.partners';
+import { arStage8, enStage8 } from './dictionaries.stage8';
 import {
+  ADJUSTMENT_DIRECTIONS,
+  ADJUSTMENT_KINDS,
+  ADJUSTMENT_STATUSES,
+  CASE_NOTE_KINDS,
+  CASE_SEVERITIES,
+  CASE_STATUSES,
+  CASE_TEAMS,
+  CASE_TYPES,
+  CONTACT_CHANNELS,
+  DATA_REQUEST_STATUSES,
+  DATA_REQUEST_TYPES,
+  DELIVERY_CHANNELS,
+  DELIVERY_STATUSES,
+  ERROR_CODES,
+  MODERATION_DECISIONS,
+  MODERATION_STATUSES,
+  MODERATION_SUBJECTS,
+  NOTIFICATION_TYPES,
+  OPS_DRILL_LEVELS,
+  OPS_EXCEPTION_AREAS,
+  OPS_RESTRICTION_STATUSES,
+  OPS_RISK_RULES,
+  ORDER_REFUND_REASONS,
+  RECON_SOURCES,
+  RECON_STATUSES,
+  REPORT_REASONS,
+  RESTRICTION_KINDS,
+  REVIEW_STATUSES,
+  RISK_DOMAINS,
+  SETTLEMENT_RECON_STATES,
+  SETTLEMENT_STATUSES,
+  SLA_AREAS,
+  SLA_STATES,
   CARD_PROGRAM_STATUSES,
   ELIGIBILITY_ATTRIBUTE_TYPES,
   NETWORK_CAPABILITIES,
@@ -459,6 +493,59 @@ describe('dictionary layering', () => {
       expect(enPartners).toHaveProperty([`error.${c}`]);
   });
 
+  it('Stage 8 operations copy never overrides an earlier key, matches in both languages and covers every operations vocabulary', () => {
+    const earlier = { ...enStage2, ...enStage3, ...enStage4, ...enStage5, ...enStage6, ...enCommercial, ...enPlatform, ...enSubscription, ...enPhase45, ...enMarkets, ...enPartners };
+    expect(Object.keys(enStage8).filter((k) => k in earlier)).toEqual([]);
+    expect(Object.keys(arStage8).sort()).toEqual(Object.keys(enStage8).sort());
+    const vars = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
+    for (const key of Object.keys(enStage8)) {
+      const e = enStage8[key as keyof typeof enStage8];
+      const a = arStage8[key as keyof typeof arStage8];
+      expect(e.trim(), key).not.toBe('');
+      expect(containsArabic(a), key).toBe(true);
+      expect(vars(a), key).toEqual(vars(e));
+      expect(`${e} ${a}`, key).not.toMatch(/hot deal|guaranteed|\d{12,}/i);
+    }
+    const all = { ...en };
+    const need = (prefix: string, values: readonly string[]) => {
+      for (const v of values) expect(all, `${prefix}.${v}`).toHaveProperty([`${prefix}.${v}`]);
+    };
+    need('op.dtype', CASE_TYPES);
+    need('op.dstatus', CASE_STATUSES);
+    need('op.sev', CASE_SEVERITIES);
+    need('op.team', CASE_TEAMS);
+    need('op.sla', SLA_STATES);
+    need('op.channel', CONTACT_CHANNELS);
+    need('op.noteKind', CASE_NOTE_KINDS);
+    need('s8.slaArea', SLA_AREAS);
+    need('s8.adjKind', ADJUSTMENT_KINDS);
+    need('s8.adjStatus', ADJUSTMENT_STATUSES);
+    need('s8.dir', ADJUSTMENT_DIRECTIONS);
+    need('s8.orderRefund', ORDER_REFUND_REASONS);
+    need('s8.setStatus', SETTLEMENT_STATUSES);
+    need('s8.setRecon', SETTLEMENT_RECON_STATES);
+    need('s8.recSource', RECON_SOURCES);
+    need('s8.recStatus', RECON_STATUSES);
+    need('s8.domain', RISK_DOMAINS);
+    need('s8.rule', OPS_RISK_RULES);
+    need('s8.rstKind', RESTRICTION_KINDS);
+    need('s8.rstStatus', OPS_RESTRICTION_STATUSES);
+    need('s8.rstSubjectHelp', RESTRICTION_KINDS);
+    need('s8.revStatus', REVIEW_STATUSES);
+    need('s8.report', REPORT_REASONS);
+    need('s8.modSubject', MODERATION_SUBJECTS);
+    need('s8.modStatus', MODERATION_STATUSES);
+    need('s8.modDecision', MODERATION_DECISIONS);
+    need('s8.channel', DELIVERY_CHANNELS);
+    need('s8.dlvStatus', DELIVERY_STATUSES);
+    need('s8.drType', DATA_REQUEST_TYPES);
+    need('s8.drStatus', DATA_REQUEST_STATUSES);
+    need('s8.exc.area', OPS_EXCEPTION_AREAS);
+    need('s8.drill', OPS_DRILL_LEVELS);
+    // every error code (Stage 8 closed the last five gaps) and every customer notification type have copy
+    need('error', Object.values(ERROR_CODES));
+    need('notif', NOTIFICATION_TYPES);
+  });
   it('formats an amount in any configured currency with Western digits', () => {
     expect(formatAmount('en', 499_900, 'PKR')).toBe('PKR 4,999.00');
     expect(formatAmount('ar', 499_900, 'PKR')).toBe('4,999.00 PKR');

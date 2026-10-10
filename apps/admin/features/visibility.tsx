@@ -8,6 +8,7 @@ import {
   RequirePermission,
   useAuth,
 } from '@dealdash/app-shell';
+import { OpsExceptionsPanel } from './ops-control';
 
 const usePerms = () => useAuth().me?.permissions ?? [];
 
@@ -25,6 +26,7 @@ function CommandCentreInner() {
     <CommandCentreWorkspace
       canTimeline={perms.includes('admin.customers.read')}
       canAlerts={perms.includes('admin.alerts.manage')}
+      exceptions={<OpsExceptionsPanel />}
     />
   );
 }

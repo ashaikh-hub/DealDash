@@ -1,7 +1,7 @@
 # Stage 7 — Enterprise Partner Portal
 
 Status: **FOUNDER APPROVED AND FROZEN (2026-10-10)**, with founder decisions FD-S7-1 to FD-S7-4 CLOSED and implemented (see
-"Founder decisions"). Stage 8 has not started. Frozen Phases 1–5, the subscription / licensing / entitlement engine and the Market /
+"Founder decisions"). Stage 8 (operational gap closure) has since been built on top without changing this stage (docs/STAGE8_OPERATIONAL_GAP_CLOSURE.md); the one Stage 7 change is a defect fix: UUIDs are no longer mistaken for card numbers by the PAN check (`looksLikeCardNumber`), plus the founder-approved B8 compatibility fix: "Add a merchant" cannot be submitted until the partner's market list has loaded. Frozen Phases 1–5, the subscription / licensing / entitlement engine and the Market /
 Country configuration were consumed, not redesigned. Changes to this stage now need founder approval.
 
 The Partner Portal (`apps/partner`, port 3004) is another governed front end on the one DealDash platform. It has no backend, database,
@@ -190,3 +190,8 @@ Stage 3 Live Deals / eligibility 98/98.
 ## Deferred (post-MVP)
 Excel parsing in the importer (files are exported to CSV), scheduled feed pulls, partner-specific statements beyond Phase 5,
 Inbox snooze (already post-MVP), partner group roll-ups across Business Accounts.
+
+## Stage 8 founder approval (2026-10-10): APPROVED AND FROZEN
+Stage 8 Operational Gap Closure is founder approved and frozen (docs/STAGE8_OPERATIONAL_GAP_CLOSURE.md). B8 closed (partner "Add a merchant" Stage 7
+compatibility fix, now part of the frozen Stage 7 baseline); B9 monitored, not a regression. Pre-pilot items B1–B7 remain open for Stage 9 /
+pilot readiness; VALIDATE-market items remain central. Stage 9 not started.

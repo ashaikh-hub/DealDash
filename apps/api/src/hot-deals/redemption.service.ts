@@ -12,6 +12,7 @@ import { EligibilityService, evaluateEligibility } from '../live-deals/eligibili
 import { SystemConfigService } from '../system-config/system-config.service';
 import { codeHint, parseCode, parseHotContent } from './hot-content';
 import { UsageService } from '../subscription/usage.service';
+import { RestrictionCheckService } from '../operations/restriction-check.service';
 import { LoyaltyIssuanceService } from '../loyalty/loyalty-issuance.service';
 import { HotCoreService } from './hot-core.service';
 import { NotificationsService, type NotificationInput } from './notifications.service';
@@ -111,6 +112,7 @@ export class RedemptionService {
     private readonly config: SystemConfigService,
     @Optional() private readonly loyalty?: LoyaltyIssuanceService,
     @Optional() private readonly usage?: UsageService,
+    @Optional() private readonly restrictions?: RestrictionCheckService,
   ) {}
 
   private get prisma() {
@@ -385,6 +387,8 @@ export class RedemptionService {
     let result = await this.assess(row, scope, branchId, now);
     let reference: string | null = null;
     let redeemedAt: Date | null = null;
+    // Stage 8: a governed branch redemption hold pauses redemption here; the customer keeps the reservation
+    if (result === 'VALID' && row) await this.restrictions?.assertBranchRedemptionOpen(row.branchId);
 
     if (result === 'VALID' && row) {
       const target = row;

@@ -154,7 +154,7 @@ export class WatchQualificationService {
       include: { organization: { include: { merchant: true } } },
     });
     if (!c || c.organization.status !== 'ACTIVE') throw AppError.notFound();
-    await this.core.commercial.assertCustomerExposureAllowed(c.organizationId);
+    await this.core.commercial.assertCustomerExposureAllowed(c.organizationId, { userId, scope: 'NEW_VIEWS' });
     const verdict = await this.startVerdict(userId, c.id, now);
     if (verdict.availability !== 'AVAILABLE') {
       const map = {

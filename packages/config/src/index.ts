@@ -1,4 +1,7 @@
 import { z } from 'zod';
+import { DEFAULT_OPERATIONS_CONFIG } from './operations';
+
+export * from './operations';
 
 const providerSchema = z.enum(['mock']).default('mock'); // real vendors are added when selected
 
@@ -151,6 +154,8 @@ export const CONFIG_KEYS = {
   MARKETS: 'markets',
   // Stage 7: partner portal (partner type profiles; behaviour is configuration, never a named partner)
   PARTNERS: 'partners',
+  // Stage 8: operations (case lifecycle, SLAs, approval thresholds, reasons, risk rules, notification retries, reviews, queues)
+  OPERATIONS: 'operations',
 } as const;
 
 /**
@@ -730,6 +735,10 @@ export const CONFIG_DEFAULTS: Record<ConfigKey, unknown> = {
     negativeBalancePolicy: 'ALLOW_NEGATIVE',
     adjustmentCheckerThresholdPoints: 100,
   },
+  // ---- Stage 8: operations. Every value is configuration (Admin > Rules and controls), versioned and audited. Nothing here is a
+  // market rule: refund rights, tax treatment, settlement cycles and retention come from the Market configuration and its
+  // VALIDATE-<market> items.
+  operations: DEFAULT_OPERATIONS_CONFIG,
 };
 
 export const FEATURE_FLAGS = {

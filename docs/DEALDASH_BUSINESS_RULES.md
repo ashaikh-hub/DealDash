@@ -1227,3 +1227,19 @@ Full specification: `SUBSCRIPTION_LICENSING_ENTITLEMENT.md`. Rules in force:
   publication reference, or a manual entry DealDash confirmed); it keeps source, authority, external offer id, merchant source id,
   dates, eligibility, market, provenance, last sync and audit; it gives the merchant no Exclusive Deal, voucher, controlled redemption,
   staff, settlement or finance capability; public discovery stays frictionless and click / directions / referral are not redemption.
+
+## Addendum (Oct 2026) — Stage 8 operations rules (awaiting approval)
+- S8-1 Every operational exception is a case of one of 16 types; allowed status moves, routing, SLA and reason lists are configuration.
+- S8-2 A case resolution with a financial impact needs a different person; a finance approver when money moves. The raiser never resolves their own case.
+- S8-3 Corrections are append-only: refunds, reversals and adjustments are new linked records; originals are never edited.
+- S8-4 Adjustments follow per-kind approval (ALWAYS / NEVER / ABOVE_THRESHOLD); direct adjustment endpoints are capped (default SAR 1,000).
+- S8-5 Settlement runs only from an APPROVED market settlement rule; holds release only by a different finance person once the cause is gone; financial holds never auto-release.
+- S8-6 Fraud flags never punish by themselves; a person clears or confirms; restrictions have their own approval. AI never restricts.
+- S8-7 Restrictions stop new actions only; issued vouchers, reservations and points stay valid; the subject is told unless a validated lawful exception applies.
+- S8-8 A review is Verified only with DealDash evidence of a tracked merchant interaction; Watch & Earn viewing never qualifies; merchants report but never edit or remove reviews.
+- S8-9 Refund law, tax on fees, retention, consent and payout cycles are market configuration and VALIDATE items, never code.
+- S8-10 Privacy deletion anonymises and keeps financial / audit records; it is refused while the customer holds active rights or open matters.
+## Stage 8 founder approval (2026-10-10): APPROVED AND FROZEN
+Stage 8 Operational Gap Closure is founder approved and frozen (docs/STAGE8_OPERATIONAL_GAP_CLOSURE.md). B8 closed (partner "Add a merchant" Stage 7
+compatibility fix, now part of the frozen Stage 7 baseline); B9 monitored, not a regression. Pre-pilot items B1–B7 remain open for Stage 9 /
+pilot readiness; VALIDATE-market items remain central. Stage 9 not started.

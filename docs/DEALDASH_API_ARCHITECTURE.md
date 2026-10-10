@@ -494,3 +494,17 @@ New routes: `GET|POST /v1/partners/:orgId/watch/owned`, `GET /watch/owned/:id`, 
 (partner.commercial.accept), `POST /watch/owned/:id/submit` (FD-S7-1); `POST /v1/partners/:orgId/offers` (partner.network.manage),
 `GET /v1/admin/partners/offers`, `POST /v1/admin/partners/offers/:id/confirm|withdraw` (admin.partners.approve) (FD-S7-4).
 `campaigns/merchants/:id/assets` also returns the merchant's Watch videos. Phase 2 shared routes unchanged (FD-S7-2).
+
+## Addendum (Oct 2026) — Stage 8 operations API
+Admin `/v1/admin/ops/*`: exceptions, reports (+ .csv), sla (+ sweep), config (GET / PUT versioned, history), reasons, adjustments
+(+ decide / retry), settlements (run, hold, release, payout, fail, reverse), reconciliation (statements, consistency, items assign /
+review / resolve / case, runs), risk (flags, scan, decide, case), restrictions (+ decide / lift), moderation (+ decide), reviews/:id/remove,
+notifications (+ retry / sweep), customers/:id/summary, support-requests (+ escalate), refunds (queue, eligibility, order, :id/case),
+data-requests (+ decide). Cases: `/v1/admin/disputes/:id/{history,transition,update,contacts,approval,approval/decide}`; list filters
+status / type / team / severity / SLA / market (scope-aware). Merchant `/v1/merchants/:orgId/{settlements,reviews}`. Customer
+`/v1/app/merchants/:orgId/reviews`, `/v1/app/reviews/:id/report`, `/v1/app/reports`, `/v1/app/me/cases`, `/v1/app/me/data-requests`.
+All writes idempotent; contract regenerated (655 paths).
+## Stage 8 founder approval (2026-10-10): APPROVED AND FROZEN
+Stage 8 Operational Gap Closure is founder approved and frozen (docs/STAGE8_OPERATIONAL_GAP_CLOSURE.md). B8 closed (partner "Add a merchant" Stage 7
+compatibility fix, now part of the frozen Stage 7 baseline); B9 monitored, not a regression. Pre-pilot items B1–B7 remain open for Stage 9 /
+pilot readiness; VALIDATE-market items remain central. Stage 9 not started.

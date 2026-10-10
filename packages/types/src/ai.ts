@@ -52,6 +52,9 @@ export const AI_DRAFT_KINDS = [
   'ALERT_RULES',
   'SUPPORT_HANDOFF',
   'CAMPAIGN_PORTFOLIO',
+  // Stage 8: operations copilot drafts (sent only after a person approves them, as that person)
+  'CUSTOMER_RESPONSE',
+  'MERCHANT_REQUEST',
 ] as const;
 export type AiDraftKind = (typeof AI_DRAFT_KINDS)[number];
 

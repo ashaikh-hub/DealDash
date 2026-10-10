@@ -179,3 +179,8 @@ The Partner Portal uses this framework unchanged: authorized markets come from t
 narrowed by COUNTRY scope; partner campaigns use the market of the fulfilment merchant's branches (never spanning markets) and its
 product availability, pricing, tax and invoice rules; partner benefits re-check MEMBER_BENEFIT availability at activation; readiness
 shows open market validation items. No country rule is coded in the portal.
+
+## Stage 8 consumption (Oct 2026)
+Stage 8 reads the market settlement rule (APPROVED only; otherwise SETTLEMENT_RULE_MISSING), the refund policy and its open
+validation items (shown on refund eligibility), the market of cases / audit / restrictions, and scoped admins' visible markets. No
+market rule was added or changed; VALIDATE-KSA / UAE / QATAR / PAKISTAN items stand.

@@ -3,7 +3,7 @@ import {
   BIN_PREFIX_PATTERN,
   CARD_PROGRAM_STATUSES,
   EMPLOYER_PROGRAM_STATUSES,
-  PAN_LIKE_PATTERN,
+  looksLikeCardNumber,
   PARTNER_BENEFIT_KINDS,
   PARTNER_CREATABLE_PRODUCTS,
   PARTNER_LIFECYCLE,
@@ -25,7 +25,7 @@ const noPan = (max: number) =>
     .string()
     .trim()
     .max(max)
-    .refine((v) => !PAN_LIKE_PATTERN.test(v), { message: 'CARD_DATA_FORBIDDEN' });
+    .refine((v) => !looksLikeCardNumber(v), { message: 'CARD_DATA_FORBIDDEN' });
 const contact = z
   .object({
     name: text(120),

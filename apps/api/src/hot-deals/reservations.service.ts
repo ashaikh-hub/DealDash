@@ -212,7 +212,7 @@ export class ReservationsService {
     const userId = actor.userId;
     // a suspended agreement can choose to stop NEW reservations (default: live prepaid campaigns continue); issued codes always redeem
     const owner = await this.prisma.hotDeal.findUnique({ where: { id: dealId }, select: { organizationId: true } });
-    if (owner) await this.core.commercial.assertCustomerExposureAllowed(owner.organizationId);
+    if (owner) await this.core.commercial.assertCustomerExposureAllowed(owner.organizationId, { userId, scope: 'NEW_RESERVATIONS' });
     // Everything that reads configuration or other tables is done BEFORE the transaction opens, so the transaction holds
     // one database connection and never waits for a second one (no pool starvation under load).
     const restriction = await this.prisma.customerRestriction.findFirst({

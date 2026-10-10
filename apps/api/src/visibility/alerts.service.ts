@@ -121,6 +121,10 @@ function actionOf(
         permission: 'admin.operations.read',
       },
       VIEW_PLAN: { href: '/subscriptions', permission: 'admin.subscriptions.read' },
+      // Stage 8
+      VIEW_CASES: { href: '/cases', permission: 'admin.disputes.read' },
+      VIEW_NOTIFICATIONS: { href: '/notifications', permission: 'admin.notifications.manage' },
+      VIEW_SETTLEMENT: { href: '/settlements', permission: 'admin.finance.read' },
       VIEW_CREDIT: { href: '/finance?tab=credit', permission: 'admin.finance.read' },
       VIEW_PO: { href: '/finance?tab=po', permission: 'admin.finance.read' },
     };
@@ -171,6 +175,7 @@ function actionOf(
       permission: 'merchant.deals.read',
     },
     VIEW_PLAN: { href: '/plan', permission: 'merchant.subscription.read' },
+    VIEW_CASES: { href: '/operations?tab=cases', permission: 'merchant.disputes.manage' },
   };
   return m[action] ?? { href: '/performance', permission: 'merchant.performance.read' };
 }

@@ -14,6 +14,7 @@
     "db:migrate": "tsx scripts/db.ts migrate",
     "db:migrate:create": "prisma migrate dev --create-only",
     "db:seed": "tsx scripts/db.ts seed",
+    "db:catalog:sync": "tsx prisma/catalog-sync.ts",
     "db:reset": "tsx scripts/db.ts reset dev",
     "db:test:reset": "tsx scripts/db.ts reset test",
     "db:setup": "tsx scripts/db.ts setup",

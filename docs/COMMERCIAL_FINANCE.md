@@ -169,3 +169,8 @@ obligations; Admin on-behalf acceptance remains for exceptional cases and still 
 FD-S7-1: a partner-owned Watch & Earn budget is a commercial case with the partner as OWNER (media spend) and the merchant as
 FULFILMENT_MERCHANT; the budget is funded by the partner and its ledger lines (CAMPAIGN_BUDGET / CAMPAIGN_UNUSED) carry the partner.
 Pricing version, funding model and credit / PO / prepaid / postpaid controls are the shared ones.
+
+## Stage 8 (Oct 2026)
+Financial adjustments now run through `AdjustmentRequest` (per-kind maker-checker) and apply through this platform's adjustment for
+FUNDING_ADJUSTMENT, CAMPAIGN_UTILIZATION_CORRECTION and ADMIN_ADJUSTMENT. `POST admin/commercial/adjustments` is capped at
+`operations.approvals.directAdjustmentMaxMinor`. Restrictions (financial holds) feed `assertCustomerExposureAllowed` and settlement holds.

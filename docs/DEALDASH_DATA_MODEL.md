@@ -583,3 +583,17 @@ no reset / reseed, no drift): `WatchCampaign.creatorOrganizationId`, `sponsorOrg
 `EligibilityAttribute.verificationSource`, `evidenceRef` with CHECKs (allowed sources; a card attribute is ISSUER_VERIFIED only with
 source and evidence, NOT VALID for pre-existing rows) — FD-S7-3. FD-S7-4 uses the existing ReferencedOffer / ExternalEntityReference
 (publicationRef, publicationConfirmed) with no schema change.
+
+## Addendum (Oct 2026) — Stage 8 data model
+Migration `20270105000000_stage8_operations`. Extended: DisputeCase (market, legal entity, business account, severity, team, queue,
+reason code, source event, transaction reference, financial impact, proposed resolution, approval fields, SLA state / warn,
+escalation, support case link, customer notified), CaseNote (kind, channel, direction), AuditLog (market, legal entity), Refund
+(caseId), RiskFlag (domain, rule code, subject organization, branch, market, case, dedupe key). New: AdjustmentRequest, Settlement,
+SettlementItem (append-only), SettlementPayout (append-only), ReconciliationRun, ReconciliationItem, OperationalRestriction, Review,
+ReviewReport, ModerationItem, NotificationDelivery, DataRequest. Enum values: NotificationType CASE_UPDATED, ACCOUNT_RESTRICTION;
+LedgerJournalType SETTLEMENT_PAYOUT, SETTLEMENT_REVERSAL. Frozen CHECK constraints widened for the new values (DisputeCase, AlertEvent,
+AlertRule, AiDraft) plus new CHECKs on every new table.
+## Stage 8 founder approval (2026-10-10): APPROVED AND FROZEN
+Stage 8 Operational Gap Closure is founder approved and frozen (docs/STAGE8_OPERATIONAL_GAP_CLOSURE.md). B8 closed (partner "Add a merchant" Stage 7
+compatibility fix, now part of the frozen Stage 7 baseline); B9 monitored, not a regression. Pre-pilot items B1–B7 remain open for Stage 9 /
+pilot readiness; VALIDATE-market items remain central. Stage 9 not started.

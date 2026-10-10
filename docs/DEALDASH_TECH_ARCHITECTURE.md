@@ -578,3 +578,15 @@ budget owner and refuses merchant funding of a sponsor-owned budget; WatchCommer
 CommercialService.assertEntitled resolves the owner through the product adapter; the eligibility engine's `trustedLevel` treats an
 unevidenced ISSUER_VERIFIED card attribute as declared; PartnerNetworkService.createOffer / pendingPublication / decidePublication use
 IngestService and the existing provenance record.
+
+## Addendum (Oct 2026) — Stage 8 architecture
+New Nest module `apps/api/src/ops` (adjustments, settlement, reconciliation, risk, restrictions, reviews, SLA, support, data requests,
+reports) consuming the shared engines; `RestrictionCheckService` (global, @Optional) hooked where new exposure starts; delivery
+tracking inside the existing notifications service; jobs ops.sla (5 min), ops.notifications (1 min), ops.restrictions (5 min),
+ops.risk (15 min). Configuration key `operations` (zod schema, versioned SystemConfiguration). New tool:
+`pnpm --filter @dealdash/api db:catalog:sync` syncs permissions / role matrix / create-only defaults on an existing database without the
+development seed.
+## Stage 8 founder approval (2026-10-10): APPROVED AND FROZEN
+Stage 8 Operational Gap Closure is founder approved and frozen (docs/STAGE8_OPERATIONAL_GAP_CLOSURE.md). B8 closed (partner "Add a merchant" Stage 7
+compatibility fix, now part of the frozen Stage 7 baseline); B9 monitored, not a regression. Pre-pilot items B1–B7 remain open for Stage 9 /
+pilot readiness; VALIDATE-market items remain central. Stage 9 not started.

@@ -81,3 +81,8 @@ keep their market and configuration for ever. FX manual overrides need a reason.
 
 The partner finance workspace is the shared billing workspace (accounts, invoices, receipts, notes, receivables and aging, POs,
 statements, reconciliation) scoped by legal entity and currency; the partner home summarises funding, invoices, PO use and credit.
+
+## Stage 8 (Oct 2026)
+Credit / debit notes and invoice corrections can be requested as financial adjustments (always a second person) and are issued through
+the Phase 5 invoicing engine. Settlement payouts and reversals post SETTLEMENT_PAYOUT / SETTLEMENT_REVERSAL journals; reconciliation
+covers invoices and receipts. Tax on settlement fees is informational until the market tax rule is validated.

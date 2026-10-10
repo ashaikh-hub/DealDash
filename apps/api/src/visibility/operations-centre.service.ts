@@ -882,6 +882,29 @@ export class OperationsCentreService {
           reference: null,
           status: n.readAt ? 'READ' : 'UNREAD',
         });
+    // ---- Stage 8: eligibility, reviews, restrictions and logged contacts (least privilege: no card value, BIN or partner data)
+    if (want('ELIGIBILITY'))
+      for (const a of await p.eligibilityAttribute.findMany({ where: { userId, createdAt: w }, orderBy: { createdAt: 'desc' }, take }))
+        push({
+          at: a.createdAt.toISOString(),
+          kind: 'ELIGIBILITY',
+          event: `ELIGIBILITY_${a.attrType}`,
+          reference: null,
+          status: a.status,
+          data: { level: a.level, verified: a.level === 'ISSUER_VERIFIED' && !!a.verificationSource, source: a.verificationSource ?? a.source },
+        });
+    if (want('REVIEW'))
+      for (const r of await p.review.findMany({ where: { customerUserId: userId, createdAt: w }, orderBy: { createdAt: 'desc' }, take }))
+        push({ at: r.createdAt.toISOString(), kind: 'REVIEW', event: 'REVIEW_WRITTEN', reference: null, status: r.status, data: { rating: r.rating, verified: r.verified, merchantOrganizationId: r.merchantOrganizationId } });
+    if (want('RESTRICTION')) {
+      for (const r of await p.operationalRestriction.findMany({ where: { subjectType: 'USER', subjectId: userId, createdAt: w }, orderBy: { createdAt: 'desc' }, take }))
+        push({ at: r.createdAt.toISOString(), kind: 'RESTRICTION', event: r.kind, reference: r.reference, status: r.status, data: { scope: r.scope, endsAt: r.endsAt.toISOString(), reasonCode: r.reasonCode } });
+      for (const r of await p.customerRestriction.findMany({ where: { userId, startsAt: w }, orderBy: { startsAt: 'desc' }, take }))
+        push({ at: r.startsAt.toISOString(), kind: 'RESTRICTION', event: 'RESERVATION_RESTRICTION', reference: null, status: r.status, data: { endsAt: r.endsAt.toISOString(), strikes: r.strikes } });
+    }
+    if (want('CONTACT'))
+      for (const n of await p.caseNote.findMany({ where: { kind: 'CONTACT', createdAt: w, case: { customerUserId: userId } }, include: { case: { select: { reference: true } } }, orderBy: { createdAt: 'desc' }, take }))
+        push({ at: n.createdAt.toISOString(), kind: 'CONTACT', event: `CONTACT_${n.direction ?? 'LOGGED'}`, reference: n.case.reference, status: n.channel, data: { channel: n.channel, direction: n.direction } });
     items.sort((a, b) => b.at.localeCompare(a.at));
     const page = items.slice(0, take);
     return {

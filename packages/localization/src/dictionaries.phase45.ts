@@ -318,6 +318,17 @@ const P45 = {
   'vis.alert.SUBSCRIPTION_LIMIT': ['Plan limit approaching', 'الاقتراب من حد الباقة'],
   'vis.alert.SUBSCRIPTION_LIFECYCLE': ['Subscription status changed', 'تغيرت حالة الاشتراك'],
   'vis.alert.FINANCIAL_HOLD': ['Financial hold', 'إيقاف مالي'],
+  // Stage 8: operations alerts
+  'vis.alert.SLA_WARNING': ['Service level close to its limit', 'مستوى الخدمة يقترب من حده'],
+  'vis.alert.SLA_BREACHED': ['Service level breached', 'تم تجاوز مستوى الخدمة'],
+  'vis.alert.NOTIFICATION_FAILURE': ['Notifications could not be delivered', 'تعذّر توصيل إشعارات'],
+  'vis.alert.FRAUD_FLAG_RAISED': ['Risk flag to review', 'مؤشر مخاطر للمراجعة'],
+  'vis.alert.SETTLEMENT_EXCEPTION': ['Settlement needs attention', 'التسوية تحتاج إلى متابعة'],
+  'vis.alert.RECONCILIATION_EXCEPTION': ['Reconciliation exception', 'استثناء مطابقة'],
+  'vis.alert.RESTRICTION_PLACED': ['A restriction or hold was placed', 'تم فرض قيد أو إيقاف'],
+  'vis.alert.RESTRICTION_LIFTED': ['A restriction or hold was lifted', 'تم رفع قيد أو إيقاف'],
+  'vis.action.VIEW_CASES': ['View cases', 'عرض الحالات'],
+  'vis.action.VIEW_NOTIFICATIONS': ['View notification deliveries', 'عرض توصيل الإشعارات'],
 
   // rules and preferences
   'vis.rulesNote': [
@@ -468,6 +479,10 @@ const P45 = {
   'cc.kind.DISPUTE': ['Dispute', 'نزاع'],
   'cc.kind.RISK': ['Risk check', 'فحص مخاطر'],
   'cc.kind.NOTIFICATION': ['Notification', 'إشعار'],
+  'cc.kind.ELIGIBILITY': ['Eligibility', 'الأهلية'],
+  'cc.kind.REVIEW': ['Review', 'مراجعة'],
+  'cc.kind.RESTRICTION': ['Restriction', 'قيد'],
+  'cc.kind.CONTACT': ['Contact', 'تواصل'],
   'cc.event.ACCOUNT_CREATED': ['Account created', 'تم إنشاء الحساب'],
   'cc.event.LAST_SIGN_IN': ['Last sign-in', 'آخر تسجيل دخول'],
   'cc.event.ORDER_CREATED': ['Order placed', 'تم تقديم الطلب'],

@@ -64,3 +64,8 @@ AI_COPILOT contract feature; same RBAC and tenant isolation, verified by the Sta
 
 No AI change: the partner copilot keeps its governed scope; it cannot create, fund or publish a partner-owned Watch & Earn budget or a
 partner Live Deal without the same human approvals.
+
+## Stage 8 (Oct 2026)
+OPERATIONS_SUPPORT gains intents CASE_SUMMARY, RECON_VARIANCE, QUEUE_PRIORITY and drafts CUSTOMER_RESPONSE (shared case note) and
+MERCHANT_REQUEST (case moved to AWAITING_MERCHANT / PARTNER). Drafts execute only after a human approves, as the approver. The copilot
+never resolves cases, moves money, restricts anyone or decides fraud.

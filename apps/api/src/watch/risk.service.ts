@@ -326,6 +326,8 @@ export class RiskService {
     const page = await keysetPage({
       findMany: (query) => this.prisma.riskFlag.findMany(query),
       baseWhere: {
+        // Stage 8: the Watch & Earn queue shows Watch & Earn flags; operational flags have their own workflow
+        domain: 'WATCH',
         ...(q.status ? { status: q.status } : {}),
         ...(q.decision ? { decision: q.decision } : {}),
       },
@@ -338,7 +340,7 @@ export class RiskService {
 
   async detail(id: string): Promise<RiskFlagDetail> {
     const f = await this.prisma.riskFlag.findUnique({ where: { id } });
-    if (!f) throw AppError.notFound();
+    if (!f || f.domain !== 'WATCH') throw AppError.notFound();
     const [row] = await this.rows([f]);
     const events = f.viewId
       ? await this.prisma.watchViewEvent.findMany({
@@ -383,7 +385,7 @@ export class RiskService {
     meta: RequestMeta,
   ) {
     const f = await this.prisma.riskFlag.findUnique({ where: { id } });
-    if (!f) throw AppError.notFound();
+    if (!f || f.domain !== 'WATCH') throw AppError.notFound();
     if (f.status === 'DECIDED')
       throw new AppError('INVALID_STATE', 'This case has already been decided', 409);
     const info = actorInfo(actor);

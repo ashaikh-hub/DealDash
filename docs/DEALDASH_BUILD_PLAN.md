@@ -503,3 +503,16 @@ database backed up and migrated, no reset / reseed, no drift). Re-run after the 
 (full suite), partner 15 / 15, admin 96 / 96, localization 22 / 22, TypeScript 24 / 24, ESLint 0 errors (64 pre-existing warnings);
 browser on a fresh test database: Stage 7 40 / 40, Stage 6 Watch & Earn 88 / 88, Stage 3 Live Deals / eligibility 98 / 98. No
 regression. Stage 7 is frozen: further changes need founder approval. **Stage 8 has not started.**
+
+## Stage 8 status (2026-10-10): FOUNDER APPROVED AND FROZEN
+Operational Gap Closure & Admin Operations built (`docs/STAGE8_OPERATIONAL_GAP_CLOSURE.md`, Figma `docs/STAGE8_FIGMA_HANDOFF.md`).
+Regression (fresh test database): API 827/827 (51 files, incl. Stage 8 21 e2e + 2 unit); admin, merchant, customer, partner, staff
+app suites and packages green (admin 112, merchant 109, customer 66, staff 34, partner 15, packages); typecheck 24/24; lint 0 errors (64 baseline
+warnings); builds 15/15; browser Stage 8 48/48, Stage 2 30/30, Stage 3 98/98, Stage 4 121/121, Stage 5 101/101, Stage 6 88/88,
+Phase 3 32/32, Phase 4/5 59/59, Markets 19/19, Subscription 31/31, Stage 7 40/40 (an intermittent partner "Add a merchant" failure is
+recorded as gap B8). Development database backed up, migrated (20/20), catalog synced, no drift.
+Stage 9 not started.
+## Stage 8 founder approval (2026-10-10): APPROVED AND FROZEN
+Stage 8 Operational Gap Closure is founder approved and frozen (docs/STAGE8_OPERATIONAL_GAP_CLOSURE.md). B8 closed (partner "Add a merchant" Stage 7
+compatibility fix, now part of the frozen Stage 7 baseline); B9 monitored, not a regression. Pre-pilot items B1–B7 remain open for Stage 9 /
+pilot readiness; VALIDATE-market items remain central. Stage 9 not started.

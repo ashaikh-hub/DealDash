@@ -151,6 +151,10 @@ export const NOTIFICATION_TYPES = [
   'CAMPAIGN_COMPLETED',
   /** Phase 4: an operational alert for business and DealDash users. */
   'ALERT',
+  /** Stage 8: a support / exception case about the customer changed (resolution, request for information). */
+  'CASE_UPDATED',
+  /** Stage 8: a temporary restriction was placed on or lifted from the customer's account (issued rights are never removed). */
+  'ACCOUNT_RESTRICTION',
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 

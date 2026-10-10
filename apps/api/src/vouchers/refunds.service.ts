@@ -1,4 +1,5 @@
 import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
+import { CONFIG_KEYS } from '@dealdash/config';
 import { LoyaltyIssuanceService } from '../loyalty/loyalty-issuance.service';
 import type { PaymentEventOutcome, RefundStatus } from '@dealdash/types';
 import type { AdminRefundRow, RefundView } from '@dealdash/validation';
@@ -86,6 +87,12 @@ export class RefundsService {
   }
 
   async needsChecker(r: { kind: string; amountHalalas: number }): Promise<boolean> {
+    if (r.kind === 'CUSTOMER_REQUEST') {
+      // Stage 8: a large customer refund under review can need a second person (configuration; off by default)
+      const ops = await this.core.config.get<{ approvals?: { refundReviewCheckerAboveMinor?: number | null } }>(CONFIG_KEYS.OPERATIONS).catch(() => null);
+      const above = ops?.approvals?.refundReviewCheckerAboveMinor;
+      return above !== null && above !== undefined && r.amountHalalas > above;
+    }
     if (r.kind !== 'ADMIN_INITIATED') return false;
     const p = await this.core.refundPolicy();
     return r.amountHalalas >= p.checkerThresholdHalalas;
@@ -554,8 +561,15 @@ export class RefundsService {
       where: { id: r.paymentId, status: { in: ['REFUND_PENDING', 'SUCCEEDED'] } },
       data: { status: 'REFUNDED' },
     });
-    const paid = await tx.payment.findUnique({ where: { id: r.paymentId }, select: { orderId: true } });
-    if (paid?.orderId) await this.loyalty?.reverseForSource(tx, { sourceType: 'EVENT', sourceId: paid.orderId, reason: 'PURCHASE_REFUNDED' });
+    // Stage 8 fix: the order's purchase points are reversed only when NOTHING of the order remains (every voucher refunded or
+    // never issued), never for a duplicate / late payment refund (the points belong to the payment that issued the vouchers, which
+    // stands). Before this a one-voucher refund of a multi-voucher order, or a duplicate-payment refund, removed every point.
+    const duplicate = r.reasonCode === 'LATE_OR_DUPLICATE_PAYMENT' || r.reasonCode === 'DUPLICATE_PAYMENT';
+    const remaining = await tx.voucherInstance.count({
+      where: { orderId: r.orderId, status: { in: ['ACTIVE', 'REDEEMED', 'EXPIRED'] }, ...(r.instanceId ? { id: { not: r.instanceId } } : {}) },
+    });
+    if (!duplicate && remaining === 0)
+      await this.loyalty?.reverseForSource(tx, { sourceType: 'EVENT', sourceId: r.orderId, reason: 'PURCHASE_REFUNDED' });
     if (r.instanceId)
       await tx.voucherInstance.updateMany({
         where: { id: r.instanceId, status: { in: ['VOIDED', 'ACTIVE'] } },

@@ -332,6 +332,15 @@ export const PERMISSION_CODES = [
   'partner.network.manage',
   'admin.partners.manage',
   'admin.partners.approve',
+  // Stage 8: operational gap closure (restrictions / holds with a second approver, reconciliation exceptions, notification
+  // operations, privacy data requests, customer reviews)
+  'admin.restrictions.manage',
+  'admin.restrictions.approve',
+  'admin.reconciliation.manage',
+  'admin.notifications.manage',
+  'admin.privacy.manage',
+  'admin.privacy.approve',
+  'customer.reviews.manage',
 ] as const;
 export type PermissionCode = (typeof PERMISSION_CODES)[number];
 
@@ -351,6 +360,8 @@ export const ROLE_PERMISSIONS: Record<RoleCode, readonly PermissionCode[]> = {
     'customer.vouchers.manage',
     'customer.rewards.manage',
     'customer.ai.use',
+    // Stage 8: write and report reviews (signed-in customers only, FDC-05)
+    'customer.reviews.manage',
   ],
 
   MERCHANT_OWNER: p('merchant.'),
@@ -522,6 +533,10 @@ export const ROLE_PERMISSIONS: Record<RoleCode, readonly PermissionCode[]> = {
     'admin.alerts.manage',
     'admin.operations.read',
     'admin.ai.use',
+    // Stage 8: works operational cases, requests holds / restrictions (a second person approves), runs notification operations
+    'admin.disputes.manage',
+    'admin.restrictions.manage',
+    'admin.notifications.manage',
   ],
   DEALDASH_MERCHANT_MANAGEMENT: [
     'admin.markets.read',
@@ -571,6 +586,10 @@ export const ROLE_PERMISSIONS: Record<RoleCode, readonly PermissionCode[]> = {
     'admin.rewards.request',
     'admin.operations.read',
     'admin.ai.use',
+    // Stage 8: customer complaints and support cases on the shared case framework; privacy data requests (a second person approves)
+    'admin.disputes.read',
+    'admin.disputes.manage',
+    'admin.privacy.manage',
   ],
   DEALDASH_FINANCE: [
     'admin.analytics.read',
@@ -602,6 +621,8 @@ export const ROLE_PERMISSIONS: Record<RoleCode, readonly PermissionCode[]> = {
     'admin.markets.read',
     'admin.markets.manage',
     'admin.markets.approve',
+    // Stage 8: reconciliation exception workflow
+    'admin.reconciliation.manage',
   ],
   DEALDASH_RISK_COMPLIANCE: [
     'admin.markets.read',
@@ -618,6 +639,12 @@ export const ROLE_PERMISSIONS: Record<RoleCode, readonly PermissionCode[]> = {
     'admin.config.read',
     'admin.analytics.read',
     'admin.operations.read',
+    // Stage 8: fraud cases, restrictions / holds (requests and the second-person approval), privacy approvals
+    'admin.disputes.read',
+    'admin.disputes.manage',
+    'admin.restrictions.manage',
+    'admin.restrictions.approve',
+    'admin.privacy.approve',
   ],
   DEALDASH_MARKETING_OPS: [
     'admin.org.read',
@@ -751,6 +778,17 @@ export const ERROR_CODES = {
   PARTNER_MERCHANT_NOT_REGISTERED: 'PARTNER_MERCHANT_NOT_REGISTERED',
   DELEGATION_EXCEEDED: 'DELEGATION_EXCEEDED',
   CARD_DATA_FORBIDDEN: 'CARD_DATA_FORBIDDEN',
+  // Stage 8: operations
+  CASE_TRANSITION_INVALID: 'CASE_TRANSITION_INVALID',
+  CASE_APPROVAL_PENDING: 'CASE_APPROVAL_PENDING',
+  SETTLEMENT_RULE_MISSING: 'SETTLEMENT_RULE_MISSING',
+  SETTLEMENT_ON_HOLD: 'SETTLEMENT_ON_HOLD',
+  RESTRICTION_ACTIVE: 'RESTRICTION_ACTIVE',
+  BRANCH_REDEMPTION_HELD: 'BRANCH_REDEMPTION_HELD',
+  REVIEW_NOT_ALLOWED: 'REVIEW_NOT_ALLOWED',
+  REVIEW_LIMIT_REACHED: 'REVIEW_LIMIT_REACHED',
+  RECON_INVALID: 'RECON_INVALID',
+  ADJUSTMENT_NOT_APPLICABLE: 'ADJUSTMENT_NOT_APPLICABLE',
   INTERNAL: 'INTERNAL',
 } as const;
 export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];
@@ -908,3 +946,4 @@ export * from './billing';
 export * from './ai';
 export * from './markets';
 export * from './partners';
+export * from './operations';

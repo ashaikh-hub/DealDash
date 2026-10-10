@@ -27,6 +27,9 @@ export interface AuditEntry {
   approvalRef?: string | null;
   /** Where the change came from: UI, API, IMPORT, SYNC, AI_ASSISTED, SYSTEM ... */
   source?: string | null;
+  /** Stage 8: the market and legal entity the action is about. */
+  market?: string | null;
+  legalEntityId?: string | null;
 }
 
 /**
@@ -63,6 +66,8 @@ export class AuditService {
         correlationId: entry.correlationId ?? entry.meta?.requestId ?? null,
         approvalRef: entry.approvalRef ?? null,
         source: entry.source ?? null,
+        market: entry.market ?? null,
+        legalEntityId: entry.legalEntityId ?? null,
       },
     });
     this.logger.debug(`${entry.action} ${entry.entityType}:${entry.entityId ?? '-'}`);

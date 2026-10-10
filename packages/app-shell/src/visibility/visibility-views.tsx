@@ -1225,20 +1225,24 @@ interface CommandCentre {
   };
 }
 
-export type CommandCentreTab = 'overview' | 'integrations' | 'alerts' | 'timeline';
+export type CommandCentreTab = 'overview' | 'exceptions' | 'integrations' | 'alerts' | 'timeline';
 
 export function CommandCentreWorkspace({
   canTimeline,
   canAlerts,
+  exceptions,
 }: {
   canTimeline: boolean;
   canAlerts: boolean;
+  /** Stage 8: the operations exception board (Admin only), shown as its own tab. */
+  exceptions?: ReactNode;
 }) {
   const { locale } = useAuth();
   const t = createTranslator(locale);
   const [tab, setTab] = useState<CommandCentreTab>('overview');
   const tabs = [
     { id: 'overview', label: t('cc.tab.overview') },
+    ...(exceptions ? [{ id: 'exceptions', label: t('s8.exc.tab') }] : []),
     { id: 'integrations', label: t('cc.tab.integrations') },
     { id: 'alerts', label: t('vis.tab.alerts') },
     ...(canTimeline ? [{ id: 'timeline', label: t('cc.tab.timeline') }] : []),
@@ -1255,6 +1259,7 @@ export function CommandCentreWorkspace({
         />
       </div>
       {tab === 'overview' ? <CommandOverview /> : null}
+      {tab === 'exceptions' ? exceptions : null}
       {tab === 'integrations' ? (
         <IntegrationsPanel path="/v1/admin/visibility/integrations" />
       ) : null}

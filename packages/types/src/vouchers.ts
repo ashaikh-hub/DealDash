@@ -212,6 +212,9 @@ export const LEDGER_JOURNAL_TYPES = [
   'FUNDING_UTILIZED',
   'FUNDING_RELEASED',
   'DOCUMENT_ADJUSTMENT',
+  // Stage 8: recorded merchant settlement payouts and their reversal
+  'SETTLEMENT_PAYOUT',
+  'SETTLEMENT_REVERSAL',
 ] as const;
 export type LedgerJournalType = (typeof LEDGER_JOURNAL_TYPES)[number];
 

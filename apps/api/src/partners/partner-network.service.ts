@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
-import { PAN_LIKE_PATTERN, type NetworkCapability, type NetworkMerchantState } from '@dealdash/types';
+import { looksLikeCardNumber, type NetworkCapability, type NetworkMerchantState } from '@dealdash/types';
 import type { networkMerchantCreateSchema } from '@dealdash/validation';
 import type { z } from 'zod';
 import { AuditService } from '../audit/audit.service';
@@ -586,7 +586,7 @@ export class PartnerNetworkService {
     await this.access.requireModule(p, 'OFFERS');
     await this.access.requireIngestion(p, 'MANUAL');
     for (const v of [b.titleEn, b.titleAr, b.benefitEn, b.benefitAr, b.termsEn, b.termsAr, JSON.stringify(b.eligibility ?? {})])
-      if (v && PAN_LIKE_PATTERN.test(v)) throw new AppError('CARD_DATA_FORBIDDEN', 'Card numbers are never stored', 422);
+      if (v && looksLikeCardNumber(v)) throw new AppError('CARD_DATA_FORBIDDEN', 'Card numbers are never stored', 422);
     const sourceSystem = this.access.sourceSystemOf(organizationId);
     const mref = await this.prisma.externalEntityReference.findUnique({
       where: { sourceSystem_entityType_sourceRecordId: { sourceSystem, entityType: 'MERCHANT', sourceRecordId: b.merchantSourceId } },

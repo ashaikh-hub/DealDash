@@ -1,0 +1,322 @@
+import { Injectable } from '@nestjs/common';
+import { Prisma } from '../generated/prisma/client';
+import { AuditService } from '../audit/audit.service';
+import { AppError } from '../common/errors';
+import type { Actor, RequestMeta } from '../common/request-context';
+import { MarketConfigService } from '../platform/markets/market-config.service';
+import { MarketService } from '../platform/markets/market.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { SystemConfigService } from '../system-config/system-config.service';
+import { LedgerService } from '../vouchers/ledger.service';
+import { D, opsConfig, ref, requiresSecondPerson } from './ops-util';
+
+const SETTLING_TYPES = ['ELIGIBLE', 'REDEMPTION_REVERSED', 'ADJUSTMENT'] as const;
+const OPEN_FOR_PAYOUT = ['ELIGIBLE', 'PARTIALLY_PAID'];
+type SettlementRow = Prisma.SettlementGetPayload<{ include: { payouts: true } }>;
+
+/**
+ * Merchant settlement operations. A run takes a business's settlement-eligible payable (append-only payable events: eligible
+ * redemptions net of fee, reversals, adjustments) under the APPROVED settlement rule of its market (frequency, minimum, hold days,
+ * dispute treatment come from the Market configuration; no cycle is invented here). Holds (financial hold, payout hold, open
+ * disputes with a financial impact, unverified destination) stop the payout, never the record. Payouts are recorded (manual payout
+ * in the MVP; a payout provider is VALIDATE-<market>) with a balanced ledger journal; a negative balance is carried forward once.
+ */
+@Injectable()
+export class SettlementService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+    private readonly config: SystemConfigService,
+    private readonly markets: MarketService,
+    private readonly marketConfig: MarketConfigService,
+    private readonly ledger: LedgerService,
+  ) {}
+
+  async view(s: SettlementRow) {
+    const org = await this.prisma.organization.findUnique({ where: { id: s.organizationId }, select: { nameEn: true, nameAr: true } });
+    const items = await this.prisma.settlementItem.groupBy({ by: ['type'], where: { settlementId: s.id }, _count: { _all: true } });
+    return {
+      id: s.id,
+      reference: s.reference,
+      organizationId: s.organizationId,
+      merchantNameEn: org?.nameEn ?? null,
+      merchantNameAr: org?.nameAr ?? null,
+      legalEntityId: s.legalEntityId,
+      market: s.market,
+      currency: s.currency,
+      product: s.product,
+      status: s.status,
+      periodFrom: s.periodFrom.toISOString(),
+      periodTo: s.periodTo.toISOString(),
+      grossMinor: s.grossMinor,
+      feesMinor: s.feesMinor,
+      taxMinor: s.taxMinor,
+      adjustmentsMinor: s.adjustmentsMinor,
+      carriedForwardMinor: s.carriedForwardMinor,
+      payableMinor: s.payableMinor,
+      paidMinor: s.paidMinor,
+      outstandingMinor: Math.max(0, s.payableMinor - s.paidMinor),
+      settlementDate: s.settlementDate?.toISOString() ?? null,
+      destinationRef: s.destinationRef,
+      reconciliationStatus: s.reconciliationStatus,
+      holdReason: s.holdReason,
+      failureReason: s.failureReason,
+      carriedIntoId: s.carriedIntoId,
+      items: Object.fromEntries(items.map((i) => [i.type, i._count._all])),
+      payouts: s.payouts.map((p) => ({ id: p.id, status: p.status, amountMinor: p.amountMinor, externalRef: p.externalRef, reason: p.reason, createdAt: p.createdAt.toISOString() })),
+      createdAt: s.createdAt.toISOString(),
+      updatedAt: s.updatedAt.toISOString(),
+    };
+  }
+
+  private async load(id: string, organizationId?: string) {
+    const s = await this.prisma.settlement.findFirst({ where: { id, ...(organizationId ? { organizationId } : {}) }, include: { payouts: { orderBy: { createdAt: 'asc' } } } });
+    if (!s) throw AppError.notFound();
+    return s;
+  }
+
+  async list(f: { status?: string; organizationId?: string; market?: string; exceptions?: boolean }) {
+    const rows = await this.prisma.settlement.findMany({
+      where: {
+        ...(f.status ? { status: f.status } : f.exceptions ? { status: { in: ['HELD', 'DISPUTE_HOLD', 'FAILED', 'REVERSED'] } } : {}),
+        ...(f.organizationId ? { organizationId: f.organizationId } : {}),
+        ...(f.market ? { market: f.market } : {}),
+      },
+      include: { payouts: true },
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+    });
+    return Promise.all(rows.map((r) => this.view(r)));
+  }
+
+  async get(id: string, organizationId?: string) {
+    return this.view(await this.load(id, organizationId));
+  }
+
+  /** What stops a payout right now for this business (empty = nothing). */
+  async holdsFor(organizationId: string): Promise<{ status: 'HELD' | 'DISPUTE_HOLD'; reason: string } | null> {
+    const fin = await this.prisma.financialHold.findFirst({ where: { organizationId, status: 'ACTIVE' } });
+    if (fin) return { status: 'HELD', reason: `FINANCIAL_HOLD: ${fin.reason}` };
+    const acc = await this.prisma.merchantSettlementAccount.findUnique({ where: { organizationId } });
+    if (!acc) return { status: 'HELD', reason: 'DESTINATION_MISSING' };
+    if (acc.payoutHold) return { status: 'HELD', reason: 'PAYOUT_HOLD' };
+    if (acc.verificationStatus !== 'VERIFIED') return { status: 'HELD', reason: 'DESTINATION_NOT_VERIFIED' };
+    const disputed = await this.prisma.disputeCase.count({ where: { organizationId, status: { notIn: ['RESOLVED', 'CLOSED', 'REJECTED'] }, financialImpactMinor: { gt: 0 } } });
+    if (disputed) return { status: 'DISPUTE_HOLD', reason: `OPEN_DISPUTES:${disputed}` };
+    return null;
+  }
+
+  /** Runs settlement for one business or every business with unsettled payable in a market. */
+  async run(actor: Actor, b: { market: string; organizationId?: string | null; currency?: string; periodTo?: string | null }, meta: RequestMeta) {
+    const market = b.market.toUpperCase();
+    const currency = b.currency ?? 'SAR';
+    const periodTo = b.periodTo ? new Date(b.periodTo) : new Date();
+    const orgIds = b.organizationId
+      ? [b.organizationId]
+      : (await this.prisma.merchantPayableEvent.findMany({ where: { type: { in: [...SETTLING_TYPES] }, createdAt: { lte: periodTo } }, distinct: ['organizationId'], select: { organizationId: true }, take: 500 })).map((r) => r.organizationId);
+    const results: Array<{ organizationId: string; outcome: string; settlementId?: string; payableMinor?: number }> = [];
+    for (const organizationId of orgIds) {
+      const orgMarket = await this.markets.resolveMarket(organizationId).catch(() => null);
+      if (orgMarket !== market) {
+        if (b.organizationId) throw AppError.validation('This business does not settle in that market', 'market');
+        continue;
+      }
+      const rule = await this.marketConfig.resolveSettlement(market, { organizationId, product: 'VOUCHER', currency, at: periodTo });
+      if (!rule) {
+        if (b.organizationId) throw new AppError('SETTLEMENT_RULE_MISSING', `No approved settlement rule for ${market} ${currency} (VALIDATE-${market})`, 409);
+        results.push({ organizationId, outcome: 'NO_RULE' });
+        continue;
+      }
+      results.push(await this.runOne(actor, organizationId, market, currency, periodTo, rule, meta));
+    }
+    return { market, currency, periodTo: periodTo.toISOString(), results };
+  }
+
+  private async runOne(
+    actor: Actor,
+    organizationId: string,
+    market: string,
+    currency: string,
+    periodTo: Date,
+    rule: { id: string; minimumMinor: number; holdDays: number; cycleDays: number },
+    meta: RequestMeta,
+  ) {
+    const cutoff = new Date(periodTo.getTime() - rule.holdDays * D);
+    const hold = await this.holdsFor(organizationId);
+    const acc = await this.prisma.merchantSettlementAccount.findUnique({ where: { organizationId } });
+    const fee = await this.marketConfig.resolveTax(market, 'PLATFORM_FEE').catch(() => null);
+    return this.prisma.$transaction(async (tx) => {
+      // one run per business at a time: an event can never be settled twice
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`settlement:${organizationId}`}))`;
+      const taken = (
+        await tx.settlementItem.findMany({ where: { settlement: { organizationId, status: { not: 'REVERSED' } } }, select: { payableEventId: true } })
+      ).map((i) => i.payableEventId);
+      const events = await tx.merchantPayableEvent.findMany({
+        where: { organizationId, type: { in: [...SETTLING_TYPES] }, createdAt: { lte: cutoff }, id: { notIn: taken } },
+        orderBy: { createdAt: 'asc' },
+      });
+      if (!events.length) return { organizationId, outcome: 'NOTHING_TO_SETTLE' };
+      let net = 0;
+      let fees = 0;
+      let adjustments = 0;
+      for (const e of events) {
+        if (e.type === 'ELIGIBLE') {
+          net += e.amountHalalas;
+          fees += e.feeHalalas;
+        } else if (e.type === 'REDEMPTION_REVERSED') {
+          net -= e.amountHalalas;
+          fees -= e.feeHalalas;
+        } else adjustments += e.amountHalalas;
+      }
+      const carried = await tx.settlement.findFirst({ where: { organizationId, currency, payableMinor: { lt: 0 }, carriedIntoId: null, status: { not: 'REVERSED' } }, orderBy: { createdAt: 'desc' } });
+      const carriedForward = carried?.payableMinor ?? 0;
+      const payable = net + adjustments + carriedForward;
+      if (payable > 0 && payable < rule.minimumMinor) return { organizationId, outcome: 'BELOW_MINIMUM', payableMinor: payable };
+      // tax on the platform fee follows the market tax rule when one is approved (informational on the statement: the fee is
+      // invoiced by DealDash; the treatment is VALIDATE-<market>)
+      const taxMinor = fee && !fee.exempt && !fee.inclusive ? Math.round((fees * fee.rateBps) / 10_000) : 0;
+      const status = payable <= 0 ? 'COMPLETED' : hold ? hold.status : 'ELIGIBLE';
+      const s = await tx.settlement.create({
+        data: {
+          reference: ref('STL'),
+          organizationId,
+          market,
+          currency,
+          product: 'VOUCHER',
+          settlementRuleId: rule.id,
+          periodFrom: events[0]!.createdAt,
+          periodTo,
+          status,
+          grossMinor: net + fees,
+          feesMinor: fees,
+          taxMinor,
+          adjustmentsMinor: adjustments,
+          carriedForwardMinor: carriedForward,
+          payableMinor: payable,
+          settlementDate: new Date(periodTo.getTime() + rule.cycleDays * D),
+          destinationRef: acc?.ibanMasked ?? null,
+          holdReason: payable > 0 ? (hold?.reason ?? null) : payable < 0 ? 'NEGATIVE_BALANCE_CARRIED_FORWARD' : null,
+          createdByUserId: actor.userId,
+          heldByUserId: hold ? actor.userId : null,
+        },
+      });
+      await tx.settlementItem.createMany({ data: events.map((e) => ({ settlementId: s.id, payableEventId: e.id, type: e.type, amountMinor: e.type === 'REDEMPTION_REVERSED' ? -e.amountHalalas : e.amountHalalas, feeMinor: e.type === 'REDEMPTION_REVERSED' ? -e.feeHalalas : e.feeHalalas })) });
+      if (carried) await tx.settlement.update({ where: { id: carried.id }, data: { carriedIntoId: s.id } });
+      await this.audit.record({ action: 'SETTLEMENT_CREATED', entityType: 'Settlement', entityId: s.id, actor, subjectOrganizationId: organizationId, newState: { status, payableMinor: payable, events: events.length, carriedForwardMinor: carriedForward, rule: rule.id }, market, meta }, tx);
+      return { organizationId, outcome: status, settlementId: s.id, payableMinor: payable };
+    });
+  }
+
+  private async transition(actor: Actor, s: SettlementRow, data: Prisma.SettlementUpdateInput, action: string, reason: string, meta: RequestMeta, tx: Prisma.TransactionClient) {
+    const r = await tx.settlement.updateMany({ where: { id: s.id, status: s.status, paidMinor: s.paidMinor }, data: data as Prisma.SettlementUpdateManyMutationInput });
+    if (r.count !== 1) throw new AppError('VERSION_CONFLICT', 'The settlement changed. Reload and try again.', 409);
+    await this.audit.record({ action, entityType: 'Settlement', entityId: s.id, actor, subjectOrganizationId: s.organizationId, reason, previousState: { status: s.status, paidMinor: s.paidMinor }, newState: JSON.parse(JSON.stringify(data)) as unknown, market: s.market, meta }, tx);
+  }
+
+  async hold(actor: Actor, id: string, reason: string, meta: RequestMeta) {
+    const s = await this.load(id);
+    if (!OPEN_FOR_PAYOUT.includes(s.status)) throw new AppError('INVALID_STATE', `A ${s.status} settlement cannot be held`, 409);
+    await this.prisma.$transaction((tx) => this.transition(actor, s, { status: 'HELD', holdReason: reason, heldByUserId: actor.userId }, 'SETTLEMENT_HELD', reason, meta, tx));
+    return this.get(id);
+  }
+
+  /** Releasing a hold or a failure is a settlement override: a different finance person, and the cause must be gone. */
+  async release(actor: Actor, id: string, reason: string, meta: RequestMeta) {
+    const s = await this.load(id);
+    if (!['HELD', 'DISPUTE_HOLD', 'FAILED'].includes(s.status)) throw new AppError('INVALID_STATE', `A ${s.status} settlement is not on hold`, 409);
+    const cfg = await opsConfig(this.config);
+    if (requiresSecondPerson({ mode: cfg.approvals.settlementOverride }, s.payableMinor)) {
+      if (!actor.permissions.has('admin.finance.approve')) throw AppError.forbidden();
+      if (s.heldByUserId === actor.userId || s.createdByUserId === actor.userId)
+        throw new AppError('CHECKER_REQUIRED', 'A different finance person must release this settlement', 403);
+    }
+    const cause = await this.holdsFor(s.organizationId);
+    if (cause && s.status !== 'FAILED') throw new AppError('SETTLEMENT_ON_HOLD', `The hold is still in place: ${cause.reason}`, 409);
+    await this.prisma.$transaction((tx) => this.transition(actor, s, { status: s.paidMinor > 0 ? 'PARTIALLY_PAID' : 'ELIGIBLE', holdReason: null, failureReason: null, approvedByUserId: actor.userId }, 'SETTLEMENT_RELEASED', reason, meta, tx));
+    return this.get(id);
+  }
+
+  /** Records a payout made outside DealDash (manual payout in the MVP). A partial payout needs a finance approver. */
+  async payout(actor: Actor, id: string, b: { amountMinor?: number | null; externalRef: string; idempotencyKey?: string | null }, meta: RequestMeta) {
+    const s = await this.load(id);
+    if (!OPEN_FOR_PAYOUT.includes(s.status)) throw new AppError('INVALID_STATE', `A ${s.status} settlement cannot be paid`, 409);
+    const outstanding = s.payableMinor - s.paidMinor;
+    const amount = b.amountMinor ?? outstanding;
+    if (amount <= 0 || amount > outstanding) throw AppError.validation(`The payout must be between 1 and ${outstanding}`, 'amountMinor');
+    if (amount < outstanding && !actor.permissions.has('admin.finance.approve')) throw new AppError('APPROVAL_REQUIRED', 'A partial settlement needs a finance approver', 403);
+    const cause = await this.holdsFor(s.organizationId);
+    if (cause) {
+      await this.prisma.$transaction((tx) => this.transition(actor, s, { status: cause.status, holdReason: cause.reason, heldByUserId: actor.userId }, 'SETTLEMENT_HELD', cause.reason, meta, tx));
+      throw new AppError('SETTLEMENT_ON_HOLD', `The settlement is on hold: ${cause.reason}`, 409);
+    }
+    const key = `stl-payout:${s.id}:${b.idempotencyKey ?? meta.requestId}`;
+    if (await this.prisma.settlementPayout.findUnique({ where: { idempotencyKey: key } })) return this.get(id);
+    await this.prisma.$transaction(async (tx) => {
+      const j = await this.ledger.post(tx, {
+        type: 'SETTLEMENT_PAYOUT',
+        sourceType: 'Settlement',
+        sourceId: s.id,
+        idempotencyKey: key,
+        memo: `Settlement payout ${s.reference} (${b.externalRef})`,
+        actor: { userId: actor.userId, role: actor.membership?.roleCode ?? null },
+        lines: [
+          { family: 'MERCHANT_SETTLEMENT_ELIGIBLE', organizationId: s.organizationId, amountHalalas: amount },
+          { family: 'PSP_CLEARING', amountHalalas: -amount },
+        ],
+      });
+      await tx.settlementPayout.create({ data: { settlementId: s.id, status: 'PAID', amountMinor: amount, externalRef: b.externalRef, journalId: j.journalId, recordedByUserId: actor.userId, idempotencyKey: key } });
+      const paid = s.paidMinor + amount;
+      await this.transition(actor, s, { status: paid >= s.payableMinor ? 'COMPLETED' : 'PARTIALLY_PAID', paidMinor: paid, settlementDate: new Date() }, 'SETTLEMENT_PAID', b.externalRef, meta, tx);
+    });
+    return this.get(id);
+  }
+
+  /** The payout attempt failed (bank / provider rejected it before money left): nothing is posted. */
+  async fail(actor: Actor, id: string, reason: string, meta: RequestMeta) {
+    const s = await this.load(id);
+    if (!OPEN_FOR_PAYOUT.includes(s.status)) throw new AppError('INVALID_STATE', `A ${s.status} settlement cannot fail`, 409);
+    await this.prisma.$transaction(async (tx) => {
+      await tx.settlementPayout.create({ data: { settlementId: s.id, status: 'FAILED', amountMinor: Math.max(1, s.payableMinor - s.paidMinor), reason, recordedByUserId: actor.userId, idempotencyKey: `stl-fail:${s.id}:${meta.requestId}` } });
+      await this.transition(actor, s, { status: 'FAILED', failureReason: reason, heldByUserId: actor.userId }, 'SETTLEMENT_FAILED', reason, meta, tx);
+    });
+    return this.get(id);
+  }
+
+  /**
+   * Reverses a settlement (for example the payout came back): the paid amount is restored to the merchant's settlement-eligible
+   * balance by a reversing journal, and the settlement's events can be settled again by a later run. A finance approver only.
+   */
+  async reverse(actor: Actor, id: string, reason: string, meta: RequestMeta) {
+    const s = await this.load(id);
+    if (['REVERSED'].includes(s.status)) throw new AppError('INVALID_STATE', 'This settlement is already reversed', 409);
+    if (!actor.permissions.has('admin.finance.approve')) throw AppError.forbidden();
+    if (s.carriedIntoId) throw new AppError('INVALID_STATE', 'Its balance was carried into a later settlement: reverse that one first', 409);
+    await this.prisma.$transaction(async (tx) => {
+      if (s.paidMinor > 0) {
+        const key = `stl-reversal:${s.id}`;
+        const j = await this.ledger.post(tx, {
+          type: 'SETTLEMENT_REVERSAL',
+          sourceType: 'Settlement',
+          sourceId: s.id,
+          idempotencyKey: key,
+          memo: `Settlement reversal ${s.reference}: ${reason}`,
+          actor: { userId: actor.userId, role: actor.membership?.roleCode ?? null },
+          lines: [
+            { family: 'MERCHANT_SETTLEMENT_ELIGIBLE', organizationId: s.organizationId, amountHalalas: -s.paidMinor },
+            { family: 'PSP_CLEARING', amountHalalas: s.paidMinor },
+          ],
+        });
+        await tx.settlementPayout.create({ data: { settlementId: s.id, status: 'REVERSED', amountMinor: s.paidMinor, reason, journalId: j.journalId, recordedByUserId: actor.userId, idempotencyKey: key } });
+      }
+      // a settlement that consumed a carried-forward balance hands it back
+      await tx.settlement.updateMany({ where: { carriedIntoId: s.id }, data: { carriedIntoId: null } });
+      await this.transition(actor, s, { status: 'REVERSED', approvedByUserId: actor.userId }, 'SETTLEMENT_REVERSED', reason, meta, tx);
+    });
+    return this.get(id);
+  }
+
+  /** The merchant's own statements (finance users of the merchant). */
+  async forMerchant(organizationId: string) {
+    return this.list({ organizationId });
+  }
+}

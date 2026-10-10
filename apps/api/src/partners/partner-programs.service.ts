@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
-  PAN_LIKE_PATTERN,
+  looksLikeCardNumber,
   type EligibilityAttributeType,
   type EligibilityExpression,
   type EligibilityLevel,
@@ -60,7 +60,7 @@ export class PartnerProgramsService {
     await this.access.requireModule(p, 'CARD_PROGRAMS');
     await this.access.requireMarket(actor, p, b.market, 'partner.eligibility.manage');
     for (const v of [b.code, b.nameEn, b.nameAr, b.issuerName, b.productCode])
-      if (PAN_LIKE_PATTERN.test(v))
+      if (looksLikeCardNumber(v))
         throw new AppError('CARD_DATA_FORBIDDEN', 'Card numbers are never stored', 422);
     const existing = await this.prisma.partnerCardProgram.findUnique({
       where: {
@@ -245,7 +245,7 @@ export class PartnerProgramsService {
           403,
         );
       for (const v of n.values)
-        if (PAN_LIKE_PATTERN.test(v))
+        if (looksLikeCardNumber(v))
           throw new AppError('CARD_DATA_FORBIDDEN', 'Card numbers are never used in rules', 422);
       if (
         n.attr === 'CARD_PRODUCT' &&

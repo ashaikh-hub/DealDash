@@ -285,7 +285,11 @@ function AddMerchant({ orgId }: { orgId: string }) {
   const [found, setFound] = useState<
     Array<{ organizationId: string; nameEn: string; nameAr: string; country: string | null }>
   >([]);
+  // B8 (Stage 8 closure): the country comes from the partner's market list; nothing is submitted until that list has loaded
+  const country = f.country || markets.data?.[0]?.code || '';
+  const marketsReady = !markets.loading && !!markets.data?.length && /^[A-Z]{2}$/.test(country);
   const add = async () => {
+    if (!marketsReady) return;
     setWarn(false);
     const r = await cmd.run<{ warnings: string[] }>(
       'POST',
@@ -294,7 +298,7 @@ function AddMerchant({ orgId }: { orgId: string }) {
         nameEn: f.nameEn,
         nameAr: f.nameAr || undefined,
         brand: f.brand || undefined,
-        country: f.country || markets.data?.[0]?.code,
+        country,
         categoryCode: f.categoryCode || undefined,
         externalMerchantId: f.externalMerchantId || undefined,
         branches: f.branch ? [{ nameEn: f.branch, city: f.city || undefined }] : [],
@@ -393,10 +397,15 @@ function AddMerchant({ orgId }: { orgId: string }) {
             />
           </Field>
         </div>
+        {!marketsReady ? (
+          <p className="dd-caption" role="status" data-testid="pt-net-markets-state" style={{ marginBlockStart: 8 }}>
+            {markets.loading || !markets.data ? t('pt.net.marketsLoading') : t('pt.net.noMarket')}
+          </p>
+        ) : null}
         <Button
           onClick={() => void add()}
           loading={cmd.busy}
-          disabled={!f.nameEn}
+          disabled={!f.nameEn || !marketsReady}
           style={{ marginBlockStart: 8 }}
           data-testid="pt-net-add-submit"
         >

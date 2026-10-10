@@ -1,5 +1,6 @@
 import { Injectable, OnModuleInit, Optional } from '@nestjs/common';
 import { UsageService } from '../subscription/usage.service';
+import { RestrictionCheckService } from '../operations/restriction-check.service';
 import { LoyaltyIssuanceService } from '../loyalty/loyalty-issuance.service';
 import { CONFIG_KEYS } from '@dealdash/config';
 import type { RedemptionResult } from '@dealdash/types';
@@ -56,6 +57,7 @@ export class VoucherRedemptionService implements StaffCodeExtension, OnModuleIni
     private readonly redemptions: RedemptionService,
     @Optional() private readonly loyalty?: LoyaltyIssuanceService,
     @Optional() private readonly usage?: UsageService,
+    @Optional() private readonly restrictions?: RestrictionCheckService,
   ) {}
 
   private get prisma() {
@@ -255,6 +257,8 @@ export class VoucherRedemptionService implements StaffCodeExtension, OnModuleIni
     let { result, branchId } = this.assess(row, scope, branchOverride, now);
     let reference: string | null = null;
     let redeemedAt: Date | null = null;
+    // Stage 8: a governed branch redemption hold pauses redemption here; the customer keeps the voucher
+    if (result === 'VALID' && branchId) await this.restrictions?.assertBranchRedemptionOpen(branchId);
 
     if (result === 'VALID' && row && branchId) {
       const target = row;

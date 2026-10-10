@@ -18,6 +18,9 @@ export class AdminAuditController {
     const baseWhere: Record<string, unknown> = {};
     if (q.action) baseWhere.action = q.action;
     if (q.entityType) baseWhere.entityType = q.entityType;
+    if (q.entityId) baseWhere.entityId = q.entityId;
+    if (q.correlationId) baseWhere.correlationId = q.correlationId;
+    if (q.market) baseWhere.market = q.market;
     if (q.organizationId)
       baseWhere.OR = [
         { actorOrganizationId: q.organizationId },
@@ -43,6 +46,14 @@ export class AdminAuditController {
         subjectOrganizationId: a.subjectOrganizationId,
         reason: a.reason,
         requestId: a.requestId,
+        previousState: a.previousState ?? null,
+        newState: a.newState ?? null,
+        scope: a.scope,
+        market: a.market,
+        legalEntityId: a.legalEntityId,
+        approvalRef: a.approvalRef,
+        correlationId: a.correlationId,
+        source: a.source,
       })),
       page.nextCursor,
     );

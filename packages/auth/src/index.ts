@@ -112,6 +112,8 @@ export const NAV_BY_AUDIENCE: Record<Audience, readonly NavItem[]> = {
       href: '/performance',
       requiresAny: ['merchant.performance.read'],
     },
+    // Stage 8: what customers say about the business (reportable, never editable)
+    { key: 'reviews', labelKey: 'nav.reviews', href: '/reviews', requiresAny: ['merchant.insights.read'] },
     {
       key: 'billing',
       labelKey: 'nav.billing',
@@ -292,6 +294,17 @@ export const NAV_BY_AUDIENCE: Record<Audience, readonly NavItem[]> = {
       href: '/operations',
       requiresAny: ['admin.disputes.read', 'admin.conflicts.manage', 'admin.campaigns.review', 'admin.loyalty.approve', 'admin.master.manage', 'admin.platform.read'],
     },
+    // Stage 8: operational gap closure (cases, support, money operations, trust and safety, delivery, SLA, reports)
+    { key: 'cases', labelKey: 'nav.cases', href: '/cases', requiresAny: ['admin.disputes.read'] },
+    { key: 'adjustments', labelKey: 'nav.adjustments', href: '/adjustments', requiresAny: ['admin.finance.read'] },
+    { key: 'settlements', labelKey: 'nav.settlements', href: '/settlements', requiresAny: ['admin.finance.read'] },
+    { key: 'reconciliation', labelKey: 'nav.reconciliation', href: '/reconciliation', requiresAny: ['admin.finance.read'] },
+    { key: 'fraud', labelKey: 'nav.fraud', href: '/fraud', requiresAny: ['admin.risk.manage'] },
+    { key: 'restrictions', labelKey: 'nav.restrictions', href: '/restrictions', requiresAny: ['admin.restrictions.manage', 'admin.restrictions.approve'] },
+    { key: 'moderation', labelKey: 'nav.moderation', href: '/moderation', requiresAny: ['admin.content.manage'] },
+    { key: 'notifications', labelKey: 'nav.notificationOps', href: '/notifications', requiresAny: ['admin.notifications.manage'] },
+    { key: 'sla', labelKey: 'nav.sla', href: '/sla', requiresAny: ['admin.operations.read'] },
+    { key: 'ops-reports', labelKey: 'nav.opsReports', href: '/ops-reports', requiresAny: ['admin.operations.read'] },
     {
       key: 'loyalty',
       labelKey: 'nav.loyalty',
@@ -323,7 +336,8 @@ export const NAV_BY_AUDIENCE: Record<Audience, readonly NavItem[]> = {
       key: 'support',
       labelKey: 'nav.support',
       href: '/support',
-      requiresAny: ['admin.support.manage'],
+      // Stage 8: the support workspace (requests, customer, refunds, privacy requests)
+      requiresAny: ['admin.support.manage', 'admin.refunds.manage', 'admin.privacy.manage', 'admin.privacy.approve'],
     },
   ],
 };

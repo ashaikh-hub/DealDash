@@ -31,6 +31,19 @@ describe('permission-aware navigation (UI hint only)', () => {
     expect(keys('merchant', 'MERCHANT_OWNER')).toContain('finance');
   });
 
+  it('Stage 8: operations screens follow least privilege', () => {
+    expect(keys('admin', 'DEALDASH_OPERATIONS')).toEqual(expect.arrayContaining(['cases', 'restrictions', 'notifications', 'sla', 'ops-reports']));
+    expect(keys('admin', 'DEALDASH_FINANCE')).toEqual(expect.arrayContaining(['adjustments', 'settlements', 'reconciliation']));
+    expect(keys('admin', 'DEALDASH_RISK_COMPLIANCE')).toEqual(expect.arrayContaining(['fraud', 'restrictions', 'cases']));
+    expect(keys('admin', 'DEALDASH_SUPPORT')).toEqual(expect.arrayContaining(['support', 'cases']));
+    expect(keys('admin', 'DEALDASH_SUPPORT')).not.toEqual(expect.arrayContaining(['settlements']));
+    expect(keys('admin', 'DEALDASH_ANALYST')).not.toEqual(expect.arrayContaining(['cases']));
+    expect(keys('admin', 'DEALDASH_ANALYST')).not.toContain('fraud');
+    expect(keys('admin', 'DEALDASH_ANALYST')).not.toContain('restrictions');
+    expect(keys('merchant', 'MERCHANT_OWNER')).toContain('reviews');
+    expect(keys('staff', 'MERCHANT_STAFF')).not.toContain('reviews');
+  });
+
   it('shows staff only scan, history and account', () => {
     expect(keys('staff', 'MERCHANT_STAFF')).toEqual(['scan', 'history', 'account']);
   });

@@ -64,7 +64,10 @@ export class MockEmailProvider implements EmailProvider {
 export class MockPushProvider implements PushProvider {
   private readonly logger = new Logger('MockPush');
   readonly sent: Array<PushMessage & { providerRef: string }> = [];
+  /** Test and development switch (Stage 8): push sends fail, to exercise delivery retries and failure escalation. */
+  failSends = false;
   async send(message: PushMessage) {
+    if (this.failSends) throw new Error('MOCK_PUSH_UNAVAILABLE');
     const providerRef = `mock-push-${randomUUID()}`;
     this.sent.push({ ...message, providerRef });
     if (this.sent.length > MAX_KEPT) this.sent.shift();
