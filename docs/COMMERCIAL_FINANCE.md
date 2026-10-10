@@ -156,3 +156,16 @@ when switched on). Case closure invoices continue to work as before.
 Campaign pricing and tax are now market-aware (see `docs/MARKET_COUNTRY_CONFIGURATION.md`): the commercial case records its market, the
 quotation snapshot records the market and the tax rule version, market-neutral / default pricing applies only in approved markets, and the
 campaign funding ledger accepts SAR only (other currencies are refused, never converted).
+<!-- stage7-addendum -->
+## Stage 7 (Oct 2026)
+
+Partners are now parties in their own right: a partner-created campaign's case names the partner OWNER (DealDash charges), its
+SPONSOR funding and the merchant FULFILMENT_MERCHANT; partners accept, approve (maker-checker with partner roles) and pay their own
+obligations; Admin on-behalf acceptance remains for exceptional cases and still never for the fulfilment merchant.
+
+<!-- stage7-founder-decisions -->
+## Stage 7 founder approval and decisions (2026-10-10): APPROVED AND FROZEN
+
+FD-S7-1: a partner-owned Watch & Earn budget is a commercial case with the partner as OWNER (media spend) and the merchant as
+FULFILMENT_MERCHANT; the budget is funded by the partner and its ledger lines (CAMPAIGN_BUDGET / CAMPAIGN_UNUSED) carry the partner.
+Pricing version, funding model and credit / PO / prepaid / postpaid controls are the shared ones.

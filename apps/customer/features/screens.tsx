@@ -240,7 +240,50 @@ export function DealPage({ id }: { id: string }) {
         onUnlock={unlock}
         merchantHref={`${href(`/merchants/${detail.merchantId}`)}?from=${detail.id}`}
       />
+      <PartnerBenefits dealId={detail.id} city={city} />
     </div>
+  );
+}
+
+interface PartnerBenefit {
+  reference: string;
+  partnerNameEn: string;
+  partnerNameAr: string;
+  labelEn: string;
+  labelAr: string;
+  termsEn: string;
+  termsAr: string;
+  result: 'ELIGIBLE' | 'LOCKED_UNLOCKABLE';
+}
+
+/** Stage 7: partner extras on a public Live Deal (eligibility from the shared engine). Seeing one is not a redemption. */
+function PartnerBenefits({ dealId, city }: { dealId: string; city: string }) {
+  const { t, locale } = useT();
+  const { call } = useApi();
+  const [rows, setRows] = useState<PartnerBenefit[]>([]);
+  useEffect(() => {
+    let alive = true;
+    void call<PartnerBenefit[]>('GET', `/v1/app/live-deals/${dealId}/partner-benefits`, { query: { city } }).then((r) => {
+      if (alive) setRows(r.ok && Array.isArray(r.data) ? r.data : []);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [call, dealId, city]);
+  if (!rows.length) return null;
+  return (
+    <section className="dd-card" style={{ margin: '16px 0' }} data-testid="deal-partner-benefits">
+      <h2 className="dd-title">{t('pt.ben.customerTitle')}</h2>
+      <ul className="dd-list" style={{ margin: 0, paddingInlineStart: 18 }}>
+        {rows.map((b) => (
+          <li key={b.reference} data-testid={`deal-partner-benefit-${b.result}`}>
+            <strong>{locale === 'ar' ? b.labelAr : b.labelEn}</strong> · {locale === 'ar' ? b.partnerNameAr : b.partnerNameEn}
+            <div className="dd-muted">{b.result === 'ELIGIBLE' ? t('pt.ben.youQualify') : t('pt.ben.unlock')}</div>
+            {(locale === 'ar' ? b.termsAr : b.termsEn) ? <div className="dd-muted">{locale === 'ar' ? b.termsAr : b.termsEn}</div> : null}
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 

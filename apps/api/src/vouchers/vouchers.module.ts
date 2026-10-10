@@ -62,7 +62,7 @@ import { WalletService } from './wallet.service';
     SupportCasesService,
     VoucherLifecycleService,
   ],
-  exports: [VoucherLifecycleService, PaymentsService, RefundsService, LedgerService],
+  exports: [VoucherLifecycleService, PaymentsService, RefundsService, LedgerService, MerchantVouchersService],
 })
 export class VouchersModule implements OnModuleInit {
   constructor(

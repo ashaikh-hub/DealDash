@@ -69,6 +69,9 @@ import { WatchViewService } from './watch-view.service';
     RewardsLedgerService,
     WatchQualificationService,
     WatchCoreService,
+    // Stage 7 / FD-S7-1: partner-owned Watch & Earn campaigns run on this engine
+    MerchantWatchService,
+    WatchFundingService,
   ],
 })
 export class WatchModule implements OnModuleInit {

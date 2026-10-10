@@ -9,6 +9,8 @@ export const apiEnvSchema = z.object({
   API_PUBLIC_URL: z.string().url().default('http://localhost:4000'),
   /** Used to build links in invitation e-mails. */
   MERCHANT_APP_URL: z.string().url().default('http://localhost:3002'),
+  /** Used to build links in partner invitation e-mails. */
+  PARTNER_APP_URL: z.string().url().default('http://localhost:3004'),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   TEST_DATABASE_URL: z.string().optional(),
   CORS_ORIGINS: z
@@ -147,6 +149,8 @@ export const CONFIG_KEYS = {
   AI_GOVERNANCE: 'ai.governance',
   // Market / country configuration (pre-Stage-7 hardening)
   MARKETS: 'markets',
+  // Stage 7: partner portal (partner type profiles; behaviour is configuration, never a named partner)
+  PARTNERS: 'partners',
 } as const;
 
 /**
@@ -660,6 +664,63 @@ export const CONFIG_DEFAULTS: Record<ConfigKey, unknown> = {
     defaultPricingMarkets: ['SA'],
     /** Ledger currencies the campaign funding ledger supports today (the general ledger is SAR-only; no full multi-currency GL). */
     campaignLedgerCurrencies: ['SAR'],
+  },
+  // ---- Partners (Stage 7): what each partner TYPE is offered. The contract (entitlements) still decides what is switched on, and the
+  // market decides where. Nothing here names a particular bank, scheme or employer.
+  partners: {
+    typeProfiles: {
+      BANK: {
+        modules: ['CAMPAIGNS', 'MERCHANT_NETWORK', 'OFFERS', 'ELIGIBILITY', 'CARD_PROGRAMS', 'LIVE_DEAL_BENEFITS', 'EXCLUSIVE', 'VOUCHER', 'WATCH_SPONSORSHIP', 'LOYALTY', 'PERFORMANCE', 'FINANCE', 'INTEGRATIONS', 'AI_COPILOT'],
+        eligibilityAttributes: ['CARD', 'CARD_PRODUCT', 'CARD_TIER', 'SCHEME', 'COUNTRY', 'GEOGRAPHY', 'SEGMENT', 'MEMBERSHIP', 'PRODUCT_OWNERSHIP'],
+        ingestionMethods: ['MANUAL', 'BULK', 'API'],
+        contractKinds: ['BANK_ENTERPRISE'],
+        reporting: 'AGGREGATE',
+      },
+      FINANCIAL_INSTITUTION: {
+        modules: ['CAMPAIGNS', 'MERCHANT_NETWORK', 'OFFERS', 'ELIGIBILITY', 'CARD_PROGRAMS', 'LIVE_DEAL_BENEFITS', 'EXCLUSIVE', 'VOUCHER', 'LOYALTY', 'PERFORMANCE', 'FINANCE', 'INTEGRATIONS', 'AI_COPILOT'],
+        eligibilityAttributes: ['CARD', 'CARD_PRODUCT', 'CARD_TIER', 'SCHEME', 'COUNTRY', 'GEOGRAPHY', 'SEGMENT', 'MEMBERSHIP', 'PRODUCT_OWNERSHIP'],
+        ingestionMethods: ['MANUAL', 'BULK', 'API'],
+        contractKinds: ['BANK_ENTERPRISE', 'CUSTOM_ENTERPRISE'],
+        reporting: 'AGGREGATE',
+      },
+      SCHEME: {
+        modules: ['CAMPAIGNS', 'MERCHANT_NETWORK', 'OFFERS', 'ELIGIBILITY', 'CARD_PROGRAMS', 'LIVE_DEAL_BENEFITS', 'EXCLUSIVE', 'VOUCHER', 'LOYALTY', 'PERFORMANCE', 'FINANCE', 'INTEGRATIONS', 'AI_COPILOT'],
+        eligibilityAttributes: ['SCHEME', 'CARD_PRODUCT', 'CARD_TIER', 'COUNTRY', 'GEOGRAPHY', 'SEGMENT'],
+        ingestionMethods: ['MANUAL', 'BULK', 'API'],
+        contractKinds: ['SCHEME_NETWORK_LICENCE'],
+        reporting: 'AGGREGATE',
+      },
+      EMPLOYER: {
+        modules: ['CAMPAIGNS', 'MERCHANT_NETWORK', 'ELIGIBILITY', 'EMPLOYER_PROGRAMS', 'LIVE_DEAL_BENEFITS', 'EXCLUSIVE', 'VOUCHER', 'LOYALTY', 'PERFORMANCE', 'FINANCE', 'AI_COPILOT'],
+        eligibilityAttributes: ['EMPLOYER', 'COUNTRY', 'GEOGRAPHY', 'SEGMENT', 'MEMBERSHIP'],
+        ingestionMethods: ['MANUAL', 'BULK'],
+        contractKinds: ['CORPORATE_PARTNER'],
+        reporting: 'AGGREGATE',
+      },
+      CORPORATE: {
+        modules: ['CAMPAIGNS', 'MERCHANT_NETWORK', 'ELIGIBILITY', 'EMPLOYER_PROGRAMS', 'LIVE_DEAL_BENEFITS', 'EXCLUSIVE', 'VOUCHER', 'LOYALTY', 'PERFORMANCE', 'FINANCE', 'AI_COPILOT'],
+        eligibilityAttributes: ['EMPLOYER', 'COUNTRY', 'GEOGRAPHY', 'SEGMENT', 'MEMBERSHIP'],
+        ingestionMethods: ['MANUAL', 'BULK'],
+        contractKinds: ['CORPORATE_PARTNER'],
+        reporting: 'AGGREGATE',
+      },
+      STRATEGIC_PARTNER: {
+        modules: ['CAMPAIGNS', 'MERCHANT_NETWORK', 'OFFERS', 'ELIGIBILITY', 'LIVE_DEAL_BENEFITS', 'EXCLUSIVE', 'VOUCHER', 'LOYALTY', 'PERFORMANCE', 'FINANCE', 'INTEGRATIONS', 'AI_COPILOT'],
+        eligibilityAttributes: ['MEMBERSHIP', 'SEGMENT', 'COUNTRY', 'GEOGRAPHY'],
+        ingestionMethods: ['MANUAL', 'BULK', 'API'],
+        contractKinds: ['CUSTOM_ENTERPRISE'],
+        reporting: 'AGGREGATE',
+      },
+      OTHER_APPROVED_PARTNER: {
+        modules: ['CAMPAIGNS', 'MERCHANT_NETWORK', 'ELIGIBILITY', 'LIVE_DEAL_BENEFITS', 'PERFORMANCE', 'FINANCE'],
+        eligibilityAttributes: ['MEMBERSHIP', 'COUNTRY', 'GEOGRAPHY'],
+        ingestionMethods: ['MANUAL', 'BULK'],
+        contractKinds: ['CUSTOM_ENTERPRISE'],
+        reporting: 'AGGREGATE',
+      },
+    },
+    /** Invitation link validity for partner users. */
+    inviteTtlHours: 72,
   },
   // Rewards: no point-to-SAR value is configured or shown anywhere (RW-07). Expiry is off until decided (VK-17).
   'rewards.rules': {

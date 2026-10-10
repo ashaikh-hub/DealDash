@@ -566,3 +566,20 @@ Migration `20270101000000_market_country_configuration` (additive; dev database 
   items are never deleted; CHECKs for every vocabulary and for secret references.
 - Extended: `CommercialCase.market`, `CommercialBillingEvent.market`, `FinanceDocument.market` + `invoiceConfigId` (frozen once issued),
   `InvoiceLine.taxRuleId` / `taxRuleVersion` / `taxableItem`, `FxRate.isManualOverride` / `overrideReason`.
+<!-- stage7-addendum -->
+## Addendum (Oct 2026) — Stage 7 data model
+
+Migration `20270102000000_stage7_partner_portal` (additive; test and dev databases migrated, dev backed up first, no drift):
+PartnerType + FINANCIAL_INSTITUTION, CORPORATE, STRATEGIC_PARTNER, OTHER_APPROVED_PARTNER; Partner onboarding columns (lifecycle,
+registration, contacts, signatory, requested markets, review / approval and pending activation); new PartnerCardProgram (BIN prefixes
+CHECK 6–8 digits), PartnerEmployerProgram (work-email domains), LiveDealPartnerBenefit; EligibilityRuleSet.name; MatchCandidate
+partner suggestion. Shared commercial inputs gained `creatorOrganizationId` (default null).
+
+<!-- stage7-founder-decisions -->
+## Stage 7 founder approval and decisions (2026-10-10): APPROVED AND FROZEN
+
+Migration `20270104000000_stage7_founder_decisions` (additive; test and development databases migrated, development backed up first,
+no reset / reseed, no drift): `WatchCampaign.creatorOrganizationId`, `sponsorOrganizationId` (+ index) — FD-S7-1;
+`EligibilityAttribute.verificationSource`, `evidenceRef` with CHECKs (allowed sources; a card attribute is ISSUER_VERIFIED only with
+source and evidence, NOT VALID for pre-existing rows) — FD-S7-3. FD-S7-4 uses the existing ReferencedOffer / ExternalEntityReference
+(publicationRef, publicationConfirmed) with no schema change.

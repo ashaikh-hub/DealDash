@@ -557,3 +557,24 @@ redesign): `EntitlementService.requireProduct` (market availability), Live Deal 
 and tax), `CommercialService` (campaign market, ledger-currency guard), `InvoicingService` (tax rules per line, invoice configuration at
 issue), `BillingEventService` (market of the billed party), AI governance (AI availability per market). Configuration:
 `markets` (available statuses, default market, default pricing markets, campaign ledger currencies).
+<!-- stage7-addendum -->
+## Addendum (Oct 2026) — Stage 7 architecture
+
+`PartnersModule` (apps/api/src/partners): PartnerAccessService (tenant, scope, modules = type profile ∩ entitlements, authorized
+markets, ingestion rule), onboarding / readiness, team, network (master data + IngestService), programmes (eligibility engine),
+campaigns (shared Exclusive / Voucher engines via an in-process `partnerContext` that only this service sets; CommercialService),
+benefits, dashboard (MetricsService). Hooks into shared code (additive): TenantService / AccessScopeService honour the partner context;
+commercial adapters take the creator as owner; CommercialService accept / approve / pay for partners and entitlement on the owner;
+EligibilityService accepts financial institutions / corporates; LoyaltyRulesService lets a partner fund points on an active merchant's
+campaign; InboxService partner tasks; ImportService field mapping and template; TeamService.accept creates partner users. Partner app
+(port 3004) with module-aware navigation (AppShell `hiddenKeys`).
+
+<!-- stage7-founder-decisions -->
+## Stage 7 founder approval and decisions (2026-10-10): APPROVED AND FROZEN
+
+Shared-code hooks added for the decisions (additive): MerchantWatchService.create records creator / sponsor from the in-process partner
+context and never auto-publishes a partner-owned budget; WatchFundingService posts funding, consumption, credit-back and close-out to the
+budget owner and refuses merchant funding of a sponsor-owned budget; WatchCommercialAdapter names the budget owner as commercial OWNER;
+CommercialService.assertEntitled resolves the owner through the product adapter; the eligibility engine's `trustedLevel` treats an
+unevidenced ISSUER_VERIFIED card attribute as declared; PartnerNetworkService.createOffer / pendingPublication / decidePublication use
+IngestService and the existing provenance record.

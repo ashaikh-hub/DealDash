@@ -268,3 +268,17 @@ Rules confirmed by the founder:
 
 Next approved sequencing (not started): Phase 4 (visibility / operations) and Phase 5 (billing / finance / AI), possibly in parallel.
 Stage 7 is not started.
+<!-- stage7-addendum -->
+## Stage 7 (Oct 2026)
+
+The Partner Portal consumes the contracts and entitlements as they are: BANK_ENTERPRISE, SCHEME_NETWORK_LICENCE (schemes are never
+priced merchant by merchant), CORPORATE_PARTNER and CUSTOM_ENTERPRISE contracts decide products and features; portal modules are
+shown only where the type profile offers them and the contract entitles them; partner-created campaigns are entitled and limited on
+the partner's own contract in the campaign's market.
+
+<!-- stage7-founder-decisions -->
+## Stage 7 founder approval and decisions (2026-10-10): APPROVED AND FROZEN
+
+A partner-owned Watch & Earn budget (FD-S7-1) needs the WATCH product in the partner's contract in the campaign's market (checked at
+creation and again by the shared commercial gate). Partner Live Deals (FD-S7-4) need the OFFERS module and the MANUAL ingestion
+entitlement for one-by-one entry; bulk / API keep their Stage 7 rule.

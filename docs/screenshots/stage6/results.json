@@ -1,6 +1,6 @@
 {
-  "at": "2026-10-09T16:34:07.145Z",
-  "tag": "f9774c",
+  "at": "2026-10-10T06:12:11.813Z",
+  "tag": "a02eb9",
   "results": [
     {
       "name": "merchant sees Watch & Earn in the navigation with seeded campaigns and a money summary",
@@ -50,7 +50,7 @@
     {
       "name": "campaign detail shows In review with Performance / Budget / Activity",
       "ok": true,
-      "detail": "01a12181-55c5-70e8-8a83-d68465ade7a1"
+      "detail": "01a1246e-6d6b-7422-9aeb-11a5702edc87"
     },
     {
       "name": "admin sees Watch & Earn with the operational counts",

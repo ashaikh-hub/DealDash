@@ -21,6 +21,7 @@ import { hotStatusFromDates, parseHotContent } from './hot-content';
 import { HOT_APPROVED_STATUSES, HotCoreService, type HotRow } from './hot-core.service';
 import { HotViewService } from './hot-view.service';
 import { NotificationsService } from './notifications.service';
+import { campaignCreator } from '../common/campaign-creator';
 import { ReservationsService } from './reservations.service';
 
 export interface HotListQuery {
@@ -232,6 +233,7 @@ export class MerchantHotDealsService {
     this.core.requireMerchantScope(actor, organizationId);
     await this.core.access.newCampaign(actor, 'EXCLUSIVE', organizationId, input);
     const content = dedupe(input);
+    content.commercial.creatorOrganizationId = campaignCreator(actor, null, content.commercial.creatorOrganizationId);
     await this.core.validateReferences(organizationId, content);
     const id = await this.prisma.$transaction(async (tx) => {
       const deal = await tx.hotDeal.create({
@@ -282,6 +284,7 @@ export class MerchantHotDealsService {
     // ---- free editing (drafts and requested changes)
     if (deal.status === 'DRAFT' || deal.status === 'NEEDS_CHANGES') {
       const next = dedupe(input);
+      next.commercial.creatorOrganizationId = campaignCreator(actor, live.commercial.creatorOrganizationId, next.commercial.creatorOrganizationId);
       await this.core.validateReferences(organizationId, next);
       const changed = diffFields(live, next);
       if (!changed.length) return done('SAVED');
@@ -310,6 +313,7 @@ export class MerchantHotDealsService {
 
     // ---- approved deals: wording and photos only. Stock is changed through the stock endpoint.
     const next = dedupe({ ...input, allocations: live.allocations });
+    next.commercial.creatorOrganizationId = campaignCreator(actor, live.commercial.creatorOrganizationId, next.commercial.creatorOrganizationId);
     await this.core.validateReferences(organizationId, next);
     const material = hotMaterialChanges(live, next);
     if (material.length)

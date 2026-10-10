@@ -76,3 +76,8 @@ Invoicing now uses the billed party's market: tax from that market's approved, e
 no fallback to another country; otherwise "not configured" with the market's validation code) and, at issue, the market / legal-entity
 invoice configuration in force (number prefix and sequence, required fields, QR / e-invoicing settings recorded on the document). Documents
 keep their market and configuration for ever. FX manual overrides need a reason. Details: `docs/MARKET_COUNTRY_CONFIGURATION.md`.
+<!-- stage7-addendum -->
+## Stage 7 (Oct 2026)
+
+The partner finance workspace is the shared billing workspace (accounts, invoices, receipts, notes, receivables and aging, POs,
+statements, reconciliation) scoped by legal entity and currency; the partner home summarises funding, invoices, PO use and credit.

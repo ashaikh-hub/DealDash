@@ -172,3 +172,10 @@ Founder rules recorded with the approval:
 4. Effective dating and historical financial / configuration records are preserved.
 5. A market cannot become ACTIVE unless its mandatory readiness configuration is complete.
 6. Stage 7 is not started until separately instructed.
+<!-- stage7-addendum -->
+## Stage 7 consumption (Oct 2026)
+
+The Partner Portal uses this framework unchanged: authorized markets come from the partner's legal entities and contract market,
+narrowed by COUNTRY scope; partner campaigns use the market of the fulfilment merchant's branches (never spanning markets) and its
+product availability, pricing, tax and invoice rules; partner benefits re-check MEMBER_BENEFIT availability at activation; readiness
+shows open market validation items. No country rule is coded in the portal.

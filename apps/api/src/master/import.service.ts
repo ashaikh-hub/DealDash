@@ -53,6 +53,8 @@ const COLUMNS: Record<string, Record<string, string>> = {
     source_updated_at: 'sourceUpdatedAt',
   },
 };
+/** Stage 7: the CSV template (header row) of an import kind, for the person preparing the file. */
+export const importTemplate = (kind: 'MERCHANTS' | 'BRANCHES' | 'OFFERS') => Object.keys(COLUMNS[kind]!).join(',') + '\n';
 const TYPE_OF: Record<string, string> = { MERCHANTS: 'MERCHANT', BRANCHES: 'BRANCH', OFFERS: 'OFFER' };
 const ORDER: Record<string, number> = { MERCHANTS: 0, BRANCHES: 1, OFFERS: 2 };
 
@@ -133,7 +135,7 @@ export class ImportService {
   async upload(
     actor: Actor,
     organizationId: string | null,
-    b: { kind: 'MERCHANTS' | 'BRANCHES' | 'OFFERS'; sourceSystem: string; fileName?: string; csv: string; publicationRef?: string },
+    b: { kind: 'MERCHANTS' | 'BRANCHES' | 'OFFERS'; sourceSystem: string; fileName?: string; csv: string; publicationRef?: string; mapping?: Record<string, string> },
     meta: RequestMeta,
   ): Promise<ImportJobView> {
     if (organizationId) await this.entitlements.requireFeature(organizationId, 'BULK_IMPORT');
@@ -142,7 +144,10 @@ export class ImportService {
     if (table.length < 2) throw AppError.validation('The file needs a header row and at least one data row', 'csv');
     if (table.length - 1 > cfg.maxImportRows) throw AppError.validation(`At most ${cfg.maxImportRows} rows per file`, 'csv');
     const map = COLUMNS[b.kind]!;
-    const header = table[0]!.map((h) => h.trim().toLowerCase());
+    // Stage 7: the file's own column names can be mapped to the template's (unmapped names must already be template names)
+    const mapping = Object.fromEntries(Object.entries(b.mapping ?? {}).map(([k, v]) => [k.trim().toLowerCase(), v.trim().toLowerCase()]));
+    for (const v of Object.values(mapping)) if (!map[v]) throw AppError.validation(`Unknown template column in the mapping: ${v}`, 'mapping');
+    const header = table[0]!.map((h) => h.trim().toLowerCase()).map((h) => mapping[h] ?? h);
     const unknown = header.filter((h) => !map[h]);
     if (unknown.length) throw AppError.validation(`Unknown column(s): ${unknown.join(', ')}`, 'csv');
     for (const need of ['source_record_id'])

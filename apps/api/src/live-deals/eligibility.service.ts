@@ -30,8 +30,23 @@ export interface EligibilityContext {
     level: EligibilityLevel;
     status: string;
     expiresAt: Date | null;
+    /** FD-S7-3: trusted source of a card verification (issuer / scheme API, approved partner feed, tokenized mechanism). */
+    verificationSource?: string | null;
+    evidenceRef?: string | null;
   }>;
   now: Date;
+}
+
+/** Card attributes whose issuer / product / tier / scheme may only count as ISSUER_VERIFIED with trusted evidence (FD-S7-3). */
+const CARD_ATTRIBUTE_TYPES: readonly string[] = ['CARD', 'CARD_PRODUCT', 'CARD_TIER', 'SCHEME'];
+/**
+ * FD-S7-3: BIN / IIN metadata, a customer's selection or a self-declaration is never "verified". A card attribute claiming
+ * ISSUER_VERIFIED without a trusted source and evidence is treated as declared (the database refuses new rows like that anyway).
+ */
+export function trustedLevel(a: { attrType: string; level: EligibilityLevel; verificationSource?: string | null; evidenceRef?: string | null }): EligibilityLevel {
+  if (a.level === 'ISSUER_VERIFIED' && CARD_ATTRIBUTE_TYPES.includes(a.attrType) && (!a.verificationSource || !a.evidenceRef))
+    return 'SELF_DECLARED';
+  return a.level;
 }
 
 export interface EligibilityCondition {
@@ -70,6 +85,13 @@ const REQUIRED_LEVEL: Record<LegacyKind, EligibilityLevel> = {
 
 const norm = (s: string) => s.trim().toLowerCase();
 
+/** Partner types whose organisation ids a partner attribute may reference (Stage 7 widened CARD and EMPLOYER). */
+const PARTNER_TYPES_OF_ATTR: Record<string, Array<'BANK' | 'FINANCIAL_INSTITUTION' | 'SCHEME' | 'EMPLOYER' | 'CORPORATE'>> = {
+  CARD: ['BANK', 'FINANCIAL_INSTITUTION'],
+  SCHEME: ['SCHEME'],
+  EMPLOYER: ['EMPLOYER', 'CORPORATE'],
+};
+
 /**
  * Pure rule evaluation (no I/O). Customer visibility rule (UXD-05 / FDR-03):
  *  - eligible                                    -> ELIGIBLE (usable)
@@ -93,9 +115,9 @@ export function evaluateEligibility(
   if (kind === 'PUBLIC' || conditions.length === 0)
     return { result: 'ELIGIBLE', unlockAction: null, message: null };
 
-  const usable = ctx.attributes.filter(
-    (a) => a.status === 'VERIFIED' && (!a.expiresAt || a.expiresAt.getTime() > ctx.now.getTime()),
-  );
+  const usable = ctx.attributes
+    .filter((a) => a.status === 'VERIFIED' && (!a.expiresAt || a.expiresAt.getTime() > ctx.now.getTime()))
+    .map((a) => ({ ...a, level: trustedLevel(a) }));
   const meets = (c: EligibilityCondition) =>
     usable.some(
       (a) =>
@@ -148,7 +170,9 @@ const UNLOCK_BY_ATTR: Partial<Record<EligibilityAttributeType, UnlockAction>> = 
 };
 
 function usableAttributes(ctx: EligibilityContext) {
-  return ctx.attributes.filter((a) => a.status === 'VERIFIED' && (!a.expiresAt || a.expiresAt.getTime() > ctx.now.getTime()));
+  return ctx.attributes
+    .filter((a) => a.status === 'VERIFIED' && (!a.expiresAt || a.expiresAt.getTime() > ctx.now.getTime()))
+    .map((a) => ({ ...a, level: trustedLevel(a) }));
 }
 
 /** One attribute test. Facts the customer cannot change (city, country, assigned segment, owned products) are never "unlockable". */
@@ -269,7 +293,8 @@ export class EligibilityService {
         throw AppError.validation(`City is not enabled: ${bad.join(', ')}`, 'eligibility');
       return;
     }
-    const partnerType = kind === 'EMPLOYER' ? 'EMPLOYER' : kind === 'BANK_CARD' ? 'BANK' : 'SCHEME';
+    // Stage 7: card issuers include financial institutions; employer programmes include corporates
+    const partnerTypes = PARTNER_TYPES_OF_ATTR[kind === 'EMPLOYER' ? 'EMPLOYER' : kind === 'BANK_CARD' ? 'CARD' : 'SCHEME']!;
     const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (valueRefs.some((v) => !uuid.test(v)))
       throw AppError.validation('Choose partners from the list', 'eligibility');
@@ -278,7 +303,7 @@ export class EligibilityService {
         id: { in: valueRefs },
         type: 'PARTNER',
         status: 'ACTIVE',
-        partner: { is: { partnerType } },
+        partner: { is: { partnerType: { in: partnerTypes } } },
       },
     });
     if (found !== new Set(valueRefs).size)
@@ -313,11 +338,11 @@ export class EligibilityService {
       }
     };
     walk(expression);
-    const types: Record<string, 'EMPLOYER' | 'BANK' | 'SCHEME'> = { EMPLOYER: 'EMPLOYER', CARD: 'BANK', SCHEME: 'SCHEME' };
+
     for (const [attr, ids] of Object.entries(partnerIds)) {
       if (!ids.size) continue;
       const found = await this.prisma.organization.count({
-        where: { id: { in: [...ids] }, type: 'PARTNER', status: 'ACTIVE', partner: { is: { partnerType: types[attr]! } } },
+        where: { id: { in: [...ids] }, type: 'PARTNER', status: 'ACTIVE', partner: { is: { partnerType: { in: PARTNER_TYPES_OF_ATTR[attr]! } } } },
       });
       if (found !== ids.size) throw AppError.validation('One of the selected partners is not available', 'eligibility');
     }
@@ -352,6 +377,7 @@ export class EligibilityService {
       rows
         .filter((r) => r.partner?.partnerType === t)
         .map((r) => ({ id: r.id, nameEn: r.nameEn, nameAr: r.nameAr }));
-    return { employers: pick('EMPLOYER'), banks: pick('BANK'), schemes: pick('SCHEME') };
+    const pickAll = (ts: readonly string[]) => ts.flatMap(pick);
+    return { employers: pickAll(PARTNER_TYPES_OF_ATTR.EMPLOYER!), banks: pickAll(PARTNER_TYPES_OF_ATTR.CARD!), schemes: pickAll(PARTNER_TYPES_OF_ATTR.SCHEME!) };
   }
 }

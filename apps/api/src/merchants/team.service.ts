@@ -258,10 +258,12 @@ export class TeamService {
     if (inv.mobile && (await this.prisma.user.findUnique({ where: { mobile: inv.mobile } })))
       throw AppError.conflict('EMAIL_TAKEN', 'This mobile number is already registered');
     const passwordHash = !isStaff && dto ? await hashPassword(dto.password) : null;
+    // Stage 7: partner invitations use the same invitation record; the account is a partner user
+    const orgType = (await this.prisma.organization.findUniqueOrThrow({ where: { id: inv.organizationId }, select: { type: true } })).type;
     const user = await this.prisma.$transaction(async (tx) => {
       const u = await tx.user.create({
         data: {
-          userType: 'MERCHANT_USER',
+          userType: orgType === 'PARTNER' ? 'PARTNER_USER' : 'MERCHANT_USER',
           status: 'ACTIVE',
           displayName: inv.name,
           email: inv.email,

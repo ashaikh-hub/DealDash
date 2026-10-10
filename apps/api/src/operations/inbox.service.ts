@@ -148,6 +148,35 @@ export class InboxService {
         requiredPermission: 'admin.disputes.read',
       });
     }
+    // ---- Stage 7: partner onboarding review, activation approval (second person) and partner benefits waiting for DealDash
+    for (const p of await this.prisma.partner.findMany({ where: { OR: [{ lifecycle: 'UNDER_REVIEW' }, { pendingLifecycle: { not: null } }] }, include: { organization: { select: { nameEn: true } } }, take: 100 }))
+      add({
+        kind: p.pendingLifecycle ? 'PARTNER_ACTIVATION' : 'PARTNER_REVIEW',
+        title: p.pendingLifecycle ? `Partner activation waiting for a second approver: ${p.organization.nameEn}` : `Partner onboarding waiting for review: ${p.organization.nameEn}`,
+        subject: p.organization.nameEn,
+        detail: p.pendingLifecycle ?? p.lifecycle,
+        priority: 'NORMAL',
+        organizationId: p.organizationId,
+        entityType: 'Partner',
+        entityId: p.organizationId,
+        dueAt: null,
+        createdAt: (p.pendingRequestedAt ?? p.submittedAt ?? p.updatedAt).toISOString(),
+        requiredPermission: p.pendingLifecycle ? 'admin.partners.approve' : 'admin.partners.manage',
+      });
+    for (const b of await this.prisma.liveDealPartnerBenefit.findMany({ where: { status: 'MERCHANT_APPROVED' }, take: 100 }))
+      add({
+        kind: 'PARTNER_BENEFIT_REVIEW',
+        title: `Partner benefit waiting for DealDash approval: ${b.labelEn}`,
+        subject: b.labelEn,
+        detail: b.reference,
+        priority: 'NORMAL',
+        organizationId: b.partnerOrganizationId,
+        entityType: 'LiveDealPartnerBenefit',
+        entityId: b.id,
+        dueAt: null,
+        createdAt: (b.merchantDecidedAt ?? b.createdAt).toISOString(),
+        requiredPermission: 'admin.partners.review',
+      });
     for (const t of await this.prisma.approvalTask.findMany({ where: { status: 'OPEN' }, take: 100 }))
       add({
         kind: t.kind,
@@ -232,6 +261,79 @@ export class InboxService {
         createdAt: f.createdAt.toISOString(),
         requiredPermission: 'merchant.deals.manage',
       });
+    // ---- Stage 7: commercial acceptances waiting on this business (as owner, sponsor or fulfilment merchant)
+    const pendingQuotes = await this.prisma.quotation.findMany({
+      where: { status: 'PENDING_ACCEPTANCE', case: { OR: [{ ownerOrganizationId: organizationId }, { fulfilmentOrganizationId: organizationId }, { commitments: { some: { organizationId } } }] } },
+      include: { case: { select: { id: true, reference: true, currentQuotationId: true } }, acceptances: { select: { organizationId: true } } },
+      take: 100,
+    });
+    for (const q of pendingQuotes) {
+      if (q.case.currentQuotationId !== q.id) continue;
+      const parties = (q.requiredParties as Array<{ organizationId: string }> | null) ?? [];
+      if (!parties.some((x) => x.organizationId === organizationId) || q.acceptances.some((a) => a.organizationId === organizationId)) continue;
+      out.push({
+        kind: 'COMMERCIAL_ACCEPTANCE',
+        title: `Commercial terms waiting for your acceptance: ${q.case.reference}`,
+        subject: q.case.reference,
+        detail: q.reference,
+        priority: 'HIGH',
+        organizationId,
+        entityType: 'CommercialCase',
+        entityId: q.case.id,
+        dueAt: q.validUntil?.toISOString() ?? null,
+        createdAt: q.createdAt.toISOString(),
+        requiredPermission: `${code}.commercial.accept` as PermissionCode,
+      });
+    }
+    // ---- Stage 7: partner benefits on the merchant's Live Deals waiting for its decision
+    if (code === 'merchant')
+      for (const b of await this.prisma.liveDealPartnerBenefit.findMany({ where: { merchantOrganizationId: organizationId, status: 'PROPOSED' }, take: 100 }))
+        out.push({
+          kind: 'PARTNER_BENEFIT_DECISION',
+          title: `Partner benefit waiting for your decision: ${b.labelEn}`,
+          subject: b.labelEn,
+          detail: b.reference,
+          priority: 'NORMAL',
+          organizationId,
+          entityType: 'LiveDealPartnerBenefit',
+          entityId: b.id,
+          dueAt: null,
+          createdAt: b.createdAt.toISOString(),
+          requiredPermission: 'merchant.deals.manage',
+        });
+    // ---- Stage 7: imports DealDash sent back, and integrations failing or stale
+    for (const j of await this.prisma.importJob.findMany({ where: { organizationId, status: { in: ['REJECTED', 'APPROVED'] } }, orderBy: { updatedAt: 'desc' }, take: 50 }))
+      out.push({
+        kind: j.status === 'REJECTED' ? 'IMPORT_REJECTED' : 'IMPORT_READY',
+        title: j.status === 'REJECTED' ? `Import sent back: ${j.fileName ?? j.kind}` : `Import approved, ready to run: ${j.fileName ?? j.kind}`,
+        subject: j.fileName ?? j.kind,
+        detail: j.rejectionReason,
+        priority: j.status === 'REJECTED' ? 'NORMAL' : 'LOW',
+        organizationId,
+        entityType: 'ImportJob',
+        entityId: j.id,
+        dueAt: null,
+        createdAt: j.updatedAt.toISOString(),
+        requiredPermission: `${code}.imports.manage` as PermissionCode,
+      });
+    for (const c of await this.prisma.integrationConnection.findMany({ where: { organizationId, status: 'ACTIVE' }, take: 50 })) {
+      const stale = !c.lastSuccessfulSyncAt || c.lastSuccessfulSyncAt.getTime() < now.getTime() - c.staleAfterMinutes * 60_000;
+      const failed = await this.prisma.failedRecord.count({ where: { connectionId: c.id, status: 'OPEN' } });
+      if (!stale && !failed) continue;
+      out.push({
+        kind: 'INTEGRATION_ISSUE',
+        title: `Integration needs attention: ${c.name}`,
+        subject: c.name,
+        detail: failed ? `FAILED_RECORDS:${failed}` : 'STALE',
+        priority: failed ? 'HIGH' : 'NORMAL',
+        organizationId,
+        entityType: 'IntegrationConnection',
+        entityId: c.id,
+        dueAt: null,
+        createdAt: (c.lastSyncAt ?? c.createdAt).toISOString(),
+        requiredPermission: `${code}.integrations.manage` as PermissionCode,
+      });
+    }
     return out.sort(byUrgency);
   }
 }

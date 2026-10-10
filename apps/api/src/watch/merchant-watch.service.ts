@@ -235,9 +235,14 @@ export class MerchantWatchService {
     await this.core.access.newCampaign(actor, 'WATCH', organizationId, input);
     const content = await this.core.validateReferences(organizationId, dedupe(input));
     const id = await this.prisma.$transaction(async (tx) => {
+      // FD-S7-1: a campaign created through the partner portal records the partner as Campaign Creator and budget owner
+      // (Sponsor / Funder); set only from the in-process partner context, never from content, so a merchant edit cannot change it.
+      const partner = actor.partnerContext?.partnerOrganizationId ?? null;
       const c = await tx.watchCampaign.create({
         data: {
           organizationId,
+          creatorOrganizationId: partner,
+          sponsorOrganizationId: partner,
           content: content as unknown as Prisma.InputJsonValue,
           createdByUserId: actor.userId,
           updatedByUserId: actor.userId,
@@ -397,7 +402,8 @@ export class MerchantWatchService {
       campaign: await this.view.build(await this.core.loadOwned(organizationId, id)),
       outcome,
     });
-    if (g.outcome === 'AUTO_PUBLISH' && commerciallyReady) {
+    // FD-S7-1: a partner-owned budget always goes through DealDash review (merchant trust never auto-publishes it)
+    if (g.outcome === 'AUTO_PUBLISH' && commerciallyReady && !c.sponsorOrganizationId) {
       const to = await this.prisma.$transaction((tx) =>
         this.core.approve(
           tx,

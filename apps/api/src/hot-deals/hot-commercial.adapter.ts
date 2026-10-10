@@ -61,7 +61,8 @@ export class HotCommercialAdapter implements CommercialAdapter, OnModuleInit {
       customerBenefitPerUnit: benefit,
       sponsors: k.sponsors.map((s) => ({ organizationId: s.organizationId, perUnitHalalas: s.perUnitHalalas, trigger: s.trigger })),
       merchantCashPerUnit: k.merchantCashPerUnitHalalas,
-      ownerOrganizationId: organizationId,
+      // Stage 7: a partner-created campaign is owned commercially by the partner (Campaign Creator); the merchant that holds it fulfils
+      ownerOrganizationId: k.creatorOrganizationId ?? organizationId,
       fulfilmentOrganizationId: k.fulfilmentOrganizationId ?? organizationId,
       // "Start as soon as approved" sends the current time with every save: a start that is not in the future means "immediately" and
       // must not change the quotation (otherwise each save would void the owner's acceptance). A scheduled start still re-quotes.

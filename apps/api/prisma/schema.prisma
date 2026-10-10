@@ -38,10 +38,15 @@ enum OrganizationStatus {
   SUSPENDED
 }
 
+/// SCHEME = card scheme (Visa, Mastercard, Amex, other approved schemes). Behaviour per type is configuration (`partners.typeProfiles`).
 enum PartnerType {
   BANK
   SCHEME
   EMPLOYER
+  FINANCIAL_INSTITUTION
+  CORPORATE
+  STRATEGIC_PARTNER
+  OTHER_APPROVED_PARTNER
 }
 
 enum BranchStatus {
@@ -194,15 +199,127 @@ model Merchant {
 }
 
 model Partner {
-  organizationId String      @id @db.Uuid
-  partnerType    PartnerType
-  legalName      String
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  organizationId           String      @id @db.Uuid
+  partnerType              PartnerType
+  legalName                String
+  // ---- Stage 7: onboarding / readiness (the Organization stays the tenant and Business Account; legal entities, contracts,
+  // entitlements, billing accounts and markets are the shared platform's own records, never copied here)
+  /// PARTNER_LIFECYCLE (DRAFT .. ACTIVE, SUSPENDED, REJECTED); ACTIVE needs every readiness item and a second DealDash approver.
+  lifecycle                String      @default("DRAFT")
+  registrationNumber       String?
+  taxNumber                String?
+  website                  String?
+  /// Parent partner group name (a group spanning several partner Business Accounts is an OrganizationUnit GROUP when modelled).
+  parentGroup              String?
+  description              String?
+  requestedMarkets         String[]    @default([])
+  /// { primary, finance?, technical?, support? }: name, email, phone, title (business contacts, not customer data)
+  contacts                 Json        @default("{}")
+  /// Authorised signatory: name, title, email, authority reference (the document itself stays in the file store)
+  signatory                Json?
+  submittedAt              DateTime?
+  reviewedByUserId         String?     @db.Uuid
+  reviewedAt               DateTime?
+  approvedByUserId         String?     @db.Uuid
+  approvedAt               DateTime?
+  lifecycleReason          String?
+  pendingLifecycle         String?
+  pendingReason            String?
+  pendingRequestedByUserId String?     @db.Uuid
+  pendingRequestedAt       DateTime?
+  version                  Int         @default(1)
+  createdAt                DateTime    @default(now())
+  updatedAt                DateTime    @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([partnerType])
+  @@index([lifecycle])
+}
+
+/// Stage 7: card programme metadata a bank / scheme maintains for eligibility. Limited BIN / IIN prefixes (6-8 digits) only: never a
+/// card number (PAN) and never a CVV (database CHECK).
+model PartnerCardProgram {
+  id                    String   @id @default(uuid(7)) @db.Uuid
+  partnerOrganizationId String   @db.Uuid
+  code                  String
+  nameEn                String
+  nameAr                String
+  scheme                String
+  issuerName            String
+  productCode           String
+  tier                  String
+  binPrefixes           String[] @default([])
+  market                String
+  /// SELF_DECLARED | WORK_EMAIL_OTP | ISSUER_TOKEN | PARTNER_FEED: how a customer's link to the programme is established
+  verificationMethod    String   @default("SELF_DECLARED")
+  /// DRAFT | ACTIVE | RETIRED
+  status                String   @default("DRAFT")
+  version               Int      @default(1)
+  createdByUserId       String   @db.Uuid
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@unique([partnerOrganizationId, code])
+  @@index([scheme, tier])
+}
+
+/// Stage 7: an employer / corporate programme. Work-email domains are the verification reference; no employee list is stored.
+model PartnerEmployerProgram {
+  id                    String   @id @default(uuid(7)) @db.Uuid
+  partnerOrganizationId String   @db.Uuid
+  code                  String
+  nameEn                String
+  nameAr                String
+  domains               String[] @default([])
+  market                String
+  /// DRAFT | ACTIVE | RETIRED
+  status                String   @default("DRAFT")
+  version               Int      @default(1)
+  createdByUserId       String   @db.Uuid
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@unique([partnerOrganizationId, code])
+}
+
+/// Stage 7: a partner-linked additional benefit on an existing public Live Deal (for example a card-holder extra discount). The Live
+/// Deal stays public; the extra benefit is eligibility-controlled. It is part of the Live Deal proposition, never an Exclusive Deal by
+/// itself, and viewing / clicking / directions are never counted as a redemption.
+model LiveDealPartnerBenefit {
+  id                      String    @id @default(uuid(7)) @db.Uuid
+  reference               String    @unique
+  liveDealId              String    @db.Uuid
+  partnerOrganizationId   String    @db.Uuid
+  merchantOrganizationId  String    @db.Uuid
+  /// EXTRA_PERCENT | EXTRA_AMOUNT | FREE_ITEM | OTHER
+  kind                    String
+  valueNumber             Decimal?  @db.Decimal(14, 2)
+  labelEn                 String
+  labelAr                 String
+  termsEn                 String    @default("")
+  termsAr                 String    @default("")
+  /// The shared eligibility engine's rule set (never re-implemented here).
+  eligibilityRuleSetId    String?   @db.Uuid
+  eligibility             Json      @default("{}")
+  market                  String
+  /// PROPOSED -> MERCHANT_APPROVED -> ACTIVE (DealDash) ; REJECTED | WITHDRAWN | SUSPENDED | ENDED
+  status                  String    @default("PROPOSED")
+  startAt                 DateTime?
+  endAt                   DateTime?
+  version                 Int       @default(1)
+  proposedByUserId        String    @db.Uuid
+  merchantDecidedByUserId String?   @db.Uuid
+  merchantDecidedAt       DateTime?
+  approvedByUserId        String?   @db.Uuid
+  approvedAt              DateTime?
+  decisionReason          String?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([liveDealId, status])
+  @@index([partnerOrganizationId, status])
+  @@index([merchantOrganizationId, status])
 }
 
 model MerchantBranch {
@@ -796,6 +913,8 @@ model Category {
 model EligibilityRuleSet {
   id                  String          @id @default(uuid(7)) @db.Uuid
   ownerOrganizationId String?         @db.Uuid
+  /// Stage 7: a partner's saved, reusable rule (null for rules owned by a single campaign).
+  name                String?
   /// Nested AND / OR / NOT rule (kind COMPOSITE). Legacy kinds keep using conditions.
   expression          Json?
   kind                EligibilityKind
@@ -833,6 +952,11 @@ model EligibilityAttribute {
   verifiedAt DateTime?
   expiresAt  DateTime?
   createdAt  DateTime                   @default(now())
+  /// FD-S7-3: the trusted source that verified a card issuer / product / tier / scheme attribute (ISSUER_API | SCHEME_API |
+  /// PARTNER_FEED | TOKENIZED_VERIFICATION | APPROVED_SOURCE) and its evidence reference. A card attribute is ISSUER_VERIFIED only
+  /// with both (database CHECK); BIN metadata, customer selection or self-declaration alone is never "verified".
+  verificationSource String?
+  evidenceRef        String?
 
   @@unique([userId, attrType, valueRef])
   @@index([userId, status])
@@ -1921,6 +2045,11 @@ enum RewardItemStatus {
 model WatchCampaign {
   id                     String          @id @default(uuid(7)) @db.Uuid
   organizationId         String          @db.Uuid
+  /// FD-S7-1: the partner that created the campaign (Campaign Creator; null = the merchant that holds it).
+  creatorOrganizationId  String?         @db.Uuid
+  /// FD-S7-1: the Sponsor / Funder that OWNS the campaign budget (null = the merchant). Funding and the budget ledger are posted to
+  /// this organization. DealDash still controls points economics, qualification, fraud controls and reward rules.
+  sponsorOrganizationId  String?         @db.Uuid
   status                 WatchStatus     @default(DRAFT)
   statusBeforeSuspension WatchStatus?
   pausedBy               DealPausedBy?
@@ -1965,6 +2094,7 @@ model WatchCampaign {
 
   @@index([organizationId, status])
   @@index([status, startAt, endAt])
+  @@index([sponsorOrganizationId])
 }
 
 /// Append-only (database trigger).
@@ -3442,17 +3572,22 @@ model EntityAlias {
 
 /// Two records that might be the same business. Nothing is merged until a person decides.
 model MatchCandidate {
-  id              String    @id @default(uuid(7)) @db.Uuid
-  entityType      String
-  aId             String    @db.Uuid
-  bId             String    @db.Uuid
-  confidence      Int
-  reasons         Json      @default("[]")
-  status          String    @default("PENDING")
-  decidedByUserId String?   @db.Uuid
-  decidedAt       DateTime?
-  decisionNote    String?
-  createdAt       DateTime  @default(now())
+  id                     String    @id @default(uuid(7)) @db.Uuid
+  entityType             String
+  aId                    String    @db.Uuid
+  bId                    String    @db.Uuid
+  confidence             Int
+  reasons                Json      @default("[]")
+  status                 String    @default("PENDING")
+  decidedByUserId        String?   @db.Uuid
+  decidedAt              DateTime?
+  decisionNote           String?
+  /// Stage 7: a partner's view on a candidate involving its network (NOT_DUPLICATE | SUGGEST_MERGE). Only DealDash merges.
+  partnerSuggestion      String?
+  partnerSuggestionOrgId String?   @db.Uuid
+  partnerSuggestionNote  String?
+  partnerSuggestedAt     DateTime?
+  createdAt              DateTime  @default(now())
 
   @@unique([entityType, aId, bId])
   @@index([status, confidence])

@@ -1,11 +1,11 @@
 {
-  "at": "2026-10-09T16:29:07.969Z",
-  "tag": "e4ded2",
+  "at": "2026-10-10T05:16:50.787Z",
+  "tag": "64d6e7",
   "results": [
     {
       "name": "merchant sees the Vouchers hub as a third Campaigns tab with seeded vouchers",
       "ok": true,
-      "detail": "6 rows"
+      "detail": "3 rows"
     },
     {
       "name": "builder has the six voucher steps",
@@ -45,7 +45,7 @@
     {
       "name": "voucher detail opens with a Monitor / Sales / Activity layout",
       "ok": true,
-      "detail": "01a1217d-d26d-70a4-9191-c227563b0d98"
+      "detail": "01a1243c-af76-74ec-ac87-1b10b1ee9249"
     },
     {
       "name": "admin sees Vouchers and Finance in the navigation",
@@ -75,7 +75,7 @@
     {
       "name": "the approved voucher is on sale for customers",
       "ok": true,
-      "detail": "01a1217d-d26d-70a4-9191-c227563b0d98"
+      "detail": "01a1243c-af76-74ec-ac87-1b10b1ee9249"
     },
     {
       "name": "Home shows a Vouchers rail",
@@ -244,6 +244,16 @@
     },
     {
       "name": "the refund queue lists refunds with status and actions",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "approving a refund requires a recorded reason",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the approved refund moves on",
       "ok": true,
       "detail": ""
     },

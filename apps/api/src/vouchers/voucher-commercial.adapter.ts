@@ -58,7 +58,8 @@ export class VoucherCommercialAdapter implements CommercialAdapter, OnModuleInit
       customerBenefitPerUnit: benefit,
       sponsors: k.sponsors.map((s) => ({ organizationId: s.organizationId, perUnitHalalas: s.perUnitHalalas, trigger: s.trigger })),
       merchantCashPerUnit: k.merchantCashPerUnitHalalas,
-      ownerOrganizationId: organizationId,
+      // Stage 7: a partner-created campaign is owned commercially by the partner (Campaign Creator); the merchant that holds it fulfils
+      ownerOrganizationId: k.creatorOrganizationId ?? organizationId,
       fulfilmentOrganizationId: k.fulfilmentOrganizationId ?? organizationId,
       validity: { startAt: c.saleStartAt, endAt: c.saleEndAt },
       inventory: { total: units, dailyQuota: k.dailyQuota },

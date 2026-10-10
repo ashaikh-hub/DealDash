@@ -9,6 +9,7 @@ import { seedStage3 } from './stage3-seed';
 import { seedStage4 } from './stage4-seed';
 import { seedStage5 } from './stage5-seed';
 import { seedStage6 } from './stage6-seed';
+import { seedStage7 } from './stage7-seed';
 
 export interface SeedAccount {
   email?: string;
@@ -283,6 +284,11 @@ export async function seedDev(
     ['analyst', 'PARTNER_ANALYST', 'Analyst'],
     ['finance', 'PARTNER_FINANCE_VIEWER', 'Finance Viewer'],
     ['readonly', 'PARTNER_READ_ONLY', 'Read-only'],
+    // Stage 7 partner roles
+    ['finance-manager', 'PARTNER_FINANCE_MANAGER', 'Finance Manager'],
+    ['approver', 'PARTNER_APPROVER', 'Approver'],
+    ['integration', 'PARTNER_INTEGRATION_MANAGER', 'Integration Manager'],
+    ['network', 'PARTNER_NETWORK_MANAGER', 'Network Manager'],
   ];
   for (const [slug, role, name] of partnerRoles) {
     await user({
@@ -344,6 +350,8 @@ export async function seedDev(
   await seedStage5({ prisma, organizations, storageDir: opts.storageDir });
 
   await seedStage6({ prisma, organizations, storageDir: opts.storageDir });
+
+  await seedStage7({ prisma, organizations });
 
   return { password, passwordWasGenerated, organizations, branches, accounts };
 }

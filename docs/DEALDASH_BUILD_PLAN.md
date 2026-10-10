@@ -462,3 +462,44 @@ Founder rules recorded with the approval:
 4. Effective dating and historical financial / configuration records are preserved.
 5. A market cannot become ACTIVE unless its mandatory readiness configuration is complete.
 6. Stage 7 is not started until separately instructed.
+<!-- stage7-build-status -->
+## Addendum (Oct 2026) — Build status: Stage 7 Enterprise Partner Portal (founder approved and frozen 2026-10-10; see below)
+
+Built on the frozen Phases 1–5, subscription engine and Market / Country configuration (consumed, not redesigned): partner Business
+Account model, onboarding / readiness lifecycle with a second DealDash approver, partner users / delegation / market scope, home
+dashboard, merchant network (manual / bulk with field mapping / API) on the one ingestion pipeline, referenced vs registered
+merchants, provenance and duplicate review, card programmes (BIN prefixes only) and employer programmes, eligibility rules on the shared
+engine, partner-created Exclusive Deals and Vouchers on the shared engines (merchant approves its own obligations), Live Deal partner
+benefits, Watch & Earn points sponsorship, shared commercial / finance / billing, performance drill-down, alerts, tasks, disputes,
+the governed copilot; partner app, Admin → Partners, merchant partner-benefit decisions, customer partner extra. Stage 8 not started.
+Details: `docs/STAGE7_PARTNER_PORTAL.md`, Figma: `docs/STAGE7_FIGMA_HANDOFF.md`, screenshots `docs/screenshots/stage7`.
+
+**Verification (2026-10-10)**: API 801 / 801 (49 files; new `partner-portal.e2e` 24); packages and apps all green (partner 12,
+admin 95, merchant 104, customer 61, staff 34, localization 22, auth 9, app-shell 11, ui 14, validation 6, config 3, analytics 4,
+api-client 2); TypeScript 24 / 24; ESLint 0 errors (64 pre-existing warnings); builds 15 / 15. Browser (Edge, fresh test database,
+generated password; development credentials untouched): Stage 7 35 / 35, Markets 19 / 19, Phase 4/5 59 / 59, Phase 3 32 / 32,
+subscription 31 / 31, Stage 2 30 / 30, Stage 3 98 / 98, Stage 4 121 / 121, Stage 5 101 / 101, Stage 6 88 / 88. Dev database backed up
+(`.tools/stage7/backup`) and migrated (no reset, no reseed), no drift.
+
+**Found and fixed during the cycle**: the partner ingestion gate first placed on the shared Phase 2 import / integration routes broke
+three frozen master-data tests (moved to the portal routes; FD-S7-2); rule builder sent an empty condition (400); the shared commercial
+summary formatted the unit count as money (pre-existing; now a number); an Active partner was told to "complete onboarding";
+seed-created sample partners were not grandfathered; two API suite files timed out only under parallel load (passed alone, 801 / 801).
+
+**Expectation updated**: `tooling/e2e/subscription-browser.mjs` readiness check — the Stage 7 seed gives the sample bank and employer
+their own agreements, so they no longer appear among businesses without one.
+
+**Founder decisions — CLOSED (2026-10-10)** (previously blocked for founder approval):
+- FD-S7-1 YES — partner-owned Watch & Earn budgets (Sponsor / Funder on the shared Watch engine; implemented).
+- FD-S7-2 NO — the Phase 2 generic import / integration routes keep their frozen behaviour (no change).
+- FD-S7-3 — card issuer / product / tier VERIFIED only with trusted evidence (database CHECK + engine; implemented).
+- FD-S7-4 YES — partner-created / imported Live Deals with confirmed publication rights (implemented on master data / provenance).
+
+## Stage 7 status (2026-10-10): FOUNDER APPROVED AND FROZEN
+
+The founder approved Stage 7 subject to recording FD-S7-1 to FD-S7-4, which are closed and implemented (details:
+`docs/STAGE7_PARTNER_PORTAL.md` → "Founder decisions"; migration `20270104000000_stage7_founder_decisions`, additive; development
+database backed up and migrated, no reset / reseed, no drift). Re-run after the decisions (materially affected suites): API 804 / 804
+(full suite), partner 15 / 15, admin 96 / 96, localization 22 / 22, TypeScript 24 / 24, ESLint 0 errors (64 pre-existing warnings);
+browser on a fresh test database: Stage 7 40 / 40, Stage 6 Watch & Earn 88 / 88, Stage 3 Live Deals / eligibility 98 / 98. No
+regression. Stage 7 is frozen: further changes need founder approval. **Stage 8 has not started.**

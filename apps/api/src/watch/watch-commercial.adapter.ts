@@ -44,8 +44,11 @@ export class WatchCommercialAdapter implements CommercialAdapter, OnModuleInit {
     const c = parseWatchContent(content);
     let perView: number;
     let units = c.paidViews;
+    // FD-S7-1: a partner may own the campaign budget (Sponsor / Funder); the merchant that holds the campaign stays its fulfilment party
+    let budgetOwner: string | null = null;
     if (subjectId) {
       const w = await this.prisma.watchCampaign.findUnique({ where: { id: subjectId } });
+      budgetOwner = w?.sponsorOrganizationId ?? null;
       // once the campaign is priced, the stored rate (not today's rate card) is what was quoted
       perView = w && w.chargePerViewHalalas > 0 ? w.chargePerViewHalalas : await this.rate();
       if (w && w.paidViews > units) units = w.paidViews;
@@ -58,7 +61,7 @@ export class WatchCommercialAdapter implements CommercialAdapter, OnModuleInit {
       customerBenefitPerUnit: 0,
       sponsors: [],
       merchantCashPerUnit: 0,
-      ownerOrganizationId: organizationId,
+      ownerOrganizationId: budgetOwner ?? organizationId,
       fulfilmentOrganizationId: organizationId,
       mediaSpend: { totalHalalas: units * perView, perUnitHalalas: perView },
       validity: { startAt: c.startAt, endAt: c.endAt },

@@ -78,8 +78,20 @@ describe('permission-aware navigation (UI hint only)', () => {
     expect(keys('admin', 'DEALDASH_SUPPORT')).not.toContain('billing');
     expect(keys('admin', 'DEALDASH_ANALYST')).toContain('analytics');
     expect(keys('admin', 'DEALDASH_ANALYST')).not.toEqual(expect.arrayContaining(['command-centre', 'ai']));
-    // partner portal screens are Stage 7 (the partner APIs exist now)
-    expect(keys('partner', 'PARTNER_ADMIN')).not.toEqual(expect.arrayContaining(['performance']));
+    // Stage 7 (the Partner Portal) superseded the earlier "no partner performance page yet" placeholder check
+    expect(keys('partner', 'PARTNER_ADMIN')).toEqual(expect.arrayContaining(['performance']));
+  });
+
+  it('Stage 7: the partner portal navigation follows the partner roles', () => {
+    expect(keys('partner', 'PARTNER_ADMIN')).toEqual(
+      expect.arrayContaining(['dashboard', 'campaigns', 'merchants', 'offers', 'eligibility', 'loyalty', 'watch', 'performance', 'finance', 'integrations', 'alerts', 'tasks', 'reports', 'assistant', 'users', 'organization', 'settings']),
+    );
+    expect(keys('partner', 'PARTNER_ANALYST')).not.toEqual(expect.arrayContaining(['users']));
+    expect(keys('partner', 'PARTNER_ANALYST')).not.toContain('integrations');
+    expect(keys('partner', 'PARTNER_FINANCE_MANAGER')).toContain('finance');
+    expect(keys('partner', 'PARTNER_INTEGRATION_MANAGER')).toEqual(expect.arrayContaining(['integrations', 'merchants']));
+    expect(keys('partner', 'PARTNER_INTEGRATION_MANAGER')).not.toContain('finance');
+    expect(keys('partner', 'PARTNER_READ_ONLY')).not.toContain('assistant');
   });
 
   it('shows Markets to DealDash roles that can read market configuration', () => {

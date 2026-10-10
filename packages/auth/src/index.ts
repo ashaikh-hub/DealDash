@@ -135,6 +135,8 @@ export const NAV_BY_AUDIENCE: Record<Audience, readonly NavItem[]> = {
       href: '/loyalty',
       requiresAny: ['merchant.loyalty.manage'],
     },
+    // Stage 7: partner benefits proposed for the merchant's own Live Deals (the merchant decides first)
+    { key: 'partner-benefits', labelKey: 'nav.partnerBenefits', href: '/partner-benefits', requiresAny: ['merchant.deals.read'] },
     {
       key: 'redemptions',
       labelKey: 'nav.redemptions',
@@ -164,45 +166,25 @@ export const NAV_BY_AUDIENCE: Record<Audience, readonly NavItem[]> = {
     },
     { key: 'account', labelKey: 'nav.account', href: '/account' },
   ],
+  // Stage 7: the Enterprise Partner Portal. Items are also hidden when the partner type / contract does not include the module.
   partner: [
-    { key: 'dashboard', labelKey: 'nav.dashboard', href: '/' },
-    {
-      key: 'campaigns',
-      labelKey: 'nav.campaigns',
-      href: '/campaigns',
-      requiresAny: ['partner.campaigns.read'],
-    },
-    {
-      key: 'eligibility',
-      labelKey: 'nav.eligibility',
-      href: '/eligibility',
-      requiresAny: ['partner.eligibility.read'],
-    },
-    {
-      key: 'merchants',
-      labelKey: 'nav.merchants',
-      href: '/merchants',
-      requiresAny: ['partner.merchants.read'],
-    },
-    {
-      key: 'reports',
-      labelKey: 'nav.reports',
-      href: '/reports',
-      requiresAny: ['partner.reports.read'],
-    },
-    {
-      key: 'organization',
-      labelKey: 'nav.organization',
-      href: '/organization',
-      requiresAny: ['partner.profile.read'],
-    },
-    { key: 'users', labelKey: 'nav.users', href: '/users', requiresAny: ['partner.users.manage'] },
-    {
-      key: 'support',
-      labelKey: 'nav.support',
-      href: '/support',
-      requiresAny: ['partner.support.manage'],
-    },
+    { key: 'dashboard', labelKey: 'nav.home', href: '/' },
+    { key: 'campaigns', labelKey: 'nav.campaigns', href: '/campaigns', requiresAny: ['partner.campaigns.read'] },
+    { key: 'merchants', labelKey: 'nav.network', href: '/network', requiresAny: ['partner.merchants.read'] },
+    { key: 'offers', labelKey: 'nav.offers', href: '/offers', requiresAny: ['partner.merchants.read'] },
+    { key: 'eligibility', labelKey: 'nav.eligibility', href: '/eligibility', requiresAny: ['partner.eligibility.read'] },
+    { key: 'loyalty', labelKey: 'nav.loyalty', href: '/loyalty', requiresAny: ['partner.loyalty.manage'] },
+    { key: 'watch', labelKey: 'nav.watch', href: '/watch', requiresAny: ['partner.campaigns.read'] },
+    { key: 'performance', labelKey: 'nav.performance', href: '/performance', requiresAny: ['partner.performance.read'] },
+    { key: 'finance', labelKey: 'nav.finance', href: '/finance', requiresAny: ['partner.finance.read', 'partner.commercial.read'] },
+    { key: 'integrations', labelKey: 'nav.integrations', href: '/integrations', requiresAny: ['partner.integrations.manage', 'partner.imports.manage'] },
+    { key: 'alerts', labelKey: 'nav.alerts', href: '/alerts', requiresAny: ['partner.performance.read', 'partner.alerts.manage'] },
+    { key: 'tasks', labelKey: 'nav.tasks', href: '/tasks', requiresAny: ['partner.campaigns.read', 'partner.disputes.manage', 'partner.commercial.read'] },
+    { key: 'reports', labelKey: 'nav.reports', href: '/reports', requiresAny: ['partner.reports.read'] },
+    { key: 'assistant', labelKey: 'nav.copilot', href: '/assistant', requiresAny: ['partner.ai.use'] },
+    { key: 'users', labelKey: 'nav.usersAccess', href: '/users', requiresAny: ['partner.users.manage'] },
+    { key: 'organization', labelKey: 'nav.organization', href: '/organization', requiresAny: ['partner.profile.read'] },
+    { key: 'settings', labelKey: 'nav.settings', href: '/settings', requiresAny: ['partner.profile.read'] },
   ],
   admin: [
     { key: 'dashboard', labelKey: 'nav.dashboard', href: '/' },
@@ -302,6 +284,8 @@ export const NAV_BY_AUDIENCE: Record<Audience, readonly NavItem[]> = {
       href: '/markets',
       requiresAny: ['admin.markets.read'],
     },
+    // Stage 7: partner Business Accounts (onboarding review, readiness, activation) and partner benefits
+    { key: 'partners', labelKey: 'nav.partners', href: '/partners', requiresAny: ['admin.partners.review'] },
     {
       key: 'operations',
       labelKey: 'nav.operations',

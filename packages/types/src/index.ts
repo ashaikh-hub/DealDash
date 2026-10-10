@@ -79,7 +79,20 @@ export type UserStatus = (typeof USER_STATUSES)[number];
 export const ORGANIZATION_TYPES = ['DEALDASH', 'MERCHANT', 'PARTNER'] as const;
 export type OrganizationType = (typeof ORGANIZATION_TYPES)[number];
 
-export const PARTNER_TYPES = ['BANK', 'SCHEME', 'EMPLOYER'] as const;
+/**
+ * Partner types (configurable behaviour comes from the `partners.typeProfiles` configuration, never from a named partner).
+ * SCHEME is the stored code of a CARD SCHEME (Visa, Mastercard, Amex, other approved schemes); EMPLOYER and CORPORATE are both
+ * employer / company programmes.
+ */
+export const PARTNER_TYPES = [
+  'BANK',
+  'SCHEME',
+  'EMPLOYER',
+  'FINANCIAL_INSTITUTION',
+  'CORPORATE',
+  'STRATEGIC_PARTNER',
+  'OTHER_APPROVED_PARTNER',
+] as const;
 export type PartnerType = (typeof PARTNER_TYPES)[number];
 
 export const ORGANIZATION_STATUSES = ['DRAFT', 'ACTIVE', 'SUSPENDED'] as const;
@@ -102,6 +115,11 @@ export const ROLE_CODES = [
   'PARTNER_ANALYST',
   'PARTNER_FINANCE_VIEWER',
   'PARTNER_READ_ONLY',
+  // Stage 7: partner finance users, approval users, integration / API users and merchant network managers
+  'PARTNER_FINANCE_MANAGER',
+  'PARTNER_APPROVER',
+  'PARTNER_INTEGRATION_MANAGER',
+  'PARTNER_NETWORK_MANAGER',
   'DEALDASH_SUPER_ADMIN',
   'DEALDASH_OPERATIONS',
   'DEALDASH_MERCHANT_MANAGEMENT',
@@ -127,6 +145,10 @@ export const ROLE_SCOPE_BY_CODE: Record<RoleCode, RoleScope> = {
   PARTNER_ANALYST: 'PARTNER',
   PARTNER_FINANCE_VIEWER: 'PARTNER',
   PARTNER_READ_ONLY: 'PARTNER',
+  PARTNER_FINANCE_MANAGER: 'PARTNER',
+  PARTNER_APPROVER: 'PARTNER',
+  PARTNER_INTEGRATION_MANAGER: 'PARTNER',
+  PARTNER_NETWORK_MANAGER: 'PARTNER',
   DEALDASH_SUPER_ADMIN: 'DEALDASH',
   DEALDASH_OPERATIONS: 'DEALDASH',
   DEALDASH_MERCHANT_MANAGEMENT: 'DEALDASH',
@@ -302,6 +324,14 @@ export const PERMISSION_CODES = [
   'admin.markets.read',
   'admin.markets.manage',
   'admin.markets.approve',
+  // Stage 7: partner portal (commercial acceptance and approvals by the partner itself, merchant network, partner onboarding)
+  'partner.commercial.read',
+  'partner.commercial.accept',
+  'partner.commercial.approve_internal',
+  'partner.commercial.approve_finance',
+  'partner.network.manage',
+  'admin.partners.manage',
+  'admin.partners.approve',
 ] as const;
 export type PermissionCode = (typeof PERMISSION_CODES)[number];
 
@@ -384,6 +414,9 @@ export const ROLE_PERMISSIONS: Record<RoleCode, readonly PermissionCode[]> = {
     'partner.targets.manage',
     'partner.alerts.manage',
     'partner.ai.use',
+    // Stage 7: sees the commercial terms of its campaigns and runs partner-funded loyalty
+    'partner.commercial.read',
+    'partner.loyalty.manage',
   ],
   PARTNER_BENEFITS_MANAGER: [
     'partner.profile.read',
@@ -393,6 +426,7 @@ export const ROLE_PERMISSIONS: Record<RoleCode, readonly PermissionCode[]> = {
     'partner.merchants.read',
     'partner.reports.read',
     'partner.support.manage',
+    'partner.performance.read',
   ],
   PARTNER_ANALYST: [
     'partner.profile.read',
@@ -409,12 +443,56 @@ export const ROLE_PERMISSIONS: Record<RoleCode, readonly PermissionCode[]> = {
     'partner.finance.read',
     'partner.reports.read',
     'partner.performance.read',
+    'partner.commercial.read',
+    'partner.subscription.read',
   ],
   PARTNER_READ_ONLY: [
     'partner.profile.read',
     'partner.campaigns.read',
     'partner.eligibility.read',
     'partner.merchants.read',
+    'partner.reports.read',
+  ],
+  PARTNER_FINANCE_MANAGER: [
+    'partner.profile.read',
+    'partner.campaigns.read',
+    'partner.finance.read',
+    'partner.finance.manage',
+    'partner.commercial.read',
+    'partner.commercial.accept',
+    'partner.commercial.approve_finance',
+    'partner.subscription.read',
+    'partner.reports.read',
+    'partner.reports.export',
+    'partner.performance.read',
+    'partner.alerts.manage',
+    'partner.disputes.manage',
+  ],
+  // the second person of the partner's own maker-checker (never the person who accepted the quotation)
+  PARTNER_APPROVER: [
+    'partner.profile.read',
+    'partner.campaigns.read',
+    'partner.eligibility.read',
+    'partner.merchants.read',
+    'partner.commercial.read',
+    'partner.commercial.approve_internal',
+    'partner.reports.read',
+    'partner.performance.read',
+  ],
+  PARTNER_INTEGRATION_MANAGER: [
+    'partner.profile.read',
+    'partner.merchants.read',
+    'partner.imports.manage',
+    'partner.integrations.manage',
+    'partner.activity.read',
+  ],
+  PARTNER_NETWORK_MANAGER: [
+    'partner.profile.read',
+    'partner.campaigns.read',
+    'partner.eligibility.read',
+    'partner.merchants.read',
+    'partner.network.manage',
+    'partner.imports.manage',
     'partner.reports.read',
   ],
 
@@ -467,6 +545,12 @@ export const ROLE_PERMISSIONS: Record<RoleCode, readonly PermissionCode[]> = {
     'admin.support.manage',
   ],
   DEALDASH_PARTNER_MANAGEMENT: [
+    // Stage 7: creates partners, reviews onboarding, approves activation (a different person from the requester)
+    'admin.partners.manage',
+    'admin.partners.approve',
+    'admin.platform.read',
+    'admin.subscriptions.read',
+    'admin.finance.read',
     'admin.markets.read',
     'admin.analytics.read',
     'admin.operations.read',
@@ -657,6 +741,16 @@ export const ERROR_CODES = {
   MARKET_CONFIG_INVALID: 'MARKET_CONFIG_INVALID',
   MARKET_CURRENCY_NOT_SUPPORTED: 'MARKET_CURRENCY_NOT_SUPPORTED',
   INVOICE_REQUIRED_FIELDS_MISSING: 'INVOICE_REQUIRED_FIELDS_MISSING',
+  // Stage 7: partner portal
+  PARTNER_NOT_READY: 'PARTNER_NOT_READY',
+  PARTNER_TRANSITION_INVALID: 'PARTNER_TRANSITION_INVALID',
+  PARTNER_NOT_ACTIVE: 'PARTNER_NOT_ACTIVE',
+  PARTNER_CAPABILITY_UNAVAILABLE: 'PARTNER_CAPABILITY_UNAVAILABLE',
+  PARTNER_MARKET_NOT_AUTHORIZED: 'PARTNER_MARKET_NOT_AUTHORIZED',
+  PARTNER_MERCHANT_NOT_IN_NETWORK: 'PARTNER_MERCHANT_NOT_IN_NETWORK',
+  PARTNER_MERCHANT_NOT_REGISTERED: 'PARTNER_MERCHANT_NOT_REGISTERED',
+  DELEGATION_EXCEEDED: 'DELEGATION_EXCEEDED',
+  CARD_DATA_FORBIDDEN: 'CARD_DATA_FORBIDDEN',
   INTERNAL: 'INTERNAL',
 } as const;
 export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];
@@ -813,3 +907,4 @@ export * from './visibility';
 export * from './billing';
 export * from './ai';
 export * from './markets';
+export * from './partners';

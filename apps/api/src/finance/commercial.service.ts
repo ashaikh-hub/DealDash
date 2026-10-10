@@ -7,6 +7,7 @@ import {
   type ApprovalStep,
   type CommercialProduct,
   type PartyRole,
+  type PermissionCode,
   type UnusedTreatment,
 } from '@dealdash/types';
 import type {
@@ -463,6 +464,13 @@ export class CommercialService {
    * A required party rejects the quotation or asks for a modification. Nothing is committed; the campaign cannot activate until a
    * new version is accepted. The decision and the reason are kept on the quotation and in the audit trail.
    */
+  /** The calling business (merchant or, since Stage 7, partner) and its permission prefix. Own organization only (404 otherwise). */
+  private businessOf(actor: Actor): { organizationId: string; prefix: 'merchant' | 'partner' } {
+    const type = actor.membership?.organizationType === 'PARTNER' ? 'PARTNER' : 'MERCHANT';
+    const organizationId = this.tenant.requireOwnOrganization(actor, actor.membership?.organizationId ?? '', type);
+    return { organizationId, prefix: type === 'PARTNER' ? 'partner' : 'merchant' };
+  }
+
   async decline(actor: Actor, organizationId: string, caseId: string, quotationId: string, decision: 'REJECT' | 'REQUEST_MODIFICATION', reason: string, meta: RequestMeta) {
     const q = await this.prisma.quotation.findFirst({ where: { id: quotationId, caseId } });
     if (!q) throw AppError.notFound();
@@ -528,9 +536,10 @@ export class CommercialService {
       organizationId = on.organizationId;
       onBehalfId = auth.id;
     } else {
-      organizationId = this.tenant.requireOwnOrganization(actor, actor.membership?.organizationId ?? '', 'MERCHANT');
+      const biz = this.businessOf(actor);
+      organizationId = biz.organizationId;
       if (this.tenant.isBranchBound(actor)) throw AppError.forbidden();
-      if (!actor.permissions.has('merchant.commercial.accept')) throw AppError.forbidden();
+      if (!actor.permissions.has(`${biz.prefix}.commercial.accept` as PermissionCode)) throw AppError.forbidden();
     }
     const party = parties.find((p) => p.organizationId === organizationId && (!on || p.role === on.role));
     if (!party) throw AppError.forbidden('You are not a party to this quotation');
@@ -717,8 +726,9 @@ export class CommercialService {
   ) {
     const c = await this.prisma.commercialCase.findUnique({ where: { id: caseId } });
     if (!c) throw AppError.notFound();
-    this.tenant.requireOwnOrganization(actor, c.ownerOrganizationId, 'MERCHANT');
-    const need = step === 'INTERNAL_APPROVER' ? 'merchant.commercial.approve_internal' : 'merchant.commercial.approve_finance';
+    const biz = this.businessOf(actor);
+    if (biz.organizationId !== c.ownerOrganizationId) throw AppError.notFound();
+    const need = `${biz.prefix}.commercial.${step === 'INTERNAL_APPROVER' ? 'approve_internal' : 'approve_finance'}` as PermissionCode;
     if (!actor.permissions.has(need)) throw AppError.forbidden();
     const ap = await this.prisma.commercialApproval.findUnique({
       where: { quotationId_step: { quotationId, step } },
@@ -869,21 +879,23 @@ export class CommercialService {
   /** The contract must include the product, and the organization must be inside its campaign limit (backend enforced). */
   async assertEntitled(product: CommercialProduct, subjectId: string) {
     const subject = await this.registry.get(product).load(subjectId);
+    // Stage 7: the campaign is entitled through its COMMERCIAL OWNER's contract (a partner creator / budget owner, else the merchant)
+    const owner = (await this.registry.get(product).economics(subject.organizationId, subject.content, subjectId)).ownerOrganizationId;
     // the product must be in the contract AND open in the campaign's market (never inherited from another country)
     const market = this.markets ? await this.markets.marketOfCampaign(subject.organizationId, subject.content) : null;
-    await this.entitlements.requireProduct(subject.organizationId, ENTITLEMENT_PRODUCT_OF[product], { market });
+    await this.entitlements.requireProduct(owner, ENTITLEMENT_PRODUCT_OF[product], { market });
     // a suspended / ended agreement, an elapsed grace or a financial hold refuses NEW paid exposure (issued customer rights are untouched)
-    await this.entitlements.requireNewExposure(subject.organizationId, 'ACTIVATE_CAMPAIGN');
+    await this.entitlements.requireNewExposure(owner, 'ACTIVATE_CAMPAIGN');
     const open = await this.prisma.commercialCase.count({
       where: {
-        ownerOrganizationId: subject.organizationId,
+        ownerOrganizationId: owner,
         status: { notIn: ['CLOSED', 'RECONCILED'] },
         // only campaigns the owner has already committed to count toward the limit (drafts and previews do not)
         acceptedQuotationId: { not: null },
         NOT: { product, subjectId },
       },
     });
-    await this.entitlements.requireWithinLimit(subject.organizationId, 'campaigns.max_active', open);
+    await this.entitlements.requireWithinLimit(owner, 'campaigns.max_active', open);
   }
 
   async assertCanActivate(product: CommercialProduct, subjectId: string) {
@@ -1198,7 +1210,7 @@ export class CommercialService {
     const full = isAdmin || viewerOrganizationId === c.ownerOrganizationId || viewerOrganizationId === c.fulfilmentOrganizationId;
     const mine = (orgId: string) => full || orgId === viewerOrganizationId;
     const allowed: string[] = [];
-    if (q?.status === 'PENDING_ACCEPTANCE' && viewerOrganizationId && actor.permissions.has('merchant.commercial.accept')) {
+    if (q?.status === 'PENDING_ACCEPTANCE' && viewerOrganizationId && (actor.permissions.has('merchant.commercial.accept') || actor.permissions.has('partner.commercial.accept'))) {
       const parties = (q.requiredParties as unknown as RequiredParty[]) ?? [];
       const p = parties.find((x) => x.organizationId === viewerOrganizationId);
       if (p && !c.acceptances.some((a) => a.quotationId === q.id && a.organizationId === viewerOrganizationId && a.role === p.role)) allowed.push('ACCEPT');
@@ -1433,8 +1445,9 @@ export class CommercialService {
   async pay(actor: Actor, caseId: string, amount: number | undefined, meta: RequestMeta) {
     const c = await this.prisma.commercialCase.findUnique({ where: { id: caseId }, include: { commitments: true } });
     if (!c) throw AppError.notFound();
-    const org = this.tenant.requireOwnOrganization(actor, actor.membership?.organizationId ?? '', 'MERCHANT');
-    if (!actor.permissions.has('merchant.finance.manage') && !actor.permissions.has('merchant.commercial.accept')) throw AppError.forbidden();
+    const biz = this.businessOf(actor);
+    const org = biz.organizationId;
+    if (!actor.permissions.has(`${biz.prefix}.finance.manage` as PermissionCode) && !actor.permissions.has(`${biz.prefix}.commercial.accept` as PermissionCode)) throw AppError.forbidden();
     const mine = c.commitments.filter((m) => m.organizationId === org && !m.adapterManaged && m.mode === 'PREPAID');
     if (!mine.length) throw AppError.notFound();
     let left = amount ?? Infinity;

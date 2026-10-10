@@ -20229,6 +20229,2355 @@
         ]
       }
     },
+    "/v1/partners/{orgId}/home": {
+      "get": {
+        "operationId": "PartnerPortalController_home_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/modules": {
+      "get": {
+        "operationId": "PartnerPortalController_modules_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/profile": {
+      "get": {
+        "operationId": "PartnerPortalController_profile_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      },
+      "put": {
+        "operationId": "PartnerPortalController_updateProfile_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/readiness": {
+      "get": {
+        "operationId": "PartnerPortalController_readiness_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/onboarding/submit": {
+      "post": {
+        "operationId": "PartnerPortalController_submit_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/history": {
+      "get": {
+        "operationId": "PartnerPortalController_history_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/markets": {
+      "get": {
+        "operationId": "PartnerPortalController_marketList_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/users": {
+      "get": {
+        "operationId": "PartnerPortalController_users_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/users/invitations": {
+      "post": {
+        "operationId": "PartnerPortalController_invite_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/users/invitations/{id}": {
+      "delete": {
+        "operationId": "PartnerPortalController_revoke_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/users/{membershipId}/role": {
+      "patch": {
+        "operationId": "PartnerPortalController_role_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "membershipId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/users/{membershipId}/{action}": {
+      "post": {
+        "operationId": "PartnerPortalController_status_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "membershipId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "action",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MemberStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/network": {
+      "get": {
+        "operationId": "PartnerPortalController_networkList_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 80,
+              "type": "string"
+            }
+          },
+          {
+            "name": "registration",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "REFERENCED",
+                "REGISTERED"
+              ]
+            }
+          },
+          {
+            "name": "country",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minLength": 2,
+              "maxLength": 2,
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/network/merchants/{id}": {
+      "get": {
+        "operationId": "PartnerPortalController_networkDetail_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/network/merchants": {
+      "post": {
+        "operationId": "PartnerPortalController_networkCreate_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NetworkCreateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/network/registered": {
+      "get": {
+        "operationId": "PartnerPortalController_registered_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/network/registered/{merchantOrgId}": {
+      "post": {
+        "operationId": "PartnerPortalController_linkRegistered_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "merchantOrgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/network/duplicates": {
+      "get": {
+        "operationId": "PartnerPortalController_duplicates_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/network/duplicates/{id}": {
+      "post": {
+        "operationId": "PartnerPortalController_suggest_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DuplicateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/network/imports": {
+      "post": {
+        "operationId": "PartnerPortalController_upload_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/integrations": {
+      "post": {
+        "operationId": "PartnerPortalController_connect_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/network/templates/{kind}": {
+      "get": {
+        "operationId": "PartnerPortalController_template_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kind",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/offers": {
+      "get": {
+        "operationId": "PartnerPortalController_offers_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      },
+      "post": {
+        "operationId": "PartnerPortalController_createOffer_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OfferCreateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/card-programs": {
+      "get": {
+        "operationId": "PartnerPortalController_cardPrograms_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      },
+      "post": {
+        "operationId": "PartnerPortalController_saveCardProgram_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CardProgramDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/employer-programs": {
+      "get": {
+        "operationId": "PartnerPortalController_employerPrograms_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      },
+      "post": {
+        "operationId": "PartnerPortalController_saveEmployerProgram_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmployerProgramDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/eligibility/options": {
+      "get": {
+        "operationId": "PartnerPortalController_eligibilityOptions_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/eligibility/rules": {
+      "get": {
+        "operationId": "PartnerPortalController_rules_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      },
+      "post": {
+        "operationId": "PartnerPortalController_saveRule_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RuleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/eligibility/test": {
+      "post": {
+        "operationId": "PartnerPortalController_testRule_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RuleTestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/campaigns": {
+      "get": {
+        "operationId": "PartnerPortalController_portfolio_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      },
+      "post": {
+        "operationId": "PartnerPortalController_create_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CampaignCreateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/campaigns/preview": {
+      "post": {
+        "operationId": "PartnerPortalController_preview_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreviewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/campaigns/merchants/{merchantOrgId}/assets": {
+      "get": {
+        "operationId": "PartnerPortalController_assets_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "merchantOrgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/campaigns/{product}/{id}": {
+      "get": {
+        "operationId": "PartnerPortalController_campaign_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "product",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      },
+      "put": {
+        "operationId": "PartnerPortalController_update_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "product",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CampaignUpdateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/campaigns/{product}/{id}/submit": {
+      "post": {
+        "operationId": "PartnerPortalController_submitCampaign_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "product",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/commercial/cases": {
+      "get": {
+        "operationId": "PartnerPortalController_cases_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/commercial/case": {
+      "get": {
+        "operationId": "PartnerPortalController_caseOf_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "product",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "EXCLUSIVE",
+                "VOUCHER",
+                "WATCH",
+                "LOYALTY"
+              ]
+            }
+          },
+          {
+            "name": "subjectId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/commercial/preview": {
+      "post": {
+        "operationId": "PartnerPortalController_commercialPreview_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreviewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/commercial/cases/{caseId}": {
+      "get": {
+        "operationId": "PartnerPortalController_caseView_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "caseId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/commercial/cases/{caseId}/accept": {
+      "post": {
+        "operationId": "PartnerPortalController_accept_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "caseId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcceptDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/commercial/cases/{caseId}/approvals/{step}": {
+      "post": {
+        "operationId": "PartnerPortalController_approve_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "caseId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "step",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApprovalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/commercial/cases/{caseId}/pay": {
+      "post": {
+        "operationId": "PartnerPortalController_pay_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "caseId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/benefits": {
+      "get": {
+        "operationId": "PartnerPortalController_benefitList_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      },
+      "post": {
+        "operationId": "PartnerPortalController_propose_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BenefitDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/benefits/live-deals": {
+      "get": {
+        "operationId": "PartnerPortalController_benefitCandidates_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/benefits/{id}/withdraw": {
+      "post": {
+        "operationId": "PartnerPortalController_withdraw_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BenefitStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/watch": {
+      "get": {
+        "operationId": "PartnerPortalController_watch_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/watch/campaigns": {
+      "get": {
+        "operationId": "PartnerPortalController_watchCandidates_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/watch/sponsor": {
+      "post": {
+        "operationId": "PartnerPortalController_sponsorWatch_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SponsorDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/watch/owned": {
+      "get": {
+        "operationId": "PartnerPortalController_ownedWatchList_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      },
+      "post": {
+        "operationId": "PartnerPortalController_createOwnedWatch_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OwnedWatchDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/watch/owned/{id}": {
+      "get": {
+        "operationId": "PartnerPortalController_ownedWatch_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/watch/owned/{id}/fund": {
+      "post": {
+        "operationId": "PartnerPortalController_fundOwnedWatch_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OwnedWatchFundDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/watch/owned/{id}/submit": {
+      "post": {
+        "operationId": "PartnerPortalController_submitOwnedWatch_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/partners/{orgId}/performance": {
+      "get": {
+        "operationId": "PartnerPortalController_performance_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "by",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "CAMPAIGN",
+              "type": "string",
+              "enum": [
+                "MARKET",
+                "LEGAL_ENTITY",
+                "MERCHANT",
+                "CITY",
+                "BRANCH",
+                "CAMPAIGN"
+              ]
+            }
+          },
+          {
+            "name": "market",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minLength": 2,
+              "maxLength": 2,
+              "type": "string"
+            }
+          },
+          {
+            "name": "merchantOrganizationId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "days",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 366,
+              "default": 30,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "partner-portal"
+        ]
+      }
+    },
+    "/v1/admin/partners": {
+      "get": {
+        "operationId": "AdminPartnersController_list_v1",
+        "parameters": [
+          {
+            "name": "lifecycle",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "DRAFT",
+                "UNDER_REVIEW",
+                "CHANGES_REQUESTED",
+                "APPROVED",
+                "CONTRACT_ACTIVE",
+                "FINANCE_READY",
+                "PRODUCT_ENABLED",
+                "ACTIVE",
+                "SUSPENDED",
+                "REJECTED"
+              ]
+            }
+          },
+          {
+            "name": "partnerType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "BANK",
+                "SCHEME",
+                "EMPLOYER",
+                "FINANCIAL_INSTITUTION",
+                "CORPORATE",
+                "STRATEGIC_PARTNER",
+                "OTHER_APPROVED_PARTNER"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-partners"
+        ]
+      },
+      "post": {
+        "operationId": "AdminPartnersController_create_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-partners"
+        ]
+      }
+    },
+    "/v1/admin/partners/benefits": {
+      "get": {
+        "operationId": "AdminPartnersController_benefitList_v1",
+        "parameters": [
+          {
+            "name": "status",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-partners"
+        ]
+      }
+    },
+    "/v1/admin/partners/benefits/{id}/{action}": {
+      "post": {
+        "operationId": "AdminPartnersController_benefitDecide_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "action",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-partners"
+        ]
+      }
+    },
+    "/v1/admin/partners/offers": {
+      "get": {
+        "operationId": "AdminPartnersController_pendingOffers_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-partners"
+        ]
+      }
+    },
+    "/v1/admin/partners/offers/{id}/{decision}": {
+      "post": {
+        "operationId": "AdminPartnersController_decideOffer_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "decision",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-partners"
+        ]
+      }
+    },
+    "/v1/admin/partners/{orgId}": {
+      "get": {
+        "operationId": "AdminPartnersController_profile_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-partners"
+        ]
+      }
+    },
+    "/v1/admin/partners/{orgId}/readiness": {
+      "get": {
+        "operationId": "AdminPartnersController_readiness_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-partners"
+        ]
+      }
+    },
+    "/v1/admin/partners/{orgId}/history": {
+      "get": {
+        "operationId": "AdminPartnersController_history_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-partners"
+        ]
+      }
+    },
+    "/v1/admin/partners/{orgId}/lifecycle": {
+      "post": {
+        "operationId": "AdminPartnersController_transition_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransitionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-partners"
+        ]
+      }
+    },
+    "/v1/admin/partners/{orgId}/lifecycle/{decision}": {
+      "post": {
+        "operationId": "AdminPartnersController_decide_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "decision",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-partners"
+        ]
+      }
+    },
+    "/v1/merchants/{orgId}/partner-benefits": {
+      "get": {
+        "operationId": "MerchantPartnerBenefitsController_list_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "merchant-partner-benefits"
+        ]
+      }
+    },
+    "/v1/merchants/{orgId}/partner-benefits/{id}/decision": {
+      "post": {
+        "operationId": "MerchantPartnerBenefitsController_decide_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BenefitDecisionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "merchant-partner-benefits"
+        ]
+      }
+    },
+    "/v1/app/live-deals/{id}/partner-benefits": {
+      "get": {
+        "operationId": "CustomerPartnerBenefitsController_list_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "customer-partner-benefits"
+        ]
+      }
+    },
     "/v1/customers/me": {
       "get": {
         "operationId": "CustomersController_me_v1",
@@ -22111,6 +24460,10 @@
                           "PARTNER_ANALYST",
                           "PARTNER_FINANCE_VIEWER",
                           "PARTNER_READ_ONLY",
+                          "PARTNER_FINANCE_MANAGER",
+                          "PARTNER_APPROVER",
+                          "PARTNER_INTEGRATION_MANAGER",
+                          "PARTNER_NETWORK_MANAGER",
                           "DEALDASH_SUPER_ADMIN",
                           "DEALDASH_OPERATIONS",
                           "DEALDASH_MERCHANT_MANAGEMENT",
@@ -22199,6 +24552,10 @@
                             "PARTNER_ANALYST",
                             "PARTNER_FINANCE_VIEWER",
                             "PARTNER_READ_ONLY",
+                            "PARTNER_FINANCE_MANAGER",
+                            "PARTNER_APPROVER",
+                            "PARTNER_INTEGRATION_MANAGER",
+                            "PARTNER_NETWORK_MANAGER",
                             "DEALDASH_SUPER_ADMIN",
                             "DEALDASH_OPERATIONS",
                             "DEALDASH_MERCHANT_MANAGEMENT",
@@ -22365,7 +24722,14 @@
                         "admin.ai.manage",
                         "admin.markets.read",
                         "admin.markets.manage",
-                        "admin.markets.approve"
+                        "admin.markets.approve",
+                        "partner.commercial.read",
+                        "partner.commercial.accept",
+                        "partner.commercial.approve_internal",
+                        "partner.commercial.approve_finance",
+                        "partner.network.manage",
+                        "admin.partners.manage",
+                        "admin.partners.approve"
                       ]
                     }
                   }
@@ -22604,6 +24968,10 @@
                       "PARTNER_ANALYST",
                       "PARTNER_FINANCE_VIEWER",
                       "PARTNER_READ_ONLY",
+                      "PARTNER_FINANCE_MANAGER",
+                      "PARTNER_APPROVER",
+                      "PARTNER_INTEGRATION_MANAGER",
+                      "PARTNER_NETWORK_MANAGER",
                       "DEALDASH_SUPER_ADMIN",
                       "DEALDASH_OPERATIONS",
                       "DEALDASH_MERCHANT_MANAGEMENT",
@@ -22692,6 +25060,10 @@
                         "PARTNER_ANALYST",
                         "PARTNER_FINANCE_VIEWER",
                         "PARTNER_READ_ONLY",
+                        "PARTNER_FINANCE_MANAGER",
+                        "PARTNER_APPROVER",
+                        "PARTNER_INTEGRATION_MANAGER",
+                        "PARTNER_NETWORK_MANAGER",
                         "DEALDASH_SUPER_ADMIN",
                         "DEALDASH_OPERATIONS",
                         "DEALDASH_MERCHANT_MANAGEMENT",
@@ -22858,7 +25230,14 @@
                     "admin.ai.manage",
                     "admin.markets.read",
                     "admin.markets.manage",
-                    "admin.markets.approve"
+                    "admin.markets.approve",
+                    "partner.commercial.read",
+                    "partner.commercial.accept",
+                    "partner.commercial.approve_internal",
+                    "partner.commercial.approve_finance",
+                    "partner.network.manage",
+                    "admin.partners.manage",
+                    "admin.partners.approve"
                   ]
                 }
               },
@@ -23714,7 +26093,11 @@
                 "enum": [
                   "BANK",
                   "SCHEME",
-                  "EMPLOYER"
+                  "EMPLOYER",
+                  "FINANCIAL_INSTITUTION",
+                  "CORPORATE",
+                  "STRATEGIC_PARTNER",
+                  "OTHER_APPROVED_PARTNER"
                 ]
               },
               "status": {
@@ -24169,6 +26552,10 @@
                               "PARTNER_ANALYST",
                               "PARTNER_FINANCE_VIEWER",
                               "PARTNER_READ_ONLY",
+                              "PARTNER_FINANCE_MANAGER",
+                              "PARTNER_APPROVER",
+                              "PARTNER_INTEGRATION_MANAGER",
+                              "PARTNER_NETWORK_MANAGER",
                               "DEALDASH_SUPER_ADMIN",
                               "DEALDASH_OPERATIONS",
                               "DEALDASH_MERCHANT_MANAGEMENT",
@@ -24257,6 +26644,10 @@
                                 "PARTNER_ANALYST",
                                 "PARTNER_FINANCE_VIEWER",
                                 "PARTNER_READ_ONLY",
+                                "PARTNER_FINANCE_MANAGER",
+                                "PARTNER_APPROVER",
+                                "PARTNER_INTEGRATION_MANAGER",
+                                "PARTNER_NETWORK_MANAGER",
                                 "DEALDASH_SUPER_ADMIN",
                                 "DEALDASH_OPERATIONS",
                                 "DEALDASH_MERCHANT_MANAGEMENT",
@@ -24423,7 +26814,14 @@
                             "admin.ai.manage",
                             "admin.markets.read",
                             "admin.markets.manage",
-                            "admin.markets.approve"
+                            "admin.markets.approve",
+                            "partner.commercial.read",
+                            "partner.commercial.accept",
+                            "partner.commercial.approve_internal",
+                            "partner.commercial.approve_finance",
+                            "partner.network.manage",
+                            "admin.partners.manage",
+                            "admin.partners.approve"
                           ]
                         }
                       }
@@ -26638,6 +29036,10 @@
                         "PARTNER_ANALYST",
                         "PARTNER_FINANCE_VIEWER",
                         "PARTNER_READ_ONLY",
+                        "PARTNER_FINANCE_MANAGER",
+                        "PARTNER_APPROVER",
+                        "PARTNER_INTEGRATION_MANAGER",
+                        "PARTNER_NETWORK_MANAGER",
                         "DEALDASH_SUPER_ADMIN",
                         "DEALDASH_OPERATIONS",
                         "DEALDASH_MERCHANT_MANAGEMENT",
@@ -26730,6 +29132,10 @@
                         "PARTNER_ANALYST",
                         "PARTNER_FINANCE_VIEWER",
                         "PARTNER_READ_ONLY",
+                        "PARTNER_FINANCE_MANAGER",
+                        "PARTNER_APPROVER",
+                        "PARTNER_INTEGRATION_MANAGER",
+                        "PARTNER_NETWORK_MANAGER",
                         "DEALDASH_SUPER_ADMIN",
                         "DEALDASH_OPERATIONS",
                         "DEALDASH_MERCHANT_MANAGEMENT",
@@ -27636,6 +30042,10 @@
                         "PARTNER_ANALYST",
                         "PARTNER_FINANCE_VIEWER",
                         "PARTNER_READ_ONLY",
+                        "PARTNER_FINANCE_MANAGER",
+                        "PARTNER_APPROVER",
+                        "PARTNER_INTEGRATION_MANAGER",
+                        "PARTNER_NETWORK_MANAGER",
                         "DEALDASH_SUPER_ADMIN",
                         "DEALDASH_OPERATIONS",
                         "DEALDASH_MERCHANT_MANAGEMENT",
@@ -40682,6 +43092,7 @@
                 "merchantCashPerUnitHalalas": 0,
                 "maxRedemptions": null,
                 "fulfilmentOrganizationId": null,
+                "creatorOrganizationId": null,
                 "dailyQuota": null
               },
               "terms": {
@@ -40946,6 +43357,7 @@
                   "merchantCashPerUnitHalalas": 0,
                   "maxRedemptions": null,
                   "fulfilmentOrganizationId": null,
+                  "creatorOrganizationId": null,
                   "dailyQuota": null
                 },
                 "type": "object",
@@ -41018,6 +43430,13 @@
                     "nullable": true
                   },
                   "fulfilmentOrganizationId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "default": null,
+                    "nullable": true
+                  },
+                  "creatorOrganizationId": {
                     "type": "string",
                     "format": "uuid",
                     "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
@@ -41505,6 +43924,7 @@
                       "merchantCashPerUnitHalalas": 0,
                       "maxRedemptions": null,
                       "fulfilmentOrganizationId": null,
+                      "creatorOrganizationId": null,
                       "dailyQuota": null
                     },
                     "type": "object",
@@ -41577,6 +43997,13 @@
                         "nullable": true
                       },
                       "fulfilmentOrganizationId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                        "default": null,
+                        "nullable": true
+                      },
+                      "creatorOrganizationId": {
                         "type": "string",
                         "format": "uuid",
                         "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
@@ -42435,6 +44862,7 @@
                   "merchantCashPerUnitHalalas": 0,
                   "maxRedemptions": null,
                   "fulfilmentOrganizationId": null,
+                  "creatorOrganizationId": null,
                   "dailyQuota": null
                 },
                 "type": "object",
@@ -42507,6 +44935,13 @@
                     "nullable": true
                   },
                   "fulfilmentOrganizationId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "default": null,
+                    "nullable": true
+                  },
+                  "creatorOrganizationId": {
                     "type": "string",
                     "format": "uuid",
                     "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
@@ -43005,6 +45440,7 @@
                           "merchantCashPerUnitHalalas": 0,
                           "maxRedemptions": null,
                           "fulfilmentOrganizationId": null,
+                          "creatorOrganizationId": null,
                           "dailyQuota": null
                         },
                         "type": "object",
@@ -43077,6 +45513,13 @@
                             "nullable": true
                           },
                           "fulfilmentOrganizationId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                            "default": null,
+                            "nullable": true
+                          },
+                          "creatorOrganizationId": {
                             "type": "string",
                             "format": "uuid",
                             "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
@@ -43985,6 +46428,7 @@
                           "merchantCashPerUnitHalalas": 0,
                           "maxRedemptions": null,
                           "fulfilmentOrganizationId": null,
+                          "creatorOrganizationId": null,
                           "dailyQuota": null
                         },
                         "type": "object",
@@ -44057,6 +46501,13 @@
                             "nullable": true
                           },
                           "fulfilmentOrganizationId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                            "default": null,
+                            "nullable": true
+                          },
+                          "creatorOrganizationId": {
                             "type": "string",
                             "format": "uuid",
                             "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
@@ -47026,6 +49477,7 @@
                       "merchantCashPerUnitHalalas": 0,
                       "maxRedemptions": null,
                       "fulfilmentOrganizationId": null,
+                      "creatorOrganizationId": null,
                       "dailyQuota": null
                     },
                     "type": "object",
@@ -47098,6 +49550,13 @@
                         "nullable": true
                       },
                       "fulfilmentOrganizationId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                        "default": null,
+                        "nullable": true
+                      },
+                      "creatorOrganizationId": {
                         "type": "string",
                         "format": "uuid",
                         "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
@@ -51546,6 +54005,7 @@
                 "merchantCashPerUnitHalalas": 0,
                 "maxRedemptions": null,
                 "fulfilmentOrganizationId": null,
+                "creatorOrganizationId": null,
                 "dailyQuota": null
               },
               "redemptionRules": {
@@ -51788,6 +54248,7 @@
                   "merchantCashPerUnitHalalas": 0,
                   "maxRedemptions": null,
                   "fulfilmentOrganizationId": null,
+                  "creatorOrganizationId": null,
                   "dailyQuota": null
                 },
                 "type": "object",
@@ -51860,6 +54321,13 @@
                     "nullable": true
                   },
                   "fulfilmentOrganizationId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "default": null,
+                    "nullable": true
+                  },
+                  "creatorOrganizationId": {
                     "type": "string",
                     "format": "uuid",
                     "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
@@ -52339,6 +54807,7 @@
                       "merchantCashPerUnitHalalas": 0,
                       "maxRedemptions": null,
                       "fulfilmentOrganizationId": null,
+                      "creatorOrganizationId": null,
                       "dailyQuota": null
                     },
                     "type": "object",
@@ -52411,6 +54880,13 @@
                         "nullable": true
                       },
                       "fulfilmentOrganizationId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                        "default": null,
+                        "nullable": true
+                      },
+                      "creatorOrganizationId": {
                         "type": "string",
                         "format": "uuid",
                         "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
@@ -53386,6 +55862,7 @@
                   "merchantCashPerUnitHalalas": 0,
                   "maxRedemptions": null,
                   "fulfilmentOrganizationId": null,
+                  "creatorOrganizationId": null,
                   "dailyQuota": null
                 },
                 "type": "object",
@@ -53458,6 +55935,13 @@
                     "nullable": true
                   },
                   "fulfilmentOrganizationId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "default": null,
+                    "nullable": true
+                  },
+                  "creatorOrganizationId": {
                     "type": "string",
                     "format": "uuid",
                     "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
@@ -53948,6 +56432,7 @@
                           "merchantCashPerUnitHalalas": 0,
                           "maxRedemptions": null,
                           "fulfilmentOrganizationId": null,
+                          "creatorOrganizationId": null,
                           "dailyQuota": null
                         },
                         "type": "object",
@@ -54020,6 +56505,13 @@
                             "nullable": true
                           },
                           "fulfilmentOrganizationId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                            "default": null,
+                            "nullable": true
+                          },
+                          "creatorOrganizationId": {
                             "type": "string",
                             "format": "uuid",
                             "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
@@ -54892,6 +57384,7 @@
                           "merchantCashPerUnitHalalas": 0,
                           "maxRedemptions": null,
                           "fulfilmentOrganizationId": null,
+                          "creatorOrganizationId": null,
                           "dailyQuota": null
                         },
                         "type": "object",
@@ -54964,6 +57457,13 @@
                             "nullable": true
                           },
                           "fulfilmentOrganizationId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                            "default": null,
+                            "nullable": true
+                          },
+                          "creatorOrganizationId": {
                             "type": "string",
                             "format": "uuid",
                             "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
@@ -57260,6 +59760,7 @@
                       "merchantCashPerUnitHalalas": 0,
                       "maxRedemptions": null,
                       "fulfilmentOrganizationId": null,
+                      "creatorOrganizationId": null,
                       "dailyQuota": null
                     },
                     "type": "object",
@@ -57332,6 +59833,13 @@
                         "nullable": true
                       },
                       "fulfilmentOrganizationId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                        "default": null,
+                        "nullable": true
+                      },
+                      "creatorOrganizationId": {
                         "type": "string",
                         "format": "uuid",
                         "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
@@ -65620,16 +68128,19 @@
       "TransitionDto": {
         "type": "object",
         "properties": {
-          "status": {
+          "to": {
             "type": "string",
             "enum": [
-              "PLANNED",
-              "CONFIGURING",
-              "TESTING",
-              "PILOT",
+              "DRAFT",
+              "UNDER_REVIEW",
+              "CHANGES_REQUESTED",
+              "APPROVED",
+              "CONTRACT_ACTIVE",
+              "FINANCE_READY",
+              "PRODUCT_ENABLED",
               "ACTIVE",
               "SUSPENDED",
-              "CLOSED"
+              "REJECTED"
             ]
           },
           "reason": {
@@ -65639,7 +68150,7 @@
           }
         },
         "required": [
-          "status",
+          "to",
           "reason"
         ]
       },
@@ -67766,16 +70277,27 @@
       "ApprovalDto": {
         "type": "object",
         "properties": {
-          "approvalRef": {
+          "quotationId": {
             "type": "string",
-            "maxLength": 80
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "decision": {
+            "type": "string",
+            "enum": [
+              "APPROVED",
+              "REJECTED"
+            ]
           },
           "reason": {
             "type": "string",
-            "minLength": 3,
-            "maxLength": 300
+            "maxLength": 500
           }
-        }
+        },
+        "required": [
+          "quotationId",
+          "decision"
+        ]
       },
       "ItemDto": {
         "type": "object",
@@ -69346,6 +71868,14 @@
           "publicationRef": {
             "type": "string",
             "maxLength": 160
+          },
+          "mapping": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 40
+            }
           }
         },
         "required": [
@@ -79663,6 +82193,1505 @@
           "agent"
         ]
       },
+      "ProfileDto": {
+        "type": "object",
+        "properties": {
+          "legalName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "registrationNumber": {
+            "type": "string",
+            "maxLength": 60
+          },
+          "taxNumber": {
+            "type": "string",
+            "maxLength": 60
+          },
+          "website": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "format": "uri"
+              },
+              {
+                "type": "string",
+                "const": ""
+              }
+            ]
+          },
+          "parentGroup": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "requestedMarkets": {
+            "minItems": 1,
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 2
+            }
+          },
+          "contacts": {
+            "type": "object",
+            "properties": {
+              "primary": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "email": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "format": "email",
+                    "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                  },
+                  "phone": {
+                    "type": "string",
+                    "maxLength": 30
+                  },
+                  "title": {
+                    "type": "string",
+                    "maxLength": 80
+                  }
+                },
+                "required": [
+                  "name",
+                  "email"
+                ],
+                "additionalProperties": false
+              },
+              "finance": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "email": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "format": "email",
+                    "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                  },
+                  "phone": {
+                    "type": "string",
+                    "maxLength": 30
+                  },
+                  "title": {
+                    "type": "string",
+                    "maxLength": 80
+                  }
+                },
+                "required": [
+                  "name",
+                  "email"
+                ],
+                "additionalProperties": false
+              },
+              "technical": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "email": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "format": "email",
+                    "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                  },
+                  "phone": {
+                    "type": "string",
+                    "maxLength": 30
+                  },
+                  "title": {
+                    "type": "string",
+                    "maxLength": 80
+                  }
+                },
+                "required": [
+                  "name",
+                  "email"
+                ],
+                "additionalProperties": false
+              },
+              "support": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "email": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "format": "email",
+                    "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                  },
+                  "phone": {
+                    "type": "string",
+                    "maxLength": 30
+                  },
+                  "title": {
+                    "type": "string",
+                    "maxLength": 80
+                  }
+                },
+                "required": [
+                  "name",
+                  "email"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "primary"
+            ],
+            "additionalProperties": false
+          },
+          "signatory": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              },
+              "email": {
+                "type": "string",
+                "maxLength": 200,
+                "format": "email",
+                "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+              },
+              "phone": {
+                "type": "string",
+                "maxLength": 30
+              },
+              "title": {
+                "type": "string",
+                "maxLength": 80
+              },
+              "authorityRef": {
+                "type": "string",
+                "maxLength": 160
+              }
+            },
+            "required": [
+              "name",
+              "email"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "legalName",
+          "requestedMarkets",
+          "contacts"
+        ]
+      },
+      "InviteDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 200,
+            "format": "email",
+            "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          },
+          "roleCode": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "email",
+          "roleCode"
+        ]
+      },
+      "RoleDto": {
+        "type": "object",
+        "properties": {
+          "roleCode": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "roleCode"
+        ]
+      },
+      "MemberStatusDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "NetworkCreateDto": {
+        "type": "object",
+        "properties": {
+          "externalMerchantId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "nameEn": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "nameAr": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "brand": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "country": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 2
+          },
+          "categoryCode": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "branches": {
+            "default": [],
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "externalId": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "nameEn": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 160
+                },
+                "nameAr": {
+                  "type": "string",
+                  "maxLength": 160
+                },
+                "addressEn": {
+                  "type": "string",
+                  "maxLength": 300
+                },
+                "addressAr": {
+                  "type": "string",
+                  "maxLength": 300
+                },
+                "city": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "country": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 2
+                },
+                "latitude": {
+                  "type": "number",
+                  "minimum": -90,
+                  "maximum": 90
+                },
+                "longitude": {
+                  "type": "number",
+                  "minimum": -180,
+                  "maximum": 180
+                }
+              },
+              "required": [
+                "nameEn"
+              ]
+            }
+          }
+        },
+        "required": [
+          "nameEn",
+          "country"
+        ]
+      },
+      "DuplicateDto": {
+        "type": "object",
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "NOT_DUPLICATE",
+              "SUGGEST_MERGE"
+            ]
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 300
+          }
+        },
+        "required": [
+          "decision"
+        ]
+      },
+      "ConnectionDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "sourceSystem": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60
+          },
+          "kind": {
+            "default": "API_PUSH",
+            "type": "string",
+            "enum": [
+              "API_PUSH",
+              "FEED_PULL",
+              "WEBHOOK"
+            ]
+          },
+          "scopes": {
+            "default": [
+              "MERCHANT",
+              "BRANCH",
+              "OFFER"
+            ],
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "MERCHANT",
+                "BRANCH",
+                "OFFER"
+              ]
+            }
+          },
+          "rateLimitPerMinute": {
+            "default": 120,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10000
+          },
+          "staleAfterMinutes": {
+            "default": 1440,
+            "type": "integer",
+            "minimum": 5,
+            "maximum": 525600
+          },
+          "publicationAuthorized": {
+            "default": false,
+            "type": "boolean"
+          },
+          "publicationRef": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "organizationId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "name",
+          "sourceSystem"
+        ]
+      },
+      "OfferCreateDto": {
+        "type": "object",
+        "properties": {
+          "sourceRecordId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "merchantSourceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "publicationRef": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "titleEn": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "titleAr": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "benefitEn": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "benefitAr": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "termsEn": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "termsAr": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "categoryCode": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "channel": {
+            "default": "IN_STORE",
+            "type": "string",
+            "enum": [
+              "IN_STORE",
+              "ONLINE",
+              "BOTH"
+            ]
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "validUntil": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "branchSourceIds": {
+            "default": [],
+            "maxItems": 500,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            }
+          },
+          "eligibility": {
+            "default": {},
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "merchantSourceId",
+          "publicationRef",
+          "titleEn",
+          "benefitEn",
+          "validFrom"
+        ]
+      },
+      "CardProgramDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 40,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "nameEn": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "nameAr": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "scheme": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 40
+          },
+          "issuerName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "productCode": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 40
+          },
+          "tier": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 40
+          },
+          "binPrefixes": {
+            "default": [],
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^\\d{6,8}$"
+            }
+          },
+          "market": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 2
+          },
+          "verificationMethod": {
+            "default": "SELF_DECLARED",
+            "type": "string",
+            "enum": [
+              "SELF_DECLARED",
+              "WORK_EMAIL_OTP",
+              "ISSUER_TOKEN",
+              "PARTNER_FEED"
+            ]
+          },
+          "status": {
+            "default": "DRAFT",
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "ACTIVE",
+              "RETIRED"
+            ]
+          }
+        },
+        "required": [
+          "code",
+          "nameEn",
+          "nameAr",
+          "scheme",
+          "issuerName",
+          "productCode",
+          "tier",
+          "market"
+        ]
+      },
+      "EmployerProgramDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 40,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "nameEn": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "nameAr": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "domains": {
+            "minItems": 1,
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^(?!-)[a-z0-9-]{1,63}(\\.[a-z0-9-]{1,63})+$"
+            }
+          },
+          "market": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 2
+          },
+          "status": {
+            "default": "DRAFT",
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "ACTIVE",
+              "RETIRED"
+            ]
+          }
+        },
+        "required": [
+          "code",
+          "nameEn",
+          "nameAr",
+          "domains",
+          "market"
+        ]
+      },
+      "RuleTestDto__schema0": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "op": {
+                "type": "string",
+                "enum": [
+                  "AND",
+                  "OR"
+                ]
+              },
+              "children": {
+                "minItems": 1,
+                "maxItems": 20,
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/RuleTestDto__schema0"
+                }
+              }
+            },
+            "required": [
+              "op",
+              "children"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": {
+                "type": "string",
+                "enum": [
+                  "NOT"
+                ]
+              },
+              "child": {
+                "$ref": "#/components/schemas/RuleTestDto__schema0"
+              }
+            },
+            "required": [
+              "op",
+              "child"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": {
+                "type": "string",
+                "enum": [
+                  "ATTR"
+                ]
+              },
+              "attr": {
+                "type": "string",
+                "enum": [
+                  "GEOGRAPHY",
+                  "EMPLOYER",
+                  "CARD",
+                  "SCHEME",
+                  "COUNTRY",
+                  "CARD_PRODUCT",
+                  "CARD_TIER",
+                  "SEGMENT",
+                  "MEMBERSHIP",
+                  "PRODUCT_OWNERSHIP",
+                  "AGE_BAND",
+                  "GENDER"
+                ]
+              },
+              "values": {
+                "minItems": 1,
+                "maxItems": 50,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                }
+              },
+              "level": {
+                "type": "string",
+                "enum": [
+                  "SELF_DECLARED",
+                  "OTP_VERIFIED",
+                  "ISSUER_VERIFIED"
+                ]
+              }
+            },
+            "required": [
+              "op",
+              "attr",
+              "values"
+            ]
+          }
+        ]
+      },
+      "RuleTestDto": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "$ref": "#/components/schemas/RuleTestDto__schema0"
+          },
+          "sample": {
+            "default": {
+              "attributes": []
+            },
+            "type": "object",
+            "properties": {
+              "attributes": {
+                "default": [],
+                "maxItems": 30,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "attr": {
+                      "type": "string",
+                      "maxLength": 40
+                    },
+                    "value": {
+                      "type": "string",
+                      "maxLength": 100
+                    },
+                    "level": {
+                      "type": "string",
+                      "maxLength": 30
+                    }
+                  },
+                  "required": [
+                    "attr",
+                    "value"
+                  ]
+                }
+              },
+              "city": {
+                "type": "string",
+                "maxLength": 80
+              },
+              "country": {
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 2
+              }
+            }
+          }
+        },
+        "required": [
+          "expression"
+        ]
+      },
+      "PreviewDto": {
+        "type": "object",
+        "properties": {
+          "product": {
+            "type": "string",
+            "enum": [
+              "VOUCHER",
+              "WATCH",
+              "EXCLUSIVE",
+              "LIVE_BENEFIT",
+              "LOYALTY"
+            ]
+          },
+          "content": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "product",
+          "content"
+        ]
+      },
+      "CampaignCreateDto": {
+        "type": "object",
+        "properties": {
+          "product": {
+            "type": "string",
+            "enum": [
+              "EXCLUSIVE",
+              "VOUCHER"
+            ]
+          },
+          "merchantOrganizationId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "content": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "product",
+          "merchantOrganizationId",
+          "content"
+        ]
+      },
+      "CampaignUpdateDto": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "object",
+            "additionalProperties": {}
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "content"
+        ]
+      },
+      "PayDto": {
+        "type": "object",
+        "properties": {
+          "amountHalalas": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 100000000000
+          }
+        }
+      },
+      "BenefitDto__schema0": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "op": {
+                "type": "string",
+                "enum": [
+                  "AND",
+                  "OR"
+                ]
+              },
+              "children": {
+                "minItems": 1,
+                "maxItems": 20,
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/BenefitDto__schema0"
+                }
+              }
+            },
+            "required": [
+              "op",
+              "children"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": {
+                "type": "string",
+                "enum": [
+                  "NOT"
+                ]
+              },
+              "child": {
+                "$ref": "#/components/schemas/BenefitDto__schema0"
+              }
+            },
+            "required": [
+              "op",
+              "child"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": {
+                "type": "string",
+                "enum": [
+                  "ATTR"
+                ]
+              },
+              "attr": {
+                "type": "string",
+                "enum": [
+                  "GEOGRAPHY",
+                  "EMPLOYER",
+                  "CARD",
+                  "SCHEME",
+                  "COUNTRY",
+                  "CARD_PRODUCT",
+                  "CARD_TIER",
+                  "SEGMENT",
+                  "MEMBERSHIP",
+                  "PRODUCT_OWNERSHIP",
+                  "AGE_BAND",
+                  "GENDER"
+                ]
+              },
+              "values": {
+                "minItems": 1,
+                "maxItems": 50,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                }
+              },
+              "level": {
+                "type": "string",
+                "enum": [
+                  "SELF_DECLARED",
+                  "OTP_VERIFIED",
+                  "ISSUER_VERIFIED"
+                ]
+              }
+            },
+            "required": [
+              "op",
+              "attr",
+              "values"
+            ]
+          }
+        ]
+      },
+      "BenefitDto": {
+        "type": "object",
+        "properties": {
+          "liveDealId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "EXTRA_PERCENT",
+              "EXTRA_AMOUNT",
+              "FREE_ITEM",
+              "OTHER"
+            ]
+          },
+          "valueNumber": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000000,
+            "default": null,
+            "nullable": true
+          },
+          "labelEn": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "labelAr": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "termsEn": {
+            "default": "",
+            "type": "string",
+            "maxLength": 800
+          },
+          "termsAr": {
+            "default": "",
+            "type": "string",
+            "maxLength": 800
+          },
+          "eligibility": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "default": "PUBLIC",
+                "type": "string",
+                "enum": [
+                  "PUBLIC",
+                  "GEOGRAPHY",
+                  "EMPLOYER",
+                  "BANK_CARD",
+                  "SCHEME",
+                  "COMPOSITE"
+                ]
+              },
+              "expression": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/BenefitDto__schema0"
+                  }
+                ],
+                "nullable": true
+              },
+              "valueRefs": {
+                "default": [],
+                "maxItems": 20,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                }
+              }
+            }
+          },
+          "startAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "default": null,
+            "nullable": true
+          },
+          "endAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "default": null,
+            "nullable": true
+          }
+        },
+        "required": [
+          "liveDealId",
+          "kind",
+          "labelEn",
+          "labelAr",
+          "eligibility"
+        ]
+      },
+      "BenefitStatusDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "SponsorDto__schema0": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "op": {
+                "type": "string",
+                "enum": [
+                  "AND",
+                  "OR"
+                ]
+              },
+              "children": {
+                "minItems": 1,
+                "maxItems": 20,
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/SponsorDto__schema0"
+                }
+              }
+            },
+            "required": [
+              "op",
+              "children"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": {
+                "type": "string",
+                "enum": [
+                  "NOT"
+                ]
+              },
+              "child": {
+                "$ref": "#/components/schemas/SponsorDto__schema0"
+              }
+            },
+            "required": [
+              "op",
+              "child"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": {
+                "type": "string",
+                "enum": [
+                  "ATTR"
+                ]
+              },
+              "attr": {
+                "type": "string",
+                "enum": [
+                  "GEOGRAPHY",
+                  "EMPLOYER",
+                  "CARD",
+                  "SCHEME",
+                  "COUNTRY",
+                  "CARD_PRODUCT",
+                  "CARD_TIER",
+                  "SEGMENT",
+                  "MEMBERSHIP",
+                  "PRODUCT_OWNERSHIP",
+                  "AGE_BAND",
+                  "GENDER"
+                ]
+              },
+              "values": {
+                "minItems": 1,
+                "maxItems": 50,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                }
+              },
+              "level": {
+                "type": "string",
+                "enum": [
+                  "SELF_DECLARED",
+                  "OTP_VERIFIED",
+                  "ISSUER_VERIFIED"
+                ]
+              }
+            },
+            "required": [
+              "op",
+              "attr",
+              "values"
+            ]
+          }
+        ]
+      },
+      "SponsorDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 120
+          },
+          "eventType": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 40
+          },
+          "kind": {
+            "default": "BASE",
+            "type": "string",
+            "enum": [
+              "BASE",
+              "BONUS"
+            ]
+          },
+          "productScope": {
+            "type": "string",
+            "enum": [
+              "LIVE_DEAL",
+              "EXCLUSIVE",
+              "VOUCHER",
+              "WATCH",
+              null
+            ],
+            "default": null,
+            "nullable": true
+          },
+          "campaignId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "default": null,
+            "nullable": true
+          },
+          "organizationId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "default": null,
+            "nullable": true
+          },
+          "basePoints": {
+            "default": 0,
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "bonusPoints": {
+            "default": 0,
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "multiplierBps": {
+            "default": 10000,
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "pointsPer100Halalas": {
+            "default": 0,
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000
+          },
+          "dailyCap": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000000,
+            "default": null,
+            "nullable": true
+          },
+          "monthlyCap": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000000,
+            "default": null,
+            "nullable": true
+          },
+          "customerCap": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000000,
+            "default": null,
+            "nullable": true
+          },
+          "eligibility": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "default": "PUBLIC",
+                "type": "string",
+                "enum": [
+                  "PUBLIC",
+                  "GEOGRAPHY",
+                  "EMPLOYER",
+                  "BANK_CARD",
+                  "SCHEME",
+                  "COMPOSITE"
+                ]
+              },
+              "expression": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/SponsorDto__schema0"
+                  }
+                ],
+                "nullable": true
+              },
+              "valueRefs": {
+                "default": [],
+                "maxItems": 20,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                }
+              }
+            },
+            "default": null,
+            "nullable": true
+          },
+          "fundingSource": {
+            "default": "DEALDASH",
+            "type": "string",
+            "enum": [
+              "DEALDASH",
+              "MERCHANT",
+              "BANK",
+              "SCHEME",
+              "CORPORATE",
+              "CAMPAIGN",
+              "SPONSOR"
+            ]
+          },
+          "fundingOrganizationId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "default": null,
+            "nullable": true
+          },
+          "fundingHalalasPerPoint": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000,
+            "default": null,
+            "nullable": true
+          },
+          "expiryDays": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3650,
+            "default": null,
+            "nullable": true
+          },
+          "maxAllocationPoints": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000000
+          },
+          "effectiveFrom": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "effectiveUntil": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "default": null,
+            "nullable": true
+          }
+        },
+        "required": [
+          "name",
+          "eventType",
+          "maxAllocationPoints"
+        ]
+      },
+      "OwnedWatchDto": {
+        "type": "object",
+        "properties": {
+          "merchantOrganizationId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "content": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "merchantOrganizationId",
+          "content"
+        ]
+      },
+      "OwnedWatchFundDto": {
+        "type": "object",
+        "properties": {
+          "amountHalalas": {
+            "type": "integer",
+            "exclusiveMinimum": true,
+            "maximum": 1000000000,
+            "minimum": 0
+          }
+        },
+        "required": [
+          "amountHalalas"
+        ]
+      },
+      "CreateDto": {
+        "type": "object",
+        "properties": {
+          "nameEn": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "nameAr": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "partnerType": {
+            "type": "string",
+            "enum": [
+              "BANK",
+              "SCHEME",
+              "EMPLOYER",
+              "FINANCIAL_INSTITUTION",
+              "CORPORATE",
+              "STRATEGIC_PARTNER",
+              "OTHER_APPROVED_PARTNER"
+            ]
+          },
+          "legalName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "country": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 2
+          },
+          "registrationNumber": {
+            "type": "string",
+            "maxLength": 60
+          },
+          "adminName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "adminEmail": {
+            "type": "string",
+            "maxLength": 200,
+            "format": "email",
+            "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          },
+          "parentGroup": {
+            "type": "string",
+            "maxLength": 120
+          }
+        },
+        "required": [
+          "nameEn",
+          "nameAr",
+          "partnerType",
+          "legalName",
+          "country",
+          "adminName",
+          "adminEmail"
+        ]
+      },
+      "BenefitDecisionDto": {
+        "type": "object",
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "APPROVE",
+              "REJECT"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "decision"
+        ]
+      },
       "CustomerResponse": {
         "type": "object",
         "properties": {
@@ -80065,29 +84094,6 @@
         },
         "required": [
           "message"
-        ]
-      },
-      "PreviewDto": {
-        "type": "object",
-        "properties": {
-          "product": {
-            "type": "string",
-            "enum": [
-              "VOUCHER",
-              "WATCH",
-              "EXCLUSIVE",
-              "LIVE_BENEFIT",
-              "LOYALTY"
-            ]
-          },
-          "content": {
-            "type": "object",
-            "additionalProperties": {}
-          }
-        },
-        "required": [
-          "product",
-          "content"
         ]
       },
       "PreviewResponse": {
@@ -81473,16 +85479,6 @@
           "data",
           "meta"
         ]
-      },
-      "PayDto": {
-        "type": "object",
-        "properties": {
-          "amountHalalas": {
-            "type": "integer",
-            "minimum": 100,
-            "maximum": 100000000000
-          }
-        }
       },
       "PaidResponse": {
         "type": "object",

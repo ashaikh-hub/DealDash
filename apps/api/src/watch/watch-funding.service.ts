@@ -59,6 +59,10 @@ export class WatchFundingService {
       : await this.core.loadAny(id);
     if (!FUNDABLE.includes(c.status))
       throw new AppError('INVALID_STATE', `A ${c.status} campaign cannot be funded`, 409);
+    // FD-S7-1: a partner-owned budget is funded by that partner (DealDash Admin credits stay possible); never by the merchant
+    const owner = c.sponsorOrganizationId ?? c.organizationId;
+    if (c.sponsorOrganizationId && organizationId && actor.partnerContext?.partnerOrganizationId !== c.sponsorOrganizationId)
+      throw new AppError('INVALID_STATE', 'This campaign budget is owned and funded by its sponsor', 409);
     const key = opts.idempotencyKey ?? randomUUID();
     const idemKey = `watch-fund:${c.id}:${key}`;
     await this.prisma.$transaction(async (tx) => {
@@ -90,7 +94,7 @@ export class WatchFundingService {
           { family: 'PSP_CLEARING', amountHalalas, memo: 'Funding received (development mock)' },
           {
             family: 'CAMPAIGN_BUDGET',
-            organizationId: c.organizationId,
+            organizationId: owner,
             amountHalalas: -amountHalalas,
             memo: `Campaign ${c.id}`,
           },
@@ -99,7 +103,7 @@ export class WatchFundingService {
       await tx.watchFunding.create({
         data: {
           campaignId: c.id,
-          organizationId: c.organizationId,
+          organizationId: owner,
           amountHalalas,
           source: opts.source,
           reference: ref,
@@ -183,6 +187,7 @@ export class WatchFundingService {
       RETURNING "qualifiedViews", "paidViews", "spentHalalas", "fundedHalalas"`;
     const r = rows[0];
     if (!r) return { ok: false, exhausted: false, journalId: null };
+    const owner = await this.budgetOwner(tx, c);
     const journal = await this.ledger.post(tx, {
       type: 'CAMPAIGN_CONSUMPTION',
       sourceType: 'WatchView',
@@ -192,7 +197,7 @@ export class WatchFundingService {
       lines: [
         {
           family: 'CAMPAIGN_BUDGET',
-          organizationId: c.organizationId,
+          organizationId: owner,
           amountHalalas: chargeHalalas,
           memo: `Campaign ${c.id}`,
         },
@@ -242,7 +247,7 @@ export class WatchFundingService {
       reversesJournalId: view.consumptionJournalId,
       lines: [
         { family: 'PLATFORM_REVENUE', amountHalalas: charge },
-        { family: 'CAMPAIGN_UNUSED', organizationId: c.organizationId, amountHalalas: -charge },
+        { family: 'CAMPAIGN_UNUSED', organizationId: await this.budgetOwner(tx, c), amountHalalas: -charge },
       ],
     });
   }
@@ -262,6 +267,7 @@ export class WatchFundingService {
       RETURNING ("fundedHalalas" - "spentHalalas") AS unused`;
     const unused = Number(rows[0]?.unused ?? 0);
     if (!rows[0] || unused <= 0) return 0;
+    const owner = await this.budgetOwner(tx, c);
     await this.ledger.post(tx, {
       type: 'CAMPAIGN_RELEASE',
       sourceType: 'WatchCampaign',
@@ -270,10 +276,16 @@ export class WatchFundingService {
       memo: 'Unused campaign budget released to a separate balance',
       reasonCode: 'CLOSE_OUT',
       lines: [
-        { family: 'CAMPAIGN_BUDGET', organizationId: c.organizationId, amountHalalas: unused },
-        { family: 'CAMPAIGN_UNUSED', organizationId: c.organizationId, amountHalalas: -unused },
+        { family: 'CAMPAIGN_BUDGET', organizationId: owner, amountHalalas: unused },
+        { family: 'CAMPAIGN_UNUSED', organizationId: owner, amountHalalas: -unused },
       ],
     });
     return unused;
+  }
+
+  /** FD-S7-1: the organization whose campaign budget this is (the partner Sponsor / Funder that owns it, else the merchant). */
+  private async budgetOwner(tx: Prisma.TransactionClient, c: { id: string; organizationId: string }) {
+    const row = await tx.watchCampaign.findUnique({ where: { id: c.id }, select: { sponsorOrganizationId: true } });
+    return row?.sponsorOrganizationId ?? c.organizationId;
   }
 }

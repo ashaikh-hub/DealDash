@@ -7860,6 +7860,1030 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/partners/{orgId}/home": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PartnerPortalController_home_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/modules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PartnerPortalController_modules_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PartnerPortalController_profile_v1"];
+        put: operations["PartnerPortalController_updateProfile_v1"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/readiness": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PartnerPortalController_readiness_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/onboarding/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PartnerPortalController_submit_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PartnerPortalController_history_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/markets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PartnerPortalController_marketList_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PartnerPortalController_users_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/users/invitations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PartnerPortalController_invite_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/users/invitations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["PartnerPortalController_revoke_v1"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/users/{membershipId}/role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["PartnerPortalController_role_v1"];
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/users/{membershipId}/{action}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PartnerPortalController_status_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/network": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PartnerPortalController_networkList_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/network/merchants/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PartnerPortalController_networkDetail_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/network/merchants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PartnerPortalController_networkCreate_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/network/registered": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PartnerPortalController_registered_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/network/registered/{merchantOrgId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PartnerPortalController_linkRegistered_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/network/duplicates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PartnerPortalController_duplicates_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/network/duplicates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PartnerPortalController_suggest_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/network/imports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PartnerPortalController_upload_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/integrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PartnerPortalController_connect_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/network/templates/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PartnerPortalController_template_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/offers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PartnerPortalController_offers_v1"];
+        put?: never;
+        post: operations["PartnerPortalController_createOffer_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/card-programs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PartnerPortalController_cardPrograms_v1"];
+        put?: never;
+        post: operations["PartnerPortalController_saveCardProgram_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/employer-programs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PartnerPortalController_employerPrograms_v1"];
+        put?: never;
+        post: operations["PartnerPortalController_saveEmployerProgram_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/eligibility/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PartnerPortalController_eligibilityOptions_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/eligibility/rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PartnerPortalController_rules_v1"];
+        put?: never;
+        post: operations["PartnerPortalController_saveRule_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/eligibility/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PartnerPortalController_testRule_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/campaigns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PartnerPortalController_portfolio_v1"];
+        put?: never;
+        post: operations["PartnerPortalController_create_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/campaigns/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PartnerPortalController_preview_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/campaigns/merchants/{merchantOrgId}/assets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PartnerPortalController_assets_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/campaigns/{product}/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PartnerPortalController_campaign_v1"];
+        put: operations["PartnerPortalController_update_v1"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/campaigns/{product}/{id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PartnerPortalController_submitCampaign_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/commercial/cases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PartnerPortalController_cases_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/commercial/case": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PartnerPortalController_caseOf_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/commercial/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PartnerPortalController_commercialPreview_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/commercial/cases/{caseId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PartnerPortalController_caseView_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/commercial/cases/{caseId}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PartnerPortalController_accept_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/commercial/cases/{caseId}/approvals/{step}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PartnerPortalController_approve_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/commercial/cases/{caseId}/pay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PartnerPortalController_pay_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/benefits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PartnerPortalController_benefitList_v1"];
+        put?: never;
+        post: operations["PartnerPortalController_propose_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/benefits/live-deals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PartnerPortalController_benefitCandidates_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/benefits/{id}/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PartnerPortalController_withdraw_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/watch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PartnerPortalController_watch_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/watch/campaigns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PartnerPortalController_watchCandidates_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/watch/sponsor": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PartnerPortalController_sponsorWatch_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/watch/owned": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PartnerPortalController_ownedWatchList_v1"];
+        put?: never;
+        post: operations["PartnerPortalController_createOwnedWatch_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/watch/owned/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PartnerPortalController_ownedWatch_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/watch/owned/{id}/fund": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PartnerPortalController_fundOwnedWatch_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/watch/owned/{id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PartnerPortalController_submitOwnedWatch_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/partners/{orgId}/performance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PartnerPortalController_performance_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/partners": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPartnersController_list_v1"];
+        put?: never;
+        post: operations["AdminPartnersController_create_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/partners/benefits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPartnersController_benefitList_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/partners/benefits/{id}/{action}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminPartnersController_benefitDecide_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/partners/offers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPartnersController_pendingOffers_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/partners/offers/{id}/{decision}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminPartnersController_decideOffer_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/partners/{orgId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPartnersController_profile_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/partners/{orgId}/readiness": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPartnersController_readiness_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/partners/{orgId}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPartnersController_history_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/partners/{orgId}/lifecycle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminPartnersController_transition_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/partners/{orgId}/lifecycle/{decision}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminPartnersController_decide_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/merchants/{orgId}/partner-benefits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["MerchantPartnerBenefitsController_list_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/merchants/{orgId}/partner-benefits/{id}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["MerchantPartnerBenefitsController_decide_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/live-deals/{id}/partner-benefits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerPartnerBenefitsController_list_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/customers/me": {
         parameters: {
             query?: never;
@@ -8520,7 +9544,7 @@ export interface components {
                         /** @enum {string} */
                         organizationStatus: "DRAFT" | "ACTIVE" | "SUSPENDED";
                         /** @enum {string} */
-                        roleCode: "CUSTOMER" | "MERCHANT_OWNER" | "MERCHANT_ADMIN" | "MERCHANT_FINANCE" | "MERCHANT_CAMPAIGN_MANAGER" | "MERCHANT_STAFF" | "PARTNER_ADMIN" | "PARTNER_CAMPAIGN_MANAGER" | "PARTNER_BENEFITS_MANAGER" | "PARTNER_ANALYST" | "PARTNER_FINANCE_VIEWER" | "PARTNER_READ_ONLY" | "DEALDASH_SUPER_ADMIN" | "DEALDASH_OPERATIONS" | "DEALDASH_MERCHANT_MANAGEMENT" | "DEALDASH_PARTNER_MANAGEMENT" | "DEALDASH_SUPPORT" | "DEALDASH_FINANCE" | "DEALDASH_RISK_COMPLIANCE" | "DEALDASH_MARKETING_OPS" | "DEALDASH_ANALYST";
+                        roleCode: "CUSTOMER" | "MERCHANT_OWNER" | "MERCHANT_ADMIN" | "MERCHANT_FINANCE" | "MERCHANT_CAMPAIGN_MANAGER" | "MERCHANT_STAFF" | "PARTNER_ADMIN" | "PARTNER_CAMPAIGN_MANAGER" | "PARTNER_BENEFITS_MANAGER" | "PARTNER_ANALYST" | "PARTNER_FINANCE_VIEWER" | "PARTNER_READ_ONLY" | "PARTNER_FINANCE_MANAGER" | "PARTNER_APPROVER" | "PARTNER_INTEGRATION_MANAGER" | "PARTNER_NETWORK_MANAGER" | "DEALDASH_SUPER_ADMIN" | "DEALDASH_OPERATIONS" | "DEALDASH_MERCHANT_MANAGEMENT" | "DEALDASH_PARTNER_MANAGEMENT" | "DEALDASH_SUPPORT" | "DEALDASH_FINANCE" | "DEALDASH_RISK_COMPLIANCE" | "DEALDASH_MARKETING_OPS" | "DEALDASH_ANALYST";
                         /** Format: uuid */
                         branchId: string | null;
                     } | null;
@@ -8536,11 +9560,11 @@ export interface components {
                         /** @enum {string} */
                         organizationStatus: "DRAFT" | "ACTIVE" | "SUSPENDED";
                         /** @enum {string} */
-                        roleCode: "CUSTOMER" | "MERCHANT_OWNER" | "MERCHANT_ADMIN" | "MERCHANT_FINANCE" | "MERCHANT_CAMPAIGN_MANAGER" | "MERCHANT_STAFF" | "PARTNER_ADMIN" | "PARTNER_CAMPAIGN_MANAGER" | "PARTNER_BENEFITS_MANAGER" | "PARTNER_ANALYST" | "PARTNER_FINANCE_VIEWER" | "PARTNER_READ_ONLY" | "DEALDASH_SUPER_ADMIN" | "DEALDASH_OPERATIONS" | "DEALDASH_MERCHANT_MANAGEMENT" | "DEALDASH_PARTNER_MANAGEMENT" | "DEALDASH_SUPPORT" | "DEALDASH_FINANCE" | "DEALDASH_RISK_COMPLIANCE" | "DEALDASH_MARKETING_OPS" | "DEALDASH_ANALYST";
+                        roleCode: "CUSTOMER" | "MERCHANT_OWNER" | "MERCHANT_ADMIN" | "MERCHANT_FINANCE" | "MERCHANT_CAMPAIGN_MANAGER" | "MERCHANT_STAFF" | "PARTNER_ADMIN" | "PARTNER_CAMPAIGN_MANAGER" | "PARTNER_BENEFITS_MANAGER" | "PARTNER_ANALYST" | "PARTNER_FINANCE_VIEWER" | "PARTNER_READ_ONLY" | "PARTNER_FINANCE_MANAGER" | "PARTNER_APPROVER" | "PARTNER_INTEGRATION_MANAGER" | "PARTNER_NETWORK_MANAGER" | "DEALDASH_SUPER_ADMIN" | "DEALDASH_OPERATIONS" | "DEALDASH_MERCHANT_MANAGEMENT" | "DEALDASH_PARTNER_MANAGEMENT" | "DEALDASH_SUPPORT" | "DEALDASH_FINANCE" | "DEALDASH_RISK_COMPLIANCE" | "DEALDASH_MARKETING_OPS" | "DEALDASH_ANALYST";
                         /** Format: uuid */
                         branchId: string | null;
                     }[];
-                    permissions: ("customer.profile.read" | "customer.profile.write" | "customer.saved.manage" | "customer.reservations.manage" | "customer.vouchers.manage" | "customer.rewards.manage" | "merchant.profile.read" | "merchant.profile.write" | "merchant.branch.read" | "merchant.branch.manage" | "merchant.staff.read" | "merchant.staff.manage" | "merchant.users.manage" | "merchant.deals.read" | "merchant.deals.manage" | "merchant.vouchers.manage" | "merchant.watch.manage" | "merchant.watch.read" | "merchant.redemptions.read" | "merchant.redemptions.perform" | "merchant.redemptions.reverse" | "merchant.insights.read" | "merchant.finance.read" | "merchant.finance.manage" | "merchant.support.manage" | "merchant.application.manage" | "merchant.agreement.sign" | "partner.profile.read" | "partner.profile.write" | "partner.users.manage" | "partner.campaigns.read" | "partner.campaigns.manage" | "partner.eligibility.read" | "partner.eligibility.manage" | "partner.merchants.read" | "partner.reports.read" | "partner.reports.export" | "partner.finance.read" | "partner.support.manage" | "partner.activity.read" | "admin.org.read" | "admin.org.manage" | "admin.merchants.review" | "admin.merchants.manage" | "admin.partners.review" | "admin.customers.read" | "admin.customers.manage" | "admin.campaigns.review" | "admin.payments.read" | "admin.refunds.manage" | "admin.settlements.manage" | "admin.rewards.manage" | "admin.risk.manage" | "admin.support.manage" | "admin.content.manage" | "admin.reports.read" | "admin.users.manage" | "admin.roles.manage" | "admin.config.read" | "admin.config.manage" | "admin.audit.read" | "admin.jobs.manage" | "admin.campaigns.control" | "admin.reservations.manage" | "admin.vouchers.lookup" | "admin.watch.read" | "admin.rewards.read" | "admin.rewards.request" | "merchant.commercial.read" | "merchant.commercial.prepare" | "merchant.commercial.accept" | "merchant.commercial.approve_internal" | "merchant.commercial.approve_finance" | "admin.finance.read" | "admin.finance.manage" | "admin.finance.pricing.manage" | "admin.finance.credit.manage" | "admin.finance.credit.approve" | "merchant.structure.read" | "merchant.structure.manage" | "merchant.access.manage" | "partner.structure.read" | "partner.structure.manage" | "partner.access.manage" | "admin.platform.read" | "admin.platform.manage" | "admin.contracts.manage" | "admin.master.read" | "admin.master.manage" | "admin.imports.manage" | "admin.integrations.manage" | "merchant.imports.manage" | "merchant.integrations.manage" | "partner.imports.manage" | "partner.integrations.manage" | "admin.loyalty.read" | "admin.loyalty.manage" | "admin.loyalty.approve" | "merchant.loyalty.manage" | "partner.loyalty.manage" | "admin.disputes.read" | "admin.disputes.manage" | "merchant.disputes.manage" | "partner.disputes.manage" | "merchant.activity.read" | "admin.conflicts.manage" | "admin.subscriptions.read" | "admin.subscriptions.manage" | "admin.subscriptions.approve" | "merchant.subscription.read" | "merchant.subscription.manage" | "partner.subscription.read" | "partner.subscription.manage" | "merchant.performance.read" | "merchant.targets.manage" | "merchant.alerts.manage" | "partner.performance.read" | "partner.targets.manage" | "partner.alerts.manage" | "admin.analytics.read" | "admin.alerts.manage" | "admin.operations.read" | "admin.finance.approve" | "partner.finance.manage" | "customer.ai.use" | "merchant.ai.use" | "merchant.ai.approve" | "partner.ai.use" | "partner.ai.approve" | "admin.ai.use" | "admin.ai.manage" | "admin.markets.read" | "admin.markets.manage" | "admin.markets.approve")[];
+                    permissions: ("customer.profile.read" | "customer.profile.write" | "customer.saved.manage" | "customer.reservations.manage" | "customer.vouchers.manage" | "customer.rewards.manage" | "merchant.profile.read" | "merchant.profile.write" | "merchant.branch.read" | "merchant.branch.manage" | "merchant.staff.read" | "merchant.staff.manage" | "merchant.users.manage" | "merchant.deals.read" | "merchant.deals.manage" | "merchant.vouchers.manage" | "merchant.watch.manage" | "merchant.watch.read" | "merchant.redemptions.read" | "merchant.redemptions.perform" | "merchant.redemptions.reverse" | "merchant.insights.read" | "merchant.finance.read" | "merchant.finance.manage" | "merchant.support.manage" | "merchant.application.manage" | "merchant.agreement.sign" | "partner.profile.read" | "partner.profile.write" | "partner.users.manage" | "partner.campaigns.read" | "partner.campaigns.manage" | "partner.eligibility.read" | "partner.eligibility.manage" | "partner.merchants.read" | "partner.reports.read" | "partner.reports.export" | "partner.finance.read" | "partner.support.manage" | "partner.activity.read" | "admin.org.read" | "admin.org.manage" | "admin.merchants.review" | "admin.merchants.manage" | "admin.partners.review" | "admin.customers.read" | "admin.customers.manage" | "admin.campaigns.review" | "admin.payments.read" | "admin.refunds.manage" | "admin.settlements.manage" | "admin.rewards.manage" | "admin.risk.manage" | "admin.support.manage" | "admin.content.manage" | "admin.reports.read" | "admin.users.manage" | "admin.roles.manage" | "admin.config.read" | "admin.config.manage" | "admin.audit.read" | "admin.jobs.manage" | "admin.campaigns.control" | "admin.reservations.manage" | "admin.vouchers.lookup" | "admin.watch.read" | "admin.rewards.read" | "admin.rewards.request" | "merchant.commercial.read" | "merchant.commercial.prepare" | "merchant.commercial.accept" | "merchant.commercial.approve_internal" | "merchant.commercial.approve_finance" | "admin.finance.read" | "admin.finance.manage" | "admin.finance.pricing.manage" | "admin.finance.credit.manage" | "admin.finance.credit.approve" | "merchant.structure.read" | "merchant.structure.manage" | "merchant.access.manage" | "partner.structure.read" | "partner.structure.manage" | "partner.access.manage" | "admin.platform.read" | "admin.platform.manage" | "admin.contracts.manage" | "admin.master.read" | "admin.master.manage" | "admin.imports.manage" | "admin.integrations.manage" | "merchant.imports.manage" | "merchant.integrations.manage" | "partner.imports.manage" | "partner.integrations.manage" | "admin.loyalty.read" | "admin.loyalty.manage" | "admin.loyalty.approve" | "merchant.loyalty.manage" | "partner.loyalty.manage" | "admin.disputes.read" | "admin.disputes.manage" | "merchant.disputes.manage" | "partner.disputes.manage" | "merchant.activity.read" | "admin.conflicts.manage" | "admin.subscriptions.read" | "admin.subscriptions.manage" | "admin.subscriptions.approve" | "merchant.subscription.read" | "merchant.subscription.manage" | "partner.subscription.read" | "partner.subscription.manage" | "merchant.performance.read" | "merchant.targets.manage" | "merchant.alerts.manage" | "partner.performance.read" | "partner.targets.manage" | "partner.alerts.manage" | "admin.analytics.read" | "admin.alerts.manage" | "admin.operations.read" | "admin.finance.approve" | "partner.finance.manage" | "customer.ai.use" | "merchant.ai.use" | "merchant.ai.approve" | "partner.ai.use" | "partner.ai.approve" | "admin.ai.use" | "admin.ai.manage" | "admin.markets.read" | "admin.markets.manage" | "admin.markets.approve" | "partner.commercial.read" | "partner.commercial.accept" | "partner.commercial.approve_internal" | "partner.commercial.approve_finance" | "partner.network.manage" | "admin.partners.manage" | "admin.partners.approve")[];
                 };
             };
             meta: {
@@ -8596,7 +9620,7 @@ export interface components {
                     /** @enum {string} */
                     organizationStatus: "DRAFT" | "ACTIVE" | "SUSPENDED";
                     /** @enum {string} */
-                    roleCode: "CUSTOMER" | "MERCHANT_OWNER" | "MERCHANT_ADMIN" | "MERCHANT_FINANCE" | "MERCHANT_CAMPAIGN_MANAGER" | "MERCHANT_STAFF" | "PARTNER_ADMIN" | "PARTNER_CAMPAIGN_MANAGER" | "PARTNER_BENEFITS_MANAGER" | "PARTNER_ANALYST" | "PARTNER_FINANCE_VIEWER" | "PARTNER_READ_ONLY" | "DEALDASH_SUPER_ADMIN" | "DEALDASH_OPERATIONS" | "DEALDASH_MERCHANT_MANAGEMENT" | "DEALDASH_PARTNER_MANAGEMENT" | "DEALDASH_SUPPORT" | "DEALDASH_FINANCE" | "DEALDASH_RISK_COMPLIANCE" | "DEALDASH_MARKETING_OPS" | "DEALDASH_ANALYST";
+                    roleCode: "CUSTOMER" | "MERCHANT_OWNER" | "MERCHANT_ADMIN" | "MERCHANT_FINANCE" | "MERCHANT_CAMPAIGN_MANAGER" | "MERCHANT_STAFF" | "PARTNER_ADMIN" | "PARTNER_CAMPAIGN_MANAGER" | "PARTNER_BENEFITS_MANAGER" | "PARTNER_ANALYST" | "PARTNER_FINANCE_VIEWER" | "PARTNER_READ_ONLY" | "PARTNER_FINANCE_MANAGER" | "PARTNER_APPROVER" | "PARTNER_INTEGRATION_MANAGER" | "PARTNER_NETWORK_MANAGER" | "DEALDASH_SUPER_ADMIN" | "DEALDASH_OPERATIONS" | "DEALDASH_MERCHANT_MANAGEMENT" | "DEALDASH_PARTNER_MANAGEMENT" | "DEALDASH_SUPPORT" | "DEALDASH_FINANCE" | "DEALDASH_RISK_COMPLIANCE" | "DEALDASH_MARKETING_OPS" | "DEALDASH_ANALYST";
                     /** Format: uuid */
                     branchId: string | null;
                 } | null;
@@ -8612,11 +9636,11 @@ export interface components {
                     /** @enum {string} */
                     organizationStatus: "DRAFT" | "ACTIVE" | "SUSPENDED";
                     /** @enum {string} */
-                    roleCode: "CUSTOMER" | "MERCHANT_OWNER" | "MERCHANT_ADMIN" | "MERCHANT_FINANCE" | "MERCHANT_CAMPAIGN_MANAGER" | "MERCHANT_STAFF" | "PARTNER_ADMIN" | "PARTNER_CAMPAIGN_MANAGER" | "PARTNER_BENEFITS_MANAGER" | "PARTNER_ANALYST" | "PARTNER_FINANCE_VIEWER" | "PARTNER_READ_ONLY" | "DEALDASH_SUPER_ADMIN" | "DEALDASH_OPERATIONS" | "DEALDASH_MERCHANT_MANAGEMENT" | "DEALDASH_PARTNER_MANAGEMENT" | "DEALDASH_SUPPORT" | "DEALDASH_FINANCE" | "DEALDASH_RISK_COMPLIANCE" | "DEALDASH_MARKETING_OPS" | "DEALDASH_ANALYST";
+                    roleCode: "CUSTOMER" | "MERCHANT_OWNER" | "MERCHANT_ADMIN" | "MERCHANT_FINANCE" | "MERCHANT_CAMPAIGN_MANAGER" | "MERCHANT_STAFF" | "PARTNER_ADMIN" | "PARTNER_CAMPAIGN_MANAGER" | "PARTNER_BENEFITS_MANAGER" | "PARTNER_ANALYST" | "PARTNER_FINANCE_VIEWER" | "PARTNER_READ_ONLY" | "PARTNER_FINANCE_MANAGER" | "PARTNER_APPROVER" | "PARTNER_INTEGRATION_MANAGER" | "PARTNER_NETWORK_MANAGER" | "DEALDASH_SUPER_ADMIN" | "DEALDASH_OPERATIONS" | "DEALDASH_MERCHANT_MANAGEMENT" | "DEALDASH_PARTNER_MANAGEMENT" | "DEALDASH_SUPPORT" | "DEALDASH_FINANCE" | "DEALDASH_RISK_COMPLIANCE" | "DEALDASH_MARKETING_OPS" | "DEALDASH_ANALYST";
                     /** Format: uuid */
                     branchId: string | null;
                 }[];
-                permissions: ("customer.profile.read" | "customer.profile.write" | "customer.saved.manage" | "customer.reservations.manage" | "customer.vouchers.manage" | "customer.rewards.manage" | "merchant.profile.read" | "merchant.profile.write" | "merchant.branch.read" | "merchant.branch.manage" | "merchant.staff.read" | "merchant.staff.manage" | "merchant.users.manage" | "merchant.deals.read" | "merchant.deals.manage" | "merchant.vouchers.manage" | "merchant.watch.manage" | "merchant.watch.read" | "merchant.redemptions.read" | "merchant.redemptions.perform" | "merchant.redemptions.reverse" | "merchant.insights.read" | "merchant.finance.read" | "merchant.finance.manage" | "merchant.support.manage" | "merchant.application.manage" | "merchant.agreement.sign" | "partner.profile.read" | "partner.profile.write" | "partner.users.manage" | "partner.campaigns.read" | "partner.campaigns.manage" | "partner.eligibility.read" | "partner.eligibility.manage" | "partner.merchants.read" | "partner.reports.read" | "partner.reports.export" | "partner.finance.read" | "partner.support.manage" | "partner.activity.read" | "admin.org.read" | "admin.org.manage" | "admin.merchants.review" | "admin.merchants.manage" | "admin.partners.review" | "admin.customers.read" | "admin.customers.manage" | "admin.campaigns.review" | "admin.payments.read" | "admin.refunds.manage" | "admin.settlements.manage" | "admin.rewards.manage" | "admin.risk.manage" | "admin.support.manage" | "admin.content.manage" | "admin.reports.read" | "admin.users.manage" | "admin.roles.manage" | "admin.config.read" | "admin.config.manage" | "admin.audit.read" | "admin.jobs.manage" | "admin.campaigns.control" | "admin.reservations.manage" | "admin.vouchers.lookup" | "admin.watch.read" | "admin.rewards.read" | "admin.rewards.request" | "merchant.commercial.read" | "merchant.commercial.prepare" | "merchant.commercial.accept" | "merchant.commercial.approve_internal" | "merchant.commercial.approve_finance" | "admin.finance.read" | "admin.finance.manage" | "admin.finance.pricing.manage" | "admin.finance.credit.manage" | "admin.finance.credit.approve" | "merchant.structure.read" | "merchant.structure.manage" | "merchant.access.manage" | "partner.structure.read" | "partner.structure.manage" | "partner.access.manage" | "admin.platform.read" | "admin.platform.manage" | "admin.contracts.manage" | "admin.master.read" | "admin.master.manage" | "admin.imports.manage" | "admin.integrations.manage" | "merchant.imports.manage" | "merchant.integrations.manage" | "partner.imports.manage" | "partner.integrations.manage" | "admin.loyalty.read" | "admin.loyalty.manage" | "admin.loyalty.approve" | "merchant.loyalty.manage" | "partner.loyalty.manage" | "admin.disputes.read" | "admin.disputes.manage" | "merchant.disputes.manage" | "partner.disputes.manage" | "merchant.activity.read" | "admin.conflicts.manage" | "admin.subscriptions.read" | "admin.subscriptions.manage" | "admin.subscriptions.approve" | "merchant.subscription.read" | "merchant.subscription.manage" | "partner.subscription.read" | "partner.subscription.manage" | "merchant.performance.read" | "merchant.targets.manage" | "merchant.alerts.manage" | "partner.performance.read" | "partner.targets.manage" | "partner.alerts.manage" | "admin.analytics.read" | "admin.alerts.manage" | "admin.operations.read" | "admin.finance.approve" | "partner.finance.manage" | "customer.ai.use" | "merchant.ai.use" | "merchant.ai.approve" | "partner.ai.use" | "partner.ai.approve" | "admin.ai.use" | "admin.ai.manage" | "admin.markets.read" | "admin.markets.manage" | "admin.markets.approve")[];
+                permissions: ("customer.profile.read" | "customer.profile.write" | "customer.saved.manage" | "customer.reservations.manage" | "customer.vouchers.manage" | "customer.rewards.manage" | "merchant.profile.read" | "merchant.profile.write" | "merchant.branch.read" | "merchant.branch.manage" | "merchant.staff.read" | "merchant.staff.manage" | "merchant.users.manage" | "merchant.deals.read" | "merchant.deals.manage" | "merchant.vouchers.manage" | "merchant.watch.manage" | "merchant.watch.read" | "merchant.redemptions.read" | "merchant.redemptions.perform" | "merchant.redemptions.reverse" | "merchant.insights.read" | "merchant.finance.read" | "merchant.finance.manage" | "merchant.support.manage" | "merchant.application.manage" | "merchant.agreement.sign" | "partner.profile.read" | "partner.profile.write" | "partner.users.manage" | "partner.campaigns.read" | "partner.campaigns.manage" | "partner.eligibility.read" | "partner.eligibility.manage" | "partner.merchants.read" | "partner.reports.read" | "partner.reports.export" | "partner.finance.read" | "partner.support.manage" | "partner.activity.read" | "admin.org.read" | "admin.org.manage" | "admin.merchants.review" | "admin.merchants.manage" | "admin.partners.review" | "admin.customers.read" | "admin.customers.manage" | "admin.campaigns.review" | "admin.payments.read" | "admin.refunds.manage" | "admin.settlements.manage" | "admin.rewards.manage" | "admin.risk.manage" | "admin.support.manage" | "admin.content.manage" | "admin.reports.read" | "admin.users.manage" | "admin.roles.manage" | "admin.config.read" | "admin.config.manage" | "admin.audit.read" | "admin.jobs.manage" | "admin.campaigns.control" | "admin.reservations.manage" | "admin.vouchers.lookup" | "admin.watch.read" | "admin.rewards.read" | "admin.rewards.request" | "merchant.commercial.read" | "merchant.commercial.prepare" | "merchant.commercial.accept" | "merchant.commercial.approve_internal" | "merchant.commercial.approve_finance" | "admin.finance.read" | "admin.finance.manage" | "admin.finance.pricing.manage" | "admin.finance.credit.manage" | "admin.finance.credit.approve" | "merchant.structure.read" | "merchant.structure.manage" | "merchant.access.manage" | "partner.structure.read" | "partner.structure.manage" | "partner.access.manage" | "admin.platform.read" | "admin.platform.manage" | "admin.contracts.manage" | "admin.master.read" | "admin.master.manage" | "admin.imports.manage" | "admin.integrations.manage" | "merchant.imports.manage" | "merchant.integrations.manage" | "partner.imports.manage" | "partner.integrations.manage" | "admin.loyalty.read" | "admin.loyalty.manage" | "admin.loyalty.approve" | "merchant.loyalty.manage" | "partner.loyalty.manage" | "admin.disputes.read" | "admin.disputes.manage" | "merchant.disputes.manage" | "partner.disputes.manage" | "merchant.activity.read" | "admin.conflicts.manage" | "admin.subscriptions.read" | "admin.subscriptions.manage" | "admin.subscriptions.approve" | "merchant.subscription.read" | "merchant.subscription.manage" | "partner.subscription.read" | "partner.subscription.manage" | "merchant.performance.read" | "merchant.targets.manage" | "merchant.alerts.manage" | "partner.performance.read" | "partner.targets.manage" | "partner.alerts.manage" | "admin.analytics.read" | "admin.alerts.manage" | "admin.operations.read" | "admin.finance.approve" | "partner.finance.manage" | "customer.ai.use" | "merchant.ai.use" | "merchant.ai.approve" | "partner.ai.use" | "partner.ai.approve" | "admin.ai.use" | "admin.ai.manage" | "admin.markets.read" | "admin.markets.manage" | "admin.markets.approve" | "partner.commercial.read" | "partner.commercial.accept" | "partner.commercial.approve_internal" | "partner.commercial.approve_finance" | "partner.network.manage" | "admin.partners.manage" | "admin.partners.approve")[];
                 csrfToken: string;
             };
             meta: {
@@ -8803,7 +9827,7 @@ export interface components {
                 nameEn: string;
                 nameAr: string;
                 /** @enum {string} */
-                partnerType: "BANK" | "SCHEME" | "EMPLOYER";
+                partnerType: "BANK" | "SCHEME" | "EMPLOYER" | "FINANCIAL_INSTITUTION" | "CORPORATE" | "STRATEGIC_PARTNER" | "OTHER_APPROVED_PARTNER";
                 /** @enum {string} */
                 status: "DRAFT" | "ACTIVE" | "SUSPENDED";
             };
@@ -8913,7 +9937,7 @@ export interface components {
                             /** @enum {string} */
                             organizationStatus: "DRAFT" | "ACTIVE" | "SUSPENDED";
                             /** @enum {string} */
-                            roleCode: "CUSTOMER" | "MERCHANT_OWNER" | "MERCHANT_ADMIN" | "MERCHANT_FINANCE" | "MERCHANT_CAMPAIGN_MANAGER" | "MERCHANT_STAFF" | "PARTNER_ADMIN" | "PARTNER_CAMPAIGN_MANAGER" | "PARTNER_BENEFITS_MANAGER" | "PARTNER_ANALYST" | "PARTNER_FINANCE_VIEWER" | "PARTNER_READ_ONLY" | "DEALDASH_SUPER_ADMIN" | "DEALDASH_OPERATIONS" | "DEALDASH_MERCHANT_MANAGEMENT" | "DEALDASH_PARTNER_MANAGEMENT" | "DEALDASH_SUPPORT" | "DEALDASH_FINANCE" | "DEALDASH_RISK_COMPLIANCE" | "DEALDASH_MARKETING_OPS" | "DEALDASH_ANALYST";
+                            roleCode: "CUSTOMER" | "MERCHANT_OWNER" | "MERCHANT_ADMIN" | "MERCHANT_FINANCE" | "MERCHANT_CAMPAIGN_MANAGER" | "MERCHANT_STAFF" | "PARTNER_ADMIN" | "PARTNER_CAMPAIGN_MANAGER" | "PARTNER_BENEFITS_MANAGER" | "PARTNER_ANALYST" | "PARTNER_FINANCE_VIEWER" | "PARTNER_READ_ONLY" | "PARTNER_FINANCE_MANAGER" | "PARTNER_APPROVER" | "PARTNER_INTEGRATION_MANAGER" | "PARTNER_NETWORK_MANAGER" | "DEALDASH_SUPER_ADMIN" | "DEALDASH_OPERATIONS" | "DEALDASH_MERCHANT_MANAGEMENT" | "DEALDASH_PARTNER_MANAGEMENT" | "DEALDASH_SUPPORT" | "DEALDASH_FINANCE" | "DEALDASH_RISK_COMPLIANCE" | "DEALDASH_MARKETING_OPS" | "DEALDASH_ANALYST";
                             /** Format: uuid */
                             branchId: string | null;
                         } | null;
@@ -8929,11 +9953,11 @@ export interface components {
                             /** @enum {string} */
                             organizationStatus: "DRAFT" | "ACTIVE" | "SUSPENDED";
                             /** @enum {string} */
-                            roleCode: "CUSTOMER" | "MERCHANT_OWNER" | "MERCHANT_ADMIN" | "MERCHANT_FINANCE" | "MERCHANT_CAMPAIGN_MANAGER" | "MERCHANT_STAFF" | "PARTNER_ADMIN" | "PARTNER_CAMPAIGN_MANAGER" | "PARTNER_BENEFITS_MANAGER" | "PARTNER_ANALYST" | "PARTNER_FINANCE_VIEWER" | "PARTNER_READ_ONLY" | "DEALDASH_SUPER_ADMIN" | "DEALDASH_OPERATIONS" | "DEALDASH_MERCHANT_MANAGEMENT" | "DEALDASH_PARTNER_MANAGEMENT" | "DEALDASH_SUPPORT" | "DEALDASH_FINANCE" | "DEALDASH_RISK_COMPLIANCE" | "DEALDASH_MARKETING_OPS" | "DEALDASH_ANALYST";
+                            roleCode: "CUSTOMER" | "MERCHANT_OWNER" | "MERCHANT_ADMIN" | "MERCHANT_FINANCE" | "MERCHANT_CAMPAIGN_MANAGER" | "MERCHANT_STAFF" | "PARTNER_ADMIN" | "PARTNER_CAMPAIGN_MANAGER" | "PARTNER_BENEFITS_MANAGER" | "PARTNER_ANALYST" | "PARTNER_FINANCE_VIEWER" | "PARTNER_READ_ONLY" | "PARTNER_FINANCE_MANAGER" | "PARTNER_APPROVER" | "PARTNER_INTEGRATION_MANAGER" | "PARTNER_NETWORK_MANAGER" | "DEALDASH_SUPER_ADMIN" | "DEALDASH_OPERATIONS" | "DEALDASH_MERCHANT_MANAGEMENT" | "DEALDASH_PARTNER_MANAGEMENT" | "DEALDASH_SUPPORT" | "DEALDASH_FINANCE" | "DEALDASH_RISK_COMPLIANCE" | "DEALDASH_MARKETING_OPS" | "DEALDASH_ANALYST";
                             /** Format: uuid */
                             branchId: string | null;
                         }[];
-                        permissions: ("customer.profile.read" | "customer.profile.write" | "customer.saved.manage" | "customer.reservations.manage" | "customer.vouchers.manage" | "customer.rewards.manage" | "merchant.profile.read" | "merchant.profile.write" | "merchant.branch.read" | "merchant.branch.manage" | "merchant.staff.read" | "merchant.staff.manage" | "merchant.users.manage" | "merchant.deals.read" | "merchant.deals.manage" | "merchant.vouchers.manage" | "merchant.watch.manage" | "merchant.watch.read" | "merchant.redemptions.read" | "merchant.redemptions.perform" | "merchant.redemptions.reverse" | "merchant.insights.read" | "merchant.finance.read" | "merchant.finance.manage" | "merchant.support.manage" | "merchant.application.manage" | "merchant.agreement.sign" | "partner.profile.read" | "partner.profile.write" | "partner.users.manage" | "partner.campaigns.read" | "partner.campaigns.manage" | "partner.eligibility.read" | "partner.eligibility.manage" | "partner.merchants.read" | "partner.reports.read" | "partner.reports.export" | "partner.finance.read" | "partner.support.manage" | "partner.activity.read" | "admin.org.read" | "admin.org.manage" | "admin.merchants.review" | "admin.merchants.manage" | "admin.partners.review" | "admin.customers.read" | "admin.customers.manage" | "admin.campaigns.review" | "admin.payments.read" | "admin.refunds.manage" | "admin.settlements.manage" | "admin.rewards.manage" | "admin.risk.manage" | "admin.support.manage" | "admin.content.manage" | "admin.reports.read" | "admin.users.manage" | "admin.roles.manage" | "admin.config.read" | "admin.config.manage" | "admin.audit.read" | "admin.jobs.manage" | "admin.campaigns.control" | "admin.reservations.manage" | "admin.vouchers.lookup" | "admin.watch.read" | "admin.rewards.read" | "admin.rewards.request" | "merchant.commercial.read" | "merchant.commercial.prepare" | "merchant.commercial.accept" | "merchant.commercial.approve_internal" | "merchant.commercial.approve_finance" | "admin.finance.read" | "admin.finance.manage" | "admin.finance.pricing.manage" | "admin.finance.credit.manage" | "admin.finance.credit.approve" | "merchant.structure.read" | "merchant.structure.manage" | "merchant.access.manage" | "partner.structure.read" | "partner.structure.manage" | "partner.access.manage" | "admin.platform.read" | "admin.platform.manage" | "admin.contracts.manage" | "admin.master.read" | "admin.master.manage" | "admin.imports.manage" | "admin.integrations.manage" | "merchant.imports.manage" | "merchant.integrations.manage" | "partner.imports.manage" | "partner.integrations.manage" | "admin.loyalty.read" | "admin.loyalty.manage" | "admin.loyalty.approve" | "merchant.loyalty.manage" | "partner.loyalty.manage" | "admin.disputes.read" | "admin.disputes.manage" | "merchant.disputes.manage" | "partner.disputes.manage" | "merchant.activity.read" | "admin.conflicts.manage" | "admin.subscriptions.read" | "admin.subscriptions.manage" | "admin.subscriptions.approve" | "merchant.subscription.read" | "merchant.subscription.manage" | "partner.subscription.read" | "partner.subscription.manage" | "merchant.performance.read" | "merchant.targets.manage" | "merchant.alerts.manage" | "partner.performance.read" | "partner.targets.manage" | "partner.alerts.manage" | "admin.analytics.read" | "admin.alerts.manage" | "admin.operations.read" | "admin.finance.approve" | "partner.finance.manage" | "customer.ai.use" | "merchant.ai.use" | "merchant.ai.approve" | "partner.ai.use" | "partner.ai.approve" | "admin.ai.use" | "admin.ai.manage" | "admin.markets.read" | "admin.markets.manage" | "admin.markets.approve")[];
+                        permissions: ("customer.profile.read" | "customer.profile.write" | "customer.saved.manage" | "customer.reservations.manage" | "customer.vouchers.manage" | "customer.rewards.manage" | "merchant.profile.read" | "merchant.profile.write" | "merchant.branch.read" | "merchant.branch.manage" | "merchant.staff.read" | "merchant.staff.manage" | "merchant.users.manage" | "merchant.deals.read" | "merchant.deals.manage" | "merchant.vouchers.manage" | "merchant.watch.manage" | "merchant.watch.read" | "merchant.redemptions.read" | "merchant.redemptions.perform" | "merchant.redemptions.reverse" | "merchant.insights.read" | "merchant.finance.read" | "merchant.finance.manage" | "merchant.support.manage" | "merchant.application.manage" | "merchant.agreement.sign" | "partner.profile.read" | "partner.profile.write" | "partner.users.manage" | "partner.campaigns.read" | "partner.campaigns.manage" | "partner.eligibility.read" | "partner.eligibility.manage" | "partner.merchants.read" | "partner.reports.read" | "partner.reports.export" | "partner.finance.read" | "partner.support.manage" | "partner.activity.read" | "admin.org.read" | "admin.org.manage" | "admin.merchants.review" | "admin.merchants.manage" | "admin.partners.review" | "admin.customers.read" | "admin.customers.manage" | "admin.campaigns.review" | "admin.payments.read" | "admin.refunds.manage" | "admin.settlements.manage" | "admin.rewards.manage" | "admin.risk.manage" | "admin.support.manage" | "admin.content.manage" | "admin.reports.read" | "admin.users.manage" | "admin.roles.manage" | "admin.config.read" | "admin.config.manage" | "admin.audit.read" | "admin.jobs.manage" | "admin.campaigns.control" | "admin.reservations.manage" | "admin.vouchers.lookup" | "admin.watch.read" | "admin.rewards.read" | "admin.rewards.request" | "merchant.commercial.read" | "merchant.commercial.prepare" | "merchant.commercial.accept" | "merchant.commercial.approve_internal" | "merchant.commercial.approve_finance" | "admin.finance.read" | "admin.finance.manage" | "admin.finance.pricing.manage" | "admin.finance.credit.manage" | "admin.finance.credit.approve" | "merchant.structure.read" | "merchant.structure.manage" | "merchant.access.manage" | "partner.structure.read" | "partner.structure.manage" | "partner.access.manage" | "admin.platform.read" | "admin.platform.manage" | "admin.contracts.manage" | "admin.master.read" | "admin.master.manage" | "admin.imports.manage" | "admin.integrations.manage" | "merchant.imports.manage" | "merchant.integrations.manage" | "partner.imports.manage" | "partner.integrations.manage" | "admin.loyalty.read" | "admin.loyalty.manage" | "admin.loyalty.approve" | "merchant.loyalty.manage" | "partner.loyalty.manage" | "admin.disputes.read" | "admin.disputes.manage" | "merchant.disputes.manage" | "partner.disputes.manage" | "merchant.activity.read" | "admin.conflicts.manage" | "admin.subscriptions.read" | "admin.subscriptions.manage" | "admin.subscriptions.approve" | "merchant.subscription.read" | "merchant.subscription.manage" | "partner.subscription.read" | "partner.subscription.manage" | "merchant.performance.read" | "merchant.targets.manage" | "merchant.alerts.manage" | "partner.performance.read" | "partner.targets.manage" | "partner.alerts.manage" | "admin.analytics.read" | "admin.alerts.manage" | "admin.operations.read" | "admin.finance.approve" | "partner.finance.manage" | "customer.ai.use" | "merchant.ai.use" | "merchant.ai.approve" | "partner.ai.use" | "partner.ai.approve" | "admin.ai.use" | "admin.ai.manage" | "admin.markets.read" | "admin.markets.manage" | "admin.markets.approve" | "partner.commercial.read" | "partner.commercial.accept" | "partner.commercial.approve_internal" | "partner.commercial.approve_finance" | "partner.network.manage" | "admin.partners.manage" | "admin.partners.approve")[];
                     };
                 };
             };
@@ -9408,7 +10432,7 @@ export interface components {
                     email: string | null;
                     mobile: string | null;
                     /** @enum {string} */
-                    roleCode: "CUSTOMER" | "MERCHANT_OWNER" | "MERCHANT_ADMIN" | "MERCHANT_FINANCE" | "MERCHANT_CAMPAIGN_MANAGER" | "MERCHANT_STAFF" | "PARTNER_ADMIN" | "PARTNER_CAMPAIGN_MANAGER" | "PARTNER_BENEFITS_MANAGER" | "PARTNER_ANALYST" | "PARTNER_FINANCE_VIEWER" | "PARTNER_READ_ONLY" | "DEALDASH_SUPER_ADMIN" | "DEALDASH_OPERATIONS" | "DEALDASH_MERCHANT_MANAGEMENT" | "DEALDASH_PARTNER_MANAGEMENT" | "DEALDASH_SUPPORT" | "DEALDASH_FINANCE" | "DEALDASH_RISK_COMPLIANCE" | "DEALDASH_MARKETING_OPS" | "DEALDASH_ANALYST";
+                    roleCode: "CUSTOMER" | "MERCHANT_OWNER" | "MERCHANT_ADMIN" | "MERCHANT_FINANCE" | "MERCHANT_CAMPAIGN_MANAGER" | "MERCHANT_STAFF" | "PARTNER_ADMIN" | "PARTNER_CAMPAIGN_MANAGER" | "PARTNER_BENEFITS_MANAGER" | "PARTNER_ANALYST" | "PARTNER_FINANCE_VIEWER" | "PARTNER_READ_ONLY" | "PARTNER_FINANCE_MANAGER" | "PARTNER_APPROVER" | "PARTNER_INTEGRATION_MANAGER" | "PARTNER_NETWORK_MANAGER" | "DEALDASH_SUPER_ADMIN" | "DEALDASH_OPERATIONS" | "DEALDASH_MERCHANT_MANAGEMENT" | "DEALDASH_PARTNER_MANAGEMENT" | "DEALDASH_SUPPORT" | "DEALDASH_FINANCE" | "DEALDASH_RISK_COMPLIANCE" | "DEALDASH_MARKETING_OPS" | "DEALDASH_ANALYST";
                     /** Format: uuid */
                     branchId: string | null;
                     branchName: string | null;
@@ -9423,7 +10447,7 @@ export interface components {
                     email: string | null;
                     mobile: string | null;
                     /** @enum {string} */
-                    roleCode: "CUSTOMER" | "MERCHANT_OWNER" | "MERCHANT_ADMIN" | "MERCHANT_FINANCE" | "MERCHANT_CAMPAIGN_MANAGER" | "MERCHANT_STAFF" | "PARTNER_ADMIN" | "PARTNER_CAMPAIGN_MANAGER" | "PARTNER_BENEFITS_MANAGER" | "PARTNER_ANALYST" | "PARTNER_FINANCE_VIEWER" | "PARTNER_READ_ONLY" | "DEALDASH_SUPER_ADMIN" | "DEALDASH_OPERATIONS" | "DEALDASH_MERCHANT_MANAGEMENT" | "DEALDASH_PARTNER_MANAGEMENT" | "DEALDASH_SUPPORT" | "DEALDASH_FINANCE" | "DEALDASH_RISK_COMPLIANCE" | "DEALDASH_MARKETING_OPS" | "DEALDASH_ANALYST";
+                    roleCode: "CUSTOMER" | "MERCHANT_OWNER" | "MERCHANT_ADMIN" | "MERCHANT_FINANCE" | "MERCHANT_CAMPAIGN_MANAGER" | "MERCHANT_STAFF" | "PARTNER_ADMIN" | "PARTNER_CAMPAIGN_MANAGER" | "PARTNER_BENEFITS_MANAGER" | "PARTNER_ANALYST" | "PARTNER_FINANCE_VIEWER" | "PARTNER_READ_ONLY" | "PARTNER_FINANCE_MANAGER" | "PARTNER_APPROVER" | "PARTNER_INTEGRATION_MANAGER" | "PARTNER_NETWORK_MANAGER" | "DEALDASH_SUPER_ADMIN" | "DEALDASH_OPERATIONS" | "DEALDASH_MERCHANT_MANAGEMENT" | "DEALDASH_PARTNER_MANAGEMENT" | "DEALDASH_SUPPORT" | "DEALDASH_FINANCE" | "DEALDASH_RISK_COMPLIANCE" | "DEALDASH_MARKETING_OPS" | "DEALDASH_ANALYST";
                     /** Format: uuid */
                     branchId: string | null;
                     /** @enum {string} */
@@ -9614,7 +10638,7 @@ export interface components {
                     email: string | null;
                     mobile: string | null;
                     /** @enum {string} */
-                    roleCode: "CUSTOMER" | "MERCHANT_OWNER" | "MERCHANT_ADMIN" | "MERCHANT_FINANCE" | "MERCHANT_CAMPAIGN_MANAGER" | "MERCHANT_STAFF" | "PARTNER_ADMIN" | "PARTNER_CAMPAIGN_MANAGER" | "PARTNER_BENEFITS_MANAGER" | "PARTNER_ANALYST" | "PARTNER_FINANCE_VIEWER" | "PARTNER_READ_ONLY" | "DEALDASH_SUPER_ADMIN" | "DEALDASH_OPERATIONS" | "DEALDASH_MERCHANT_MANAGEMENT" | "DEALDASH_PARTNER_MANAGEMENT" | "DEALDASH_SUPPORT" | "DEALDASH_FINANCE" | "DEALDASH_RISK_COMPLIANCE" | "DEALDASH_MARKETING_OPS" | "DEALDASH_ANALYST";
+                    roleCode: "CUSTOMER" | "MERCHANT_OWNER" | "MERCHANT_ADMIN" | "MERCHANT_FINANCE" | "MERCHANT_CAMPAIGN_MANAGER" | "MERCHANT_STAFF" | "PARTNER_ADMIN" | "PARTNER_CAMPAIGN_MANAGER" | "PARTNER_BENEFITS_MANAGER" | "PARTNER_ANALYST" | "PARTNER_FINANCE_VIEWER" | "PARTNER_READ_ONLY" | "PARTNER_FINANCE_MANAGER" | "PARTNER_APPROVER" | "PARTNER_INTEGRATION_MANAGER" | "PARTNER_NETWORK_MANAGER" | "DEALDASH_SUPER_ADMIN" | "DEALDASH_OPERATIONS" | "DEALDASH_MERCHANT_MANAGEMENT" | "DEALDASH_PARTNER_MANAGEMENT" | "DEALDASH_SUPPORT" | "DEALDASH_FINANCE" | "DEALDASH_RISK_COMPLIANCE" | "DEALDASH_MARKETING_OPS" | "DEALDASH_ANALYST";
                     /** Format: uuid */
                     branchId: string | null;
                     branchName: string | null;
@@ -13379,6 +14403,7 @@ export interface components {
              *         "merchantCashPerUnitHalalas": 0,
              *         "maxRedemptions": null,
              *         "fulfilmentOrganizationId": null,
+             *         "creatorOrganizationId": null,
              *         "dailyQuota": null
              *       },
              *       "terms": {
@@ -13519,6 +14544,7 @@ export interface components {
                  *       "merchantCashPerUnitHalalas": 0,
                  *       "maxRedemptions": null,
                  *       "fulfilmentOrganizationId": null,
+                 *       "creatorOrganizationId": null,
                  *       "dailyQuota": null
                  *     }
                  */
@@ -13549,6 +14575,11 @@ export interface components {
                      * @default null
                      */
                     fulfilmentOrganizationId: string | null;
+                    /**
+                     * Format: uuid
+                     * @default null
+                     */
+                    creatorOrganizationId: string | null;
                     /** @default null */
                     dailyQuota: number | null;
                 };
@@ -13748,6 +14779,7 @@ export interface components {
                      *       "merchantCashPerUnitHalalas": 0,
                      *       "maxRedemptions": null,
                      *       "fulfilmentOrganizationId": null,
+                     *       "creatorOrganizationId": null,
                      *       "dailyQuota": null
                      *     }
                      */
@@ -13778,6 +14810,11 @@ export interface components {
                          * @default null
                          */
                         fulfilmentOrganizationId: string | null;
+                        /**
+                         * Format: uuid
+                         * @default null
+                         */
+                        creatorOrganizationId: string | null;
                         /** @default null */
                         dailyQuota: number | null;
                     };
@@ -14049,6 +15086,7 @@ export interface components {
                  *       "merchantCashPerUnitHalalas": 0,
                  *       "maxRedemptions": null,
                  *       "fulfilmentOrganizationId": null,
+                 *       "creatorOrganizationId": null,
                  *       "dailyQuota": null
                  *     }
                  */
@@ -14079,6 +15117,11 @@ export interface components {
                      * @default null
                      */
                     fulfilmentOrganizationId: string | null;
+                    /**
+                     * Format: uuid
+                     * @default null
+                     */
+                    creatorOrganizationId: string | null;
                     /** @default null */
                     dailyQuota: number | null;
                 };
@@ -14280,6 +15323,7 @@ export interface components {
                          *       "merchantCashPerUnitHalalas": 0,
                          *       "maxRedemptions": null,
                          *       "fulfilmentOrganizationId": null,
+                         *       "creatorOrganizationId": null,
                          *       "dailyQuota": null
                          *     }
                          */
@@ -14310,6 +15354,11 @@ export interface components {
                              * @default null
                              */
                             fulfilmentOrganizationId: string | null;
+                            /**
+                             * Format: uuid
+                             * @default null
+                             */
+                            creatorOrganizationId: string | null;
                             /** @default null */
                             dailyQuota: number | null;
                         };
@@ -14593,6 +15642,7 @@ export interface components {
                          *       "merchantCashPerUnitHalalas": 0,
                          *       "maxRedemptions": null,
                          *       "fulfilmentOrganizationId": null,
+                         *       "creatorOrganizationId": null,
                          *       "dailyQuota": null
                          *     }
                          */
@@ -14623,6 +15673,11 @@ export interface components {
                              * @default null
                              */
                             fulfilmentOrganizationId: string | null;
+                            /**
+                             * Format: uuid
+                             * @default null
+                             */
+                            creatorOrganizationId: string | null;
                             /** @default null */
                             dailyQuota: number | null;
                         };
@@ -15373,6 +16428,7 @@ export interface components {
                      *       "merchantCashPerUnitHalalas": 0,
                      *       "maxRedemptions": null,
                      *       "fulfilmentOrganizationId": null,
+                     *       "creatorOrganizationId": null,
                      *       "dailyQuota": null
                      *     }
                      */
@@ -15403,6 +16459,11 @@ export interface components {
                          * @default null
                          */
                         fulfilmentOrganizationId: string | null;
+                        /**
+                         * Format: uuid
+                         * @default null
+                         */
+                        creatorOrganizationId: string | null;
                         /** @default null */
                         dailyQuota: number | null;
                     };
@@ -16468,6 +17529,7 @@ export interface components {
              *         "merchantCashPerUnitHalalas": 0,
              *         "maxRedemptions": null,
              *         "fulfilmentOrganizationId": null,
+             *         "creatorOrganizationId": null,
              *         "dailyQuota": null
              *       },
              *       "redemptionRules": {
@@ -16606,6 +17668,7 @@ export interface components {
                  *       "merchantCashPerUnitHalalas": 0,
                  *       "maxRedemptions": null,
                  *       "fulfilmentOrganizationId": null,
+                 *       "creatorOrganizationId": null,
                  *       "dailyQuota": null
                  *     }
                  */
@@ -16636,6 +17699,11 @@ export interface components {
                      * @default null
                      */
                     fulfilmentOrganizationId: string | null;
+                    /**
+                     * Format: uuid
+                     * @default null
+                     */
+                    creatorOrganizationId: string | null;
                     /** @default null */
                     dailyQuota: number | null;
                 };
@@ -16841,6 +17909,7 @@ export interface components {
                      *       "merchantCashPerUnitHalalas": 0,
                      *       "maxRedemptions": null,
                      *       "fulfilmentOrganizationId": null,
+                     *       "creatorOrganizationId": null,
                      *       "dailyQuota": null
                      *     }
                      */
@@ -16871,6 +17940,11 @@ export interface components {
                          * @default null
                          */
                         fulfilmentOrganizationId: string | null;
+                        /**
+                         * Format: uuid
+                         * @default null
+                         */
+                        creatorOrganizationId: string | null;
                         /** @default null */
                         dailyQuota: number | null;
                     };
@@ -17176,6 +18250,7 @@ export interface components {
                  *       "merchantCashPerUnitHalalas": 0,
                  *       "maxRedemptions": null,
                  *       "fulfilmentOrganizationId": null,
+                 *       "creatorOrganizationId": null,
                  *       "dailyQuota": null
                  *     }
                  */
@@ -17206,6 +18281,11 @@ export interface components {
                      * @default null
                      */
                     fulfilmentOrganizationId: string | null;
+                    /**
+                     * Format: uuid
+                     * @default null
+                     */
+                    creatorOrganizationId: string | null;
                     /** @default null */
                     dailyQuota: number | null;
                 };
@@ -17413,6 +18493,7 @@ export interface components {
                          *       "merchantCashPerUnitHalalas": 0,
                          *       "maxRedemptions": null,
                          *       "fulfilmentOrganizationId": null,
+                         *       "creatorOrganizationId": null,
                          *       "dailyQuota": null
                          *     }
                          */
@@ -17443,6 +18524,11 @@ export interface components {
                              * @default null
                              */
                             fulfilmentOrganizationId: string | null;
+                            /**
+                             * Format: uuid
+                             * @default null
+                             */
+                            creatorOrganizationId: string | null;
                             /** @default null */
                             dailyQuota: number | null;
                         };
@@ -17725,6 +18811,7 @@ export interface components {
                          *       "merchantCashPerUnitHalalas": 0,
                          *       "maxRedemptions": null,
                          *       "fulfilmentOrganizationId": null,
+                         *       "creatorOrganizationId": null,
                          *       "dailyQuota": null
                          *     }
                          */
@@ -17755,6 +18842,11 @@ export interface components {
                              * @default null
                              */
                             fulfilmentOrganizationId: string | null;
+                            /**
+                             * Format: uuid
+                             * @default null
+                             */
+                            creatorOrganizationId: string | null;
                             /** @default null */
                             dailyQuota: number | null;
                         };
@@ -18360,6 +19452,7 @@ export interface components {
                      *       "merchantCashPerUnitHalalas": 0,
                      *       "maxRedemptions": null,
                      *       "fulfilmentOrganizationId": null,
+                     *       "creatorOrganizationId": null,
                      *       "dailyQuota": null
                      *     }
                      */
@@ -18390,6 +19483,11 @@ export interface components {
                          * @default null
                          */
                         fulfilmentOrganizationId: string | null;
+                        /**
+                         * Format: uuid
+                         * @default null
+                         */
+                        creatorOrganizationId: string | null;
                         /** @default null */
                         dailyQuota: number | null;
                     };
@@ -20415,7 +21513,7 @@ export interface components {
         };
         TransitionDto: {
             /** @enum {string} */
-            status: "PLANNED" | "CONFIGURING" | "TESTING" | "PILOT" | "ACTIVE" | "SUSPENDED" | "CLOSED";
+            to: "DRAFT" | "UNDER_REVIEW" | "CHANGES_REQUESTED" | "APPROVED" | "CONTRACT_ACTIVE" | "FINANCE_READY" | "PRODUCT_ENABLED" | "ACTIVE" | "SUSPENDED" | "REJECTED";
             reason: string;
         };
         DecisionDto: {
@@ -20970,7 +22068,10 @@ export interface components {
             effectiveFrom?: string;
         };
         ApprovalDto: {
-            approvalRef?: string;
+            /** Format: uuid */
+            quotationId: string;
+            /** @enum {string} */
+            decision: "APPROVED" | "REJECTED";
             reason?: string;
         };
         ItemDto: {
@@ -21381,6 +22482,9 @@ export interface components {
             fileName?: string;
             csv: string;
             publicationRef?: string;
+            mapping?: {
+                [key: string]: string;
+            };
         };
         ImportJobResponse: {
             data: {
@@ -24112,6 +25216,407 @@ export interface components {
             /** Format: uuid */
             organizationId?: string;
         };
+        ProfileDto: {
+            legalName: string;
+            registrationNumber?: string;
+            taxNumber?: string;
+            website?: string | "";
+            parentGroup?: string;
+            description?: string;
+            requestedMarkets: string[];
+            contacts: {
+                primary: {
+                    name: string;
+                    /** Format: email */
+                    email: string;
+                    phone?: string;
+                    title?: string;
+                };
+                finance?: {
+                    name: string;
+                    /** Format: email */
+                    email: string;
+                    phone?: string;
+                    title?: string;
+                };
+                technical?: {
+                    name: string;
+                    /** Format: email */
+                    email: string;
+                    phone?: string;
+                    title?: string;
+                };
+                support?: {
+                    name: string;
+                    /** Format: email */
+                    email: string;
+                    phone?: string;
+                    title?: string;
+                };
+            };
+            signatory?: {
+                name: string;
+                /** Format: email */
+                email: string;
+                phone?: string;
+                title?: string;
+                authorityRef?: string;
+            };
+        };
+        InviteDto: {
+            name: string;
+            /** Format: email */
+            email: string;
+            roleCode: string;
+        };
+        RoleDto: {
+            roleCode: string;
+        };
+        MemberStatusDto: {
+            reason: string;
+        };
+        NetworkCreateDto: {
+            externalMerchantId?: string;
+            nameEn: string;
+            nameAr?: string;
+            brand?: string;
+            country: string;
+            categoryCode?: string;
+            /** @default [] */
+            branches: {
+                externalId?: string;
+                nameEn: string;
+                nameAr?: string;
+                addressEn?: string;
+                addressAr?: string;
+                city?: string;
+                country?: string;
+                latitude?: number;
+                longitude?: number;
+            }[];
+        };
+        DuplicateDto: {
+            /** @enum {string} */
+            decision: "NOT_DUPLICATE" | "SUGGEST_MERGE";
+            note?: string;
+        };
+        ConnectionDto: {
+            name: string;
+            sourceSystem: string;
+            /**
+             * @default API_PUSH
+             * @enum {string}
+             */
+            kind: "API_PUSH" | "FEED_PULL" | "WEBHOOK";
+            /**
+             * @default [
+             *       "MERCHANT",
+             *       "BRANCH",
+             *       "OFFER"
+             *     ]
+             */
+            scopes: ("MERCHANT" | "BRANCH" | "OFFER")[];
+            /** @default 120 */
+            rateLimitPerMinute: number;
+            /** @default 1440 */
+            staleAfterMinutes: number;
+            /** @default false */
+            publicationAuthorized: boolean;
+            publicationRef?: string;
+            /** Format: uuid */
+            organizationId?: string;
+        };
+        OfferCreateDto: {
+            sourceRecordId?: string;
+            merchantSourceId: string;
+            publicationRef: string;
+            titleEn: string;
+            titleAr?: string;
+            benefitEn: string;
+            benefitAr?: string;
+            termsEn?: string;
+            termsAr?: string;
+            categoryCode?: string;
+            /**
+             * @default IN_STORE
+             * @enum {string}
+             */
+            channel: "IN_STORE" | "ONLINE" | "BOTH";
+            /** Format: date-time */
+            validFrom: string;
+            /** Format: date-time */
+            validUntil?: string;
+            /** @default [] */
+            branchSourceIds: string[];
+            /** @default {} */
+            eligibility: {
+                [key: string]: unknown;
+            };
+        };
+        CardProgramDto: {
+            code: string;
+            nameEn: string;
+            nameAr: string;
+            scheme: string;
+            issuerName: string;
+            productCode: string;
+            tier: string;
+            /** @default [] */
+            binPrefixes: string[];
+            market: string;
+            /**
+             * @default SELF_DECLARED
+             * @enum {string}
+             */
+            verificationMethod: "SELF_DECLARED" | "WORK_EMAIL_OTP" | "ISSUER_TOKEN" | "PARTNER_FEED";
+            /**
+             * @default DRAFT
+             * @enum {string}
+             */
+            status: "DRAFT" | "ACTIVE" | "RETIRED";
+        };
+        EmployerProgramDto: {
+            code: string;
+            nameEn: string;
+            nameAr: string;
+            domains: string[];
+            market: string;
+            /**
+             * @default DRAFT
+             * @enum {string}
+             */
+            status: "DRAFT" | "ACTIVE" | "RETIRED";
+        };
+        RuleTestDto__schema0: {
+            /** @enum {string} */
+            op: "AND" | "OR";
+            children: components["schemas"]["RuleTestDto__schema0"][];
+        } | {
+            /** @enum {string} */
+            op: "NOT";
+            child: components["schemas"]["RuleTestDto__schema0"];
+        } | {
+            /** @enum {string} */
+            op: "ATTR";
+            /** @enum {string} */
+            attr: "GEOGRAPHY" | "EMPLOYER" | "CARD" | "SCHEME" | "COUNTRY" | "CARD_PRODUCT" | "CARD_TIER" | "SEGMENT" | "MEMBERSHIP" | "PRODUCT_OWNERSHIP" | "AGE_BAND" | "GENDER";
+            values: string[];
+            /** @enum {string} */
+            level?: "SELF_DECLARED" | "OTP_VERIFIED" | "ISSUER_VERIFIED";
+        };
+        RuleTestDto: {
+            expression: components["schemas"]["RuleTestDto__schema0"];
+            /**
+             * @default {
+             *       "attributes": []
+             *     }
+             */
+            sample: {
+                /** @default [] */
+                attributes: {
+                    attr: string;
+                    value: string;
+                    level?: string;
+                }[];
+                city?: string;
+                country?: string;
+            };
+        };
+        PreviewDto: {
+            /** @enum {string} */
+            product: "VOUCHER" | "WATCH" | "EXCLUSIVE" | "LIVE_BENEFIT" | "LOYALTY";
+            content: {
+                [key: string]: unknown;
+            };
+        };
+        CampaignCreateDto: {
+            /** @enum {string} */
+            product: "EXCLUSIVE" | "VOUCHER";
+            /** Format: uuid */
+            merchantOrganizationId: string;
+            content: {
+                [key: string]: unknown;
+            };
+        };
+        CampaignUpdateDto: {
+            content: {
+                [key: string]: unknown;
+            };
+            expectedVersion?: number;
+        };
+        PayDto: {
+            amountHalalas?: number;
+        };
+        BenefitDto__schema0: {
+            /** @enum {string} */
+            op: "AND" | "OR";
+            children: components["schemas"]["BenefitDto__schema0"][];
+        } | {
+            /** @enum {string} */
+            op: "NOT";
+            child: components["schemas"]["BenefitDto__schema0"];
+        } | {
+            /** @enum {string} */
+            op: "ATTR";
+            /** @enum {string} */
+            attr: "GEOGRAPHY" | "EMPLOYER" | "CARD" | "SCHEME" | "COUNTRY" | "CARD_PRODUCT" | "CARD_TIER" | "SEGMENT" | "MEMBERSHIP" | "PRODUCT_OWNERSHIP" | "AGE_BAND" | "GENDER";
+            values: string[];
+            /** @enum {string} */
+            level?: "SELF_DECLARED" | "OTP_VERIFIED" | "ISSUER_VERIFIED";
+        };
+        BenefitDto: {
+            /** Format: uuid */
+            liveDealId: string;
+            /** @enum {string} */
+            kind: "EXTRA_PERCENT" | "EXTRA_AMOUNT" | "FREE_ITEM" | "OTHER";
+            /** @default null */
+            valueNumber: number | null;
+            labelEn: string;
+            labelAr: string;
+            /** @default  */
+            termsEn: string;
+            /** @default  */
+            termsAr: string;
+            eligibility: {
+                /**
+                 * @default PUBLIC
+                 * @enum {string}
+                 */
+                kind: "PUBLIC" | "GEOGRAPHY" | "EMPLOYER" | "BANK_CARD" | "SCHEME" | "COMPOSITE";
+                expression?: components["schemas"]["BenefitDto__schema0"] | null;
+                /** @default [] */
+                valueRefs: string[];
+            };
+            /**
+             * Format: date-time
+             * @default null
+             */
+            startAt: string | null;
+            /**
+             * Format: date-time
+             * @default null
+             */
+            endAt: string | null;
+        };
+        BenefitStatusDto: {
+            reason: string;
+        };
+        SponsorDto__schema0: {
+            /** @enum {string} */
+            op: "AND" | "OR";
+            children: components["schemas"]["SponsorDto__schema0"][];
+        } | {
+            /** @enum {string} */
+            op: "NOT";
+            child: components["schemas"]["SponsorDto__schema0"];
+        } | {
+            /** @enum {string} */
+            op: "ATTR";
+            /** @enum {string} */
+            attr: "GEOGRAPHY" | "EMPLOYER" | "CARD" | "SCHEME" | "COUNTRY" | "CARD_PRODUCT" | "CARD_TIER" | "SEGMENT" | "MEMBERSHIP" | "PRODUCT_OWNERSHIP" | "AGE_BAND" | "GENDER";
+            values: string[];
+            /** @enum {string} */
+            level?: "SELF_DECLARED" | "OTP_VERIFIED" | "ISSUER_VERIFIED";
+        };
+        SponsorDto: {
+            name: string;
+            eventType: string;
+            /**
+             * @default BASE
+             * @enum {string}
+             */
+            kind: "BASE" | "BONUS";
+            /**
+             * @default null
+             * @enum {string|null}
+             */
+            productScope: "LIVE_DEAL" | "EXCLUSIVE" | "VOUCHER" | "WATCH" | null;
+            /**
+             * Format: uuid
+             * @default null
+             */
+            campaignId: string | null;
+            /**
+             * Format: uuid
+             * @default null
+             */
+            organizationId: string | null;
+            /** @default 0 */
+            basePoints: number;
+            /** @default 0 */
+            bonusPoints: number;
+            /** @default 10000 */
+            multiplierBps: number;
+            /** @default 0 */
+            pointsPer100Halalas: number;
+            /** @default null */
+            dailyCap: number | null;
+            /** @default null */
+            monthlyCap: number | null;
+            /** @default null */
+            customerCap: number | null;
+            /** @default null */
+            eligibility: {
+                /**
+                 * @default PUBLIC
+                 * @enum {string}
+                 */
+                kind: "PUBLIC" | "GEOGRAPHY" | "EMPLOYER" | "BANK_CARD" | "SCHEME" | "COMPOSITE";
+                expression?: components["schemas"]["SponsorDto__schema0"] | null;
+                /** @default [] */
+                valueRefs: string[];
+            } | null;
+            /**
+             * @default DEALDASH
+             * @enum {string}
+             */
+            fundingSource: "DEALDASH" | "MERCHANT" | "BANK" | "SCHEME" | "CORPORATE" | "CAMPAIGN" | "SPONSOR";
+            /**
+             * Format: uuid
+             * @default null
+             */
+            fundingOrganizationId: string | null;
+            /** @default null */
+            fundingHalalasPerPoint: number | null;
+            /** @default null */
+            expiryDays: number | null;
+            maxAllocationPoints: number;
+            /** Format: date-time */
+            effectiveFrom?: string;
+            /**
+             * Format: date-time
+             * @default null
+             */
+            effectiveUntil: string | null;
+        };
+        OwnedWatchDto: {
+            /** Format: uuid */
+            merchantOrganizationId: string;
+            content: {
+                [key: string]: unknown;
+            };
+        };
+        OwnedWatchFundDto: {
+            amountHalalas: number;
+        };
+        CreateDto: {
+            nameEn: string;
+            nameAr: string;
+            /** @enum {string} */
+            partnerType: "BANK" | "SCHEME" | "EMPLOYER" | "FINANCIAL_INSTITUTION" | "CORPORATE" | "STRATEGIC_PARTNER" | "OTHER_APPROVED_PARTNER";
+            legalName: string;
+            country: string;
+            registrationNumber?: string;
+            adminName: string;
+            /** Format: email */
+            adminEmail: string;
+            parentGroup?: string;
+        };
+        BenefitDecisionDto: {
+            /** @enum {string} */
+            decision: "APPROVE" | "REJECT";
+            reason?: string;
+        };
         CustomerResponse: {
             data: {
                 /** Format: uuid */
@@ -24197,13 +25702,6 @@ export interface components {
             idempotencyKey?: string;
             /** @default 0 */
             failTimes: number;
-        };
-        PreviewDto: {
-            /** @enum {string} */
-            product: "VOUCHER" | "WATCH" | "EXCLUSIVE" | "LIVE_BENEFIT" | "LOYALTY";
-            content: {
-                [key: string]: unknown;
-            };
         };
         PreviewResponse: {
             data: {
@@ -24489,9 +25987,6 @@ export interface components {
                 locale?: "en" | "ar";
                 nextCursor?: string | null;
             };
-        };
-        PayDto: {
-            amountHalalas?: number;
         };
         PaidResponse: {
             data: {
@@ -36903,6 +38398,1576 @@ export interface operations {
             query?: never;
             header?: never;
             path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_home_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_modules_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_profile_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_updateProfile_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProfileDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_readiness_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_submit_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_history_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_marketList_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_users_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_invite_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InviteDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_revoke_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_role_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                membershipId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RoleDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_status_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                membershipId: string;
+                action: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MemberStatusDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_networkList_v1: {
+        parameters: {
+            query?: {
+                q?: string;
+                registration?: "REFERENCED" | "REGISTERED";
+                country?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_networkDetail_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_networkCreate_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NetworkCreateDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_registered_v1: {
+        parameters: {
+            query: {
+                q: string;
+            };
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_linkRegistered_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                merchantOrgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_duplicates_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_suggest_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DuplicateDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_upload_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UploadDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_connect_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConnectionDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_template_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                kind: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_offers_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_createOffer_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OfferCreateDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_cardPrograms_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_saveCardProgram_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CardProgramDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_employerPrograms_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_saveEmployerProgram_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmployerProgramDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_eligibilityOptions_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_rules_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_saveRule_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RuleDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_testRule_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RuleTestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_portfolio_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_create_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CampaignCreateDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_preview_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreviewDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_assets_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                merchantOrgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_campaign_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                product: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_update_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                product: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CampaignUpdateDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_submitCampaign_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                product: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_cases_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_caseOf_v1: {
+        parameters: {
+            query: {
+                product: "EXCLUSIVE" | "VOUCHER" | "WATCH" | "LOYALTY";
+                subjectId: string;
+            };
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_commercialPreview_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreviewDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_caseView_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                caseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_accept_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                caseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AcceptDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_approve_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                caseId: string;
+                step: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApprovalDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_pay_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                caseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PayDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_benefitList_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_propose_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BenefitDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_benefitCandidates_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_withdraw_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BenefitStatusDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_watch_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_watchCandidates_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_sponsorWatch_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SponsorDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_ownedWatchList_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_createOwnedWatch_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OwnedWatchDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_ownedWatch_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_fundOwnedWatch_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OwnedWatchFundDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_submitOwnedWatch_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PartnerPortalController_performance_v1: {
+        parameters: {
+            query?: {
+                by?: "MARKET" | "LEGAL_ENTITY" | "MERCHANT" | "CITY" | "BRANCH" | "CAMPAIGN";
+                market?: string;
+                merchantOrganizationId?: string;
+                days?: number;
+            };
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminPartnersController_list_v1: {
+        parameters: {
+            query?: {
+                lifecycle?: "DRAFT" | "UNDER_REVIEW" | "CHANGES_REQUESTED" | "APPROVED" | "CONTRACT_ACTIVE" | "FINANCE_READY" | "PRODUCT_ENABLED" | "ACTIVE" | "SUSPENDED" | "REJECTED";
+                partnerType?: "BANK" | "SCHEME" | "EMPLOYER" | "FINANCIAL_INSTITUTION" | "CORPORATE" | "STRATEGIC_PARTNER" | "OTHER_APPROVED_PARTNER";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminPartnersController_create_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminPartnersController_benefitList_v1: {
+        parameters: {
+            query: {
+                status: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminPartnersController_benefitDecide_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                action: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecisionDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminPartnersController_pendingOffers_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminPartnersController_decideOffer_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                decision: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecisionDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminPartnersController_profile_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminPartnersController_readiness_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminPartnersController_history_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminPartnersController_transition_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransitionDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminPartnersController_decide_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                decision: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecisionDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MerchantPartnerBenefitsController_list_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MerchantPartnerBenefitsController_decide_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BenefitDecisionDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CustomerPartnerBenefitsController_list_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
             cookie?: never;
         };
         requestBody?: never;

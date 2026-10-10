@@ -110,13 +110,19 @@ export class LoyaltyRulesService {
       const f = await this.prisma.organization.findFirst({ where: { id: b.fundingOrganizationId, status: 'ACTIVE', type: { in: ['MERCHANT', 'PARTNER'] } } });
       if (!f) throw this.bad('The funding organization was not found or is not active', 'fundingOrganizationId');
     }
+    let ownerType: string | null = null;
     if (ownerOrg) {
       const o = await this.prisma.organization.findUnique({ where: { id: ownerOrg } });
       if (!o) throw this.bad('The owner organization was not found', 'organizationId');
+      ownerType = o.type;
     }
     if (b.campaignId) {
       if (!b.productScope) throw this.bad('A campaign rule needs its product', 'productScope');
-      const where = { id: b.campaignId, ...(ownerOrg ? { organizationId: ownerOrg } : {}) };
+      // Stage 7: a partner sponsors points on an active merchant's campaign (for example Watch & Earn); a merchant only its own
+      const where =
+        ownerType === 'PARTNER'
+          ? { id: b.campaignId, organization: { status: 'ACTIVE' as const, type: 'MERCHANT' as const } }
+          : { id: b.campaignId, ...(ownerOrg ? { organizationId: ownerOrg } : {}) };
       const found =
         b.productScope === 'EXCLUSIVE'
           ? await this.prisma.hotDeal.findFirst({ where, select: { id: true } })

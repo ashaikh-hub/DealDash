@@ -25,6 +25,7 @@ export function testEnv(): ApiEnv {
     API_PORT: 0,
     API_PUBLIC_URL: 'http://localhost:4000',
     MERCHANT_APP_URL: 'http://localhost:3002',
+    PARTNER_APP_URL: 'http://localhost:3004',
     DATABASE_URL: process.env.TEST_DATABASE_URL!,
     TEST_DATABASE_URL: process.env.TEST_DATABASE_URL,
     CORS_ORIGINS: ['http://localhost:3001'],

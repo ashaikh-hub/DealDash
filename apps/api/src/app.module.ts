@@ -35,6 +35,7 @@ import { WatchModule } from './watch/watch.module';
 import { VisibilityModule } from './visibility/visibility.module';
 import { BillingModule } from './billing/billing.module';
 import { AiModule } from './ai/ai.module';
+import { PartnersModule } from './partners/partners.module';
 
 @Global()
 @Module({})
@@ -75,6 +76,7 @@ export class AppModule implements NestModule {
       VisibilityModule,
       BillingModule,
       AiModule,
+      PartnersModule,
         CustomersModule,
         AnalyticsModule,
         JobsModule,

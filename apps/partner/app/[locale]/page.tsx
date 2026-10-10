@@ -1,7 +1,12 @@
 'use client';
 
-import { ShellHome } from '@dealdash/app-shell';
+import { RequireAuth } from '@dealdash/app-shell';
+import { PartnerHome } from '../../features/home';
 
-export default function HomePage() {
-  return <ShellHome />;
+export default function Page() {
+  return (
+    <RequireAuth>
+      <PartnerHome />
+    </RequireAuth>
+  );
 }

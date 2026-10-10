@@ -9,7 +9,24 @@ import { arPlatform, enPlatform } from './dictionaries.platform';
 import { arSubscription, enSubscription } from './dictionaries.subscription';
 import { arPhase45, enPhase45 } from './dictionaries.phase45';
 import { arMarkets, enMarkets } from './dictionaries.markets';
+import { arPartners, enPartners } from './dictionaries.partners';
 import {
+  CARD_PROGRAM_STATUSES,
+  ELIGIBILITY_ATTRIBUTE_TYPES,
+  NETWORK_CAPABILITIES,
+  NETWORK_MERCHANT_STATES,
+  PARTNER_BENEFIT_KINDS,
+  PARTNER_BENEFIT_STATUSES,
+  PARTNER_CAMPAIGN_ROLES,
+  PARTNER_CHECK_STATES,
+  PARTNER_DRILL_LEVELS,
+  PARTNER_LIFECYCLE,
+  PARTNER_MODULES,
+  PARTNER_READINESS_CHECKS,
+  PARTNER_READINESS_STATES,
+  PARTNER_TYPES,
+  PARTNER_VERIFICATION_METHODS,
+  ROLE_CODES,
   INVOICE_CONFIG_KINDS,
   MARKET_POLICY_KEYS,
   MARKET_PRODUCTS,
@@ -402,6 +419,44 @@ describe('dictionary layering', () => {
     need('mkt.ready', READINESS_STATES);
     need('mkt.pcat', Object.keys(MARKET_POLICY_KEYS));
     need('mkt.pkey', Object.values(MARKET_POLICY_KEYS).flat());
+  });
+
+  it('Stage 7 partner portal copy never overrides an earlier key, matches in both languages and covers every partner vocabulary', () => {
+    const earlier = { ...enStage2, ...enStage3, ...enStage4, ...enStage5, ...enStage6, ...enCommercial, ...enPlatform, ...enSubscription, ...enPhase45, ...enMarkets };
+    expect(Object.keys(enPartners).filter((k) => k in earlier)).toEqual([]);
+    expect(Object.keys(arPartners).sort()).toEqual(Object.keys(enPartners).sort());
+    const vars = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
+    for (const key of Object.keys(enPartners)) {
+      const e = enPartners[key as keyof typeof enPartners];
+      const a = arPartners[key as keyof typeof arPartners];
+      expect(e.trim(), key).not.toBe('');
+      expect(containsArabic(a), key).toBe(true);
+      expect(vars(a), key).toEqual(vars(e));
+      // no legacy "Hot Deal" wording, no ROI / revenue claims, no card numbers in copy
+      expect(`${e} ${a}`, key).not.toMatch(/hot deal|guaranteed|\d{12,}/i);
+    }
+    const need = (prefix: string, values: readonly string[]) => {
+      for (const v of values) expect(enPartners, `${prefix}.${v}`).toHaveProperty([`${prefix}.${v}`]);
+    };
+    need('pt.type', PARTNER_TYPES);
+    need('pt.life', PARTNER_LIFECYCLE);
+    need('pt.check', PARTNER_READINESS_CHECKS);
+    need('pt.cstate', PARTNER_CHECK_STATES);
+    need('pt.ready', PARTNER_READINESS_STATES);
+    need('pt.module', PARTNER_MODULES);
+    need('pt.nstate', NETWORK_MERCHANT_STATES);
+    need('pt.cap', NETWORK_CAPABILITIES);
+    need('pt.bstate', PARTNER_BENEFIT_STATUSES);
+    need('pt.bkind', PARTNER_BENEFIT_KINDS);
+    need('pt.pstate', CARD_PROGRAM_STATUSES);
+    need('pt.verify', PARTNER_VERIFICATION_METHODS);
+    need('pt.by', PARTNER_DRILL_LEVELS);
+    need('pt.role', PARTNER_CAMPAIGN_ROLES);
+    need('pt.elig.attr', ELIGIBILITY_ATTRIBUTE_TYPES);
+    need('role', ROLE_CODES.filter((r) => r.startsWith('PARTNER_')));
+    // the new partner errors are translated
+    for (const c of ['PARTNER_NOT_READY', 'PARTNER_NOT_ACTIVE', 'PARTNER_MARKET_NOT_AUTHORIZED', 'PARTNER_MERCHANT_NOT_IN_NETWORK', 'DELEGATION_EXCEEDED', 'CARD_DATA_FORBIDDEN'])
+      expect(enPartners).toHaveProperty([`error.${c}`]);
   });
 
   it('formats an amount in any configured currency with Western digits', () => {

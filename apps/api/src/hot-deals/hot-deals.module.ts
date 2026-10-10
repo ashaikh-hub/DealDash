@@ -48,7 +48,7 @@ import { StaffController } from './staff.controller';
     AdminReservationsService,
     HotLifecycleService,
   ],
-  exports: [ReservationsService, HotLifecycleService, NotificationsService, RedemptionService],
+  exports: [ReservationsService, HotLifecycleService, NotificationsService, RedemptionService, MerchantHotDealsService],
 })
 export class HotDealsModule implements OnModuleInit {
   constructor(

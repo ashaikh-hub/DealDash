@@ -306,3 +306,15 @@ Founder rules recorded with the approval:
 4. Effective dating and historical financial / configuration records are preserved.
 5. A market cannot become ACTIVE unless its mandatory readiness configuration is complete.
 6. Stage 7 is not started until separately instructed.
+<!-- stage7-addendum -->
+## Stage 7 built on the shared platform (2026-10-09, awaiting founder approval)
+
+Stage 7 consumed: organization / legal entity, role + scope and delegation, contracts / entitlements, markets, eligibility, master data
+and ingestion, campaign governance (engines, review, versions), commercial / finance / billing, visibility, alerts, inbox, disputes,
+audit, AI. No parallel engine was created. Additive shared changes are listed in `docs/STAGE7_PARTNER_PORTAL.md`.
+
+<!-- stage7-founder-decisions -->
+## Stage 7 founder approval and decisions (2026-10-10): APPROVED AND FROZEN
+
+Stage 7 is founder approved and frozen. The founder decisions were implemented on the shared services (Watch engine, commercial case,
+eligibility engine, master data / ingestion); no parallel engine was created and the frozen Phase 2 routes were not changed (FD-S7-2).

@@ -476,3 +476,21 @@ settlement rules, policies, providers, validation register, configuration approv
 /v1/orgs/:orgId/markets`. The legacy `/v1/admin/platform/countries` endpoints remain (compatible) but cannot open or close a market.
 New error codes: MARKET_PRODUCT_UNAVAILABLE, MARKET_NOT_READY, MARKET_TRANSITION_INVALID, MARKET_CONFIG_INVALID,
 MARKET_CURRENCY_NOT_SUPPORTED, INVOICE_REQUIRED_FIELDS_MISSING. Details: `docs/MARKET_COUNTRY_CONFIGURATION.md` §15.
+<!-- stage7-addendum -->
+## Addendum (Oct 2026) — Stage 7 partner API
+
+`/v1/partners/:orgId/*` (partner audience; own organization only; scope-aware reads filtered to authorized markets),
+`/v1/admin/partners/*` (admin.partners.review / manage / approve), `/v1/merchants/:orgId/partner-benefits`,
+`/v1/app/live-deals/:id/partner-benefits` (public). Shared routes now serving partners: commercial accept / approvals / pay
+(partner.commercial.*), billing, loyalty, imports / integrations, inbox, disputes, activity, alerts, AI. New error codes:
+PARTNER_NOT_READY, PARTNER_TRANSITION_INVALID, PARTNER_NOT_ACTIVE, PARTNER_CAPABILITY_UNAVAILABLE, PARTNER_MARKET_NOT_AUTHORIZED,
+PARTNER_MERCHANT_NOT_IN_NETWORK, PARTNER_MERCHANT_NOT_REGISTERED, DELEGATION_EXCEEDED, CARD_DATA_FORBIDDEN. Details:
+`docs/STAGE7_PARTNER_PORTAL.md`.
+
+<!-- stage7-founder-decisions -->
+## Stage 7 founder approval and decisions (2026-10-10): APPROVED AND FROZEN
+
+New routes: `GET|POST /v1/partners/:orgId/watch/owned`, `GET /watch/owned/:id`, `POST /watch/owned/:id/fund`
+(partner.commercial.accept), `POST /watch/owned/:id/submit` (FD-S7-1); `POST /v1/partners/:orgId/offers` (partner.network.manage),
+`GET /v1/admin/partners/offers`, `POST /v1/admin/partners/offers/:id/confirm|withdraw` (admin.partners.approve) (FD-S7-4).
+`campaigns/merchants/:id/assets` also returns the merchant's Watch videos. Phase 2 shared routes unchanged (FD-S7-2).

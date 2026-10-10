@@ -52,3 +52,15 @@ Customer `/assistant` (link on the profile screen; the five-tab bar is unchanged
 ## 8. Development fixture
 
 No plan includes AI_COPILOT (how AI is sold is a later commercial decision). The dev seed (`seedAiFixtures`) adds it as an OVERRIDE entitlement on development-fixture agreements only.
+
+<!-- stage7-addendum -->
+## Stage 7 (Oct 2026)
+
+The Partner Campaign copilot is exposed in the partner portal (explain, recommend, draft; execution only after a person approves;
+AI_COPILOT contract feature; same RBAC and tenant isolation, verified by the Stage 7 isolation test).
+
+<!-- stage7-founder-decisions -->
+## Stage 7 founder approval and decisions (2026-10-10): APPROVED AND FROZEN
+
+No AI change: the partner copilot keeps its governed scope; it cannot create, fund or publish a partner-owned Watch & Earn budget or a
+partner Live Deal without the same human approvals.

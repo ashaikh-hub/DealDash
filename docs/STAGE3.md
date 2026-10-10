@@ -262,3 +262,9 @@ selection) are the natural companions so locked offers become unlockable.
 4. **Material edits** of an approved Live Deal (discount or value, core proposition, eligibility, participating branches, important start/end dates, material terms, customer entitlement) go to review as a new version. Typo, format and translation fixes publish immediately and are audited. The field list is configuration (`live_deals.material_fields`).
 5. **Categories and cities are configuration.** Riyadh is the initial pilot city only because it is the first entry of `discovery.enabled_cities`. City centres live in `discovery.city_centers`. The public `GET /v1/app/config` returns both, and the customer app reads it (no city is hard-coded in the app or the discovery SQL; `Riyadh` remains only as a last-resort fallback when configuration is empty). Adding a city is a configuration change (covered by `test/app-config.e2e.test.ts`).
 6. **Watch & Earn and Rewards.** The customer navigation no longer shows these tabs (no dead placeholders). Routes and components are preserved; `CUSTOMER_NAV_WHEN_BUILT` in `packages/auth/src/index.ts` lists what to move back into `NAV_BY_AUDIENCE.customer` when those modules ship. My Deals is reached from the header ticket icon.
+
+<!-- stage7-founder-decisions -->
+## Stage 7 founder approval and decisions (2026-10-10): APPROVED AND FROZEN
+
+Eligibility (FD-S7-3): a card attribute counts as ISSUER_VERIFIED only with a trusted verification source and evidence; otherwise it is
+evaluated as declared. Live Deal discovery rules are unchanged (FD-S7-4).

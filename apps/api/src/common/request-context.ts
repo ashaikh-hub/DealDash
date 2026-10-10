@@ -23,6 +23,13 @@ export interface Actor {
   memberships: MembershipView[];
   permissions: ReadonlySet<PermissionCode>;
   viaCookie: boolean;
+  /**
+   * Stage 7, set ONLY in-process by PartnerCampaignService (never from a request): a partner user working on a campaign the partner
+   * created, held by `merchantOrganizationId` (the fulfilment merchant). The partner service has already checked the partner's
+   * membership, permission, scope, entitlement, market and network relationship. The membership stays the partner's, so every audit
+   * and history record names the partner user and partner organization.
+   */
+  partnerContext?: { partnerOrganizationId: string; merchantOrganizationId: string };
 }
 
 export interface RequestMeta {

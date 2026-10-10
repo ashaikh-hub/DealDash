@@ -160,10 +160,11 @@ await step('admin: billing events, signals, readiness', async () => {
   check('admin: signals panel (Phase 4 outbox)', /alert engine \(Phase 4\)/.test(await a.getByTestId('sb-signals').innerText()));
   await a.getByRole('tab', { name: 'Readiness' }).click();
   await a.getByTestId('sb-readiness').waitFor({ timeout: 20000 });
-  await a.getByText('Riyad Bank (sample)').waitFor({ timeout: 20000 });
+  await a.waitForTimeout(1500);
   const r = await a.getByTestId('sb-readiness').innerText();
-  // the dev partners have no agreement yet: launch readiness must list them (real pilot businesses need an explicit plan)
-  check('admin: readiness lists businesses without an agreement of their own', /Riyad Bank/.test(r) && /Sample Employer/.test(r), r.replace(/\n/g, ' ').slice(0, 200));
+  // Stage 7: the dev seed now gives the sample bank and employer their own agreements (Bank Enterprise / Corporate Partner), so launch
+  // readiness must NOT list them any more; businesses without an agreement of their own are still listed (or the panel says none).
+  check('admin: readiness lists only businesses without an agreement of their own (the Stage 7 sample partners have one)', !/Riyad Bank/.test(r) && !/Sample Employer/.test(r), r.replace(/\n/g, ' ').slice(0, 200));
   await shot(a, 'admin-readiness');
 });
 

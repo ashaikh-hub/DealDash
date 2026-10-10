@@ -45,6 +45,12 @@ export const commercialInputSchema = z.object({
   maxRedemptions: z.number().int().min(1).max(10_000_000).nullable().default(null),
   /** A third-party fulfilment merchant. Null = the owner fulfils. Must be an onboarded merchant that approves the obligations itself. */
   fulfilmentOrganizationId: uuid.nullable().default(null),
+  /**
+   * Stage 7: the partner that created the campaign and owns it commercially (Campaign Creator). The campaign runs at the merchant
+   * that holds it (the fulfilment merchant, whose branches and staff redeem). Null = the merchant itself. Set only by the partner
+   * portal; a merchant edit can never change it.
+   */
+  creatorOrganizationId: uuid.nullable().default(null),
   dailyQuota: z.number().int().min(1).max(1_000_000).nullable().default(null),
 });
 export type CommercialInput = z.infer<typeof commercialInputSchema>;

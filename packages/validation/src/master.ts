@@ -88,6 +88,8 @@ export const importUploadSchema = z.object({
   csv: z.string().min(10).max(5_000_000),
   /** Whether the uploader confirms DealDash may publish offers from this file (contract reference required). */
   publicationRef: opt(160),
+  /** Stage 7: the file's own column names mapped to the template's (for example {"Merchant Name": "name_en"}). */
+  mapping: z.record(z.string().trim().min(1).max(80), z.string().trim().min(1).max(40)).optional(),
 });
 export const importDecisionSchema = z.object({ reason: z.string().trim().min(3).max(300).optional() });
 export const importJobViewSchema = z.object({

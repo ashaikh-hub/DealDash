@@ -47,6 +47,8 @@ export class AccessScopeService {
   ) {}
 
   isScoped(actor: Actor): boolean {
+    // a partner working on its own campaign was scope-checked by the partner service against the PARTNER's grants
+    if (actor.partnerContext) return false;
     return !!actor.membership?.scoped;
   }
 

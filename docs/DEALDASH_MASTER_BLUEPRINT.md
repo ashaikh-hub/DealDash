@@ -1121,3 +1121,27 @@ Founder rules recorded with the approval:
 4. Effective dating and historical financial / configuration records are preserved.
 5. A market cannot become ACTIVE unless its mandatory readiness configuration is complete.
 6. Stage 7 is not started until separately instructed.
+<!-- stage7-addendum -->
+## Addendum (Oct 2026) — Stage 7: Enterprise Partner Portal (awaiting founder approval)
+
+Banks, financial institutions, card schemes, corporates / employers and strategic partners use the Partner Portal, another governed
+front end on the one platform: Business Account → Legal Entities → Markets → Contract / Enterprise Licence → Entitlements → Roles +
+Scope. Partners onboard through a readiness lifecycle (second DealDash approver for activation), manage users with delegated, scoped
+administration, run a merchant network (manual / bulk / API through the one ingestion pipeline; referenced vs registered merchants;
+provenance; duplicate review), build eligibility rules on the shared engine (card programmes keep BIN prefixes only), create
+Exclusive Deals and Vouchers on the shared engines at registered network merchants (partner = creator / owner, merchant = fulfilment
+and approves its own obligations), add partner benefits to public Live Deals, sponsor Watch & Earn points through loyalty rules, and
+see aggregate performance, finance, alerts, tasks and the governed copilot. Details: `docs/STAGE7_PARTNER_PORTAL.md`.
+
+<!-- stage7-founder-decisions -->
+## Stage 7 founder approval and decisions (2026-10-10): APPROVED AND FROZEN
+
+Stage 7 Enterprise Partner Portal is founder approved and frozen; the addendum above no longer "awaits approval". Founder decisions
+(all CLOSED): FD-S7-1 YES — an authorized partner may be the Sponsor / Funder and own a Watch & Earn budget (contract, entitlement,
+market, finance readiness, pricing, commercial acceptance and approval apply; DealDash keeps points economics, qualification, fraud and
+reward rules). FD-S7-2 NO — the frozen Phase 2 shared import / integration routes are unchanged; partner entitlement is enforced only
+on the Partner Portal routes. FD-S7-3 — card issuer / product / tier is VERIFIED only with trusted evidence (issuer / scheme API,
+approved partner feed, tokenized mechanism, other approved source); BIN metadata or a declaration is never "verified". FD-S7-4 YES —
+authorized banks, schemes and partners create / import Live Deals from their merchant networks where publication rights are confirmed,
+on the existing master data / provenance architecture, without giving the merchant any controlled capability. Details:
+`docs/STAGE7_PARTNER_PORTAL.md` ("Founder decisions").

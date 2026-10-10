@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { createTranslator, formatMoney, type DictionaryKey, type Locale } from '@dealdash/localization';
+import { createTranslator, formatMoney, formatNumber, type DictionaryKey, type Locale } from '@dealdash/localization';
 import type { AcceptanceCheck, CommercialProduct } from '@dealdash/types';
 import { Alert, Button, Card, Checkbox, Field, Input, StatusChip } from '@dealdash/ui';
 import type {
@@ -261,7 +261,11 @@ export function CommercialSummary({ preview, locale, delta }: SummaryProps) {
       {section('MERCHANT_BENEFIT', 'cm.sec.merchantBenefit')}
       {section('CUSTOMER_FUNDING', 'cm.sec.customer')}
       <dl className="dd-kv">
-        {row('cm.total.units', totals.maxUnits, 'cm-total-units')}
+        {/* a count of units, not money (Stage 7 QA found it formatted as currency) */}
+        <div className="dd-kv__row" key="cm-total-units">
+          <dt>{t('cm.total.units')}</dt>
+          <dd data-testid="cm-total-units">{formatNumber(locale, totals.maxUnits)}</dd>
+        </div>
         {row('cm.total.cash', totals.maxCashPayableToDealDashHalalas, 'cm-total-cash', true)}
         {totals.nettedChargesHalalas > 0
           ? row('cm.total.netted', totals.nettedChargesHalalas, 'cm-total-netted')
@@ -325,13 +329,18 @@ interface PanelProps {
   onReady?: (ready: boolean) => void;
   /** Refresh trigger: change it after saving. */
   refreshKey?: string | number;
+  /** Stage 7: the commercial routes of the business (default: the merchant's own). The partner portal passes its own. */
+  base?: string;
+  /** Extra fields of the preview request (the partner portal sends the fulfilment merchant). */
+  previewExtra?: Record<string, unknown>;
 }
 
 /**
  * Commercial summary, explicit acknowledgement and funding for one campaign. The server decides everything (economics, who must
  * accept, which acknowledgements, what blocks activation): this component only shows it and sends the user's decisions.
  */
-export function CommercialPanel({ orgId, product, subjectId, content, dirty, onReady, refreshKey }: PanelProps) {
+export function CommercialPanel({ orgId, product, subjectId, content, dirty, onReady, refreshKey, base: baseProp, previewExtra }: PanelProps) {
+  const base = baseProp ?? `/v1/merchants/${orgId}/commercial`;
   const { locale, me } = useAuth();
   const { call } = useApi();
   const t = createTranslator(locale);
@@ -346,7 +355,7 @@ export function CommercialPanel({ orgId, product, subjectId, content, dirty, onR
   const load = useCallback(async () => {
     setLoading(true);
     if (subjectId && !dirty) {
-      const r = await call<CommercialCaseView>('GET', `/v1/merchants/${orgId}/commercial/case`, {
+      const r = await call<CommercialCaseView>('GET', `${base}/case`, {
         query: { product, subjectId },
       });
       if (r.ok && r.data) {
@@ -356,13 +365,13 @@ export function CommercialPanel({ orgId, product, subjectId, content, dirty, onR
         return;
       }
     }
-    const p = await call<CommercialPreview>('POST', `/v1/merchants/${orgId}/commercial/preview`, {
-      body: { product, content },
+    const p = await call<CommercialPreview>('POST', `${base}/preview`, {
+      body: { product, content, ...(previewExtra ?? {}) },
     });
     setView(null);
     setPreview(p.ok ? p.data : null);
     setLoading(false);
-  }, [call, orgId, product, subjectId, dirty, content]);
+  }, [call, base, previewExtra, product, subjectId, dirty, content]);
 
   // Refresh whenever the saved campaign changes (not on every keystroke: unsaved edits are previewed on save).
   useEffect(() => {
@@ -379,14 +388,14 @@ export function CommercialPanel({ orgId, product, subjectId, content, dirty, onR
     () => view?.preview?.parties.find((p) => p.organizationId === orgId) ?? null,
     [view, orgId],
   );
-  const canAccept = Boolean(view?.allowedActions.includes('ACCEPT') && perms.includes('merchant.commercial.accept'));
+  const canAccept = Boolean(view?.allowedActions.includes('ACCEPT') && (perms.includes('merchant.commercial.accept') || perms.includes('partner.commercial.accept')));
   const required = myParty?.requiredChecks ?? [];
   const allChecked = required.length > 0 && required.every((c) => checks.includes(c));
 
   const accept = async () => {
     if (!view || !view.quotation) return;
     setBusy(true);
-    const r = await call('POST', `/v1/merchants/${orgId}/commercial/cases/${view.id}/accept`, {
+    const r = await call('POST', `${base}/cases/${view.id}/accept`, {
       body: { quotationId: view.quotation.id, checks, language: locale },
       idempotent: true,
     });
@@ -399,7 +408,7 @@ export function CommercialPanel({ orgId, product, subjectId, content, dirty, onR
   const pay = async () => {
     if (!view) return;
     setBusy(true);
-    const r = await call<{ paidHalalas: number }>('POST', `/v1/merchants/${orgId}/commercial/cases/${view.id}/pay`, {
+    const r = await call<{ paidHalalas: number }>('POST', `${base}/cases/${view.id}/pay`, {
       body: {},
       idempotent: true,
     });
@@ -552,7 +561,7 @@ export function CommercialPanel({ orgId, product, subjectId, content, dirty, onR
                       </StatusChip>
                       {view.allowedActions.includes(a.step === 'INTERNAL_APPROVER' ? 'APPROVE_INTERNAL' : 'APPROVE_FINANCE') &&
                       a.status === 'PENDING' ? (
-                        <ApprovalButtons orgId={orgId} caseId={view.id} quotationId={view.quotation!.id} step={a.step} onDone={load} />
+                        <ApprovalButtons base={base} caseId={view.id} quotationId={view.quotation!.id} step={a.step} onDone={load} />
                       ) : null}
                     </li>
                   ))}
@@ -584,13 +593,13 @@ export function CommercialPanel({ orgId, product, subjectId, content, dirty, onR
 }
 
 function ApprovalButtons({
-  orgId,
+  base,
   caseId,
   quotationId,
   step,
   onDone,
 }: {
-  orgId: string;
+  base: string;
   caseId: string;
   quotationId: string;
   step: string;
@@ -603,7 +612,7 @@ function ApprovalButtons({
   const [err, setErr] = useState('');
   const decide = async (decision: 'APPROVED' | 'REJECTED') => {
     setBusy(true);
-    const r = await call('POST', `/v1/merchants/${orgId}/commercial/cases/${caseId}/approvals/${step}`, {
+    const r = await call('POST', `${base}/cases/${caseId}/approvals/${step}`, {
       body: { quotationId, decision, reason: decision === 'REJECTED' ? t('cm.rejectedReason') : undefined },
       idempotent: true,
     });

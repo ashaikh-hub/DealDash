@@ -13,6 +13,7 @@ import { arPlatform, enPlatform } from './dictionaries.platform';
 import { arSubscription, enSubscription } from './dictionaries.subscription';
 import { arPhase45, enPhase45 } from './dictionaries.phase45';
 import { arMarkets, enMarkets } from './dictionaries.markets';
+import { arPartners, enPartners } from './dictionaries.partners';
 
 const enBase = {
   'brand.name': 'DealDash',
@@ -123,6 +124,7 @@ export const en = {
   ...enSubscription,
   ...enPhase45,
   ...enMarkets,
+  ...enPartners,
 } as const;
 
 export type DictionaryKey = keyof typeof en;
@@ -236,6 +238,7 @@ export const ar: Dictionary = {
   ...arSubscription,
   ...arPhase45,
   ...arMarkets,
+  ...arPartners,
 };
 
 export const dictionaries = { en, ar } as const;

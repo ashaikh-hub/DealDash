@@ -1191,3 +1191,39 @@ Full specification: `SUBSCRIPTION_LICENSING_ENTITLEMENT.md`. Rules in force:
 - MK9. Legal, tax and regulatory conclusions are never encoded as rules: they are validation items until a decision with evidence is
   recorded and approved. The §25 VALIDATE-KSA items (VK-01..VK-25) and the founder launch-readiness items now live in the market
   validation register (source preserved).
+<!-- stage7-addendum -->
+## Addendum (Oct 2026) — Stage 7 partner rules (awaiting approval)
+
+- PR1. A partner is a Business Account with legal entities, markets, a contract and scoped roles; no separate partner identity.
+- PR2. Partner type decides what is offered (configuration); the contract decides what is entitled; the market decides where.
+- PR3. New partner exposure needs an ACTIVE partner; ACTIVE needs every mandatory readiness item and a second DealDash approver.
+- PR4. Nobody grants more access than they hold; organization-level work needs an organization-wide grant.
+- PR5. A referenced (network) merchant never gains Exclusive Deals, vouchers, Watch & Earn rewards, staff redemption, settlement or
+  finance until it is registered, approved and enabled.
+- PR6. Duplicates are suggested, never merged silently; only DealDash merges.
+- PR7. A partner-created campaign runs at a registered, active merchant of the partner's network; Campaign Creator, Sponsor and
+  Fulfilment Merchant stay separate roles; the fulfilment merchant approves its own obligations (DealDash never stands in); a partner
+  only commits its own funding; a merchant can never change the creator.
+- PR8. A partner benefit on a Live Deal keeps the deal public, is eligibility-controlled, is approved by the merchant then by DealDash
+  (a different person), and is never counted as a redemption.
+- PR9. Card data: BIN / IIN prefixes (6–8 digits) with issuer, scheme, product and tier only; never a card number or CVV; "verified"
+  only with evidence from the verification method.
+- PR10. Partner reporting is aggregate by default; no ROI is shown without revenue data.
+- PR11. Partner ingestion: at least one qualifying partner feature AND the shared capability (BULK_IMPORT / API_ACCESS).
+
+<!-- stage7-founder-decisions -->
+## Stage 7 founder approval and decisions (2026-10-10): APPROVED AND FROZEN
+
+- PR12 (FD-S7-1). A partner may own a Watch & Earn budget as Sponsor / Funder: Campaign Creator, Sponsor / Funder and the merchant
+  that holds the campaign (fulfilment / reward provider) are recorded separately; only the budget owner funds it; it needs an active
+  partner, the WATCH product in its contract in the market, commercial acceptance by every party and DealDash review (never
+  auto-published). DealDash sets customer points, qualification, fraud controls and reward rules; the partner cannot set points.
+- PR13 (FD-S7-2). Partner-specific ingestion entitlements apply on the Partner Portal routes only; the frozen Phase 2 shared routes
+  keep the shared permissions / capabilities.
+- PR14 (FD-S7-3, refines PR9). A card issuer / product / tier / scheme attribute is VERIFIED only with a trusted verification source
+  and evidence (database enforced); BIN / IIN metadata, customer selection or self-declaration is DECLARED, never VERIFIED. Rules may
+  require VERIFIED or accept DECLARED. No full PAN, no CVV.
+- PR15 (FD-S7-4). A partner Live Deal needs a confirmed publication right (DealDash-authorised feed, DealDash-approved import with a
+  publication reference, or a manual entry DealDash confirmed); it keeps source, authority, external offer id, merchant source id,
+  dates, eligibility, market, provenance, last sync and audit; it gives the merchant no Exclusive Deal, voucher, controlled redemption,
+  staff, settlement or finance capability; public discovery stays frictionless and click / directions / referral are not redemption.

@@ -134,3 +134,10 @@ Partner Portal MVP (read-only campaign / eligibility / reports for partners) and
 ## Addendum: commercial governance (Watch & Earn)
 
 The campaign budget (paid views x rate card) is now also the DealDash charge in the shared commercial platform. The funded budget stays owned by this stage (hard cap by conditional SQL). Going live additionally needs the owner's acceptance, any configured approvals, and an agreement that states what happens to the unused budget (there is no default). watch.unused_budget_treatment remains recorded as undecided; the agreement decides. See [COMMERCIAL_FINANCE.md](COMMERCIAL_FINANCE.md).
+
+<!-- stage7-founder-decisions -->
+## Stage 7 founder approval and decisions (2026-10-10): APPROVED AND FROZEN
+
+Watch & Earn now supports a partner-owned budget (FD-S7-1): `sponsorOrganizationId` / `creatorOrganizationId` on the campaign; the
+budget owner funds it and owns its ledger lines; the merchant still holds the campaign, its video and the viewer experience; DealDash
+keeps points, qualification, fraud and reward rules; a sponsor-owned campaign is always reviewed by DealDash.

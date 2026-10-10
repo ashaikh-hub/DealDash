@@ -14,6 +14,9 @@ import type { Actor } from '../common/request-context';
 export class TenantService {
   /** Returns the organisation id the caller may use, or throws 404 for any other organisation. */
   requireOwnOrganization(actor: Actor, organizationId: string, type: OrganizationType): string {
+    // a partner's own campaign held by its fulfilment merchant (context set in-process by the partner service only)
+    if (type === 'MERCHANT' && actor.partnerContext && actor.partnerContext.merchantOrganizationId === organizationId)
+      return organizationId;
     const m = actor.membership;
     if (!m || m.organizationId !== organizationId || m.organizationType !== type)
       throw AppError.notFound();
