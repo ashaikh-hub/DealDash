@@ -66,7 +66,8 @@ export class ActorService {
       include: { role: true },
     });
     const out = new Set<PermissionCode>();
-    for (const r of rows) for (const p of await this.permissionsForRole(r.role.code as RoleCode)) out.add(p);
+    for (const r of rows)
+      for (const p of await this.permissionsForRole(r.role.code as RoleCode)) out.add(p);
     return out;
   }
 

@@ -139,7 +139,9 @@ describe('Admin partners (Stage 7)', () => {
         <AdminPartnersPage />
       </Providers>,
     );
-    await userEvent.click(await screen.findByRole('tab', { name: 'Partner Live Deals to confirm' }));
+    await userEvent.click(
+      await screen.findByRole('tab', { name: 'Partner Live Deals to confirm' }),
+    );
     const table = await screen.findByTestId('ap-offers');
     expect(table).toHaveTextContent('GB-PROG-1');
     expect(screen.getByTestId('ap-offer-confirm-o1')).toBeInTheDocument();
@@ -151,7 +153,9 @@ describe('Admin partners (Stage 7)', () => {
         <AdminPartnersPage />
       </Providers>,
     );
-    await userEvent.click(await screen.findByRole('tab', { name: 'Partner Live Deals to confirm' }));
+    await userEvent.click(
+      await screen.findByRole('tab', { name: 'Partner Live Deals to confirm' }),
+    );
     await screen.findByTestId('ap-offers');
     expect(screen.queryByTestId('ap-offer-confirm-o1')).toBeNull();
   });

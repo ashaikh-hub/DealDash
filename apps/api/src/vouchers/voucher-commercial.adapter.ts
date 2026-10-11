@@ -36,12 +36,19 @@ export class VoucherCommercialAdapter implements CommercialAdapter, OnModuleInit
     };
   }
 
-  async economics(organizationId: string, content: unknown, subjectId: string | null): Promise<Economics> {
+  async economics(
+    organizationId: string,
+    content: unknown,
+    subjectId: string | null,
+  ): Promise<Economics> {
     const c = parseVoucherContent(content);
     const k = c.commercial;
     let units = c.totalQty;
     if (subjectId) {
-      const v = await this.prisma.voucher.findUnique({ where: { id: subjectId }, select: { totalQty: true } });
+      const v = await this.prisma.voucher.findUnique({
+        where: { id: subjectId },
+        select: { totalQty: true },
+      });
       if (v) units = Math.max(units, v.totalQty);
     }
     const benefit = Math.max(0, c.faceValueHalalas - c.sellingPriceHalalas);
@@ -56,7 +63,11 @@ export class VoucherCommercialAdapter implements CommercialAdapter, OnModuleInit
         MEDIA_SPEND_TOTAL: 0,
       },
       customerBenefitPerUnit: benefit,
-      sponsors: k.sponsors.map((s) => ({ organizationId: s.organizationId, perUnitHalalas: s.perUnitHalalas, trigger: s.trigger })),
+      sponsors: k.sponsors.map((s) => ({
+        organizationId: s.organizationId,
+        perUnitHalalas: s.perUnitHalalas,
+        trigger: s.trigger,
+      })),
       merchantCashPerUnit: k.merchantCashPerUnitHalalas,
       // Stage 7: a partner-created campaign is owned commercially by the partner (Campaign Creator); the merchant that holds it fulfils
       ownerOrganizationId: k.creatorOrganizationId ?? organizationId,
@@ -69,7 +80,11 @@ export class VoucherCommercialAdapter implements CommercialAdapter, OnModuleInit
   async inventory(subjectId: string) {
     const [v, groups] = await Promise.all([
       this.prisma.voucher.findUnique({ where: { id: subjectId }, select: { totalQty: true } }),
-      this.prisma.voucherInstance.groupBy({ by: ['status'], where: { voucherId: subjectId }, _count: true }),
+      this.prisma.voucherInstance.groupBy({
+        by: ['status'],
+        where: { voucherId: subjectId },
+        _count: true,
+      }),
     ]);
     const n = (s: string) => groups.find((g) => g.status === s)?._count ?? 0;
     return {

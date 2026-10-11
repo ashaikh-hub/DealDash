@@ -392,11 +392,14 @@ await step('moderation: DealDash decides the reported review with a configured r
   check('moderation: decided with a reason (audited)', true);
   await shot(sa, 'admin-moderation');
 });
+// Stage 9 (B7) replaced the raw JSON editor with the structured, governed editor (full journey: stage9-browser.mjs)
 await step('rules and controls: versioned configuration with history', async () => {
   await go(sa, ADMIN, '/en/configuration', 'ops-rules');
-  await sa.getByTestId('cfg-version').waitFor({ timeout: 30000 });
-  check('rules: the operations configuration is shown with its version; market law is not set here', /Version/.test(await sa.getByTestId('cfg-version').innerText()) && /not set here/.test(await sa.getByTestId('ops-rules').innerText()));
-  check('rules: saving needs a reason (button disabled without changes / reason)', await sa.getByTestId('cfg-save').isDisabled());
+  await sa.getByTestId('cfg-requests').waitFor({ timeout: 30000 });
+  check('rules: structured screen; market law is not set here; no raw JSON editing', /not set here/.test(await sa.getByTestId('ops-rules').innerText()) && (await sa.getByLabel('Operations configuration (JSON)').count()) === 0);
+  await sa.getByRole('tab', { name: 'History and rollback' }).click();
+  await sa.getByTestId('cfg-history-tab').waitFor({ timeout: 30000 });
+  check('rules: every configuration keeps a version history', true);
   await shot(sa, 'admin-rules-and-controls');
 });
 

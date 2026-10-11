@@ -138,7 +138,10 @@ export const UNLOCKABLE_ATTRIBUTE_TYPES: readonly EligibilityAttributeType[] = [
   'MEMBERSHIP',
 ];
 /** Attributes the market must explicitly enable before a rule may use them. */
-export const SENSITIVE_ATTRIBUTE_TYPES: readonly EligibilityAttributeType[] = ['AGE_BAND', 'GENDER'];
+export const SENSITIVE_ATTRIBUTE_TYPES: readonly EligibilityAttributeType[] = [
+  'AGE_BAND',
+  'GENDER',
+];
 
 /**
  * One shared rule language for every product: nested AND / OR / NOT over attribute tests. A rule set stores either the legacy flat

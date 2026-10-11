@@ -18,7 +18,11 @@ const PERMISSION: Record<CampaignProduct, Record<Mode, PermissionCode>> = {
 
 /** The branches a campaign content object touches. Empty = not tied to a branch (an organization-level campaign). */
 export function branchesOf(product: CampaignProduct, content: unknown): string[] {
-  const c = (content ?? {}) as { branchIds?: string[]; allocations?: Array<{ branchId: string }>; targeting?: { branchIds?: string[] } };
+  const c = (content ?? {}) as {
+    branchIds?: string[];
+    allocations?: Array<{ branchId: string }>;
+    targeting?: { branchIds?: string[] };
+  };
   const ids =
     product === 'EXCLUSIVE'
       ? (c.allocations ?? []).map((a) => a.branchId)
@@ -55,7 +59,9 @@ export class AccessScopeService {
   /** Organization-level work: scoped members need an organization-wide grant of this permission. */
   async org(actor: Actor, permission: PermissionCode): Promise<void> {
     if (!this.isScoped(actor)) return;
-    await this.scope.require(actor, permission, { organizationId: actor.membership!.organizationId });
+    await this.scope.require(actor, permission, {
+      organizationId: actor.membership!.organizationId,
+    });
   }
 
   /** Is the actor allowed this organization-level permission (no throw)? */
@@ -64,13 +70,23 @@ export class AccessScopeService {
     return this.scope.can(actor, permission, { organizationId: actor.membership!.organizationId });
   }
 
-  private targets(product: CampaignProduct, organizationId: string, campaignId: string | null, branches: string[]): ScopeTarget[] {
+  private targets(
+    product: CampaignProduct,
+    organizationId: string,
+    campaignId: string | null,
+    branches: string[],
+  ): ScopeTarget[] {
     const base = { organizationId, product, campaignId };
     return branches.length ? branches.map((b) => ({ ...base, branchId: b })) : [base];
   }
 
   /** One existing campaign. Read needs any of its branches in scope; write needs all of them. */
-  async campaign(actor: Actor, product: CampaignProduct, row: { id: string; organizationId: string; content: unknown }, mode: Mode): Promise<void> {
+  async campaign(
+    actor: Actor,
+    product: CampaignProduct,
+    row: { id: string; organizationId: string; content: unknown },
+    mode: Mode,
+  ): Promise<void> {
     if (!this.isScoped(actor)) return;
     const perm = PERMISSION[product][mode];
     const ts = this.targets(product, row.organizationId, row.id, branchesOf(product, row.content));
@@ -83,9 +99,18 @@ export class AccessScopeService {
   }
 
   /** Loads the campaign (404 for another business's) and checks the actor's scope against it. */
-  async guard(actor: Actor, product: CampaignProduct, organizationId: string, id: string, mode: Mode): Promise<void> {
+  async guard(
+    actor: Actor,
+    product: CampaignProduct,
+    organizationId: string,
+    id: string,
+    mode: Mode,
+  ): Promise<void> {
     if (!this.isScoped(actor)) return;
-    const args = { where: { id, organizationId }, select: { id: true, organizationId: true, content: true } };
+    const args = {
+      where: { id, organizationId },
+      select: { id: true, organizationId: true, content: true },
+    };
     const row =
       product === 'LIVE_DEAL'
         ? await this.prisma.liveDeal.findFirst(args)
@@ -99,21 +124,42 @@ export class AccessScopeService {
   }
 
   /** A campaign being created or its branches being changed: every branch must be in scope (no campaign id exists yet). */
-  async newCampaign(actor: Actor, product: CampaignProduct, organizationId: string, content: unknown): Promise<void> {
+  async newCampaign(
+    actor: Actor,
+    product: CampaignProduct,
+    organizationId: string,
+    content: unknown,
+  ): Promise<void> {
     if (!this.isScoped(actor)) return;
     const perm = PERMISSION[product].write;
-    await this.scope.requireAll(actor, perm, this.targets(product, organizationId, null, branchesOf(product, content)));
+    await this.scope.requireAll(
+      actor,
+      perm,
+      this.targets(product, organizationId, null, branchesOf(product, content)),
+    );
   }
 
   /** `null` = no restriction; otherwise the ids of this organization's campaigns the actor may read. */
-  async visibleCampaignIds(actor: Actor, product: CampaignProduct, organizationId: string): Promise<string[] | null> {
+  async visibleCampaignIds(
+    actor: Actor,
+    product: CampaignProduct,
+    organizationId: string,
+  ): Promise<string[] | null> {
     if (!this.isScoped(actor)) return null;
     const perm = PERMISSION[product].read;
     const grants = (await this.scope.grantsOf(actor)).filter((g) => g.permissions.has(perm));
     if (!grants.length) return [];
     const rows = await this.rows(product, organizationId);
     const out: string[] = [];
-    for (const r of rows) if (await this.anyBranch(grants, perm, this.targets(product, organizationId, r.id, branchesOf(product, r.content)))) out.push(r.id);
+    for (const r of rows)
+      if (
+        await this.anyBranch(
+          grants,
+          perm,
+          this.targets(product, organizationId, r.id, branchesOf(product, r.content)),
+        )
+      )
+        out.push(r.id);
     return out;
   }
 
@@ -122,7 +168,10 @@ export class AccessScopeService {
     return false;
   }
 
-  private rows(product: CampaignProduct, organizationId: string): Promise<Array<{ id: string; content: unknown }>> {
+  private rows(
+    product: CampaignProduct,
+    organizationId: string,
+  ): Promise<Array<{ id: string; content: unknown }>> {
     const args = { where: { organizationId }, select: { id: true, content: true } };
     switch (product) {
       case 'LIVE_DEAL':
@@ -143,10 +192,20 @@ export class AccessScopeService {
     return this.scope.visibleBranchIds(actor, permission);
   }
 
-  async branch(actor: Actor, permission: PermissionCode, branchId: string, opts: { product?: CampaignProduct; campaignId?: string } = {}): Promise<void> {
+  async branch(
+    actor: Actor,
+    permission: PermissionCode,
+    branchId: string,
+    opts: { product?: CampaignProduct; campaignId?: string } = {},
+  ): Promise<void> {
     if (!this.isScoped(actor)) return;
     const m = actor.membership!;
-    const t: ScopeTarget = { organizationId: m.organizationId, branchId, product: opts.product ?? null, campaignId: opts.campaignId ?? null };
+    const t: ScopeTarget = {
+      organizationId: m.organizationId,
+      branchId,
+      product: opts.product ?? null,
+      campaignId: opts.campaignId ?? null,
+    };
     if (!(await this.scope.can(actor, permission, t))) throw AppError.notFound();
   }
 }

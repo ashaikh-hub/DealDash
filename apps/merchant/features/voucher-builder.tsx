@@ -1130,7 +1130,13 @@ function BuilderInner({ voucherId }: { voucherId?: string }) {
           <Alert tone="info">{t('mv.payableRule')}</Alert>
         </>
       ) : null}
-      {!live ? <CommercialInputsEditor value={content.commercial} onChange={(commercial) => edit({ commercial })} product="VOUCHER" /> : null}
+      {!live ? (
+        <CommercialInputsEditor
+          value={content.commercial}
+          onChange={(commercial) => edit({ commercial })}
+          product="VOUCHER"
+        />
+      ) : null}
       {orgId ? (
         <CommercialPanel
           orgId={orgId}

@@ -54,11 +54,19 @@ function stub(routes: Record<string, R>, perms = READER) {
   vi.stubGlobal(
     'fetch',
     vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
-      const call: Call = { url, method: init?.method ?? 'GET', body: init?.body as string | undefined };
+      const url =
+        typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+      const call: Call = {
+        url,
+        method: init?.method ?? 'GET',
+        body: init?.body as string | undefined,
+      };
       calls.push(call);
       const json = (status: number, body: unknown) =>
-        new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
+        new Response(JSON.stringify(body), {
+          status,
+          headers: { 'content-type': 'application/json' },
+        });
       if (url.includes('/v1/auth/me')) return json(200, { data: me(perms), meta: {} });
       for (const key of Object.keys(routes).sort((a, b) => b.length - a.length))
         if (url.includes(key)) {
@@ -72,7 +80,8 @@ function stub(routes: Record<string, R>, perms = READER) {
   return calls;
 }
 afterEach(() => vi.unstubAllGlobals());
-const mount = (ui: React.ReactNode, locale: 'en' | 'ar' = 'en') => render(<Providers locale={locale}>{ui}</Providers>);
+const mount = (ui: React.ReactNode, locale: 'en' | 'ar' = 'en') =>
+  render(<Providers locale={locale}>{ui}</Providers>);
 
 const totals = {
   currency: 'SAR',
@@ -100,14 +109,25 @@ const caseView = (over: Record<string, unknown> = {}) => ({
   fulfilmentOrganizationId: ORG,
   developmentFixture: true,
   unusedTreatment: null,
-  quotation: { id: QUOTE, reference: 'QT-000001', version: 1, status: 'ACCEPTED', createdAt: new Date().toISOString(), delta: null },
+  quotation: {
+    id: QUOTE,
+    reference: 'QT-000001',
+    version: 1,
+    status: 'ACCEPTED',
+    createdAt: new Date().toISOString(),
+    delta: null,
+  },
   preview: {
     lines: [],
     totals,
     pricing: { source: 'DEFAULT', reference: null, versionKey: 'D:1', unusedTreatment: null },
     parties: [
       { role: 'OWNER', organizationId: ORG, requiredChecks: ['REVIEWED_TERMS', 'ACCEPT_TERMS'] },
-      { role: 'SPONSOR', organizationId: SPONSOR, requiredChecks: ['REVIEWED_TERMS', 'CONFIRM_FUNDING', 'ACCEPT_TERMS'] },
+      {
+        role: 'SPONSOR',
+        organizationId: SPONSOR,
+        requiredChecks: ['REVIEWED_TERMS', 'CONFIRM_FUNDING', 'ACCEPT_TERMS'],
+      },
     ],
     fundingRequirements: [],
     workflow: [],
@@ -144,9 +164,21 @@ const recon = {
   caseId: CASE,
   status: 'NOT_RUN',
   computedAt: new Date().toISOString(),
-  inventory: { configured: 5, issued: 2, redeemed: 1, expiredOrUnused: 0, invalidOrCancelled: 0, remaining: 4 },
+  inventory: {
+    configured: 5,
+    issued: 2,
+    redeemed: 1,
+    expiredOrUnused: 0,
+    invalidOrCancelled: 0,
+    remaining: 4,
+  },
   financial: [],
-  merchantBenefit: { committedHalalas: 9000, redeemedHalalas: 1800, unusedHalalas: 7200, note: 'non_cash_unused_commitment' },
+  merchantBenefit: {
+    committedHalalas: 9000,
+    redeemedHalalas: 1800,
+    unusedHalalas: 7200,
+    note: 'non_cash_unused_commitment',
+  },
   exceptions: [],
   treatment: null,
 };
@@ -173,7 +205,16 @@ describe('Admin commercial finance', () => {
     stub({
       '/commercial/overview': {
         body: {
-          data: { cases: { AWAITING_FUNDING: 2, CLOSED: 1 }, receivablesHalalas: 250_000, fundsHeldHalalas: 120_000, fundingUtilizedHalalas: 30_000, openHolds: 1, pendingCredit: 2, exceptions: 0, statutoryNote: 'statutory_formats_validate_ksa' },
+          data: {
+            cases: { AWAITING_FUNDING: 2, CLOSED: 1 },
+            receivablesHalalas: 250_000,
+            fundsHeldHalalas: 120_000,
+            fundingUtilizedHalalas: 30_000,
+            openHolds: 1,
+            pendingCredit: 2,
+            exceptions: 0,
+            statutoryNote: 'statutory_formats_validate_ksa',
+          },
           meta: {},
         },
       },
@@ -181,7 +222,9 @@ describe('Admin commercial finance', () => {
     mount(<AdminCommercialPage />);
     expect(await screen.findByTestId('ov-receivables')).toHaveTextContent('2,500.00');
     expect(screen.getByTestId('ov-held')).toHaveTextContent('1,200.00');
-    expect(screen.getByTestId('ac-overview')).toHaveTextContent('must be confirmed with qualified advisers');
+    expect(screen.getByTestId('ac-overview')).toHaveTextContent(
+      'must be confirmed with qualified advisers',
+    );
   });
 
   it('lists cases, marks development fixtures and opens one with its blockers, funding and the non-cash benefit shown apart', async () => {
@@ -200,7 +243,9 @@ describe('Admin commercial finance', () => {
     await user.click(screen.getByTestId('ac-open-CC-000001'));
     expect(await screen.findByTestId('ac-case-detail')).toBeInTheDocument();
     expect(screen.getByTestId('ac-blocker-ACCEPTANCE_MISSING')).toBeInTheDocument();
-    expect(screen.getByTestId('ac-blocker-UNUSED_FUNDING_TREATMENT_NOT_CONFIGURED')).toHaveTextContent('does not say what happens to unused funding');
+    expect(
+      screen.getByTestId('ac-blocker-UNUSED_FUNDING_TREATMENT_NOT_CONFIGURED'),
+    ).toHaveTextContent('does not say what happens to unused funding');
     const rc = await screen.findByTestId('ac-recon');
     expect(rc).toHaveTextContent('non-cash');
     expect(rc).toHaveTextContent('18.00');
@@ -209,7 +254,7 @@ describe('Admin commercial finance', () => {
     expect(screen.queryByTestId('ac-apply-agreement')).toBeNull();
   });
 
-  it('a Finance manager can apply the agreement\'s treatment, but cannot choose one', async () => {
+  it("a Finance manager can apply the agreement's treatment, but cannot choose one", async () => {
     const calls = stub(
       {
         [`/commercial/cases/${CASE}/apply-agreement`]: { body: { data: { ok: true }, meta: {} } },
@@ -225,7 +270,11 @@ describe('Admin commercial finance', () => {
     await user.click(await screen.findByRole('tab', { name: 'Cases' }));
     await user.click(await screen.findByTestId('ac-open-CC-000001'));
     await user.click(await screen.findByTestId('ac-apply-agreement'));
-    await waitFor(() => expect(calls.some((c) => c.url.includes('/apply-agreement') && c.method === 'POST')).toBe(true));
+    await waitFor(() =>
+      expect(calls.some((c) => c.url.includes('/apply-agreement') && c.method === 'POST')).toBe(
+        true,
+      ),
+    );
     // the request carries no treatment: it is always the agreement's
     expect(JSON.parse(calls.find((c) => c.url.includes('/apply-agreement'))!.body!)).toEqual({});
     expect(await screen.findByTestId('ac-banner')).toHaveTextContent('treatment was applied');
@@ -251,7 +300,11 @@ describe('Admin commercial finance', () => {
     mount(<AdminCommercialPage />);
     await user.click(await screen.findByRole('tab', { name: 'Credit' }));
     await user.click(await screen.findByTestId('ac-credit-approve'));
-    await waitFor(() => expect(calls.some((c) => c.url.endsWith('/credit/cr1/approve') && c.method === 'POST')).toBe(true));
+    await waitFor(() =>
+      expect(calls.some((c) => c.url.endsWith('/credit/cr1/approve') && c.method === 'POST')).toBe(
+        true,
+      ),
+    );
     expect(screen.queryByTestId('ac-credit-request')).toBeNull();
   });
 
@@ -260,7 +313,20 @@ describe('Admin commercial finance', () => {
       '/commercial/pricing': {
         body: {
           data: [
-            { id: 'a1', name: 'Alpha agreement', scope: 'ORGANIZATION', organizationId: ORG, entityType: null, product: 'EXCLUSIVE', priority: 10, version: 2, reference: 'AGR-1', unusedTreatment: 'REFUND', taxBps: null, components: {} },
+            {
+              id: 'a1',
+              name: 'Alpha agreement',
+              scope: 'ORGANIZATION',
+              organizationId: ORG,
+              entityType: null,
+              product: 'EXCLUSIVE',
+              priority: 10,
+              version: 2,
+              reference: 'AGR-1',
+              unusedTreatment: 'REFUND',
+              taxBps: null,
+              components: {},
+            },
           ],
           meta: {},
         },
@@ -286,7 +352,19 @@ describe('Admin commercial finance', () => {
   it('renders in Arabic', async () => {
     stub({
       '/commercial/overview': {
-        body: { data: { cases: {}, receivablesHalalas: 0, fundsHeldHalalas: 0, fundingUtilizedHalalas: 0, openHolds: 0, pendingCredit: 0, exceptions: 0, statutoryNote: 'statutory_formats_validate_ksa' }, meta: {} },
+        body: {
+          data: {
+            cases: {},
+            receivablesHalalas: 0,
+            fundsHeldHalalas: 0,
+            fundingUtilizedHalalas: 0,
+            openHolds: 0,
+            pendingCredit: 0,
+            exceptions: 0,
+            statutoryNote: 'statutory_formats_validate_ksa',
+          },
+          meta: {},
+        },
       },
     });
     mount(<AdminCommercialPage />, 'ar');

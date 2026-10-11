@@ -44,7 +44,14 @@ describe('commercial quote calculator', () => {
       pricing([
         comp({ code: 'per', basis: 'PER_UNIT', amountHalalas: 100 }),
         comp({ code: 'setup', basis: 'FIXED', amountHalalas: 5000, trigger: 'UPFRONT' }),
-        comp({ code: 'pct', basis: 'PERCENT_OF_BASE', bps: 1000, base: 'SELLING_PRICE', collection: 'NETTED', taxable: false }),
+        comp({
+          code: 'pct',
+          basis: 'PERCENT_OF_BASE',
+          bps: 1000,
+          base: 'SELLING_PRICE',
+          collection: 'NETTED',
+          taxable: false,
+        }),
       ]),
     );
     // 100 x 100 + 5000 in cash; 10% of 8000 x 100 = 80,000 netted from the merchant payout
@@ -56,7 +63,10 @@ describe('commercial quote calculator', () => {
   it('applies a minimum charge and ignores disabled components', () => {
     const { totals } = calculateQuote(
       econ({ maxUnits: 2 }),
-      pricing([comp({ amountHalalas: 100, minimumHalalas: 5000 }), comp({ code: 'off', enabled: false, amountHalalas: 999_999 })]),
+      pricing([
+        comp({ amountHalalas: 100, minimumHalalas: 5000 }),
+        comp({ code: 'off', enabled: false, amountHalalas: 999_999 }),
+      ]),
     );
     expect(totals.maxCashPayableToDealDashHalalas).toBe(5000);
   });
@@ -74,7 +84,9 @@ describe('commercial quote calculator', () => {
   it('keeps sponsor funding separate from DealDash revenue, per sponsor, and the merchant benefit non-cash', () => {
     const { lines, totals } = calculateQuote(
       econ({
-        sponsors: [{ organizationId: SPONSOR, perUnitHalalas: 500, trigger: 'VERIFIED_REDEMPTION' }],
+        sponsors: [
+          { organizationId: SPONSOR, perUnitHalalas: 500, trigger: 'VERIFIED_REDEMPTION' },
+        ],
         merchantCashPerUnit: 300,
       }),
       pricing([comp({})]),
@@ -93,7 +105,11 @@ describe('commercial quote calculator', () => {
     const open = calculateQuote(econ({ maxUnits: 0 }), pricing([comp({})]));
     expect(open.totals.issues).toContain('UNBOUNDED_FEE');
     const over = calculateQuote(
-      econ({ sponsors: [{ organizationId: SPONSOR, perUnitHalalas: 5000, trigger: 'VERIFIED_REDEMPTION' }] }),
+      econ({
+        sponsors: [
+          { organizationId: SPONSOR, perUnitHalalas: 5000, trigger: 'VERIFIED_REDEMPTION' },
+        ],
+      }),
       pricing([]),
     );
     expect(over.totals.issues).toContain('FUNDING_EXCEEDS_BENEFIT');
@@ -120,7 +136,11 @@ describe('commercial quote calculator', () => {
     const more = calculateQuote(econ({ maxUnits: 150 }), p).totals;
     const less = calculateQuote(econ({ maxUnits: 50 }), p).totals;
     const up = amendmentDelta(before, more);
-    expect(up.maxCashPayableToDealDash).toEqual({ original: 10_000, additional: 5000, revised: 15_000 });
+    expect(up.maxCashPayableToDealDash).toEqual({
+      original: 10_000,
+      additional: 5000,
+      revised: 15_000,
+    });
     expect(up.increasesExposure).toBe(true);
     expect(amendmentDelta(before, less).increasesExposure).toBe(false);
   });

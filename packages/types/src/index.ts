@@ -341,6 +341,8 @@ export const PERMISSION_CODES = [
   'admin.privacy.manage',
   'admin.privacy.approve',
   'customer.reviews.manage',
+  // Stage 9: emergency launch controls (market stops) - immediate, audited, reason required
+  'admin.launch.control',
 ] as const;
 export type PermissionCode = (typeof PERMISSION_CODES)[number];
 
@@ -537,6 +539,8 @@ export const ROLE_PERMISSIONS: Record<RoleCode, readonly PermissionCode[]> = {
     'admin.disputes.manage',
     'admin.restrictions.manage',
     'admin.notifications.manage',
+    // Stage 9: may pull an emergency market stop (immediate, audited, reason required)
+    'admin.launch.control',
   ],
   DEALDASH_MERCHANT_MANAGEMENT: [
     'admin.markets.read',
@@ -789,6 +793,12 @@ export const ERROR_CODES = {
   REVIEW_LIMIT_REACHED: 'REVIEW_LIMIT_REACHED',
   RECON_INVALID: 'RECON_INVALID',
   ADJUSTMENT_NOT_APPLICABLE: 'ADJUSTMENT_NOT_APPLICABLE',
+  // Stage 9: launch controls and governed configuration
+  PILOT_NOT_ENABLED: 'PILOT_NOT_ENABLED',
+  LAUNCH_PAUSED: 'LAUNCH_PAUSED',
+  CONFIG_CHANGE_STALE: 'CONFIG_CHANGE_STALE',
+  PROVIDER_NOT_CONFIGURED: 'PROVIDER_NOT_CONFIGURED',
+  LEGAL_HOLD_ACTIVE: 'LEGAL_HOLD_ACTIVE',
   INTERNAL: 'INTERNAL',
 } as const;
 export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];
@@ -947,3 +957,4 @@ export * from './ai';
 export * from './markets';
 export * from './partners';
 export * from './operations';
+export * from './web-security';

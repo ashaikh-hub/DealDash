@@ -21,7 +21,8 @@ import {
   Idempotent,
   Meta,
   Public,
-  RequirePermissions, ScopeAware
+  RequirePermissions,
+  ScopeAware,
 } from '../common/decorators';
 import { APP_ENV } from '../common/env';
 import type { Actor, RequestMeta } from '../common/request-context';

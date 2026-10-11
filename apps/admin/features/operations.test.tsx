@@ -15,7 +15,13 @@ const ORG = '018f0000-0000-7000-8000-0000000000aa';
 const CASE = '018f0000-0000-7000-8000-0000000000c1';
 const RULE = '018f0000-0000-7000-8000-0000000000e1';
 const FLAG = '018f0000-0000-7000-8000-0000000000f1';
-const OPS = ['admin.disputes.read', 'admin.disputes.manage', 'admin.conflicts.manage', 'admin.campaigns.review', 'admin.platform.read'];
+const OPS = [
+  'admin.disputes.read',
+  'admin.disputes.manage',
+  'admin.conflicts.manage',
+  'admin.campaigns.review',
+  'admin.platform.read',
+];
 const LOYALTY = ['admin.loyalty.read', 'admin.loyalty.manage', 'admin.loyalty.approve'];
 const me = (permissions: string[], locale: 'en' | 'ar' = 'en') => ({
   id: '018f0000-0000-7000-8000-000000000009',
@@ -49,10 +55,19 @@ function stub(routes: Record<string, R>, perms: string[] = OPS, locale: 'en' | '
   vi.stubGlobal(
     'fetch',
     vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
-      const call: Call = { url, method: init?.method ?? 'GET', body: init?.body as string | undefined };
+      const url =
+        typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+      const call: Call = {
+        url,
+        method: init?.method ?? 'GET',
+        body: init?.body as string | undefined,
+      };
       calls.push(call);
-      const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
+      const json = (status: number, body: unknown) =>
+        new Response(JSON.stringify(body), {
+          status,
+          headers: { 'content-type': 'application/json' },
+        });
       if (url.includes('/v1/auth/me')) return json(200, { data: me(perms, locale), meta: {} });
       if (url.startsWith('http://upload.test/')) return new Response('', { status: 200 });
       for (const key of Object.keys(routes).sort((a, b) => b.length - a.length))
@@ -67,7 +82,8 @@ function stub(routes: Record<string, R>, perms: string[] = OPS, locale: 'en' | '
   return calls;
 }
 afterEach(() => vi.unstubAllGlobals());
-const mount = (ui: React.ReactNode, locale: 'en' | 'ar' = 'en') => render(<Providers locale={locale}>{ui}</Providers>);
+const mount = (ui: React.ReactNode, locale: 'en' | 'ar' = 'en') =>
+  render(<Providers locale={locale}>{ui}</Providers>);
 
 const task = (over: Record<string, unknown> = {}) => ({
   kind: 'CAMPAIGN_REVIEW',
@@ -99,11 +115,34 @@ const caseRow = (over: Record<string, unknown> = {}) => ({
   resolvedAt: null,
   financialAdjustmentId: null,
   notes: [
-    { id: 'n1', visibility: 'INTERNAL', body: 'Check the ledger', fromBusiness: false, createdAt: new Date().toISOString() },
-    { id: 'n2', visibility: 'SHARED', body: 'We are looking into it', fromBusiness: false, createdAt: new Date().toISOString() },
+    {
+      id: 'n1',
+      visibility: 'INTERNAL',
+      body: 'Check the ledger',
+      fromBusiness: false,
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: 'n2',
+      visibility: 'SHARED',
+      body: 'We are looking into it',
+      fromBusiness: false,
+      createdAt: new Date().toISOString(),
+    },
   ],
   attachments: [
-    { id: 'a1', fileId: 'f1', type: 'SCREENSHOT', label: 'Payout screen', fileName: 'p.png', mimeType: 'image/png', sizeBytes: 100, visibility: 'SHARED', fromBusiness: true, uploadedAt: new Date().toISOString() },
+    {
+      id: 'a1',
+      fileId: 'f1',
+      type: 'SCREENSHOT',
+      label: 'Payout screen',
+      fileName: 'p.png',
+      mimeType: 'image/png',
+      sizeBytes: 100,
+      visibility: 'SHARED',
+      fromBusiness: true,
+      uploadedAt: new Date().toISOString(),
+    },
   ],
   ...over,
 });
@@ -146,8 +185,22 @@ describe('Admin operations: inbox', () => {
         body: {
           data: [
             task(),
-            task({ kind: 'DISPUTE', title: 'DC-1: x', subject: 'DC-AB12CD34: Payout lower', detail: 'SLA_MISSED', priority: 'CRITICAL', entityType: 'DisputeCase', entityId: CASE, requiredPermission: 'admin.disputes.read' }),
-            task({ kind: 'LOYALTY_APPROVAL', subject: 'Bank bonus', entityType: 'LoyaltyRule', requiredPermission: 'admin.loyalty.approve' }),
+            task({
+              kind: 'DISPUTE',
+              title: 'DC-1: x',
+              subject: 'DC-AB12CD34: Payout lower',
+              detail: 'SLA_MISSED',
+              priority: 'CRITICAL',
+              entityType: 'DisputeCase',
+              entityId: CASE,
+              requiredPermission: 'admin.disputes.read',
+            }),
+            task({
+              kind: 'LOYALTY_APPROVAL',
+              subject: 'Bank bonus',
+              entityType: 'LoyaltyRule',
+              requiredPermission: 'admin.loyalty.approve',
+            }),
           ],
           meta: {},
         },
@@ -156,11 +209,16 @@ describe('Admin operations: inbox', () => {
     mount(<AdminOperationsPage />);
     const review = await screen.findByTestId('op-task-CAMPAIGN_REVIEW');
     expect(review).toHaveTextContent('Campaign waiting for review: Dinner for two');
-    expect(within(review).getByRole('link')).toHaveAttribute('href', expect.stringContaining('/hot-deals/018f0000'));
+    expect(within(review).getByRole('link')).toHaveAttribute(
+      'href',
+      expect.stringContaining('/hot-deals/018f0000'),
+    );
     const late = screen.getByTestId('op-task-DISPUTE');
     expect(late).toHaveTextContent('Deadline passed');
     expect(late).toHaveTextContent('Critical');
-    expect(screen.getByTestId('op-task-LOYALTY_APPROVAL')).toHaveTextContent('Loyalty rule waiting for approval: Bank bonus');
+    expect(screen.getByTestId('op-task-LOYALTY_APPROVAL')).toHaveTextContent(
+      'Loyalty rule waiting for approval: Bank bonus',
+    );
     expect(screen.getByTestId('op-inbox')).toHaveTextContent('cannot be hidden');
   });
 
@@ -171,7 +229,18 @@ describe('Admin operations: inbox', () => {
   });
 
   it('renders in Arabic, right-to-left, with Arabic task text (the document direction itself is checked in the browser run)', async () => {
-    stub({ '/v1/admin/inbox': { body: { data: [task({ kind: 'LOYALTY_APPROVAL', subject: 'Bank bonus', priority: 'HIGH' })], meta: {} } } }, OPS, 'ar');
+    stub(
+      {
+        '/v1/admin/inbox': {
+          body: {
+            data: [task({ kind: 'LOYALTY_APPROVAL', subject: 'Bank bonus', priority: 'HIGH' })],
+            meta: {},
+          },
+        },
+      },
+      OPS,
+      'ar',
+    );
     mount(<AdminOperationsPage />, 'ar');
     const row = await screen.findByTestId('op-task-LOYALTY_APPROVAL');
     expect(row).toHaveTextContent('قاعدة ولاء بانتظار الاعتماد: Bank bonus');
@@ -193,8 +262,20 @@ describe('Admin operations: inbox', () => {
 describe('Admin operations: cases and evidence', () => {
   it('lists cases, shows internal notes to DealDash only with a label, and attaches evidence through the file flow', async () => {
     const calls = stub({
-      [`/v1/admin/disputes/${CASE}/attachments/intent`]: { body: { data: { fileId: '018f0000-0000-7000-8000-0000000000f2', uploadUrl: 'http://upload.test/put', headers: { 'content-type': 'image/png' } }, meta: {} } },
-      [`/v1/admin/disputes/${CASE}/attachments`]: { status: 201, body: { data: caseRow(), meta: {} } },
+      [`/v1/admin/disputes/${CASE}/attachments/intent`]: {
+        body: {
+          data: {
+            fileId: '018f0000-0000-7000-8000-0000000000f2',
+            uploadUrl: 'http://upload.test/put',
+            headers: { 'content-type': 'image/png' },
+          },
+          meta: {},
+        },
+      },
+      [`/v1/admin/disputes/${CASE}/attachments`]: {
+        status: 201,
+        body: { data: caseRow(), meta: {} },
+      },
       [`/v1/admin/disputes/${CASE}`]: { body: { data: caseRow(), meta: {} } },
       '/v1/admin/disputes': { body: { data: [caseRow()], meta: {} } },
       '/v1/admin/inbox': { body: { data: [], meta: {} } },
@@ -212,18 +293,32 @@ describe('Admin operations: cases and evidence', () => {
     expect(within(detail).getByTestId('op-evidence')).toHaveTextContent('Payout screen');
     const file = new File([new Uint8Array([137, 80, 78, 71])], 'proof.png', { type: 'image/png' });
     await user.upload(document.getElementById('op-ev-file') as HTMLInputElement, file);
-    await waitFor(() => expect(calls.some((c) => c.method === 'POST' && c.url.endsWith(`/disputes/${CASE}/attachments`))).toBe(true));
-    const attach = calls.find((c) => c.method === 'POST' && c.url.endsWith(`/disputes/${CASE}/attachments`))!;
-    expect(JSON.parse(attach.body!)).toMatchObject({ fileId: '018f0000-0000-7000-8000-0000000000f2', type: 'DOCUMENT', visibility: 'SHARED' });
+    await waitFor(() =>
+      expect(
+        calls.some((c) => c.method === 'POST' && c.url.endsWith(`/disputes/${CASE}/attachments`)),
+      ).toBe(true),
+    );
+    const attach = calls.find(
+      (c) => c.method === 'POST' && c.url.endsWith(`/disputes/${CASE}/attachments`),
+    )!;
+    expect(JSON.parse(attach.body!)).toMatchObject({
+      fileId: '018f0000-0000-7000-8000-0000000000f2',
+      type: 'DOCUMENT',
+      visibility: 'SHARED',
+    });
     expect(calls.some((c) => c.method === 'PUT' && c.url === 'http://upload.test/put')).toBe(true);
     expect(await screen.findByText('The file was attached.')).toBeInTheDocument();
   });
 
   it('takes the case, adds a shared note, and closes it with a recorded resolution', async () => {
     const calls = stub({
-      [`/v1/admin/disputes/${CASE}/assign`]: { body: { data: caseRow({ status: 'IN_REVIEW' }), meta: {} } },
+      [`/v1/admin/disputes/${CASE}/assign`]: {
+        body: { data: caseRow({ status: 'IN_REVIEW' }), meta: {} },
+      },
       [`/v1/admin/disputes/${CASE}/notes`]: { status: 201, body: { data: caseRow(), meta: {} } },
-      [`/v1/admin/disputes/${CASE}/resolve`]: { body: { data: caseRow({ status: 'RESOLVED', resolution: 'Explained' }), meta: {} } },
+      [`/v1/admin/disputes/${CASE}/resolve`]: {
+        body: { data: caseRow({ status: 'RESOLVED', resolution: 'Explained' }), meta: {} },
+      },
       [`/v1/admin/disputes/${CASE}`]: { body: { data: caseRow(), meta: {} } },
       '/v1/admin/disputes': { body: { data: [caseRow()], meta: {} } },
       '/v1/admin/inbox': { body: { data: [], meta: {} } },
@@ -238,12 +333,19 @@ describe('Admin operations: cases and evidence', () => {
     await user.type(screen.getByLabelText('Your note'), 'Sent the statement');
     await user.click(screen.getByTestId('op-note-add'));
     await waitFor(() => expect(calls.find((c) => c.url.endsWith('/notes'))).toBeTruthy());
-    expect(JSON.parse(calls.find((c) => c.url.endsWith('/notes'))!.body!)).toEqual({ body: 'Sent the statement', visibility: 'SHARED' });
+    expect(JSON.parse(calls.find((c) => c.url.endsWith('/notes'))!.body!)).toEqual({
+      body: 'Sent the statement',
+      visibility: 'SHARED',
+    });
     expect(screen.getByTestId('op-case-resolve')).toBeDisabled();
     await user.type(screen.getByLabelText('What was decided and why'), 'Fee rule explained');
     await user.click(screen.getByTestId('op-case-resolve'));
     await waitFor(() => expect(calls.find((c) => c.url.endsWith('/resolve'))).toBeTruthy());
-    expect(JSON.parse(calls.find((c) => c.url.endsWith('/resolve'))!.body!)).toMatchObject({ outcome: 'RESOLVED', resolution: 'Fee rule explained', financialAdjustmentId: null });
+    expect(JSON.parse(calls.find((c) => c.url.endsWith('/resolve'))!.body!)).toMatchObject({
+      outcome: 'RESOLVED',
+      resolution: 'Fee rule explained',
+      financialAdjustmentId: null,
+    });
   });
 
   it('a reader without manage rights sees the case but no controls', async () => {
@@ -273,7 +375,10 @@ describe('Admin operations: offer conflicts', () => {
     organizationId: ORG,
     type: 'OVERLAP_WEAKER_EXCLUSIVE',
     status: 'OPEN',
-    details: { exclusive: { mechanic: 'PERCENTAGE_OFF', value: 20 }, publicOffer: { mechanic: 'PERCENTAGE_OFF', value: 50 } },
+    details: {
+      exclusive: { mechanic: 'PERCENTAGE_OFF', value: 20 },
+      publicOffer: { mechanic: 'PERCENTAGE_OFF', value: 50 },
+    },
     decisionNote: null,
     createdAt: new Date().toISOString(),
     ...over,
@@ -281,7 +386,9 @@ describe('Admin operations: offer conflicts', () => {
 
   it('a person decides with a reason; deciding is disabled until the reason is written', async () => {
     const calls = stub({
-      [`/v1/admin/conflicts/${FLAG}/decide`]: { body: { data: flag({ status: 'REQUIRES_CHANGE' }), meta: {} } },
+      [`/v1/admin/conflicts/${FLAG}/decide`]: {
+        body: { data: flag({ status: 'REQUIRES_CHANGE' }), meta: {} },
+      },
       '/v1/admin/conflicts': { body: { data: [flag()], meta: {} } },
       '/v1/admin/inbox': { body: { data: [], meta: {} } },
     });
@@ -292,10 +399,16 @@ describe('Admin operations: offer conflicts', () => {
     expect(card).toHaveTextContent('An Exclusive Deal is weaker than the public deal');
     expect(card).toHaveTextContent('Exclusive: PERCENTAGE_OFF 20');
     expect(screen.getByTestId('op-conf-REQUIRES_CHANGE')).toBeDisabled();
-    await user.type(screen.getByLabelText('Reason for your decision'), 'Exclusive must beat the public offer');
+    await user.type(
+      screen.getByLabelText('Reason for your decision'),
+      'Exclusive must beat the public offer',
+    );
     await user.click(screen.getByTestId('op-conf-REQUIRES_CHANGE'));
     await waitFor(() => expect(calls.find((c) => c.url.endsWith('/decide'))).toBeTruthy());
-    expect(JSON.parse(calls.find((c) => c.url.endsWith('/decide'))!.body!)).toEqual({ decision: 'REQUIRES_CHANGE', note: 'Exclusive must beat the public offer' });
+    expect(JSON.parse(calls.find((c) => c.url.endsWith('/decide'))!.body!)).toEqual({
+      decision: 'REQUIRES_CHANGE',
+      note: 'Exclusive must beat the public offer',
+    });
   });
   it('the scan reports what it checked and how many new flags it raised', async () => {
     const calls = stub({
@@ -319,8 +432,26 @@ describe('Admin operations: activity', () => {
         body: {
           data: {
             items: [
-              { id: 'a1', at: new Date().toISOString(), summary: 'Dispute opened', action: 'DISPUTE_OPENED', entityType: 'DisputeCase', entityId: CASE, reason: null, actor: { userId: 'u1', role: 'DEALDASH_FINANCE', organizationId: 'dd' } },
-              { id: 'a2', at: new Date().toISOString(), summary: 'Something unusual happened', action: 'unknown.thing', entityType: 'X', entityId: null, reason: 'Because', actor: { userId: null, role: null, organizationId: null } },
+              {
+                id: 'a1',
+                at: new Date().toISOString(),
+                summary: 'Dispute opened',
+                action: 'DISPUTE_OPENED',
+                entityType: 'DisputeCase',
+                entityId: CASE,
+                reason: null,
+                actor: { userId: 'u1', role: 'DEALDASH_FINANCE', organizationId: 'dd' },
+              },
+              {
+                id: 'a2',
+                at: new Date().toISOString(),
+                summary: 'Something unusual happened',
+                action: 'unknown.thing',
+                entityType: 'X',
+                entityId: null,
+                reason: 'Because',
+                actor: { userId: null, role: null, organizationId: null },
+              },
             ],
             next: null,
           },
@@ -344,7 +475,9 @@ describe('Admin loyalty', () => {
   it('lists rules with funder and agreement status; a different person approves; the author is told why', async () => {
     const calls = stub(
       {
-        [`/v1/admin/loyalty/rules/${RULE}/approve`]: { body: { data: rule({ status: 'ACTIVE' }), meta: {} } },
+        [`/v1/admin/loyalty/rules/${RULE}/approve`]: {
+          body: { data: rule({ status: 'ACTIVE' }), meta: {} },
+        },
         '/v1/admin/loyalty/rules': { body: { data: [rule()], meta: {} } },
       },
       LOYALTY,
@@ -357,13 +490,18 @@ describe('Admin loyalty', () => {
     expect(row).toHaveTextContent('An Exclusive Deal redemption');
     expect(screen.getByTestId('loyalty')).toHaveTextContent('no fixed cash value');
     await user.click(screen.getByTestId('lo-approve-Bank bonus'));
-    await waitFor(() => expect(calls.find((c) => c.url.endsWith(`/rules/${RULE}/approve`))).toBeTruthy());
+    await waitFor(() =>
+      expect(calls.find((c) => c.url.endsWith(`/rules/${RULE}/approve`))).toBeTruthy(),
+    );
   });
 
   it('creates a rule: a funded rule shows the funder fields, the rate is sent in halalas, caps are optional', async () => {
     const calls = stub(
       {
-        '/v1/admin/loyalty/rules': (c) => (c.method === 'POST' ? { status: 201, body: { data: rule({ status: 'DRAFT' }), meta: {} } } : { body: { data: [], meta: {} } }),
+        '/v1/admin/loyalty/rules': (c) =>
+          c.method === 'POST'
+            ? { status: 201, body: { data: rule({ status: 'DRAFT' }), meta: {} } }
+            : { body: { data: [], meta: {} } },
       },
       LOYALTY,
     );
@@ -395,10 +533,47 @@ describe('Admin loyalty', () => {
           body: {
             data: {
               rows: [
-                { ruleId: RULE, ruleName: 'Bank bonus', fundingSource: 'BANK', allocated: 1000, issued: 250, reversed: 10, redeemed: 40, expired: 0, outstanding: 200, remainingAllocation: 750, fundingHalalasPerPoint: 5, fundingUtilizedHalalas: 1250, fundingReceivedHalalas: 5000, outstandingLiabilityHalalas: 1000 },
-                { ruleId: null, ruleName: 'DealDash welcome', fundingSource: 'DEALDASH', allocated: 500, issued: 20, reversed: 0, redeemed: 0, expired: 0, outstanding: 20, remainingAllocation: 480, fundingHalalasPerPoint: null, fundingUtilizedHalalas: null, fundingReceivedHalalas: null, outstandingLiabilityHalalas: null },
+                {
+                  ruleId: RULE,
+                  ruleName: 'Bank bonus',
+                  fundingSource: 'BANK',
+                  allocated: 1000,
+                  issued: 250,
+                  reversed: 10,
+                  redeemed: 40,
+                  expired: 0,
+                  outstanding: 200,
+                  remainingAllocation: 750,
+                  fundingHalalasPerPoint: 5,
+                  fundingUtilizedHalalas: 1250,
+                  fundingReceivedHalalas: 5000,
+                  outstandingLiabilityHalalas: 1000,
+                },
+                {
+                  ruleId: null,
+                  ruleName: 'DealDash welcome',
+                  fundingSource: 'DEALDASH',
+                  allocated: 500,
+                  issued: 20,
+                  reversed: 0,
+                  redeemed: 0,
+                  expired: 0,
+                  outstanding: 20,
+                  remainingAllocation: 480,
+                  fundingHalalasPerPoint: null,
+                  fundingUtilizedHalalas: null,
+                  fundingReceivedHalalas: null,
+                  outstandingLiabilityHalalas: null,
+                },
               ],
-              totals: { issued: 270, reversed: 10, redeemed: 40, expired: 0, outstanding: 220, held: 5 },
+              totals: {
+                issued: 270,
+                reversed: 10,
+                redeemed: 40,
+                expired: 0,
+                outstanding: 220,
+                held: 5,
+              },
               note: 'points_have_no_fixed_cash_value',
             },
             meta: {},
@@ -416,7 +591,9 @@ describe('Admin loyalty', () => {
     const funded = screen.getByTestId('lo-fin-Bank bonus');
     expect(funded).toHaveTextContent('SAR 12.5');
     expect(funded).toHaveTextContent('SAR 50');
-    expect(screen.getByTestId('lo-fin-DealDash welcome')).toHaveTextContent('Not funded by a business');
+    expect(screen.getByTestId('lo-fin-DealDash welcome')).toHaveTextContent(
+      'Not funded by a business',
+    );
   });
 
   it('renders the loyalty workspace in Arabic', async () => {

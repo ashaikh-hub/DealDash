@@ -54,12 +54,22 @@ export class IngestService {
   /** Validates an untrusted object and applies it. Throws AppError on a record the platform will not accept. */
   async applyRaw(ctx: IngestContext, raw: unknown): Promise<ApplyResult> {
     const type = (raw as { type?: string } | null)?.type;
-    const schema = type === 'MERCHANT' ? merchantRecordSchema : type === 'BRANCH' ? branchRecordSchema : type === 'OFFER' ? offerRecordSchema : null;
+    const schema =
+      type === 'MERCHANT'
+        ? merchantRecordSchema
+        : type === 'BRANCH'
+          ? branchRecordSchema
+          : type === 'OFFER'
+            ? offerRecordSchema
+            : null;
     if (!schema) throw AppError.validation('Unknown record type', 'type');
     const parsed = schema.safeParse(raw);
     if (!parsed.success) {
       const first = parsed.error.issues[0]!;
-      throw AppError.validation(`${first.path.join('.') || 'record'}: ${first.message}`, first.path.join('.') || 'record');
+      throw AppError.validation(
+        `${first.path.join('.') || 'record'}: ${first.message}`,
+        first.path.join('.') || 'record',
+      );
     }
     return this.apply(ctx, parsed.data);
   }
@@ -90,7 +100,11 @@ export class IngestService {
   }
 
   private async policyFor(entityType: string, field: string, registered: boolean): Promise<Policy> {
-    const c = await this.config.get<{ default: Policy; registeredMerchant: Policy; fields: Record<string, Policy> }>(CONFIG_KEYS.PLATFORM_CONFLICT_POLICY);
+    const c = await this.config.get<{
+      default: Policy;
+      registeredMerchant: Policy;
+      fields: Record<string, Policy>;
+    }>(CONFIG_KEYS.PLATFORM_CONFLICT_POLICY);
     return c.fields[`${entityType}.${field}`] ?? (registered ? c.registeredMerchant : c.default);
   }
 
@@ -121,35 +135,90 @@ export class IngestService {
       const policy = await this.policyFor(entityType, field, opts.registered);
       if (policy === 'SOURCE_WINS') {
         apply[field] = value;
-        await tx.dataConflict.create({ data: { entityType, entityId, field, sourceSystem: ctx.sourceSystem, sourceValue: value as Prisma.InputJsonValue, localValue: (current[field] ?? null) as Prisma.InputJsonValue, policy, status: 'RESOLVED', resolution: 'SOURCE_WINS', resolvedAt: new Date() } });
+        await tx.dataConflict.create({
+          data: {
+            entityType,
+            entityId,
+            field,
+            sourceSystem: ctx.sourceSystem,
+            sourceValue: value as Prisma.InputJsonValue,
+            localValue: (current[field] ?? null) as Prisma.InputJsonValue,
+            policy,
+            status: 'RESOLVED',
+            resolution: 'SOURCE_WINS',
+            resolvedAt: new Date(),
+          },
+        });
         continue;
       }
       if (policy === 'DEALDASH_WINS' || policy === 'MERCHANT_WINS') {
-        await tx.dataConflict.create({ data: { entityType, entityId, field, sourceSystem: ctx.sourceSystem, sourceValue: value as Prisma.InputJsonValue, localValue: (current[field] ?? null) as Prisma.InputJsonValue, policy, status: 'RESOLVED', resolution: policy, resolvedAt: new Date() } });
+        await tx.dataConflict.create({
+          data: {
+            entityType,
+            entityId,
+            field,
+            sourceSystem: ctx.sourceSystem,
+            sourceValue: value as Prisma.InputJsonValue,
+            localValue: (current[field] ?? null) as Prisma.InputJsonValue,
+            policy,
+            status: 'RESOLVED',
+            resolution: policy,
+            resolvedAt: new Date(),
+          },
+        });
         continue;
       }
       // MANUAL_REVIEW: keep the local value, remember the disagreement once
-      const dup = await tx.dataConflict.findFirst({ where: { entityType, entityId, field, status: 'OPEN' } });
-      if (dup) await tx.dataConflict.update({ where: { id: dup.id }, data: { sourceValue: value as Prisma.InputJsonValue } });
+      const dup = await tx.dataConflict.findFirst({
+        where: { entityType, entityId, field, status: 'OPEN' },
+      });
+      if (dup)
+        await tx.dataConflict.update({
+          where: { id: dup.id },
+          data: { sourceValue: value as Prisma.InputJsonValue },
+        });
       else {
-        await tx.dataConflict.create({ data: { entityType, entityId, field, sourceSystem: ctx.sourceSystem, sourceValue: value as Prisma.InputJsonValue, localValue: (current[field] ?? null) as Prisma.InputJsonValue, policy } });
+        await tx.dataConflict.create({
+          data: {
+            entityType,
+            entityId,
+            field,
+            sourceSystem: ctx.sourceSystem,
+            sourceValue: value as Prisma.InputJsonValue,
+            localValue: (current[field] ?? null) as Prisma.InputJsonValue,
+            policy,
+          },
+        });
         conflicts++;
       }
-      await tx.externalEntityReference.updateMany({ where: { entityType, entityId }, data: { overrideStatus: 'PENDING_RECONCILIATION' } });
+      await tx.externalEntityReference.updateMany({
+        where: { entityType, entityId },
+        data: { overrideStatus: 'PENDING_RECONCILIATION' },
+      });
     }
     return { apply, conflicts };
   }
 
   private async findRef(tx: Tx, ctx: IngestContext, entityType: string, sourceRecordId: string) {
     return tx.externalEntityReference.findUnique({
-      where: { sourceSystem_entityType_sourceRecordId: { sourceSystem: ctx.sourceSystem, entityType, sourceRecordId } },
+      where: {
+        sourceSystem_entityType_sourceRecordId: {
+          sourceSystem: ctx.sourceSystem,
+          entityType,
+          sourceRecordId,
+        },
+      },
     });
   }
 
   /** Another organization's source cannot update a record through the same source system name. */
   private assertSameSource(ctx: IngestContext, ref: { sourceOrganizationId: string | null }) {
     if ((ref.sourceOrganizationId ?? null) !== (ctx.sourceOrganizationId ?? null))
-      throw new AppError('SCOPE_FORBIDDEN', 'This source record belongs to another organization', 403);
+      throw new AppError(
+        'SCOPE_FORBIDDEN',
+        'This source record belongs to another organization',
+        403,
+      );
   }
 
   // ---------------------------------------------------------------- merchants
@@ -160,31 +229,81 @@ export class IngestService {
     if (ref) {
       this.assertSameSource(ctx, ref);
       const m = await tx.masterMerchant.findUniqueOrThrow({ where: { id: ref.entityId } });
-      if (m.status !== 'ACTIVE') throw new AppError('INVALID_STATE', 'This merchant record was merged or closed', 409);
-      const r = await this.reconcile(tx, ctx, 'MERCHANT', m.id, { nameEn: m.nameEn, nameAr: m.nameAr, country: m.country, categoryCode: m.categoryCode }, { nameEn: rec.nameEn, nameAr: rec.nameAr, country: rec.country, categoryCode: rec.categoryCode }, { registered: m.registration === 'REGISTERED', editableBy: ref.editableBy });
+      if (m.status !== 'ACTIVE')
+        throw new AppError('INVALID_STATE', 'This merchant record was merged or closed', 409);
+      const r = await this.reconcile(
+        tx,
+        ctx,
+        'MERCHANT',
+        m.id,
+        { nameEn: m.nameEn, nameAr: m.nameAr, country: m.country, categoryCode: m.categoryCode },
+        {
+          nameEn: rec.nameEn,
+          nameAr: rec.nameAr,
+          country: rec.country,
+          categoryCode: rec.categoryCode,
+        },
+        { registered: m.registration === 'REGISTERED', editableBy: ref.editableBy },
+      );
       const data: Prisma.MasterMerchantUncheckedUpdateInput = { ...(r.apply as object) };
-      if (typeof r.apply.nameEn === 'string') data.normalizedName = await this.master.normalize(r.apply.nameEn);
+      if (typeof r.apply.nameEn === 'string')
+        data.normalizedName = await this.master.normalize(r.apply.nameEn);
       if (Object.keys(data).length) await tx.masterMerchant.update({ where: { id: m.id }, data });
-      await tx.externalEntityReference.update({ where: { id: ref.id }, data: this.refData(ctx, rec, now) });
-      return { action: Object.keys(r.apply).length ? 'UPDATE' : 'NONE', entityId: m.id, conflicts: r.conflicts, warnings: [] };
+      await tx.externalEntityReference.update({
+        where: { id: ref.id },
+        data: this.refData(ctx, rec, now),
+      });
+      return {
+        action: Object.keys(r.apply).length ? 'UPDATE' : 'NONE',
+        entityId: m.id,
+        conflicts: r.conflicts,
+        warnings: [],
+      };
     }
     const brandId = await this.master.findOrCreateBrand(tx, rec.brand);
-    const candidates = await this.master.findMerchantCandidates(rec.nameEn, rec.nameAr, rec.country, undefined, tx);
+    const candidates = await this.master.findMerchantCandidates(
+      rec.nameEn,
+      rec.nameAr,
+      rec.country,
+      undefined,
+      tx,
+    );
     const created = await tx.masterMerchant.create({
-      data: { registration: 'REFERENCED', nameEn: rec.nameEn, nameAr: rec.nameAr ?? null, normalizedName, country: rec.country, categoryCode: rec.categoryCode ?? null, brandId },
+      data: {
+        registration: 'REFERENCED',
+        nameEn: rec.nameEn,
+        nameAr: rec.nameAr ?? null,
+        normalizedName,
+        country: rec.country,
+        categoryCode: rec.categoryCode ?? null,
+        brandId,
+      },
     });
     await tx.externalEntityReference.create({
-      data: { entityType: 'MERCHANT', entityId: created.id, sourceSystem: ctx.sourceSystem, sourceRecordId: rec.sourceRecordId, sourceOwner: ctx.sourceSystem, ...this.refData(ctx, rec, now) },
+      data: {
+        entityType: 'MERCHANT',
+        entityId: created.id,
+        sourceSystem: ctx.sourceSystem,
+        sourceRecordId: rec.sourceRecordId,
+        sourceOwner: ctx.sourceSystem,
+        ...this.refData(ctx, rec, now),
+      },
     });
     // an uncertain duplicate is a question for a person: it is recorded, and the new record stays separate until someone decides
     await this.master.recordCandidates(tx, 'MERCHANT', created.id, candidates);
-    return { action: 'CREATE', entityId: created.id, conflicts: 0, warnings: candidates.length ? ['POSSIBLE_DUPLICATE'] : [] };
+    return {
+      action: 'CREATE',
+      entityId: created.id,
+      conflicts: 0,
+      warnings: candidates.length ? ['POSSIBLE_DUPLICATE'] : [],
+    };
   }
 
   // ---------------------------------------------------------------- branches
   private async merchantOf(tx: Tx, ctx: IngestContext, sourceMerchantId: string) {
     const ref = await this.findRef(tx, ctx, 'MERCHANT', sourceMerchantId);
-    if (!ref) throw AppError.validation(`MERCHANT_NOT_FOUND: ${sourceMerchantId}`, 'sourceMerchantId');
+    if (!ref)
+      throw AppError.validation(`MERCHANT_NOT_FOUND: ${sourceMerchantId}`, 'sourceMerchantId');
     this.assertSameSource(ctx, ref);
     return ref.entityId;
   }
@@ -193,15 +312,52 @@ export class IngestService {
     const now = new Date();
     const merchantId = await this.merchantOf(tx, ctx, rec.sourceMerchantId);
     const ref = await this.findRef(tx, ctx, 'BRANCH', rec.sourceRecordId);
-    const key = branchKey({ name: rec.nameEn, city: rec.city, latitude: rec.latitude, longitude: rec.longitude });
+    const key = branchKey({
+      name: rec.nameEn,
+      city: rec.city,
+      latitude: rec.latitude,
+      longitude: rec.longitude,
+    });
     const geo = { latitude: rec.latitude ?? null, longitude: rec.longitude ?? null };
     if (ref) {
       this.assertSameSource(ctx, ref);
       const b = await tx.masterBranch.findUniqueOrThrow({ where: { id: ref.entityId } });
-      const r = await this.reconcile(tx, ctx, 'BRANCH', b.id, { nameEn: b.nameEn, nameAr: b.nameAr, addressEn: b.addressEn, addressAr: b.addressAr, city: b.city }, { nameEn: rec.nameEn, nameAr: rec.nameAr, addressEn: rec.addressEn, addressAr: rec.addressAr, city: rec.city }, { registered: !!b.merchantBranchId, editableBy: ref.editableBy });
-      if (Object.keys(r.apply).length) await tx.masterBranch.update({ where: { id: b.id }, data: { ...(r.apply as object), normalizedKey: key, ...geo } });
-      await tx.externalEntityReference.update({ where: { id: ref.id }, data: this.refData(ctx, rec, now) });
-      return { action: Object.keys(r.apply).length ? 'UPDATE' : 'NONE', entityId: b.id, conflicts: r.conflicts, warnings: [] };
+      const r = await this.reconcile(
+        tx,
+        ctx,
+        'BRANCH',
+        b.id,
+        {
+          nameEn: b.nameEn,
+          nameAr: b.nameAr,
+          addressEn: b.addressEn,
+          addressAr: b.addressAr,
+          city: b.city,
+        },
+        {
+          nameEn: rec.nameEn,
+          nameAr: rec.nameAr,
+          addressEn: rec.addressEn,
+          addressAr: rec.addressAr,
+          city: rec.city,
+        },
+        { registered: !!b.merchantBranchId, editableBy: ref.editableBy },
+      );
+      if (Object.keys(r.apply).length)
+        await tx.masterBranch.update({
+          where: { id: b.id },
+          data: { ...(r.apply as object), normalizedKey: key, ...geo },
+        });
+      await tx.externalEntityReference.update({
+        where: { id: ref.id },
+        data: this.refData(ctx, rec, now),
+      });
+      return {
+        action: Object.keys(r.apply).length ? 'UPDATE' : 'NONE',
+        entityId: b.id,
+        conflicts: r.conflicts,
+        warnings: [],
+      };
     }
     // the same outlet reported by two sources is one outlet: link the reference to the existing record
     const twin = await tx.masterBranch.findFirst({ where: { merchantId, normalizedKey: key } });
@@ -209,13 +365,35 @@ export class IngestService {
       twin?.id ??
       (
         await tx.masterBranch.create({
-          data: { merchantId, nameEn: rec.nameEn, nameAr: rec.nameAr ?? null, addressEn: rec.addressEn ?? null, addressAr: rec.addressAr ?? null, city: rec.city ?? null, country: rec.country, ...geo, normalizedKey: key },
+          data: {
+            merchantId,
+            nameEn: rec.nameEn,
+            nameAr: rec.nameAr ?? null,
+            addressEn: rec.addressEn ?? null,
+            addressAr: rec.addressAr ?? null,
+            city: rec.city ?? null,
+            country: rec.country,
+            ...geo,
+            normalizedKey: key,
+          },
         })
       ).id;
     await tx.externalEntityReference.create({
-      data: { entityType: 'BRANCH', entityId: branchId, sourceSystem: ctx.sourceSystem, sourceRecordId: rec.sourceRecordId, sourceOwner: ctx.sourceSystem, ...this.refData(ctx, rec, now) },
+      data: {
+        entityType: 'BRANCH',
+        entityId: branchId,
+        sourceSystem: ctx.sourceSystem,
+        sourceRecordId: rec.sourceRecordId,
+        sourceOwner: ctx.sourceSystem,
+        ...this.refData(ctx, rec, now),
+      },
     });
-    return { action: twin ? 'NONE' : 'CREATE', entityId: branchId, conflicts: 0, warnings: twin ? ['SAME_OUTLET_AS_EXISTING'] : [] };
+    return {
+      action: twin ? 'NONE' : 'CREATE',
+      entityId: branchId,
+      conflicts: 0,
+      warnings: twin ? ['SAME_OUTLET_AS_EXISTING'] : [],
+    };
   }
 
   // ---------------------------------------------------------------- offers
@@ -230,11 +408,33 @@ export class IngestService {
       else warnings.push(`UNKNOWN_BRANCH:${sid}`);
     }
     const ref = await this.findRef(tx, ctx, 'OFFER', rec.sourceRecordId);
-    const fields = { titleEn: rec.titleEn, titleAr: rec.titleAr ?? null, benefitEn: rec.benefitEn, benefitAr: rec.benefitAr ?? null, termsEn: rec.termsEn ?? null, termsAr: rec.termsAr ?? null };
+    const fields = {
+      titleEn: rec.titleEn,
+      titleAr: rec.titleAr ?? null,
+      benefitEn: rec.benefitEn,
+      benefitAr: rec.benefitAr ?? null,
+      termsEn: rec.termsEn ?? null,
+      termsAr: rec.termsAr ?? null,
+    };
     if (ref) {
       this.assertSameSource(ctx, ref);
       const o = await tx.referencedOffer.findUniqueOrThrow({ where: { id: ref.entityId } });
-      const r = await this.reconcile(tx, ctx, 'OFFER', o.id, { titleEn: o.titleEn, titleAr: o.titleAr, benefitEn: o.benefitEn, benefitAr: o.benefitAr, termsEn: o.termsEn, termsAr: o.termsAr }, fields, { registered: false, editableBy: ref.editableBy });
+      const r = await this.reconcile(
+        tx,
+        ctx,
+        'OFFER',
+        o.id,
+        {
+          titleEn: o.titleEn,
+          titleAr: o.titleAr,
+          benefitEn: o.benefitEn,
+          benefitAr: o.benefitAr,
+          termsEn: o.termsEn,
+          termsAr: o.termsAr,
+        },
+        fields,
+        { registered: false, editableBy: ref.editableBy },
+      );
       await tx.referencedOffer.update({
         where: { id: o.id },
         data: {
@@ -249,7 +449,10 @@ export class IngestService {
           status: 'ACTIVE',
         },
       });
-      await tx.externalEntityReference.update({ where: { id: ref.id }, data: this.refData(ctx, rec, now) });
+      await tx.externalEntityReference.update({
+        where: { id: ref.id },
+        data: this.refData(ctx, rec, now),
+      });
       return { action: 'UPDATE', entityId: o.id, conflicts: r.conflicts, warnings };
     }
     const created = await tx.referencedOffer.create({
@@ -265,7 +468,14 @@ export class IngestService {
       },
     });
     await tx.externalEntityReference.create({
-      data: { entityType: 'OFFER', entityId: created.id, sourceSystem: ctx.sourceSystem, sourceRecordId: rec.sourceRecordId, sourceOwner: ctx.sourceSystem, ...this.refData(ctx, rec, now) },
+      data: {
+        entityType: 'OFFER',
+        entityId: created.id,
+        sourceSystem: ctx.sourceSystem,
+        sourceRecordId: rec.sourceRecordId,
+        sourceOwner: ctx.sourceSystem,
+        ...this.refData(ctx, rec, now),
+      },
     });
     return { action: 'CREATE', entityId: created.id, conflicts: 0, warnings };
   }

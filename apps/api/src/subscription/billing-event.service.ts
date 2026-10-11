@@ -39,30 +39,58 @@ export class BillingEventService {
   constructor(private readonly prisma: PrismaService) {}
 
   /** Who is billed: the contract's billing legal entity, else the contracting entity, else the organization's first legal entity. */
-  async billingParty(db: Db, organizationId: string, contract?: { billingLegalEntityId: string | null; legalEntityId: string | null } | null): Promise<string | null> {
+  async billingParty(
+    db: Db,
+    organizationId: string,
+    contract?: { billingLegalEntityId: string | null; legalEntityId: string | null } | null,
+  ): Promise<string | null> {
     const direct = contract?.billingLegalEntityId ?? contract?.legalEntityId ?? null;
     if (direct) return direct;
-    const first = await db.legalEntity.findFirst({ where: { organizationId, status: 'ACTIVE' }, orderBy: { createdAt: 'asc' }, select: { id: true } });
+    const first = await db.legalEntity.findFirst({
+      where: { organizationId, status: 'ACTIVE' },
+      orderBy: { createdAt: 'asc' },
+      select: { id: true },
+    });
     return first?.id ?? null;
   }
 
-  async emit(input: BillingEventInput, db: Db = this.prisma): Promise<{ id: string; created: boolean }> {
+  async emit(
+    input: BillingEventInput,
+    db: Db = this.prisma,
+  ): Promise<{ id: string; created: boolean }> {
     const category = BILLING_EVENT_TYPES[input.eventType];
-    if (!category) throw AppError.validation(`Unknown billing event type "${input.eventType}"`, 'eventType');
-    const existing = await db.commercialBillingEvent.findUnique({ where: { idempotencyKey: input.idempotencyKey }, select: { id: true } });
+    if (!category)
+      throw AppError.validation(`Unknown billing event type "${input.eventType}"`, 'eventType');
+    const existing = await db.commercialBillingEvent.findUnique({
+      where: { idempotencyKey: input.idempotencyKey },
+      select: { id: true },
+    });
     if (existing) return { id: existing.id, created: false };
     const at = input.occurredAt ?? new Date();
     const contract = input.contractId
       ? await db.contract.findUnique({ where: { id: input.contractId } })
       : await db.contract.findFirst({
-          where: { organizationId: input.organizationId, status: { in: [...IN_FORCE_LIFECYCLE] }, effectiveFrom: { lte: at }, OR: [{ effectiveUntil: null }, { effectiveUntil: { gt: at } }] },
+          where: {
+            organizationId: input.organizationId,
+            status: { in: [...IN_FORCE_LIFECYCLE] },
+            effectiveFrom: { lte: at },
+            OR: [{ effectiveUntil: null }, { effectiveUntil: { gt: at } }],
+          },
           orderBy: { effectiveFrom: 'desc' },
         });
     const legalEntityId = input.legalEntityId ?? contract?.legalEntityId ?? null;
     const billingLegalEntityId = await this.billingParty(db, input.organizationId, contract);
-    const le = billingLegalEntityId ? await db.legalEntity.findUnique({ where: { id: billingLegalEntityId }, select: { currency: true, country: true } }) : null;
+    const le = billingLegalEntityId
+      ? await db.legalEntity.findUnique({
+          where: { id: billingLegalEntityId },
+          select: { currency: true, country: true },
+        })
+      : null;
     const currency = input.currency ?? contract?.currency ?? le?.currency ?? 'SAR';
-    const account = await db.businessAccount.findFirst({ where: { organizationId: input.organizationId, currency }, select: { id: true } });
+    const account = await db.businessAccount.findFirst({
+      where: { organizationId: input.organizationId, currency },
+      select: { id: true },
+    });
     try {
       const row = await db.commercialBillingEvent.create({
         data: {
@@ -96,14 +124,23 @@ export class BillingEventService {
       return { id: row.id, created: true };
     } catch (e) {
       if ((e as { code?: string }).code === 'P2002') {
-        const again = await db.commercialBillingEvent.findUniqueOrThrow({ where: { idempotencyKey: input.idempotencyKey }, select: { id: true } });
+        const again = await db.commercialBillingEvent.findUniqueOrThrow({
+          where: { idempotencyKey: input.idempotencyKey },
+          select: { id: true },
+        });
         return { id: again.id, created: false };
       }
       throw e;
     }
   }
 
-  list(filter: { organizationId?: string; eventType?: string; status?: string; contractId?: string; limit?: number }) {
+  list(filter: {
+    organizationId?: string;
+    eventType?: string;
+    status?: string;
+    contractId?: string;
+    limit?: number;
+  }) {
     return this.prisma.commercialBillingEvent.findMany({
       where: {
         ...(filter.organizationId ? { organizationId: filter.organizationId } : {}),
@@ -120,13 +157,25 @@ export class BillingEventService {
    * A reversed source event (a fraud-reversed view, a reversed redemption) voids its billing event while it is still PENDING. An event Phase 5 has
    * already consumed is not touched here: Phase 5 corrects it with a credit note.
    */
-  async voidBySource(eventType: BillingEventType, sourceEventId: string, db: Db = this.prisma): Promise<number> {
-    return (await db.commercialBillingEvent.updateMany({ where: { eventType, sourceEventId, status: 'PENDING' }, data: { status: 'VOID' } })).count;
+  async voidBySource(
+    eventType: BillingEventType,
+    sourceEventId: string,
+    db: Db = this.prisma,
+  ): Promise<number> {
+    return (
+      await db.commercialBillingEvent.updateMany({
+        where: { eventType, sourceEventId, status: 'PENDING' },
+        data: { status: 'VOID' },
+      })
+    ).count;
   }
 
   /** The only change a billing event ever sees: Phase 5 marks it processed. */
   async markConsumed(ids: string[]) {
-    const r = await this.prisma.commercialBillingEvent.updateMany({ where: { id: { in: ids }, status: 'PENDING' }, data: { status: 'CONSUMED', consumedAt: new Date() } });
+    const r = await this.prisma.commercialBillingEvent.updateMany({
+      where: { id: { in: ids }, status: 'PENDING' },
+      data: { status: 'CONSUMED', consumedAt: new Date() },
+    });
     return r.count;
   }
 }

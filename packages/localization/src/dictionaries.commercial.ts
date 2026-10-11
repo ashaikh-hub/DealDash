@@ -40,7 +40,10 @@ const CM = {
   ],
   'cm.inputs.normalPrice': ['Normal price (SAR)', 'السعر المعتاد (ريال)'],
   'cm.inputs.dealPrice': ['Deal price (SAR)', 'سعر العرض (ريال)'],
-  'cm.inputs.benefitValue': ['Benefit value per redemption (SAR)', 'قيمة المنفعة لكل استخدام (ريال)'],
+  'cm.inputs.benefitValue': [
+    'Benefit value per redemption (SAR)',
+    'قيمة المنفعة لكل استخدام (ريال)',
+  ],
   'cm.inputs.benefitHelp': [
     'Use this when there are no prices (free item, fee waiver, buy-one-get-one).',
     'استخدمه عندما لا توجد أسعار (منتج مجاني، إعفاء من رسوم، اشترِ واحداً واحصل على آخر).',
@@ -50,7 +53,10 @@ const CM = {
     'Required when stock is not tracked, so your maximum cost is known.',
     'مطلوب عندما لا يُتتبع المخزون، ليكون الحد الأقصى للتكلفة معروفاً.',
   ],
-  'cm.inputs.merchantCash': ['Your cash contribution per redemption (SAR)', 'مساهمتك النقدية لكل استخدام (ريال)'],
+  'cm.inputs.merchantCash': [
+    'Your cash contribution per redemption (SAR)',
+    'مساهمتك النقدية لكل استخدام (ريال)',
+  ],
   'cm.inputs.merchantCashHelp': [
     'Deducted from what DealDash pays you. Leave at 0 if you only honour the benefit.',
     'تُخصم مما تدفعه لك ديل داش. اتركها صفراً إن كنت تلتزم بالمنفعة فقط.',
@@ -66,7 +72,10 @@ const CM = {
     'يموّل الراعي جزءاً من المنفعة نقداً. يوافق كل راعٍ على حصته ويدفعها بنفسه، ولا تُخلط أبداً بتكاليفك.',
   ],
   'cm.inputs.sponsorOrg': ['Sponsor ID', 'معرّف الراعي'],
-  'cm.inputs.sponsorPerUnit': ['Sponsor funds per redemption (SAR)', 'تمويل الراعي لكل استخدام (ريال)'],
+  'cm.inputs.sponsorPerUnit': [
+    'Sponsor funds per redemption (SAR)',
+    'تمويل الراعي لكل استخدام (ريال)',
+  ],
   'cm.inputs.addSponsor': ['Add a sponsor', 'إضافة راعٍ'],
   'cm.inputs.remove': ['Remove', 'إزالة'],
 
@@ -84,7 +93,10 @@ const CM = {
     'You have unsaved changes. Save to refresh the terms before accepting.',
     'لديك تغييرات غير محفوظة. احفظ لتحديث الشروط قبل الموافقة.',
   ],
-  'cm.unavailable': ['The commercial terms are not available yet.', 'الشروط التجارية غير متاحة بعد.'],
+  'cm.unavailable': [
+    'The commercial terms are not available yet.',
+    'الشروط التجارية غير متاحة بعد.',
+  ],
   'cm.unbounded': ['The maximum cost cannot be worked out', 'لا يمكن حساب الحد الأقصى للتكلفة'],
   'cm.issue.UNBOUNDED': [
     'Set a limit on units or redemptions so the maximum cost is known.',
@@ -98,7 +110,10 @@ const CM = {
   'cm.sec.tax': ['Tax', 'الضريبة'],
   'cm.sec.sponsors': ['Sponsor funding (separate obligation)', 'تمويل الرعاة (التزام منفصل)'],
   'cm.sec.merchantCash': ['Merchant cash contribution', 'المساهمة النقدية للتاجر'],
-  'cm.sec.merchantBenefit': ['Merchant benefit commitment (non-cash)', 'التزام التاجر بالمنفعة (غير نقدي)'],
+  'cm.sec.merchantBenefit': [
+    'Merchant benefit commitment (non-cash)',
+    'التزام التاجر بالمنفعة (غير نقدي)',
+  ],
   'cm.sec.customer': ['Customer saving (for information)', 'وفر العميل (للعلم)'],
   'cm.trigger.UPFRONT': ['when the campaign goes live', 'عند إطلاق الحملة'],
   'cm.trigger.VERIFIED_REDEMPTION': ['per verified redemption', 'لكل استخدام موثّق'],
@@ -114,7 +129,10 @@ const CM = {
   'cm.total.netted': ['Charges deducted from your payout', 'رسوم تُخصم من مستحقاتك'],
   'cm.total.sponsor': ['Maximum sponsor funding', 'الحد الأقصى لتمويل الرعاة'],
   'cm.total.merchantCash': ['Your maximum cash contribution', 'الحد الأقصى لمساهمتك النقدية'],
-  'cm.total.benefit': ['Your maximum benefit commitment (non-cash)', 'الحد الأقصى لالتزامك بالمنفعة (غير نقدي)'],
+  'cm.total.benefit': [
+    'Your maximum benefit commitment (non-cash)',
+    'الحد الأقصى لالتزامك بالمنفعة (غير نقدي)',
+  ],
   'cm.nonCashNote': [
     'The benefit you honour is a commitment to the customer, not a payment to DealDash. It is shown separately from cash and is never added to it.',
     'المنفعة التي تلتزم بها وعد للعميل وليست دفعة لديل داش. تُعرض منفصلة عن النقد ولا تُضاف إليه أبداً.',
@@ -143,7 +161,10 @@ const CM = {
   'cm.role.FULFILMENT_MERCHANT': ['Fulfilling merchant', 'التاجر المنفّذ'],
   'cm.party.accepted': ['Accepted', 'وافق'],
   'cm.party.pending': ['Waiting', 'بالانتظار'],
-  'cm.onBehalf': ['recorded by DealDash under a signed authorisation', 'سجّلته ديل داش بموجب تفويض موقّع'],
+  'cm.onBehalf': [
+    'recorded by DealDash under a signed authorisation',
+    'سجّلته ديل داش بموجب تفويض موقّع',
+  ],
   'cm.ack.title': ['Please confirm each statement', 'يرجى تأكيد كل بند'],
   'cm.check.REVIEWED_TERMS': [
     'I have reviewed the commercial summary above.',
@@ -204,11 +225,26 @@ const CM = {
   'cm.rejectedReason': ['Rejected by the approver', 'رفضه المعتمد'],
   'cm.blockers.title': ['Before this can go live', 'قبل أن يتم الإطلاق'],
   'cm.clear': ['Everything needed to go live is in place.', 'كل ما يلزم للإطلاق متوفر.'],
-  'cm.blocker.NO_COMMERCIAL_CASE': ['The commercial terms have not been prepared.', 'لم تُجهّز الشروط التجارية.'],
-  'cm.blocker.NO_QUOTATION': ['The commercial terms have not been prepared.', 'لم تُجهّز الشروط التجارية.'],
-  'cm.blocker.UNBOUNDED_LIABILITY': ['The maximum cost is not limited yet.', 'الحد الأقصى للتكلفة غير محدد بعد.'],
-  'cm.blocker.ACCEPTANCE_MISSING': ['A required party has not accepted the terms.', 'لم يوافق أحد الأطراف المطلوبة على الشروط.'],
-  'cm.blocker.AMENDMENT_NOT_ACCEPTED': ['The amended terms have not been accepted.', 'لم تتم الموافقة على الشروط المعدلة.'],
+  'cm.blocker.NO_COMMERCIAL_CASE': [
+    'The commercial terms have not been prepared.',
+    'لم تُجهّز الشروط التجارية.',
+  ],
+  'cm.blocker.NO_QUOTATION': [
+    'The commercial terms have not been prepared.',
+    'لم تُجهّز الشروط التجارية.',
+  ],
+  'cm.blocker.UNBOUNDED_LIABILITY': [
+    'The maximum cost is not limited yet.',
+    'الحد الأقصى للتكلفة غير محدد بعد.',
+  ],
+  'cm.blocker.ACCEPTANCE_MISSING': [
+    'A required party has not accepted the terms.',
+    'لم يوافق أحد الأطراف المطلوبة على الشروط.',
+  ],
+  'cm.blocker.AMENDMENT_NOT_ACCEPTED': [
+    'The amended terms have not been accepted.',
+    'لم تتم الموافقة على الشروط المعدلة.',
+  ],
   'cm.blocker.FULFILMENT_NOT_ONBOARDED': [
     'The fulfilling merchant is not onboarded and active.',
     'التاجر المنفّذ غير مسجل أو غير نشط.',
@@ -221,7 +257,10 @@ const CM = {
   ],
   'cm.blocker.FUNDING_MISSING': ['Funding is not complete.', 'التمويل غير مكتمل.'],
   'cm.blocker.CREDIT_NOT_ACTIVE': ['The credit facility is not active.', 'تسهيل الائتمان غير نشط.'],
-  'cm.blocker.CREDIT_LIMIT_EXCEEDED': ['This goes over the approved credit limit.', 'هذا يتجاوز حد الائتمان المعتمد.'],
+  'cm.blocker.CREDIT_LIMIT_EXCEEDED': [
+    'This goes over the approved credit limit.',
+    'هذا يتجاوز حد الائتمان المعتمد.',
+  ],
   'cm.blocker.FINANCIAL_HOLD': ['A financial hold is in place.', 'يوجد إيقاف مالي.'],
 
   // ---------------------------------------------------------------- merchant: commercial terms page
@@ -295,7 +334,10 @@ const CM = {
     'Configured {configured}, issued {issued}, redeemed {redeemed}, unused {unused}',
     'المضبوط {configured}، الصادر {issued}، المستخدم {redeemed}، غير المستخدم {unused}',
   ],
-  'ac.recon.benefit': ['Merchant benefit redeemed / committed', 'منفعة التاجر المستخدمة / الملتزم بها'],
+  'ac.recon.benefit': [
+    'Merchant benefit redeemed / committed',
+    'منفعة التاجر المستخدمة / الملتزم بها',
+  ],
   'ac.recon.nonCash': ['non-cash, reported separately', 'غير نقدي، يُبلّغ عنه منفصلاً'],
   'ac.recon.treatment': ['Unused funding treatment', 'معالجة التمويل غير المستخدم'],
   'ac.recon.exceptions': ['Exceptions', 'الاستثناءات'],
@@ -305,14 +347,20 @@ const CM = {
   'ac.treatment.TRANSFER_CAMPAIGN': ['Transfer to another campaign', 'تحويل إلى حملة أخرى'],
   'ac.treatment.NON_REFUNDABLE': ['Non-refundable', 'غير قابل للاسترداد'],
   'ac.treatment.NONE': ['Not stated', 'غير محدد'],
-  'ac.applyAgreement': ['Apply the agreement\'s treatment of unused funding', 'تطبيق معالجة الاتفاقية للتمويل غير المستخدم'],
-  'ac.applied': ['The agreement\'s treatment was applied.', 'تم تطبيق معالجة الاتفاقية.'],
+  'ac.applyAgreement': [
+    "Apply the agreement's treatment of unused funding",
+    'تطبيق معالجة الاتفاقية للتمويل غير المستخدم',
+  ],
+  'ac.applied': ["The agreement's treatment was applied.", 'تم تطبيق معالجة الاتفاقية.'],
   'ac.close': ['Reconcile and close', 'التسوية والإغلاق'],
   'ac.closed': ['The case was reconciled and closed.', 'تمت تسوية الحالة وإغلاقها.'],
   'ac.onBehalf.auth': ['Authorisation to act for the business', 'التفويض بالتصرف نيابة عن النشاط'],
   'ac.onBehalf.pick': ['Choose an authorisation', 'اختر تفويضاً'],
   'ac.onBehalf.accept': ['Record acceptance on behalf', 'تسجيل الموافقة نيابة عنه'],
-  'ac.onBehalf.done': ['Acceptance recorded under the authorisation.', 'سُجلت الموافقة بموجب التفويض.'],
+  'ac.onBehalf.done': [
+    'Acceptance recorded under the authorisation.',
+    'سُجلت الموافقة بموجب التفويض.',
+  ],
   'ac.hold.reason': ['Reason', 'السبب'],
   'ac.hold.place': ['Place a hold', 'إيقاف'],
   'ac.hold.placed': ['The hold was placed.', 'تم وضع الإيقاف.'],
@@ -357,8 +405,14 @@ const CM = {
   ],
   'ac.rules.empty': ['No rules yet.', 'لا توجد قواعد بعد.'],
   'ac.rules.new': ['New approval rule', 'قاعدة اعتماد جديدة'],
-  'ac.rules.min': ['From this maximum liability (SAR)', 'ابتداءً من هذا الحد الأقصى للالتزام (ريال)'],
-  'ac.rules.orgHelp': ['Leave empty to apply to every business.', 'اتركه فارغاً ليسري على كل الأنشطة.'],
+  'ac.rules.min': [
+    'From this maximum liability (SAR)',
+    'ابتداءً من هذا الحد الأقصى للالتزام (ريال)',
+  ],
+  'ac.rules.orgHelp': [
+    'Leave empty to apply to every business.',
+    'اتركه فارغاً ليسري على كل الأنشطة.',
+  ],
   'ac.rules.steps': ['Approval steps', 'خطوات الاعتماد'],
   'ac.rules.active': ['Active', 'مفعّلة'],
   'ac.rules.off': ['Off', 'متوقفة'],
@@ -370,7 +424,7 @@ const CM = {
   'ac.ruleScope.CAMPAIGN': ['Campaigns', 'الحملات'],
   'ac.ruleScope.CREDIT': ['Credit facilities', 'تسهيلات الائتمان'],
   'ac.credit.note': [
-    'Credit is granted only here, within a limit and a term. The business\'s exposure is calculated from its commitments and can never go over the available credit.',
+    "Credit is granted only here, within a limit and a term. The business's exposure is calculated from its commitments and can never go over the available credit.",
     'يُمنح الائتمان هنا فقط ضمن حد ومدة. تُحسب مديونية النشاط من التزاماته ولا يمكن أن تتجاوز الائتمان المتاح.',
   ],
   'ac.credit.empty': ['No credit facilities yet.', 'لا توجد تسهيلات ائتمان بعد.'],
@@ -439,7 +493,7 @@ const CM = {
   'ac.adj.post': ['Post adjustment', 'ترحيل التسوية'],
   'ac.adj.done': ['The adjustment was posted.', 'تم ترحيل التسوية.'],
   'ac.auth.note': [
-    'Until the Partner Portal exists, DealDash may record a sponsor or owner acceptance only under a signed, time-limited authorisation recorded here. It can never replace a fulfilling merchant\'s own approval.',
+    "Until the Partner Portal exists, DealDash may record a sponsor or owner acceptance only under a signed, time-limited authorisation recorded here. It can never replace a fulfilling merchant's own approval.",
     'إلى أن تتوفر بوابة الشركاء، يمكن لديل داش تسجيل موافقة الراعي أو المالك فقط بموجب تفويض موقّع ومحدد المدة يُسجل هنا. ولا يمكن أن يحل محل موافقة التاجر المنفّذ نفسه.',
   ],
   'ac.auth.empty': ['No authorisations.', 'لا توجد تفويضات.'],

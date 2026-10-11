@@ -56,6 +56,8 @@ async function signIn(page, base, email, route, adminTotp = false) {
     await page.locator('input[autocomplete="one-time-code"]').first().click();
     await page.keyboard.type((await api(`/v1/dev/totp?email=${email}`)).code, { delay: 25 });
   }
+  // signed in = the shell's Sign out button (the sign-in panel itself is the page's h1 since Stage 9)
+  await page.getByRole('button', { name: 'Sign out' }).first().waitFor({ timeout: 60000 });
   await page.getByRole('heading', { level: 1 }).first().waitFor({ timeout: 45000 });
 }
 const newPage = async (viewport = { width: 1280, height: 900 }) => (await browser.newContext({ viewport })).newPage();

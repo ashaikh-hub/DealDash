@@ -1045,10 +1045,7 @@
         "Tab bar (3 tabs)"
       ],
       "sheets": [],
-      "states": [
-        "rail hidden when nothing is hot",
-        "loading skeleton"
-      ],
+      "states": ["rail hidden when nothing is hot", "loading skeleton"],
       "route": "/ (HotRail in customer/features/hot.tsx)",
       "priority": "P1",
       "shot": "customer-01-home-hot-rail-en"
@@ -1063,20 +1060,9 @@
       "figma": "08 Explore - Exclusive Deals",
       "svg": true,
       "isNew": false,
-      "comps": [
-        "Exclusive Deal card (list)",
-        "Sort chips",
-        "Countdown",
-        "Inventory badge"
-      ],
+      "comps": ["Exclusive Deal card (list)", "Sort chips", "Countdown", "Inventory badge"],
       "sheets": [],
-      "states": [
-        "sold-out card sinks to bottom",
-        "locked card",
-        "loading",
-        "empty",
-        "error"
-      ],
+      "states": ["sold-out card sinks to bottom", "locked card", "loading", "empty", "error"],
       "route": "/hot",
       "priority": "P1",
       "shot": "customer-02-hot-list-en"
@@ -1098,9 +1084,7 @@
         "Branch card",
         "Sticky Reserve bar"
       ],
-      "sheets": [
-        "C06 Reserve sheet"
-      ],
+      "sheets": ["C06 Reserve sheet"],
       "states": [
         "active",
         "low stock",
@@ -1125,10 +1109,7 @@
       "figma": "none",
       "svg": false,
       "isNew": true,
-      "comps": [
-        "Countdown",
-        "Inventory badge"
-      ],
+      "comps": ["Countdown", "Inventory badge"],
       "sheets": [],
       "states": [
         "calm (>1h)",
@@ -1152,15 +1133,9 @@
       "figma": "20 Deal - Hot limited reserve",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Urgency strip",
-        "Branch card with units left"
-      ],
+      "comps": ["Urgency strip", "Branch card with units left"],
       "sheets": [],
-      "states": [
-        "only N left",
-        "countdown urgent"
-      ],
+      "states": ["only N left", "countdown urgent"],
       "route": "/hot/[id]",
       "priority": "P2",
       "shot": null
@@ -1175,20 +1150,9 @@
       "figma": "26 Deal - Reserve sheet (REPLACE: remove payment/card)",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Bottom sheet",
-        "Branch selector (radio cards)",
-        "Reserve CTA"
-      ],
-      "sheets": [
-        "sheet"
-      ],
-      "states": [
-        "branch chosen",
-        "stock race error",
-        "connection error",
-        "submitting"
-      ],
+      "comps": ["Bottom sheet", "Branch selector (radio cards)", "Reserve CTA"],
+      "sheets": ["sheet"],
+      "states": ["branch chosen", "stock race error", "connection error", "submitting"],
       "route": "/hot/[id] (reserve sheet in app-shell/hot/hot-views.tsx)",
       "priority": "P1",
       "shot": "customer-04-reserve-sheet-en"
@@ -1203,15 +1167,9 @@
       "figma": "31 Code - reservation (MODIFY: remove \"Token paid SAR 15\")",
       "svg": true,
       "isNew": false,
-      "comps": [
-        "Confirmation banner",
-        "QR/code card",
-        "Hold timer"
-      ],
+      "comps": ["Confirmation banner", "QR/code card", "Hold timer"],
       "sheets": [],
-      "states": [
-        "just confirmed"
-      ],
+      "states": ["just confirmed"],
       "route": "/reservations/[id]?new=1",
       "priority": "P1",
       "shot": "customer-05-ticket-en"
@@ -1226,17 +1184,9 @@
       "figma": "31 Code - reservation",
       "svg": true,
       "isNew": false,
-      "comps": [
-        "QR/code card",
-        "Hold timer",
-        "Directions/Call/Cancel"
-      ],
-      "sheets": [
-        "Cancel confirm modal"
-      ],
-      "states": [
-        "active"
-      ],
+      "comps": ["QR/code card", "Hold timer", "Directions/Call/Cancel"],
+      "sheets": ["Cancel confirm modal"],
+      "states": ["active"],
       "route": "/reservations/[id]",
       "priority": "P1",
       "shot": "customer-06-ticket-en-full"
@@ -1251,15 +1201,9 @@
       "figma": "31 Code - reservation",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Hold timer (urgent)",
-        "QR/code card"
-      ],
+      "comps": ["Hold timer (urgent)", "QR/code card"],
       "sheets": [],
-      "states": [
-        "timer red <5 min",
-        "in-app \"ends soon\" notification at 10 min"
-      ],
+      "states": ["timer red <5 min", "in-app \"ends soon\" notification at 10 min"],
       "route": "/reservations/[id]",
       "priority": "P2",
       "shot": null
@@ -1274,14 +1218,9 @@
       "figma": "31 Code - reservation (Expired state)",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Reservation status chip",
-        "Past-state card"
-      ],
+      "comps": ["Reservation status chip", "Past-state card"],
       "sheets": [],
-      "states": [
-        "neutral wording: \"Reservation not completed\""
-      ],
+      "states": ["neutral wording: \"Reservation not completed\""],
       "route": "/reservations/[id]",
       "priority": "P1",
       "shot": null
@@ -1296,14 +1235,9 @@
       "figma": "31 Code - reservation (Cancelled state)",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Reservation status chip"
-      ],
+      "comps": ["Reservation status chip"],
       "sheets": [],
-      "states": [
-        "cancelled by you",
-        "cancelled by the business"
-      ],
+      "states": ["cancelled by you", "cancelled by the business"],
       "route": "/reservations/[id]",
       "priority": "P2",
       "shot": "customer-11-cancelled-en"
@@ -1318,13 +1252,9 @@
       "figma": "31 Code - reservation (Redeemed state)",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Reservation status chip"
-      ],
+      "comps": ["Reservation status chip"],
       "sheets": [],
-      "states": [
-        "used (QR removed)"
-      ],
+      "states": ["used (QR removed)"],
       "route": "/reservations/[id]",
       "priority": "P1",
       "shot": "customer-09-ticket-used-en"
@@ -1339,15 +1269,9 @@
       "figma": "20 Deal - Hot limited reserve (sold-out state)",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Urgency strip (off)",
-        "Sold-out alert",
-        "Disabled CTA"
-      ],
+      "comps": ["Urgency strip (off)", "Sold-out alert", "Disabled CTA"],
       "sheets": [],
-      "states": [
-        "sold out (stays visible)"
-      ],
+      "states": ["sold out (stays visible)"],
       "route": "/hot/[id]",
       "priority": "P1",
       "shot": "customer-07-sold-out-en"
@@ -1362,14 +1286,9 @@
       "figma": "21 Deal - Hot time-limited (ended state)",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Urgency strip (ended)",
-        "Disabled CTA"
-      ],
+      "comps": ["Urgency strip (ended)", "Disabled CTA"],
       "sheets": [],
-      "states": [
-        "ended (not listed, direct link only)"
-      ],
+      "states": ["ended (not listed, direct link only)"],
       "route": "/hot/[id]",
       "priority": "P2",
       "shot": null
@@ -1384,14 +1303,9 @@
       "figma": "24 Deal - Employer offer",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Locked panel",
-        "Unlock CTA"
-      ],
+      "comps": ["Locked panel", "Unlock CTA"],
       "sheets": [],
-      "states": [
-        "locked with reason + action (hidden when no realistic path)"
-      ],
+      "states": ["locked with reason + action (hidden when no realistic path)"],
       "route": "/hot/[id]",
       "priority": "P2",
       "shot": null
@@ -1406,14 +1320,9 @@
       "figma": "none (CU-47 notice referenced in MVP doc)",
       "svg": false,
       "isNew": true,
-      "comps": [
-        "Warning alert",
-        "Disabled CTA"
-      ],
+      "comps": ["Warning alert", "Disabled CTA"],
       "sheets": [],
-      "states": [
-        "neutral temporary pause, end date, browsing still allowed"
-      ],
+      "states": ["neutral temporary pause, end date, browsing still allowed"],
       "route": "/hot/[id]",
       "priority": "P2",
       "shot": null
@@ -1428,16 +1337,9 @@
       "figma": "52 My Deals - active (MODIFY: no \"Paid SAR 15\")",
       "svg": true,
       "isNew": false,
-      "comps": [
-        "Segmented tabs",
-        "Reservation row"
-      ],
+      "comps": ["Segmented tabs", "Reservation row"],
       "sheets": [],
-      "states": [
-        "empty",
-        "loading",
-        "sign-in"
-      ],
+      "states": ["empty", "loading", "sign-in"],
       "route": "/reservations",
       "priority": "P1",
       "shot": "customer-08-my-deals-en"
@@ -1452,17 +1354,9 @@
       "figma": "52 My Deals - active (Past tab)",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Segmented tabs",
-        "Reservation row (past states)"
-      ],
+      "comps": ["Segmented tabs", "Reservation row (past states)"],
       "sheets": [],
-      "states": [
-        "used",
-        "not completed",
-        "cancelled by you",
-        "cancelled by the business"
-      ],
+      "states": ["used", "not completed", "cancelled by you", "cancelled by the business"],
       "route": "/reservations?tab=past",
       "priority": "P2",
       "shot": null
@@ -1477,14 +1371,9 @@
       "figma": "05 Home - Notifications",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Notification row"
-      ],
+      "comps": ["Notification row"],
       "sheets": [],
-      "states": [
-        "unread highlight",
-        "empty"
-      ],
+      "states": ["unread highlight", "empty"],
       "route": "/reservations?tab=updates",
       "priority": "P2",
       "shot": "customer-10-updates-en"
@@ -1499,13 +1388,9 @@
       "figma": "none",
       "svg": false,
       "isNew": true,
-      "comps": [
-        "Skeleton card"
-      ],
+      "comps": ["Skeleton card"],
       "sheets": [],
-      "states": [
-        "loading"
-      ],
+      "states": ["loading"],
       "route": "/hot",
       "priority": "P3",
       "shot": null
@@ -1520,15 +1405,9 @@
       "figma": "none",
       "svg": false,
       "isNew": true,
-      "comps": [
-        "Empty state"
-      ],
+      "comps": ["Empty state"],
       "sheets": [],
-      "states": [
-        "no Exclusive Deals",
-        "no active reservations",
-        "no past reservations"
-      ],
+      "states": ["no Exclusive Deals", "no active reservations", "no past reservations"],
       "route": "/hot, /reservations",
       "priority": "P3",
       "shot": null
@@ -1543,15 +1422,9 @@
       "figma": "none",
       "svg": false,
       "isNew": true,
-      "comps": [
-        "Error state",
-        "Retry button"
-      ],
+      "comps": ["Error state", "Retry button"],
       "sheets": [],
-      "states": [
-        "could not load (retry)",
-        "Exclusive Deal not available any more"
-      ],
+      "states": ["could not load (retry)", "Exclusive Deal not available any more"],
       "route": "/hot, /hot/[id]",
       "priority": "P3",
       "shot": "customer-18-hot-error-en"
@@ -1566,19 +1439,9 @@
       "figma": "26 Deal - Reserve sheet",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Bottom sheet",
-        "Danger alert"
-      ],
-      "sheets": [
-        "sheet"
-      ],
-      "states": [
-        "offline",
-        "out of stock (409)",
-        "limit reached",
-        "too many active"
-      ],
+      "comps": ["Bottom sheet", "Danger alert"],
+      "sheets": ["sheet"],
+      "states": ["offline", "out of stock (409)", "limit reached", "too many active"],
       "route": "/hot/[id]",
       "priority": "P2",
       "shot": null
@@ -1593,15 +1456,9 @@
       "figma": "26 Deal - Reserve sheet",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Branch selector (disabled option)"
-      ],
-      "sheets": [
-        "sheet"
-      ],
-      "states": [
-        "one branch sold out, another available"
-      ],
+      "comps": ["Branch selector (disabled option)"],
+      "sheets": ["sheet"],
+      "states": ["one branch sold out, another available"],
       "route": "/hot/[id]",
       "priority": "P2",
       "shot": null
@@ -1625,12 +1482,7 @@
         "Table"
       ],
       "sheets": [],
-      "states": [
-        "loading",
-        "empty",
-        "error",
-        "no manage permission (no create button)"
-      ],
+      "states": ["loading", "empty", "error", "no manage permission (no create button)"],
       "route": "/deals/hot",
       "priority": "P1",
       "shot": "merchant-01-hot-hub-en"
@@ -1645,18 +1497,9 @@
       "figma": "63 Business - Create Exclusive Deal (REPLACED by 6-step builder)",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Stepper",
-        "Select",
-        "Number input",
-        "Preview panel"
-      ],
+      "comps": ["Stepper", "Select", "Number input", "Preview panel"],
       "sheets": [],
-      "states": [
-        "draft saved",
-        "validation per step",
-        "autosave 30 s"
-      ],
+      "states": ["draft saved", "validation per step", "autosave 30 s"],
       "route": "/deals/hot/new",
       "priority": "P1",
       "shot": "merchant-02-hot-builder-empty-en"
@@ -1677,11 +1520,7 @@
         "Translation status chip"
       ],
       "sheets": [],
-      "states": [
-        "missing Arabic (blocks Next)",
-        "upload error",
-        "min size rules"
-      ],
+      "states": ["missing Arabic (blocks Next)", "upload error", "min size rules"],
       "route": "/deals/hot/new (step 2)",
       "priority": "P1",
       "shot": "merchant-03-hot-builder-content-en"
@@ -1723,15 +1562,9 @@
       "figma": "none",
       "svg": false,
       "isNew": true,
-      "comps": [
-        "Limit-type cards"
-      ],
+      "comps": ["Limit-type cards"],
       "sheets": [],
-      "states": [
-        "time-only walk-in",
-        "quantity-only",
-        "time + quantity"
-      ],
+      "states": ["time-only walk-in", "quantity-only", "time + quantity"],
       "route": "hot-builder.tsx step 3",
       "priority": "P2",
       "shot": null
@@ -1746,16 +1579,9 @@
       "figma": "63 Business - Create Exclusive Deal",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Branch checkbox rows",
-        "Units input"
-      ],
+      "comps": ["Branch checkbox rows", "Units input"],
       "sheets": [],
-      "states": [
-        "no stock tracked (walk-in)",
-        "units too high",
-        "live: locked, use Add stock"
-      ],
+      "states": ["no stock tracked (walk-in)", "units too high", "live: locked, use Add stock"],
       "route": "/deals/hot/new (step 4)",
       "priority": "P1",
       "shot": "merchant-05-hot-builder-stock-en"
@@ -1770,20 +1596,9 @@
       "figma": "63 Business - Create Exclusive Deal",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Radio list",
-        "Partner checkboxes",
-        "Terms toggles",
-        "Bilingual terms text"
-      ],
+      "comps": ["Radio list", "Partner checkboxes", "Terms toggles", "Bilingual terms text"],
       "sheets": [],
-      "states": [
-        "public",
-        "geography",
-        "employer",
-        "bank card",
-        "scheme"
-      ],
+      "states": ["public", "geography", "employer", "bank card", "scheme"],
       "route": "/deals/hot/new (step 5)",
       "priority": "P2",
       "shot": null
@@ -1798,12 +1613,7 @@
       "figma": "63 Business - Create Exclusive Deal",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Summary list",
-        "Guardrail alert",
-        "Fix-first list with links",
-        "Submit"
-      ],
+      "comps": ["Summary list", "Guardrail alert", "Fix-first list with links", "Submit"],
       "sheets": [],
       "states": [
         "complete",
@@ -1825,10 +1635,7 @@
       "figma": "none",
       "svg": false,
       "isNew": true,
-      "comps": [
-        "Status chip",
-        "Banners (info/warning/danger)"
-      ],
+      "comps": ["Status chip", "Banners (info/warning/danger)"],
       "sheets": [],
       "states": [
         "DRAFT",
@@ -1864,11 +1671,7 @@
         "Per-branch table",
         "Auto-refresh footer"
       ],
-      "sheets": [
-        "Add stock dialog",
-        "Pause dialog",
-        "Cancel dialog"
-      ],
+      "sheets": ["Add stock dialog", "Pause dialog", "Cancel dialog"],
       "states": [
         "live",
         "sold out",
@@ -1889,21 +1692,9 @@
       "figma": "none",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Filters",
-        "Reservation table",
-        "Cancel-with-reason dialog"
-      ],
-      "sheets": [
-        "Cancel reservation dialog (reason required)"
-      ],
-      "states": [
-        "empty",
-        "held",
-        "used",
-        "not completed",
-        "cancelled"
-      ],
+      "comps": ["Filters", "Reservation table", "Cancel-with-reason dialog"],
+      "sheets": ["Cancel reservation dialog (reason required)"],
+      "states": ["empty", "held", "used", "not completed", "cancelled"],
       "route": "/deals/hot/[id] (tab)",
       "priority": "P1",
       "shot": "merchant-08-hot-reservations-en"
@@ -1918,15 +1709,9 @@
       "figma": "60 Business console - Analytics (pattern only)",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Funnel bars",
-        "KPI tiles",
-        "Caveat text"
-      ],
+      "comps": ["Funnel bars", "KPI tiles", "Caveat text"],
       "sheets": [],
-      "states": [
-        "no data yet (–)"
-      ],
+      "states": ["no data yet (–)"],
       "route": "/deals/hot/[id] (tab)",
       "priority": "P2",
       "shot": "merchant-09-hot-results-en"
@@ -1941,13 +1726,9 @@
       "figma": "none",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Timeline list"
-      ],
+      "comps": ["Timeline list"],
       "sheets": [],
-      "states": [
-        "empty"
-      ],
+      "states": ["empty"],
       "route": "/deals/hot/[id] (tab)",
       "priority": "P3",
       "shot": "merchant-10-hot-activity-en"
@@ -1962,21 +1743,9 @@
       "figma": "none",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Modal",
-        "Segment (add/remove)",
-        "Select",
-        "Number field",
-        "Danger alert"
-      ],
-      "sheets": [
-        "modal"
-      ],
-      "states": [
-        "add",
-        "remove (only unreserved)",
-        "INVENTORY_BELOW_COMMITTED error"
-      ],
+      "comps": ["Modal", "Segment (add/remove)", "Select", "Number field", "Danger alert"],
+      "sheets": ["modal"],
+      "states": ["add", "remove (only unreserved)", "INVENTORY_BELOW_COMMITTED error"],
       "route": "/deals/hot/[id] (StockDialog)",
       "priority": "P2",
       "shot": null
@@ -1991,18 +1760,9 @@
       "figma": "59 Business console - Redeem (REPLACED by Staff app)",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Table",
-        "Reverse dialog (reason required)"
-      ],
-      "sheets": [
-        "Reverse dialog"
-      ],
-      "states": [
-        "reversed badge",
-        "no reverse permission",
-        "outside window"
-      ],
+      "comps": ["Table", "Reverse dialog (reason required)"],
+      "sheets": ["Reverse dialog"],
+      "states": ["reversed badge", "no reverse permission", "outside window"],
       "route": "/redemptions",
       "priority": "P1",
       "shot": "merchant-12-redemptions-en"
@@ -2017,15 +1777,9 @@
       "figma": "none",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Warning banner with reviewer reason (EN/AR)"
-      ],
+      "comps": ["Warning banner with reviewer reason (EN/AR)"],
       "sheets": [],
-      "states": [
-        "needs changes",
-        "rejected (danger)",
-        "pending (info)"
-      ],
+      "states": ["needs changes", "rejected (danger)", "pending (info)"],
       "route": "/deals/hot/[id]",
       "priority": "P2",
       "shot": null
@@ -2040,16 +1794,9 @@
       "figma": "none (design doc T01)",
       "svg": false,
       "isNew": true,
-      "comps": [
-        "Phone field",
-        "Primary button",
-        "Language switch"
-      ],
+      "comps": ["Phone field", "Primary button", "Language switch"],
       "sheets": [],
-      "states": [
-        "enter number",
-        "no access / not invited"
-      ],
+      "states": ["enter number", "no access / not invited"],
       "route": "/ (LoginPanel via RequireAuth)",
       "priority": "P1",
       "shot": null
@@ -2064,16 +1811,9 @@
       "figma": "none (design doc T01)",
       "svg": false,
       "isNew": true,
-      "comps": [
-        "OTP boxes (always LTR)",
-        "Resend"
-      ],
+      "comps": ["OTP boxes (always LTR)", "Resend"],
       "sheets": [],
-      "states": [
-        "wrong code",
-        "expired code",
-        "locked out"
-      ],
+      "states": ["wrong code", "expired code", "locked out"],
       "route": "/ (LoginPanel)",
       "priority": "P1",
       "shot": null
@@ -2095,11 +1835,7 @@
         "Bottom bar (Scan/History/Account)"
       ],
       "sheets": [],
-      "states": [
-        "camera starting",
-        "scanning",
-        "camera denied → manual form"
-      ],
+      "states": ["camera starting", "scanning", "camera denied → manual form"],
       "route": "/ (staff/features/redeem.tsx)",
       "priority": "P1",
       "shot": "staff-01-scan-en"
@@ -2114,17 +1850,9 @@
       "figma": "none (design doc T02 manual sheet)",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Code field (large, LTR)",
-        "Primary button",
-        "Warning alert"
-      ],
+      "comps": ["Code field (large, LTR)", "Primary button", "Warning alert"],
       "sheets": [],
-      "states": [
-        "camera denied",
-        "no camera",
-        "rate limited"
-      ],
+      "states": ["camera denied", "no camera", "rate limited"],
       "route": "/ (ManualEntry)",
       "priority": "P1",
       "shot": "staff-10-no-camera-en"
@@ -2139,16 +1867,9 @@
       "figma": "none (design doc T03)",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Result card (ok)",
-        "Facts list",
-        "Confirm button",
-        "Countdown"
-      ],
+      "comps": ["Result card (ok)", "Facts list", "Confirm button", "Countdown"],
       "sheets": [],
-      "states": [
-        "valid"
-      ],
+      "states": ["valid"],
       "route": "/ (ResultView)",
       "priority": "P1",
       "shot": "staff-02-valid-en"
@@ -2163,14 +1884,9 @@
       "figma": "none (design doc T04)",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Working card (aria-busy)"
-      ],
+      "comps": ["Working card (aria-busy)"],
       "sheets": [],
-      "states": [
-        "checking",
-        "confirming (no double tap)"
-      ],
+      "states": ["checking", "confirming (no double tap)"],
       "route": "/ (phase working)",
       "priority": "P2",
       "shot": null
@@ -2185,15 +1901,9 @@
       "figma": "none (design doc T04)",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Result card (ok)",
-        "Reference",
-        "Scan next"
-      ],
+      "comps": ["Result card (ok)", "Reference", "Scan next"],
       "sheets": [],
-      "states": [
-        "redeemed + reference"
-      ],
+      "states": ["redeemed + reference"],
       "route": "/ (phase done)",
       "priority": "P1",
       "shot": "staff-03-redeemed-en"
@@ -2208,13 +1918,9 @@
       "figma": "none (design doc T03)",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Result card (stop)"
-      ],
+      "comps": ["Result card (stop)"],
       "sheets": [],
-      "states": [
-        "unknown / malformed / other merchant (no leak)"
-      ],
+      "states": ["unknown / malformed / other merchant (no leak)"],
       "route": "/ (ResultView)",
       "priority": "P1",
       "shot": "staff-05-invalid-en"
@@ -2229,13 +1935,9 @@
       "figma": "none (design doc T03)",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Result card (warn)"
-      ],
+      "comps": ["Result card (warn)"],
       "sheets": [],
-      "states": [
-        "hold ended"
-      ],
+      "states": ["hold ended"],
       "route": "/ (ResultView)",
       "priority": "P1",
       "shot": null
@@ -2250,14 +1952,9 @@
       "figma": "none (design doc T03)",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Result card (stop)",
-        "Facts: when/where"
-      ],
+      "comps": ["Result card (stop)", "Facts: when/where"],
       "sheets": [],
-      "states": [
-        "replay / duplicate scan / lost race"
-      ],
+      "states": ["replay / duplicate scan / lost race"],
       "route": "/ (ResultView)",
       "priority": "P1",
       "shot": "staff-04-already-used-en"
@@ -2272,13 +1969,9 @@
       "figma": "none (design doc T03)",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Result card (stop)"
-      ],
+      "comps": ["Result card (stop)"],
       "sheets": [],
-      "states": [
-        "valid at another branch of the same merchant"
-      ],
+      "states": ["valid at another branch of the same merchant"],
       "route": "/ (ResultView)",
       "priority": "P1",
       "shot": "staff-07-wrong-branch-en"
@@ -2293,14 +1986,9 @@
       "figma": "none (design doc T03)",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Result card (stop)",
-        "Requirement text (no personal data)"
-      ],
+      "comps": ["Result card (stop)", "Requirement text (no personal data)"],
       "sheets": [],
-      "states": [
-        "rule needs current eligibility"
-      ],
+      "states": ["rule needs current eligibility"],
       "route": "/ (ResultView)",
       "priority": "P2",
       "shot": null
@@ -2315,13 +2003,9 @@
       "figma": "none (design doc T03)",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Result card (stop)"
-      ],
+      "comps": ["Result card (stop)"],
       "sheets": [],
-      "states": [
-        "cancelled or released"
-      ],
+      "states": ["cancelled or released"],
       "route": "/ (ResultView)",
       "priority": "P2",
       "shot": null
@@ -2336,15 +2020,9 @@
       "figma": "none (design doc T03)",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Result card (stop)"
-      ],
+      "comps": ["Result card (stop)"],
       "sheets": [],
-      "states": [
-        "paused",
-        "suspended",
-        "cancelled campaign"
-      ],
+      "states": ["paused", "suspended", "cancelled campaign"],
       "route": "/ (ResultView)",
       "priority": "P2",
       "shot": null
@@ -2359,10 +2037,7 @@
       "figma": "none (design doc §8)",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Offline panel",
-        "Retry button"
-      ],
+      "comps": ["Offline panel", "Retry button"],
       "sheets": [],
       "states": [
         "request lost",
@@ -2383,14 +2058,9 @@
       "figma": "none (design doc §8)",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Offline banner",
-        "Disabled button"
-      ],
+      "comps": ["Offline banner", "Disabled button"],
       "sheets": [],
-      "states": [
-        "device offline: banner, check/confirm disabled"
-      ],
+      "states": ["device offline: banner, check/confirm disabled"],
       "route": "/ (offline-banner)",
       "priority": "P2",
       "shot": "staff-06b-offline-banner-en"
@@ -2405,13 +2075,9 @@
       "figma": "none (design doc §8)",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Result card (stop)"
-      ],
+      "comps": ["Result card (stop)"],
       "sheets": [],
-      "states": [
-        "5 wrong codes per minute"
-      ],
+      "states": ["5 wrong codes per minute"],
       "route": "/ (phase error)",
       "priority": "P3",
       "shot": null
@@ -2433,16 +2099,8 @@
         "Filter chips",
         "History row (tappable)"
       ],
-      "sheets": [
-        "T24 Scan details sheet"
-      ],
-      "states": [
-        "today",
-        "yesterday",
-        "empty",
-        "error + retry",
-        "search results (T23)"
-      ],
+      "sheets": ["T24 Scan details sheet"],
+      "states": ["today", "yesterday", "empty", "error + retry", "search results (T23)"],
       "route": "/history",
       "priority": "P1",
       "shot": "staff-08-history-en"
@@ -2457,17 +2115,9 @@
       "figma": "none (design doc T06)",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Account card",
-        "Language pills",
-        "Sign out"
-      ],
+      "comps": ["Account card", "Language pills", "Sign out"],
       "sheets": [],
-      "states": [
-        "single branch",
-        "all branches",
-        "no redeem permission"
-      ],
+      "states": ["single branch", "all branches", "no redeem permission"],
       "route": "/account",
       "priority": "P2",
       "shot": "staff-09-account-en"
@@ -2482,15 +2132,9 @@
       "figma": "none (design doc §8)",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Scanner empty state",
-        "Enter-code button"
-      ],
+      "comps": ["Scanner empty state", "Enter-code button"],
       "sheets": [],
-      "states": [
-        "denied",
-        "unavailable"
-      ],
+      "states": ["denied", "unavailable"],
       "route": "/ (CameraScanner)",
       "priority": "P2",
       "shot": null
@@ -2512,9 +2156,7 @@
         "Irreversible warning alert",
         "Confirm / Cancel buttons"
       ],
-      "sheets": [
-        "Redeem confirmation bottom sheet (locks while submitting)"
-      ],
+      "sheets": ["Redeem confirmation bottom sheet (locks while submitting)"],
       "states": [
         "open",
         "submitting (buttons locked, no double submit)",
@@ -2534,11 +2176,7 @@
       "figma": "none (design doc T03)",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Result card (warn)",
-        "Facts incl. start time",
-        "Scan next"
-      ],
+      "comps": ["Result card (warn)", "Facts incl. start time", "Scan next"],
       "sheets": [],
       "states": [
         "campaign scheduled or start time ahead; shows when it starts; never offers Redeem"
@@ -2565,11 +2203,7 @@
         "History row (tappable)"
       ],
       "sheets": [],
-      "states": [
-        "results",
-        "no matches",
-        "loading"
-      ],
+      "states": ["results", "no matches", "loading"],
       "route": "/history (search, q=last letters of the code)",
       "priority": "P1",
       "shot": "staff-08c-history-search-en"
@@ -2584,19 +2218,9 @@
       "figma": "none (design doc T05 detail)",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Bottom sheet",
-        "Facts list",
-        "Status chip"
-      ],
-      "sheets": [
-        "Scan details bottom sheet"
-      ],
-      "states": [
-        "redeemed",
-        "rejected (any result)",
-        "no personal data beyond first name"
-      ],
+      "comps": ["Bottom sheet", "Facts list", "Status chip"],
+      "sheets": ["Scan details bottom sheet"],
+      "states": ["redeemed", "rejected (any result)", "no personal data beyond first name"],
       "route": "/history (BottomSheet history-detail)",
       "priority": "P2",
       "shot": "staff-08b-history-detail-en"
@@ -2637,11 +2261,7 @@
       "figma": "none (design doc T01)",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "OTP boxes (one input drawn as six)",
-        "Danger alert",
-        "Resend button"
-      ],
+      "comps": ["OTP boxes (one input drawn as six)", "Danger alert", "Resend button"],
       "sheets": [],
       "states": [
         "wrong code (boxes red, cleared, no \"tries left\")",
@@ -2663,18 +2283,9 @@
       "figma": "none (Admin visual design: campaign queue pattern)",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Tabs (Queue/All/Monitor)",
-        "Search",
-        "Table",
-        "Status chip"
-      ],
+      "comps": ["Tabs (Queue/All/Monitor)", "Search", "Table", "Status chip"],
       "sheets": [],
-      "states": [
-        "empty queue",
-        "loading",
-        "error"
-      ],
+      "states": ["empty queue", "loading", "error"],
       "route": "/hot-deals",
       "priority": "P1",
       "shot": "admin-01-hot-queue-en"
@@ -2700,15 +2311,8 @@
         "Decision panel",
         "Customer preview"
       ],
-      "sheets": [
-        "Decision dialog"
-      ],
-      "states": [
-        "pending review",
-        "live (control actions)",
-        "suspended",
-        "support: no access"
-      ],
+      "sheets": ["Decision dialog"],
+      "states": ["pending review", "live (control actions)", "suspended", "support: no access"],
       "route": "/hot-deals/[id]",
       "priority": "P1",
       "shot": "admin-02-hot-review-en"
@@ -2729,13 +2333,8 @@
         "Reason (AR) optional",
         "Confirm (danger for reject/suspend/cancel)"
       ],
-      "sheets": [
-        "modal"
-      ],
-      "states": [
-        "reason required error",
-        "success \"Done\""
-      ],
+      "sheets": ["modal"],
+      "states": ["reason required error", "success \"Done\""],
       "route": "/hot-deals/[id]",
       "priority": "P1",
       "shot": null
@@ -2750,18 +2349,9 @@
       "figma": "none",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Decision panel (control actions)",
-        "Status chip"
-      ],
-      "sheets": [
-        "Decision dialog"
-      ],
-      "states": [
-        "LIVE: pause/suspend/cancel",
-        "PAUSED: resume/suspend",
-        "SUSPENDED: reinstate"
-      ],
+      "comps": ["Decision panel (control actions)", "Status chip"],
+      "sheets": ["Decision dialog"],
+      "states": ["LIVE: pause/suspend/cancel", "PAUSED: resume/suspend", "SUSPENDED: reinstate"],
       "route": "/hot-deals/[id]",
       "priority": "P1",
       "shot": null
@@ -2776,15 +2366,9 @@
       "figma": "none",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "KPI tiles",
-        "Table of live deals"
-      ],
+      "comps": ["KPI tiles", "Table of live deals"],
       "sheets": [],
-      "states": [
-        "loading",
-        "error"
-      ],
+      "states": ["loading", "error"],
       "route": "/hot-deals (Live monitor tab)",
       "priority": "P1",
       "shot": "admin-03-hot-monitor-en"
@@ -2799,19 +2383,9 @@
       "figma": "none",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Search field",
-        "Reservation card",
-        "Reason dialog"
-      ],
-      "sheets": [
-        "Reason dialog"
-      ],
-      "states": [
-        "not found",
-        "held → cancel",
-        "redeemed → reverse"
-      ],
+      "comps": ["Search field", "Reservation card", "Reason dialog"],
+      "sheets": ["Reason dialog"],
+      "states": ["not found", "held → cancel", "redeemed → reverse"],
       "route": "/reservations (Find a reservation)",
       "priority": "P1",
       "shot": "admin-05-reservation-lookup-en"
@@ -2826,19 +2400,9 @@
       "figma": "none",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Table",
-        "Lift dialog (reason required)"
-      ],
-      "sheets": [
-        "Lift dialog"
-      ],
-      "states": [
-        "active",
-        "lifted",
-        "ended",
-        "empty"
-      ],
+      "comps": ["Table", "Lift dialog (reason required)"],
+      "sheets": ["Lift dialog"],
+      "states": ["active", "lifted", "ended", "empty"],
       "route": "/reservations (Restrictions)",
       "priority": "P1",
       "shot": "admin-04-restrictions-en"
@@ -2853,14 +2417,9 @@
       "figma": "none",
       "svg": true,
       "isNew": true,
-      "comps": [
-        "Timeline",
-        "Actor/role meta"
-      ],
+      "comps": ["Timeline", "Actor/role meta"],
       "sheets": [],
-      "states": [
-        "empty"
-      ],
+      "states": ["empty"],
       "route": "/hot-deals/[id] (History card)",
       "priority": "P2",
       "shot": "admin-02-hot-review-en"
@@ -2881,11 +2440,7 @@
         "Exclusive Deal detail (embedded)"
       ],
       "sheets": [],
-      "states": [
-        "EN",
-        "AR (RTL)",
-        "locked eligibility shown"
-      ],
+      "states": ["EN", "AR (RTL)", "locked eligibility shown"],
       "route": "/hot-deals/[id] (aside)",
       "priority": "P2",
       "shot": "admin-07-hot-review-ar"
@@ -2907,12 +2462,7 @@
         "Show more"
       ],
       "sheets": [],
-      "states": [
-        "loading",
-        "empty \"No activity yet\"",
-        "error",
-        "more than 15 events: Show more"
-      ],
+      "states": ["loading", "empty \"No activity yet\"", "error", "more than 15 events: Show more"],
       "route": "/hot-deals/[id] (ActivityFeed card under History)",
       "priority": "P1",
       "shot": "admin-02-hot-review-en"

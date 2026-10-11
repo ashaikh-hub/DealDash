@@ -168,10 +168,17 @@ function Inner() {
       <Tabs label={t('ac.title')} value={tab} onChange={setTab} tabs={tabs} />
       {tab === 'overview' ? <OverviewTab /> : null}
       {tab === 'cases' ? <CasesTab canManage={perms.includes('admin.finance.manage')} /> : null}
-      {tab === 'pricing' ? <PricingTab canManage={perms.includes('admin.finance.pricing.manage')} /> : null}
-      {tab === 'rules' ? <RulesTab canManage={perms.includes('admin.finance.pricing.manage')} /> : null}
+      {tab === 'pricing' ? (
+        <PricingTab canManage={perms.includes('admin.finance.pricing.manage')} />
+      ) : null}
+      {tab === 'rules' ? (
+        <RulesTab canManage={perms.includes('admin.finance.pricing.manage')} />
+      ) : null}
       {tab === 'credit' ? (
-        <CreditTab canRequest={perms.includes('admin.finance.credit.manage')} canApprove={perms.includes('admin.finance.credit.approve')} />
+        <CreditTab
+          canRequest={perms.includes('admin.finance.credit.manage')}
+          canApprove={perms.includes('admin.finance.credit.approve')}
+        />
       ) : null}
       {tab === 'holds' ? <HoldsTab canManage={perms.includes('admin.finance.manage')} /> : null}
       {tab === 'money' ? <MoneyTab canManage={perms.includes('admin.finance.manage')} /> : null}
@@ -201,7 +208,12 @@ function useCommand() {
   const { locale } = useAuth();
   const [banner, setBanner] = useState<{ tone: 'success' | 'danger'; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
-  const run = async (path: string, body: unknown, ok: string, after?: () => void | Promise<void>) => {
+  const run = async (
+    path: string,
+    body: unknown,
+    ok: string,
+    after?: () => void | Promise<void>,
+  ) => {
     setBusy(true);
     const r = await call('POST', path, { body, idempotent: true });
     setBusy(false);
@@ -264,12 +276,19 @@ function CasesTab({ canManage }: { canManage: boolean }) {
   const t = createTranslator(locale);
   const [status, setStatus] = useState('');
   const [product, setProduct] = useState('');
-  const { data, reload } = useGet<CaseRow[]>('/v1/admin/commercial/cases', { status: status || undefined, product: product || undefined });
+  const { data, reload } = useGet<CaseRow[]>('/v1/admin/commercial/cases', {
+    status: status || undefined,
+    product: product || undefined,
+  });
   const [open, setOpen] = useState<string | null>(null);
   return (
     <div className="dd-stack" style={{ gap: 16 }} data-testid="ac-cases">
       <div className="dd-row">
-        <Select aria-label={t('ac.filter.status')} value={status} onChange={(e) => setStatus(e.target.value)}>
+        <Select
+          aria-label={t('ac.filter.status')}
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+        >
           <option value="">{t('ac.filter.allStatus')}</option>
           {COMMERCIAL_STATUSES.map((s) => (
             <option key={s} value={s}>
@@ -277,7 +296,11 @@ function CasesTab({ canManage }: { canManage: boolean }) {
             </option>
           ))}
         </Select>
-        <Select aria-label={t('ac.filter.product')} value={product} onChange={(e) => setProduct(e.target.value)}>
+        <Select
+          aria-label={t('ac.filter.product')}
+          value={product}
+          onChange={(e) => setProduct(e.target.value)}
+        >
           <option value="">{t('ac.filter.allProduct')}</option>
           {COMMERCIAL_PRODUCTS.map((p) => (
             <option key={p} value={p}>
@@ -309,17 +332,25 @@ function CasesTab({ canManage }: { canManage: boolean }) {
                 <tr key={c.id} data-testid={`ac-case-${c.reference}`}>
                   <td className="dd-ltr">
                     {c.reference}
-                    {c.developmentFixture ? <StatusChip tone="neutral">{t('ac.fixture')}</StatusChip> : null}
+                    {c.developmentFixture ? (
+                      <StatusChip tone="neutral">{t('ac.fixture')}</StatusChip>
+                    ) : null}
                   </td>
                   <td>{t(k('ac.product', c.product))}</td>
                   <td>{c.ownerName[locale]}</td>
                   <td>
-                    <StatusChip tone={commercialTone(c.status)}>{t(k('cm.status', c.status))}</StatusChip>
+                    <StatusChip tone={commercialTone(c.status)}>
+                      {t(k('cm.status', c.status))}
+                    </StatusChip>
                   </td>
                   <td className="dd-ltr">{formatMoney(locale, c.maxCashHalalas)}</td>
                   <td className="dd-ltr">{formatMoney(locale, c.benefitCommitmentHalalas)}</td>
                   <td>
-                    <Button variant="outline" onClick={() => setOpen(open === c.id ? null : c.id)} data-testid={`ac-open-${c.reference}`}>
+                    <Button
+                      variant="outline"
+                      onClick={() => setOpen(open === c.id ? null : c.id)}
+                      data-testid={`ac-open-${c.reference}`}
+                    >
                       {t('ac.open')}
                     </Button>
                   </td>
@@ -334,7 +365,15 @@ function CasesTab({ canManage }: { canManage: boolean }) {
   );
 }
 
-function CaseDetail({ id, canManage, onChanged }: { id: string; canManage: boolean; onChanged: () => void }) {
+function CaseDetail({
+  id,
+  canManage,
+  onChanged,
+}: {
+  id: string;
+  canManage: boolean;
+  onChanged: () => void;
+}) {
   const { locale } = useAuth();
   const t = createTranslator(locale);
   const { data, reload } = useGet<CommercialCaseView>(`/v1/admin/commercial/cases/${id}`);
@@ -352,17 +391,28 @@ function CaseDetail({ id, canManage, onChanged }: { id: string; canManage: boole
   const base = `/v1/admin/commercial/cases/${id}`;
   const pendingParties =
     data.preview?.parties.filter(
-      (p) => p.role !== 'FULFILMENT_MERCHANT' && !data.acceptances.some((a) => a.organizationId === p.organizationId && a.role === p.role && a.quotationId === data.quotation?.id),
+      (p) =>
+        p.role !== 'FULFILMENT_MERCHANT' &&
+        !data.acceptances.some(
+          (a) =>
+            a.organizationId === p.organizationId &&
+            a.role === p.role &&
+            a.quotationId === data.quotation?.id,
+        ),
     ) ?? [];
   return (
     <Card>
       <div className="dd-stack" style={{ gap: 14 }} data-testid="ac-case-detail">
         <div className="dd-row" style={{ justifyContent: 'space-between' }}>
           <h2 className="dd-title dd-ltr">{data.reference}</h2>
-          <StatusChip tone={commercialTone(data.status)}>{t(k('cm.status', data.status))}</StatusChip>
+          <StatusChip tone={commercialTone(data.status)}>
+            {t(k('cm.status', data.status))}
+          </StatusChip>
         </div>
         {cmd.banner}
-        {data.hold.active ? <Alert tone="danger">{t('ac.holdActive', { reason: data.hold.reason ?? '' })}</Alert> : null}
+        {data.hold.active ? (
+          <Alert tone="danger">{t('ac.holdActive', { reason: data.hold.reason ?? '' })}</Alert>
+        ) : null}
         {data.preview ? <CommercialSummary preview={data.preview} locale={locale} /> : null}
         {data.blockers.length ? (
           <div data-testid="ac-blockers">
@@ -422,13 +472,18 @@ function CaseDetail({ id, canManage, onChanged }: { id: string; canManage: boole
               <div className="dd-kv__row">
                 <dt>{t('ac.recon.benefit')}</dt>
                 <dd className="dd-ltr">
-                  {formatMoney(locale, rec.data.merchantBenefit.redeemedHalalas)} / {formatMoney(locale, rec.data.merchantBenefit.committedHalalas)}{' '}
+                  {formatMoney(locale, rec.data.merchantBenefit.redeemedHalalas)} /{' '}
+                  {formatMoney(locale, rec.data.merchantBenefit.committedHalalas)}{' '}
                   <span className="dd-muted">({t('ac.recon.nonCash')})</span>
                 </dd>
               </div>
               <div className="dd-kv__row">
                 <dt>{t('ac.recon.treatment')}</dt>
-                <dd>{rec.data.treatment ? t(k('ac.treatment', rec.data.treatment)) : t('ac.treatment.NONE')}</dd>
+                <dd>
+                  {rec.data.treatment
+                    ? t(k('ac.treatment', rec.data.treatment))
+                    : t('ac.treatment.NONE')}
+                </dd>
               </div>
               {rec.data.exceptions.length ? (
                 <div className="dd-kv__row">
@@ -442,10 +497,22 @@ function CaseDetail({ id, canManage, onChanged }: { id: string; canManage: boole
         {canManage && data.status !== 'CLOSED' ? (
           <div className="dd-stack" style={{ gap: 10 }}>
             <div className="dd-row" style={{ flexWrap: 'wrap' }}>
-              <Button variant="secondary" loading={cmd.busy} onClick={() => void cmd.run(`${base}/apply-agreement`, {}, t('ac.applied'), refresh)} data-testid="ac-apply-agreement">
+              <Button
+                variant="secondary"
+                loading={cmd.busy}
+                onClick={() =>
+                  void cmd.run(`${base}/apply-agreement`, {}, t('ac.applied'), refresh)
+                }
+                data-testid="ac-apply-agreement"
+              >
                 {t('ac.applyAgreement')}
               </Button>
-              <Button variant="secondary" loading={cmd.busy} onClick={() => void cmd.run(`${base}/close`, {}, t('ac.closed'), refresh)} data-testid="ac-close">
+              <Button
+                variant="secondary"
+                loading={cmd.busy}
+                onClick={() => void cmd.run(`${base}/close`, {}, t('ac.closed'), refresh)}
+                data-testid="ac-close"
+              >
                 {t('ac.close')}
               </Button>
             </div>
@@ -455,7 +522,11 @@ function CaseDetail({ id, canManage, onChanged }: { id: string; canManage: boole
                   <Select id="ac-auth" value={authId} onChange={(e) => setAuthId(e.target.value)}>
                     <option value="">{t('ac.onBehalf.pick')}</option>
                     {(auths.data ?? [])
-                      .filter((a) => !a.revoked && pendingParties.some((p) => p.organizationId === a.organizationId))
+                      .filter(
+                        (a) =>
+                          !a.revoked &&
+                          pendingParties.some((p) => p.organizationId === a.organizationId),
+                      )
                       .map((a) => (
                         <option key={a.id} value={a.id}>
                           {a.reference}
@@ -473,7 +544,14 @@ function CaseDetail({ id, canManage, onChanged }: { id: string; canManage: boole
                     if (!a || !p || !data.quotation) return;
                     void cmd.run(
                       `${base}/accept-on-behalf`,
-                      { quotationId: data.quotation.id, checks: p.requiredChecks, language: locale, organizationId: p.organizationId, role: p.role, authorizationId: a.id },
+                      {
+                        quotationId: data.quotation.id,
+                        checks: p.requiredChecks,
+                        language: locale,
+                        organizationId: p.organizationId,
+                        role: p.role,
+                        authorizationId: a.id,
+                      },
                       t('ac.onBehalf.done'),
                       refresh,
                     );
@@ -485,13 +563,24 @@ function CaseDetail({ id, canManage, onChanged }: { id: string; canManage: boole
             ) : null}
             <div className="dd-row" style={{ alignItems: 'flex-end', flexWrap: 'wrap' }}>
               <Field label={t('ac.hold.reason')} htmlFor="ac-hold-reason">
-                <Input id="ac-hold-reason" value={holdReason} onChange={(e) => setHoldReason(e.target.value)} />
+                <Input
+                  id="ac-hold-reason"
+                  value={holdReason}
+                  onChange={(e) => setHoldReason(e.target.value)}
+                />
               </Field>
               <Button
                 variant="outline"
                 disabled={holdReason.trim().length < 3}
                 loading={cmd.busy}
-                onClick={() => void cmd.run('/v1/admin/commercial/holds', { organizationId: data.ownerOrganizationId, caseId: id, reason: holdReason }, t('ac.hold.placed'), refresh)}
+                onClick={() =>
+                  void cmd.run(
+                    '/v1/admin/commercial/holds',
+                    { organizationId: data.ownerOrganizationId, caseId: id, reason: holdReason },
+                    t('ac.hold.placed'),
+                    refresh,
+                  )
+                }
               >
                 {t('ac.hold.place')}
               </Button>
@@ -519,7 +608,16 @@ function PricingTab({ canManage }: { canManage: boolean }) {
   const t = createTranslator(locale);
   const { data, reload } = useGet<Agreement[]>('/v1/admin/commercial/pricing');
   const cmd = useCommand();
-  const [f, setF] = useState({ name: '', scope: 'GLOBAL', organizationId: '', product: 'EXCLUSIVE', priority: '100', treatment: '', tax: '', reference: '' });
+  const [f, setF] = useState({
+    name: '',
+    scope: 'GLOBAL',
+    organizationId: '',
+    product: 'EXCLUSIVE',
+    priority: '100',
+    treatment: '',
+    tax: '',
+    reference: '',
+  });
   const [comp, setComp] = useState<PricingComponent>(EMPTY_COMPONENT);
   const [amount, setAmount] = useState('1');
   const [bps, setBps] = useState('0');
@@ -574,8 +672,16 @@ function PricingTab({ canManage }: { canManage: boolean }) {
                   <td>{t(k('ac.scope', a.scope))}</td>
                   <td>{a.product ? t(k('ac.product', a.product)) : t('ac.allProducts')}</td>
                   <td>v{a.version}</td>
-                  <td>{a.unusedTreatment ? t(k('ac.treatment', a.unusedTreatment)) : t('ac.treatment.NONE')}</td>
-                  <td>{a.taxBps === null ? t('cm.taxNotConfiguredShort') : `${(a.taxBps ?? 0) / 100}%`}</td>
+                  <td>
+                    {a.unusedTreatment
+                      ? t(k('ac.treatment', a.unusedTreatment))
+                      : t('ac.treatment.NONE')}
+                  </td>
+                  <td>
+                    {a.taxBps === null
+                      ? t('cm.taxNotConfiguredShort')
+                      : `${(a.taxBps ?? 0) / 100}%`}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -587,62 +693,202 @@ function PricingTab({ canManage }: { canManage: boolean }) {
           <div className="dd-stack" style={{ gap: 10 }}>
             <h2 className="dd-title">{t('ac.pricing.new')}</h2>
             {cmd.banner}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
-              <Field label={t('ac.col.name')} htmlFor="pr-name"><Input id="pr-name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></Field>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: 12,
+              }}
+            >
+              <Field label={t('ac.col.name')} htmlFor="pr-name">
+                <Input
+                  id="pr-name"
+                  value={f.name}
+                  onChange={(e) => setF({ ...f, name: e.target.value })}
+                />
+              </Field>
               <Field label={t('ac.col.scope')} htmlFor="pr-scope">
-                <Select id="pr-scope" value={f.scope} onChange={(e) => setF({ ...f, scope: e.target.value })}>
-                  {['GLOBAL', 'ORGANIZATION'].map((s) => <option key={s} value={s}>{t(k('ac.scope', s))}</option>)}
+                <Select
+                  id="pr-scope"
+                  value={f.scope}
+                  onChange={(e) => setF({ ...f, scope: e.target.value })}
+                >
+                  {['GLOBAL', 'ORGANIZATION'].map((s) => (
+                    <option key={s} value={s}>
+                      {t(k('ac.scope', s))}
+                    </option>
+                  ))}
                 </Select>
               </Field>
               {f.scope === 'ORGANIZATION' ? (
-                <Field label={t('ac.col.orgId')} htmlFor="pr-org"><Input id="pr-org" dir="ltr" value={f.organizationId} onChange={(e) => setF({ ...f, organizationId: e.target.value.trim() })} /></Field>
+                <Field label={t('ac.col.orgId')} htmlFor="pr-org">
+                  <Input
+                    id="pr-org"
+                    dir="ltr"
+                    value={f.organizationId}
+                    onChange={(e) => setF({ ...f, organizationId: e.target.value.trim() })}
+                  />
+                </Field>
               ) : null}
               <Field label={t('ac.col.product')} htmlFor="pr-product">
-                <Select id="pr-product" value={f.product} onChange={(e) => setF({ ...f, product: e.target.value })}>
-                  {COMMERCIAL_PRODUCTS.map((p) => <option key={p} value={p}>{t(k('ac.product', p))}</option>)}
+                <Select
+                  id="pr-product"
+                  value={f.product}
+                  onChange={(e) => setF({ ...f, product: e.target.value })}
+                >
+                  {COMMERCIAL_PRODUCTS.map((p) => (
+                    <option key={p} value={p}>
+                      {t(k('ac.product', p))}
+                    </option>
+                  ))}
                 </Select>
               </Field>
-              <Field label={t('ac.pricing.component')} htmlFor="pr-code"><Input id="pr-code" value={comp.code} onChange={(e) => setComp({ ...comp, code: e.target.value })} /></Field>
-              <Field label={t('ac.pricing.labelEn')} htmlFor="pr-len"><Input id="pr-len" value={comp.label.en} onChange={(e) => setComp({ ...comp, label: { ...comp.label, en: e.target.value } })} /></Field>
-              <Field label={t('ac.pricing.labelAr')} htmlFor="pr-lar"><Input id="pr-lar" value={comp.label.ar} onChange={(e) => setComp({ ...comp, label: { ...comp.label, ar: e.target.value } })} /></Field>
+              <Field label={t('ac.pricing.component')} htmlFor="pr-code">
+                <Input
+                  id="pr-code"
+                  value={comp.code}
+                  onChange={(e) => setComp({ ...comp, code: e.target.value })}
+                />
+              </Field>
+              <Field label={t('ac.pricing.labelEn')} htmlFor="pr-len">
+                <Input
+                  id="pr-len"
+                  value={comp.label.en}
+                  onChange={(e) =>
+                    setComp({ ...comp, label: { ...comp.label, en: e.target.value } })
+                  }
+                />
+              </Field>
+              <Field label={t('ac.pricing.labelAr')} htmlFor="pr-lar">
+                <Input
+                  id="pr-lar"
+                  value={comp.label.ar}
+                  onChange={(e) =>
+                    setComp({ ...comp, label: { ...comp.label, ar: e.target.value } })
+                  }
+                />
+              </Field>
               <Field label={t('ac.pricing.basis')} htmlFor="pr-basis">
-                <Select id="pr-basis" value={comp.basis} onChange={(e) => setComp({ ...comp, basis: e.target.value as PricingComponent['basis'] })}>
-                  {['FIXED', 'PER_UNIT', 'PERCENT_OF_BASE'].map((b) => <option key={b} value={b}>{t(k('ac.basis', b))}</option>)}
+                <Select
+                  id="pr-basis"
+                  value={comp.basis}
+                  onChange={(e) =>
+                    setComp({ ...comp, basis: e.target.value as PricingComponent['basis'] })
+                  }
+                >
+                  {['FIXED', 'PER_UNIT', 'PERCENT_OF_BASE'].map((b) => (
+                    <option key={b} value={b}>
+                      {t(k('ac.basis', b))}
+                    </option>
+                  ))}
                 </Select>
               </Field>
               {comp.basis === 'PERCENT_OF_BASE' ? (
                 <>
-                  <Field label={t('ac.pricing.bps')} htmlFor="pr-bps"><Input id="pr-bps" inputMode="numeric" value={bps} onChange={(e) => setBps(e.target.value)} /></Field>
+                  <Field label={t('ac.pricing.bps')} htmlFor="pr-bps">
+                    <Input
+                      id="pr-bps"
+                      inputMode="numeric"
+                      value={bps}
+                      onChange={(e) => setBps(e.target.value)}
+                    />
+                  </Field>
                   <Field label={t('ac.pricing.base')} htmlFor="pr-base">
-                    <Select id="pr-base" value={comp.base ?? 'SELLING_PRICE'} onChange={(e) => setComp({ ...comp, base: e.target.value as PricingComponent['base'] })}>
-                      {['SELLING_PRICE', 'FACE_VALUE', 'MEDIA_SPEND', 'BENEFIT_VALUE'].map((b) => <option key={b} value={b}>{t(k('ac.base', b))}</option>)}
+                    <Select
+                      id="pr-base"
+                      value={comp.base ?? 'SELLING_PRICE'}
+                      onChange={(e) =>
+                        setComp({ ...comp, base: e.target.value as PricingComponent['base'] })
+                      }
+                    >
+                      {['SELLING_PRICE', 'FACE_VALUE', 'MEDIA_SPEND', 'BENEFIT_VALUE'].map((b) => (
+                        <option key={b} value={b}>
+                          {t(k('ac.base', b))}
+                        </option>
+                      ))}
                     </Select>
                   </Field>
                 </>
               ) : (
-                <Field label={t('ac.pricing.amount')} htmlFor="pr-amt"><Input id="pr-amt" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} /></Field>
+                <Field label={t('ac.pricing.amount')} htmlFor="pr-amt">
+                  <Input
+                    id="pr-amt"
+                    inputMode="decimal"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                  />
+                </Field>
               )}
               <Field label={t('ac.pricing.trigger')} htmlFor="pr-trig">
-                <Select id="pr-trig" value={comp.trigger} onChange={(e) => setComp({ ...comp, trigger: e.target.value as PricingComponent['trigger'] })}>
-                  {['UPFRONT', 'VERIFIED_REDEMPTION', 'SALE'].map((b) => <option key={b} value={b}>{t(k('cm.trigger', b))}</option>)}
+                <Select
+                  id="pr-trig"
+                  value={comp.trigger}
+                  onChange={(e) =>
+                    setComp({ ...comp, trigger: e.target.value as PricingComponent['trigger'] })
+                  }
+                >
+                  {['UPFRONT', 'VERIFIED_REDEMPTION', 'SALE'].map((b) => (
+                    <option key={b} value={b}>
+                      {t(k('cm.trigger', b))}
+                    </option>
+                  ))}
                 </Select>
               </Field>
               <Field label={t('ac.pricing.collection')} htmlFor="pr-coll">
-                <Select id="pr-coll" value={comp.collection} onChange={(e) => setComp({ ...comp, collection: e.target.value as PricingComponent['collection'] })}>
-                  {['CASH', 'NETTED'].map((b) => <option key={b} value={b}>{t(k('ac.collection', b))}</option>)}
+                <Select
+                  id="pr-coll"
+                  value={comp.collection}
+                  onChange={(e) =>
+                    setComp({
+                      ...comp,
+                      collection: e.target.value as PricingComponent['collection'],
+                    })
+                  }
+                >
+                  {['CASH', 'NETTED'].map((b) => (
+                    <option key={b} value={b}>
+                      {t(k('ac.collection', b))}
+                    </option>
+                  ))}
                 </Select>
               </Field>
               <Field label={t('ac.col.treatment')} htmlFor="pr-treat">
-                <Select id="pr-treat" value={f.treatment} onChange={(e) => setF({ ...f, treatment: e.target.value })}>
+                <Select
+                  id="pr-treat"
+                  value={f.treatment}
+                  onChange={(e) => setF({ ...f, treatment: e.target.value })}
+                >
                   <option value="">{t('ac.treatment.NONE')}</option>
-                  {UNUSED_TREATMENTS.map((x) => <option key={x} value={x}>{t(k('ac.treatment', x))}</option>)}
+                  {UNUSED_TREATMENTS.map((x) => (
+                    <option key={x} value={x}>
+                      {t(k('ac.treatment', x))}
+                    </option>
+                  ))}
                 </Select>
               </Field>
-              <Field label={t('ac.pricing.taxBps')} htmlFor="pr-tax" help={t('ac.pricing.taxHelp')}><Input id="pr-tax" inputMode="numeric" value={f.tax} onChange={(e) => setF({ ...f, tax: e.target.value })} /></Field>
-              <Field label={t('ac.pricing.reference')} htmlFor="pr-ref"><Input id="pr-ref" value={f.reference} onChange={(e) => setF({ ...f, reference: e.target.value })} /></Field>
+              <Field label={t('ac.pricing.taxBps')} htmlFor="pr-tax" help={t('ac.pricing.taxHelp')}>
+                <Input
+                  id="pr-tax"
+                  inputMode="numeric"
+                  value={f.tax}
+                  onChange={(e) => setF({ ...f, tax: e.target.value })}
+                />
+              </Field>
+              <Field label={t('ac.pricing.reference')} htmlFor="pr-ref">
+                <Input
+                  id="pr-ref"
+                  value={f.reference}
+                  onChange={(e) => setF({ ...f, reference: e.target.value })}
+                />
+              </Field>
             </div>
             <div>
-              <Button disabled={f.name.trim().length < 2} loading={cmd.busy} onClick={submit} data-testid="ac-pricing-create">
+              <Button
+                disabled={f.name.trim().length < 2}
+                loading={cmd.busy}
+                onClick={submit}
+                data-testid="ac-pricing-create"
+              >
                 {t('ac.pricing.create')}
               </Button>
             </div>
@@ -658,7 +904,15 @@ function RulesTab({ canManage }: { canManage: boolean }) {
   const t = createTranslator(locale);
   const { data, reload } = useGet<Rule[]>('/v1/admin/commercial/approval-rules');
   const cmd = useCommand();
-  const [f, setF] = useState({ name: '', scope: 'CAMPAIGN', product: '', organizationId: '', min: '', internal: false, finance: true });
+  const [f, setF] = useState({
+    name: '',
+    scope: 'CAMPAIGN',
+    product: '',
+    organizationId: '',
+    min: '',
+    internal: false,
+    finance: true,
+  });
   const create = () =>
     void cmd.run(
       '/v1/admin/commercial/approval-rules',
@@ -668,7 +922,10 @@ function RulesTab({ canManage }: { canManage: boolean }) {
         ...(f.product ? { product: f.product } : {}),
         ...(f.organizationId ? { organizationId: f.organizationId } : {}),
         ...(f.min ? { minLiabilityHalalas: toHalalas(f.min) } : {}),
-        steps: [...(f.internal ? ['INTERNAL_APPROVER'] : []), ...(f.finance ? ['FINANCE_APPROVER'] : [])],
+        steps: [
+          ...(f.internal ? ['INTERNAL_APPROVER'] : []),
+          ...(f.finance ? ['FINANCE_APPROVER'] : []),
+        ],
       },
       t('ac.rules.created'),
       reload,
@@ -698,12 +955,30 @@ function RulesTab({ canManage }: { canManage: boolean }) {
                 <tr key={r.id}>
                   <td>{r.name}</td>
                   <td>{t(k('ac.ruleScope', r.scope))}</td>
-                  <td className="dd-ltr">{r.minLiabilityHalalas === null ? '-' : formatMoney(locale, r.minLiabilityHalalas)}</td>
+                  <td className="dd-ltr">
+                    {r.minLiabilityHalalas === null
+                      ? '-'
+                      : formatMoney(locale, r.minLiabilityHalalas)}
+                  </td>
                   <td>{r.steps.map((s) => t(k('cm.step', s))).join(' + ') || '-'}</td>
-                  <td><StatusChip tone={r.active ? 'success' : 'neutral'}>{r.active ? t('ac.rules.active') : t('ac.rules.off')}</StatusChip></td>
+                  <td>
+                    <StatusChip tone={r.active ? 'success' : 'neutral'}>
+                      {r.active ? t('ac.rules.active') : t('ac.rules.off')}
+                    </StatusChip>
+                  </td>
                   <td>
                     {canManage ? (
-                      <Button variant="outline" onClick={() => void cmd.run(`/v1/admin/commercial/approval-rules/${r.id}/${r.active ? 'disable' : 'enable'}`, {}, t('ac.rules.updated'), reload)}>
+                      <Button
+                        variant="outline"
+                        onClick={() =>
+                          void cmd.run(
+                            `/v1/admin/commercial/approval-rules/${r.id}/${r.active ? 'disable' : 'enable'}`,
+                            {},
+                            t('ac.rules.updated'),
+                            reload,
+                          )
+                        }
+                      >
                         {r.active ? t('ac.rules.disable') : t('ac.rules.enable')}
                       </Button>
                     ) : null}
@@ -719,20 +994,73 @@ function RulesTab({ canManage }: { canManage: boolean }) {
           <div className="dd-stack" style={{ gap: 10 }}>
             <h2 className="dd-title">{t('ac.rules.new')}</h2>
             {cmd.banner}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
-              <Field label={t('ac.col.name')} htmlFor="ru-name"><Input id="ru-name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></Field>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: 12,
+              }}
+            >
+              <Field label={t('ac.col.name')} htmlFor="ru-name">
+                <Input
+                  id="ru-name"
+                  value={f.name}
+                  onChange={(e) => setF({ ...f, name: e.target.value })}
+                />
+              </Field>
               <Field label={t('ac.col.scope')} htmlFor="ru-scope">
-                <Select id="ru-scope" value={f.scope} onChange={(e) => setF({ ...f, scope: e.target.value })}>
-                  {['CAMPAIGN', 'CREDIT'].map((s) => <option key={s} value={s}>{t(k('ac.ruleScope', s))}</option>)}
+                <Select
+                  id="ru-scope"
+                  value={f.scope}
+                  onChange={(e) => setF({ ...f, scope: e.target.value })}
+                >
+                  {['CAMPAIGN', 'CREDIT'].map((s) => (
+                    <option key={s} value={s}>
+                      {t(k('ac.ruleScope', s))}
+                    </option>
+                  ))}
                 </Select>
               </Field>
-              <Field label={t('ac.col.orgId')} htmlFor="ru-org" help={t('ac.rules.orgHelp')}><Input id="ru-org" dir="ltr" value={f.organizationId} onChange={(e) => setF({ ...f, organizationId: e.target.value.trim() })} /></Field>
-              <Field label={t('ac.rules.min')} htmlFor="ru-min"><Input id="ru-min" inputMode="decimal" value={f.min} onChange={(e) => setF({ ...f, min: e.target.value })} /></Field>
+              <Field label={t('ac.col.orgId')} htmlFor="ru-org" help={t('ac.rules.orgHelp')}>
+                <Input
+                  id="ru-org"
+                  dir="ltr"
+                  value={f.organizationId}
+                  onChange={(e) => setF({ ...f, organizationId: e.target.value.trim() })}
+                />
+              </Field>
+              <Field label={t('ac.rules.min')} htmlFor="ru-min">
+                <Input
+                  id="ru-min"
+                  inputMode="decimal"
+                  value={f.min}
+                  onChange={(e) => setF({ ...f, min: e.target.value })}
+                />
+              </Field>
             </div>
-            <label className="dd-checkbox"><input type="checkbox" checked={f.internal} onChange={(e) => setF({ ...f, internal: e.target.checked })} /><span>{t(k('cm.step', 'INTERNAL_APPROVER'))}</span></label>
-            <label className="dd-checkbox"><input type="checkbox" checked={f.finance} onChange={(e) => setF({ ...f, finance: e.target.checked })} /><span>{t(k('cm.step', 'FINANCE_APPROVER'))}</span></label>
+            <label className="dd-checkbox">
+              <input
+                type="checkbox"
+                checked={f.internal}
+                onChange={(e) => setF({ ...f, internal: e.target.checked })}
+              />
+              <span>{t(k('cm.step', 'INTERNAL_APPROVER'))}</span>
+            </label>
+            <label className="dd-checkbox">
+              <input
+                type="checkbox"
+                checked={f.finance}
+                onChange={(e) => setF({ ...f, finance: e.target.checked })}
+              />
+              <span>{t(k('cm.step', 'FINANCE_APPROVER'))}</span>
+            </label>
             <div>
-              <Button disabled={f.name.trim().length < 2 || (!f.internal && !f.finance)} loading={cmd.busy} onClick={create} data-testid="ac-rule-create">
+              <Button
+                disabled={f.name.trim().length < 2 || (!f.internal && !f.finance)}
+                loading={cmd.busy}
+                onClick={create}
+                data-testid="ac-rule-create"
+              >
                 {t('ac.rules.create')}
               </Button>
             </div>
@@ -751,7 +1079,12 @@ function CreditTab({ canRequest, canApprove }: { canRequest: boolean; canApprove
   const [f, setF] = useState({ organizationId: '', limit: '', days: '30', months: '12', ref: '' });
   const [reason, setReason] = useState('');
   const decide = (id: string, what: string) =>
-    void cmd.run(`/v1/admin/commercial/credit/${id}/${what}`, { reason: reason || t('ac.credit.defaultReason') }, t('ac.credit.updated'), reload);
+    void cmd.run(
+      `/v1/admin/commercial/credit/${id}/${what}`,
+      { reason: reason || t('ac.credit.defaultReason') },
+      t('ac.credit.updated'),
+      reload,
+    );
   return (
     <div className="dd-stack" style={{ gap: 16 }} data-testid="ac-credit">
       <Alert tone="info">{t('ac.credit.note')}</Alert>
@@ -784,16 +1117,44 @@ function CreditTab({ canRequest, canApprove }: { canRequest: boolean; canApprove
                   <td className="dd-ltr">{formatMoney(locale, c.availableHalalas)}</td>
                   <td>{t('ac.credit.days', { n: c.paymentTermsDays })}</td>
                   <td>{formatDateTime(locale, c.expiresAt)}</td>
-                  <td><StatusChip tone={c.status === 'ACTIVE' ? 'success' : c.status === 'PENDING_APPROVAL' ? 'warning' : 'neutral'}>{t(k('ac.creditStatus', c.status))}</StatusChip></td>
+                  <td>
+                    <StatusChip
+                      tone={
+                        c.status === 'ACTIVE'
+                          ? 'success'
+                          : c.status === 'PENDING_APPROVAL'
+                            ? 'warning'
+                            : 'neutral'
+                      }
+                    >
+                      {t(k('ac.creditStatus', c.status))}
+                    </StatusChip>
+                  </td>
                   <td>
                     {canApprove && c.status === 'PENDING_APPROVAL' ? (
                       <span className="dd-row">
-                        <Button variant="secondary" onClick={() => decide(c.id, 'approve')} data-testid="ac-credit-approve">{t('ac.credit.approve')}</Button>
-                        <Button variant="outline" onClick={() => decide(c.id, 'reject')}>{t('ac.credit.reject')}</Button>
+                        <Button
+                          variant="secondary"
+                          onClick={() => decide(c.id, 'approve')}
+                          data-testid="ac-credit-approve"
+                        >
+                          {t('ac.credit.approve')}
+                        </Button>
+                        <Button variant="outline" onClick={() => decide(c.id, 'reject')}>
+                          {t('ac.credit.reject')}
+                        </Button>
                       </span>
                     ) : null}
-                    {canApprove && c.status === 'ACTIVE' ? <Button variant="outline" onClick={() => decide(c.id, 'suspend')}>{t('ac.credit.suspend')}</Button> : null}
-                    {canApprove && c.status === 'SUSPENDED' ? <Button variant="outline" onClick={() => decide(c.id, 'reinstate')}>{t('ac.credit.reinstate')}</Button> : null}
+                    {canApprove && c.status === 'ACTIVE' ? (
+                      <Button variant="outline" onClick={() => decide(c.id, 'suspend')}>
+                        {t('ac.credit.suspend')}
+                      </Button>
+                    ) : null}
+                    {canApprove && c.status === 'SUSPENDED' ? (
+                      <Button variant="outline" onClick={() => decide(c.id, 'reinstate')}>
+                        {t('ac.credit.reinstate')}
+                      </Button>
+                    ) : null}
                   </td>
                 </tr>
               ))}
@@ -802,18 +1163,60 @@ function CreditTab({ canRequest, canApprove }: { canRequest: boolean; canApprove
         </div>
       )}
       {canApprove ? (
-        <Field label={t('ac.credit.reason')} htmlFor="cr-reason"><Input id="cr-reason" value={reason} onChange={(e) => setReason(e.target.value)} /></Field>
+        <Field label={t('ac.credit.reason')} htmlFor="cr-reason">
+          <Input id="cr-reason" value={reason} onChange={(e) => setReason(e.target.value)} />
+        </Field>
       ) : null}
       {canRequest ? (
         <Card flat>
           <div className="dd-stack" style={{ gap: 10 }}>
             <h2 className="dd-title">{t('ac.credit.new')}</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
-              <Field label={t('ac.col.orgId')} htmlFor="cr-org"><Input id="cr-org" dir="ltr" value={f.organizationId} onChange={(e) => setF({ ...f, organizationId: e.target.value.trim() })} /></Field>
-              <Field label={t('ac.credit.limit')} htmlFor="cr-limit"><Input id="cr-limit" inputMode="decimal" value={f.limit} onChange={(e) => setF({ ...f, limit: e.target.value })} /></Field>
-              <Field label={t('ac.credit.termsDays')} htmlFor="cr-days"><Input id="cr-days" inputMode="numeric" value={f.days} onChange={(e) => setF({ ...f, days: e.target.value })} /></Field>
-              <Field label={t('ac.credit.validMonths')} htmlFor="cr-months"><Input id="cr-months" inputMode="numeric" value={f.months} onChange={(e) => setF({ ...f, months: e.target.value })} /></Field>
-              <Field label={t('ac.credit.agreementRef')} htmlFor="cr-ref"><Input id="cr-ref" value={f.ref} onChange={(e) => setF({ ...f, ref: e.target.value })} /></Field>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: 12,
+              }}
+            >
+              <Field label={t('ac.col.orgId')} htmlFor="cr-org">
+                <Input
+                  id="cr-org"
+                  dir="ltr"
+                  value={f.organizationId}
+                  onChange={(e) => setF({ ...f, organizationId: e.target.value.trim() })}
+                />
+              </Field>
+              <Field label={t('ac.credit.limit')} htmlFor="cr-limit">
+                <Input
+                  id="cr-limit"
+                  inputMode="decimal"
+                  value={f.limit}
+                  onChange={(e) => setF({ ...f, limit: e.target.value })}
+                />
+              </Field>
+              <Field label={t('ac.credit.termsDays')} htmlFor="cr-days">
+                <Input
+                  id="cr-days"
+                  inputMode="numeric"
+                  value={f.days}
+                  onChange={(e) => setF({ ...f, days: e.target.value })}
+                />
+              </Field>
+              <Field label={t('ac.credit.validMonths')} htmlFor="cr-months">
+                <Input
+                  id="cr-months"
+                  inputMode="numeric"
+                  value={f.months}
+                  onChange={(e) => setF({ ...f, months: e.target.value })}
+                />
+              </Field>
+              <Field label={t('ac.credit.agreementRef')} htmlFor="cr-ref">
+                <Input
+                  id="cr-ref"
+                  value={f.ref}
+                  onChange={(e) => setF({ ...f, ref: e.target.value })}
+                />
+              </Field>
             </div>
             <div>
               <Button
@@ -823,7 +1226,13 @@ function CreditTab({ canRequest, canApprove }: { canRequest: boolean; canApprove
                 onClick={() =>
                   void cmd.run(
                     '/v1/admin/commercial/credit',
-                    { organizationId: f.organizationId, limitHalalas: toHalalas(f.limit), paymentTermsDays: Number(f.days) || 0, expiresAt: isoPlus((Number(f.months) || 12) * 30), agreementReference: f.ref },
+                    {
+                      organizationId: f.organizationId,
+                      limitHalalas: toHalalas(f.limit),
+                      paymentTermsDays: Number(f.days) || 0,
+                      expiresAt: isoPlus((Number(f.months) || 12) * 30),
+                      agreementReference: f.ref,
+                    },
                     t('ac.credit.requested'),
                     reload,
                   )
@@ -871,11 +1280,26 @@ function HoldsTab({ canManage }: { canManage: boolean }) {
                   <td className="dd-ltr">{h.organizationId.slice(0, 8)}</td>
                   <td>{h.caseId ? t('ac.holds.case') : t('ac.holds.org')}</td>
                   <td>{h.reason}</td>
-                  <td><StatusChip tone={h.status === 'ACTIVE' ? 'danger' : 'neutral'}>{h.status === 'ACTIVE' ? t('ac.holds.active') : t('ac.holds.released')}</StatusChip></td>
+                  <td>
+                    <StatusChip tone={h.status === 'ACTIVE' ? 'danger' : 'neutral'}>
+                      {h.status === 'ACTIVE' ? t('ac.holds.active') : t('ac.holds.released')}
+                    </StatusChip>
+                  </td>
                   <td>{formatDateTime(locale, h.placedAt)}</td>
                   <td>
                     {canManage && h.status === 'ACTIVE' ? (
-                      <Button variant="outline" onClick={() => void cmd.run(`/v1/admin/commercial/holds/${h.id}/release`, { reason: t('ac.holds.releaseReason') }, t('ac.holds.releasedMsg'), reload)} data-testid="ac-hold-release">
+                      <Button
+                        variant="outline"
+                        onClick={() =>
+                          void cmd.run(
+                            `/v1/admin/commercial/holds/${h.id}/release`,
+                            { reason: t('ac.holds.releaseReason') },
+                            t('ac.holds.releasedMsg'),
+                            reload,
+                          )
+                        }
+                        data-testid="ac-hold-release"
+                      >
                         {t('ac.holds.release')}
                       </Button>
                     ) : null}
@@ -889,9 +1313,28 @@ function HoldsTab({ canManage }: { canManage: boolean }) {
       {canManage ? (
         <Card flat>
           <div className="dd-row" style={{ alignItems: 'flex-end', flexWrap: 'wrap' }}>
-            <Field label={t('ac.col.orgId')} htmlFor="ho-org"><Input id="ho-org" dir="ltr" value={f.organizationId} onChange={(e) => setF({ ...f, organizationId: e.target.value.trim() })} /></Field>
-            <Field label={t('ac.hold.reason')} htmlFor="ho-reason"><Input id="ho-reason" value={f.reason} onChange={(e) => setF({ ...f, reason: e.target.value })} /></Field>
-            <Button disabled={!f.organizationId || f.reason.trim().length < 3} loading={cmd.busy} onClick={() => void cmd.run('/v1/admin/commercial/holds', f, t('ac.hold.placed'), reload)}>
+            <Field label={t('ac.col.orgId')} htmlFor="ho-org">
+              <Input
+                id="ho-org"
+                dir="ltr"
+                value={f.organizationId}
+                onChange={(e) => setF({ ...f, organizationId: e.target.value.trim() })}
+              />
+            </Field>
+            <Field label={t('ac.hold.reason')} htmlFor="ho-reason">
+              <Input
+                id="ho-reason"
+                value={f.reason}
+                onChange={(e) => setF({ ...f, reason: e.target.value })}
+              />
+            </Field>
+            <Button
+              disabled={!f.organizationId || f.reason.trim().length < 3}
+              loading={cmd.busy}
+              onClick={() =>
+                void cmd.run('/v1/admin/commercial/holds', f, t('ac.hold.placed'), reload)
+              }
+            >
               {t('ac.hold.place')}
             </Button>
           </div>
@@ -907,8 +1350,20 @@ function MoneyTab({ canManage }: { canManage: boolean }) {
   const pay = useGet<Payment[]>('/v1/admin/commercial/payments');
   const docs = useGet<Doc[]>('/v1/admin/commercial/documents');
   const cmd = useCommand();
-  const [p, setP] = useState({ organizationId: '', caseId: '', amount: '', method: 'BANK_TRANSFER', ref: '' });
-  const [d, setD] = useState({ type: 'INVOICE', organizationId: '', description: '', amount: '', related: '' });
+  const [p, setP] = useState({
+    organizationId: '',
+    caseId: '',
+    amount: '',
+    method: 'BANK_TRANSFER',
+    ref: '',
+  });
+  const [d, setD] = useState({
+    type: 'INVOICE',
+    organizationId: '',
+    description: '',
+    amount: '',
+    related: '',
+  });
   const [a, setA] = useState({ organizationId: '', kind: 'CREDIT', amount: '', reason: '' });
   const reloadAll = async () => {
     await pay.reload();
@@ -923,10 +1378,24 @@ function MoneyTab({ canManage }: { canManage: boolean }) {
         {pay.data && pay.data.length ? (
           <div className="dd-table-wrap">
             <table className="dd-table">
-              <thead><tr><th>{t('ac.col.ref')}</th><th>{t('ac.col.orgId')}</th><th>{t('ac.pay.amount')}</th><th>{t('ac.pay.method')}</th><th>{t('ac.pay.received')}</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>{t('ac.col.ref')}</th>
+                  <th>{t('ac.col.orgId')}</th>
+                  <th>{t('ac.pay.amount')}</th>
+                  <th>{t('ac.pay.method')}</th>
+                  <th>{t('ac.pay.received')}</th>
+                </tr>
+              </thead>
               <tbody>
                 {pay.data.map((x) => (
-                  <tr key={x.id}><td className="dd-ltr">{x.reference}</td><td className="dd-ltr">{x.organizationId.slice(0, 8)}</td><td className="dd-ltr">{formatMoney(locale, x.amountHalalas)}</td><td>{x.method}</td><td>{formatDateTime(locale, x.receivedAt)}</td></tr>
+                  <tr key={x.id}>
+                    <td className="dd-ltr">{x.reference}</td>
+                    <td className="dd-ltr">{x.organizationId.slice(0, 8)}</td>
+                    <td className="dd-ltr">{formatMoney(locale, x.amountHalalas)}</td>
+                    <td>{x.method}</td>
+                    <td>{formatDateTime(locale, x.receivedAt)}</td>
+                  </tr>
                 ))}
               </tbody>
             </table>
@@ -935,17 +1404,73 @@ function MoneyTab({ canManage }: { canManage: boolean }) {
           <p className="dd-muted">{t('ac.pay.empty')}</p>
         )}
         {canManage ? (
-          <div className="dd-row" style={{ alignItems: 'flex-end', flexWrap: 'wrap', marginBlockStart: 12 }}>
-            <Field label={t('ac.col.orgId')} htmlFor="pm-org"><Input id="pm-org" dir="ltr" value={p.organizationId} onChange={(e) => setP({ ...p, organizationId: e.target.value.trim() })} /></Field>
-            <Field label={t('ac.pay.caseId')} htmlFor="pm-case"><Input id="pm-case" dir="ltr" value={p.caseId} onChange={(e) => setP({ ...p, caseId: e.target.value.trim() })} /></Field>
-            <Field label={t('ac.pay.amount')} htmlFor="pm-amt"><Input id="pm-amt" inputMode="decimal" value={p.amount} onChange={(e) => setP({ ...p, amount: e.target.value })} /></Field>
+          <div
+            className="dd-row"
+            style={{ alignItems: 'flex-end', flexWrap: 'wrap', marginBlockStart: 12 }}
+          >
+            <Field label={t('ac.col.orgId')} htmlFor="pm-org">
+              <Input
+                id="pm-org"
+                dir="ltr"
+                value={p.organizationId}
+                onChange={(e) => setP({ ...p, organizationId: e.target.value.trim() })}
+              />
+            </Field>
+            <Field label={t('ac.pay.caseId')} htmlFor="pm-case">
+              <Input
+                id="pm-case"
+                dir="ltr"
+                value={p.caseId}
+                onChange={(e) => setP({ ...p, caseId: e.target.value.trim() })}
+              />
+            </Field>
+            <Field label={t('ac.pay.amount')} htmlFor="pm-amt">
+              <Input
+                id="pm-amt"
+                inputMode="decimal"
+                value={p.amount}
+                onChange={(e) => setP({ ...p, amount: e.target.value })}
+              />
+            </Field>
             <Field label={t('ac.pay.method')} htmlFor="pm-method">
-              <Select id="pm-method" value={p.method} onChange={(e) => setP({ ...p, method: e.target.value })}>
-                {['BANK_TRANSFER', 'CARD', 'CHEQUE', 'OTHER'].map((m) => <option key={m} value={m}>{m}</option>)}
+              <Select
+                id="pm-method"
+                value={p.method}
+                onChange={(e) => setP({ ...p, method: e.target.value })}
+              >
+                {['BANK_TRANSFER', 'CARD', 'CHEQUE', 'OTHER'].map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
               </Select>
             </Field>
-            <Field label={t('ac.pay.external')} htmlFor="pm-ext"><Input id="pm-ext" value={p.ref} onChange={(e) => setP({ ...p, ref: e.target.value })} /></Field>
-            <Button disabled={!p.organizationId || !p.amount} loading={cmd.busy} data-testid="ac-record-payment" onClick={() => void cmd.run('/v1/admin/commercial/payments', { organizationId: p.organizationId, ...(p.caseId ? { caseId: p.caseId } : {}), amountHalalas: toHalalas(p.amount), method: p.method, externalReference: p.ref || undefined }, t('ac.pay.recorded'), reloadAll)}>
+            <Field label={t('ac.pay.external')} htmlFor="pm-ext">
+              <Input
+                id="pm-ext"
+                value={p.ref}
+                onChange={(e) => setP({ ...p, ref: e.target.value })}
+              />
+            </Field>
+            <Button
+              disabled={!p.organizationId || !p.amount}
+              loading={cmd.busy}
+              data-testid="ac-record-payment"
+              onClick={() =>
+                void cmd.run(
+                  '/v1/admin/commercial/payments',
+                  {
+                    organizationId: p.organizationId,
+                    ...(p.caseId ? { caseId: p.caseId } : {}),
+                    amountHalalas: toHalalas(p.amount),
+                    method: p.method,
+                    externalReference: p.ref || undefined,
+                  },
+                  t('ac.pay.recorded'),
+                  reloadAll,
+                )
+              }
+            >
               {t('ac.pay.record')}
             </Button>
           </div>
@@ -956,10 +1481,24 @@ function MoneyTab({ canManage }: { canManage: boolean }) {
         {docs.data && docs.data.length ? (
           <div className="dd-table-wrap">
             <table className="dd-table">
-              <thead><tr><th>{t('ac.docs.number')}</th><th>{t('ac.docs.type')}</th><th>{t('ac.col.orgId')}</th><th>{t('ac.docs.total')}</th><th>{t('ac.docs.issued')}</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>{t('ac.docs.number')}</th>
+                  <th>{t('ac.docs.type')}</th>
+                  <th>{t('ac.col.orgId')}</th>
+                  <th>{t('ac.docs.total')}</th>
+                  <th>{t('ac.docs.issued')}</th>
+                </tr>
+              </thead>
               <tbody>
                 {docs.data.map((x) => (
-                  <tr key={x.id}><td className="dd-ltr">{x.number}</td><td>{t(k('ac.doc', x.type))}</td><td className="dd-ltr">{x.organizationId.slice(0, 8)}</td><td className="dd-ltr">{formatMoney(locale, x.totalHalalas)}</td><td>{formatDateTime(locale, x.issuedAt)}</td></tr>
+                  <tr key={x.id}>
+                    <td className="dd-ltr">{x.number}</td>
+                    <td>{t(k('ac.doc', x.type))}</td>
+                    <td className="dd-ltr">{x.organizationId.slice(0, 8)}</td>
+                    <td className="dd-ltr">{formatMoney(locale, x.totalHalalas)}</td>
+                    <td>{formatDateTime(locale, x.issuedAt)}</td>
+                  </tr>
                 ))}
               </tbody>
             </table>
@@ -968,19 +1507,74 @@ function MoneyTab({ canManage }: { canManage: boolean }) {
           <p className="dd-muted">{t('ac.docs.empty')}</p>
         )}
         {canManage ? (
-          <div className="dd-row" style={{ alignItems: 'flex-end', flexWrap: 'wrap', marginBlockStart: 12 }}>
+          <div
+            className="dd-row"
+            style={{ alignItems: 'flex-end', flexWrap: 'wrap', marginBlockStart: 12 }}
+          >
             <Field label={t('ac.docs.type')} htmlFor="dc-type">
-              <Select id="dc-type" value={d.type} onChange={(e) => setD({ ...d, type: e.target.value })}>
-                {['INVOICE', 'CREDIT_NOTE', 'DEBIT_NOTE', 'RECEIPT', 'PURCHASE_ORDER'].map((x) => <option key={x} value={x}>{t(k('ac.doc', x))}</option>)}
+              <Select
+                id="dc-type"
+                value={d.type}
+                onChange={(e) => setD({ ...d, type: e.target.value })}
+              >
+                {['INVOICE', 'CREDIT_NOTE', 'DEBIT_NOTE', 'RECEIPT', 'PURCHASE_ORDER'].map((x) => (
+                  <option key={x} value={x}>
+                    {t(k('ac.doc', x))}
+                  </option>
+                ))}
               </Select>
             </Field>
-            <Field label={t('ac.col.orgId')} htmlFor="dc-org"><Input id="dc-org" dir="ltr" value={d.organizationId} onChange={(e) => setD({ ...d, organizationId: e.target.value.trim() })} /></Field>
-            <Field label={t('ac.docs.description')} htmlFor="dc-desc"><Input id="dc-desc" value={d.description} onChange={(e) => setD({ ...d, description: e.target.value })} /></Field>
-            <Field label={t('ac.pay.amount')} htmlFor="dc-amt"><Input id="dc-amt" inputMode="decimal" value={d.amount} onChange={(e) => setD({ ...d, amount: e.target.value })} /></Field>
+            <Field label={t('ac.col.orgId')} htmlFor="dc-org">
+              <Input
+                id="dc-org"
+                dir="ltr"
+                value={d.organizationId}
+                onChange={(e) => setD({ ...d, organizationId: e.target.value.trim() })}
+              />
+            </Field>
+            <Field label={t('ac.docs.description')} htmlFor="dc-desc">
+              <Input
+                id="dc-desc"
+                value={d.description}
+                onChange={(e) => setD({ ...d, description: e.target.value })}
+              />
+            </Field>
+            <Field label={t('ac.pay.amount')} htmlFor="dc-amt">
+              <Input
+                id="dc-amt"
+                inputMode="decimal"
+                value={d.amount}
+                onChange={(e) => setD({ ...d, amount: e.target.value })}
+              />
+            </Field>
             {d.type === 'CREDIT_NOTE' || d.type === 'DEBIT_NOTE' ? (
-              <Field label={t('ac.docs.related')} htmlFor="dc-rel"><Input id="dc-rel" dir="ltr" value={d.related} onChange={(e) => setD({ ...d, related: e.target.value.trim() })} /></Field>
+              <Field label={t('ac.docs.related')} htmlFor="dc-rel">
+                <Input
+                  id="dc-rel"
+                  dir="ltr"
+                  value={d.related}
+                  onChange={(e) => setD({ ...d, related: e.target.value.trim() })}
+                />
+              </Field>
             ) : null}
-            <Button disabled={!d.organizationId || !d.description || !d.amount} loading={cmd.busy} onClick={() => void cmd.run('/v1/admin/commercial/documents', { type: d.type, organizationId: d.organizationId, ...(d.related ? { relatedDocumentId: d.related } : {}), lines: [{ description: d.description, amountHalalas: toHalalas(d.amount) }], taxHalalas: 0 }, t('ac.docs.issuedMsg'), reloadAll)}>
+            <Button
+              disabled={!d.organizationId || !d.description || !d.amount}
+              loading={cmd.busy}
+              onClick={() =>
+                void cmd.run(
+                  '/v1/admin/commercial/documents',
+                  {
+                    type: d.type,
+                    organizationId: d.organizationId,
+                    ...(d.related ? { relatedDocumentId: d.related } : {}),
+                    lines: [{ description: d.description, amountHalalas: toHalalas(d.amount) }],
+                    taxHalalas: 0,
+                  },
+                  t('ac.docs.issuedMsg'),
+                  reloadAll,
+                )
+              }
+            >
               {t('ac.docs.issue')}
             </Button>
           </div>
@@ -989,16 +1583,63 @@ function MoneyTab({ canManage }: { canManage: boolean }) {
       {canManage ? (
         <Card flat>
           <h2 className="dd-title">{t('ac.adj.title')}</h2>
-          <div className="dd-row" style={{ alignItems: 'flex-end', flexWrap: 'wrap', marginBlockStart: 8 }}>
-            <Field label={t('ac.col.orgId')} htmlFor="aj-org"><Input id="aj-org" dir="ltr" value={a.organizationId} onChange={(e) => setA({ ...a, organizationId: e.target.value.trim() })} /></Field>
+          <div
+            className="dd-row"
+            style={{ alignItems: 'flex-end', flexWrap: 'wrap', marginBlockStart: 8 }}
+          >
+            <Field label={t('ac.col.orgId')} htmlFor="aj-org">
+              <Input
+                id="aj-org"
+                dir="ltr"
+                value={a.organizationId}
+                onChange={(e) => setA({ ...a, organizationId: e.target.value.trim() })}
+              />
+            </Field>
             <Field label={t('ac.adj.kind')} htmlFor="aj-kind">
-              <Select id="aj-kind" value={a.kind} onChange={(e) => setA({ ...a, kind: e.target.value })}>
-                {['CREDIT', 'DEBIT'].map((x) => <option key={x} value={x}>{t(k('ac.adj', x))}</option>)}
+              <Select
+                id="aj-kind"
+                value={a.kind}
+                onChange={(e) => setA({ ...a, kind: e.target.value })}
+              >
+                {['CREDIT', 'DEBIT'].map((x) => (
+                  <option key={x} value={x}>
+                    {t(k('ac.adj', x))}
+                  </option>
+                ))}
               </Select>
             </Field>
-            <Field label={t('ac.pay.amount')} htmlFor="aj-amt"><Input id="aj-amt" inputMode="decimal" value={a.amount} onChange={(e) => setA({ ...a, amount: e.target.value })} /></Field>
-            <Field label={t('ac.hold.reason')} htmlFor="aj-reason"><Textarea id="aj-reason" rows={1} value={a.reason} onChange={(e) => setA({ ...a, reason: e.target.value })} /></Field>
-            <Button disabled={!a.organizationId || !a.amount || a.reason.trim().length < 3} loading={cmd.busy} onClick={() => void cmd.run('/v1/admin/commercial/adjustments', { organizationId: a.organizationId, kind: a.kind, amountHalalas: toHalalas(a.amount), reason: a.reason }, t('ac.adj.done'))}>
+            <Field label={t('ac.pay.amount')} htmlFor="aj-amt">
+              <Input
+                id="aj-amt"
+                inputMode="decimal"
+                value={a.amount}
+                onChange={(e) => setA({ ...a, amount: e.target.value })}
+              />
+            </Field>
+            <Field label={t('ac.hold.reason')} htmlFor="aj-reason">
+              <Textarea
+                id="aj-reason"
+                rows={1}
+                value={a.reason}
+                onChange={(e) => setA({ ...a, reason: e.target.value })}
+              />
+            </Field>
+            <Button
+              disabled={!a.organizationId || !a.amount || a.reason.trim().length < 3}
+              loading={cmd.busy}
+              onClick={() =>
+                void cmd.run(
+                  '/v1/admin/commercial/adjustments',
+                  {
+                    organizationId: a.organizationId,
+                    kind: a.kind,
+                    amountHalalas: toHalalas(a.amount),
+                    reason: a.reason,
+                  },
+                  t('ac.adj.done'),
+                )
+              }
+            >
               {t('ac.adj.post')}
             </Button>
           </div>
@@ -1025,7 +1666,16 @@ function AuthTab({ canManage }: { canManage: boolean }) {
       ) : (
         <div className="dd-table-wrap">
           <table className="dd-table">
-            <thead><tr><th>{t('ac.col.orgId')}</th><th>{t('ac.auth.reference')}</th><th>{t('ac.hold.reason')}</th><th>{t('ac.auth.until')}</th><th>{t('ac.col.status')}</th><th /></tr></thead>
+            <thead>
+              <tr>
+                <th>{t('ac.col.orgId')}</th>
+                <th>{t('ac.auth.reference')}</th>
+                <th>{t('ac.hold.reason')}</th>
+                <th>{t('ac.auth.until')}</th>
+                <th>{t('ac.col.status')}</th>
+                <th />
+              </tr>
+            </thead>
             <tbody>
               {data.map((a) => (
                 <tr key={a.id}>
@@ -1033,8 +1683,28 @@ function AuthTab({ canManage }: { canManage: boolean }) {
                   <td>{a.reference}</td>
                   <td>{a.reason}</td>
                   <td>{formatDateTime(locale, a.validUntil)}</td>
-                  <td><StatusChip tone={a.revoked ? 'neutral' : 'success'}>{a.revoked ? t('ac.auth.revoked') : t('ac.auth.valid')}</StatusChip></td>
-                  <td>{canManage && !a.revoked ? <Button variant="outline" onClick={() => void cmd.run(`/v1/admin/commercial/authorizations/${a.id}/revoke`, {}, t('ac.auth.revokedMsg'), reload)}>{t('ac.auth.revoke')}</Button> : null}</td>
+                  <td>
+                    <StatusChip tone={a.revoked ? 'neutral' : 'success'}>
+                      {a.revoked ? t('ac.auth.revoked') : t('ac.auth.valid')}
+                    </StatusChip>
+                  </td>
+                  <td>
+                    {canManage && !a.revoked ? (
+                      <Button
+                        variant="outline"
+                        onClick={() =>
+                          void cmd.run(
+                            `/v1/admin/commercial/authorizations/${a.id}/revoke`,
+                            {},
+                            t('ac.auth.revokedMsg'),
+                            reload,
+                          )
+                        }
+                      >
+                        {t('ac.auth.revoke')}
+                      </Button>
+                    ) : null}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -1044,11 +1714,56 @@ function AuthTab({ canManage }: { canManage: boolean }) {
       {canManage ? (
         <Card flat>
           <div className="dd-row" style={{ alignItems: 'flex-end', flexWrap: 'wrap' }}>
-            <Field label={t('ac.col.orgId')} htmlFor="au-org"><Input id="au-org" dir="ltr" value={f.organizationId} onChange={(e) => setF({ ...f, organizationId: e.target.value.trim() })} /></Field>
-            <Field label={t('ac.auth.reference')} htmlFor="au-ref"><Input id="au-ref" value={f.reference} onChange={(e) => setF({ ...f, reference: e.target.value })} /></Field>
-            <Field label={t('ac.hold.reason')} htmlFor="au-reason"><Input id="au-reason" value={f.reason} onChange={(e) => setF({ ...f, reason: e.target.value })} /></Field>
-            <Field label={t('ac.auth.days')} htmlFor="au-days"><Input id="au-days" inputMode="numeric" value={f.days} onChange={(e) => setF({ ...f, days: e.target.value })} /></Field>
-            <Button disabled={!f.organizationId || f.reference.trim().length < 2 || f.reason.trim().length < 3} loading={cmd.busy} data-testid="ac-auth-create" onClick={() => void cmd.run('/v1/admin/commercial/authorizations', { organizationId: f.organizationId, reference: f.reference, reason: f.reason, validUntil: isoPlus(Number(f.days) || 30) }, t('ac.auth.created'), reload)}>
+            <Field label={t('ac.col.orgId')} htmlFor="au-org">
+              <Input
+                id="au-org"
+                dir="ltr"
+                value={f.organizationId}
+                onChange={(e) => setF({ ...f, organizationId: e.target.value.trim() })}
+              />
+            </Field>
+            <Field label={t('ac.auth.reference')} htmlFor="au-ref">
+              <Input
+                id="au-ref"
+                value={f.reference}
+                onChange={(e) => setF({ ...f, reference: e.target.value })}
+              />
+            </Field>
+            <Field label={t('ac.hold.reason')} htmlFor="au-reason">
+              <Input
+                id="au-reason"
+                value={f.reason}
+                onChange={(e) => setF({ ...f, reason: e.target.value })}
+              />
+            </Field>
+            <Field label={t('ac.auth.days')} htmlFor="au-days">
+              <Input
+                id="au-days"
+                inputMode="numeric"
+                value={f.days}
+                onChange={(e) => setF({ ...f, days: e.target.value })}
+              />
+            </Field>
+            <Button
+              disabled={
+                !f.organizationId || f.reference.trim().length < 2 || f.reason.trim().length < 3
+              }
+              loading={cmd.busy}
+              data-testid="ac-auth-create"
+              onClick={() =>
+                void cmd.run(
+                  '/v1/admin/commercial/authorizations',
+                  {
+                    organizationId: f.organizationId,
+                    reference: f.reference,
+                    reason: f.reason,
+                    validUntil: isoPlus(Number(f.days) || 30),
+                  },
+                  t('ac.auth.created'),
+                  reload,
+                )
+              }
+            >
               {t('ac.auth.create')}
             </Button>
           </div>

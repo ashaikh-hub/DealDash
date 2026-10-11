@@ -56,7 +56,11 @@ export class BranchesService {
   async list(actor: Actor, organizationId: string) {
     const visible = await this.access.visibleBranches(actor, 'merchant.branch.read');
     const rows = await this.prisma.merchantBranch.findMany({
-      where: { organizationId, ...this.tenant.branchScopeWhere(actor), ...(visible ? { id: { in: [...visible] } } : {}) },
+      where: {
+        organizationId,
+        ...this.tenant.branchScopeWhere(actor),
+        ...(visible ? { id: { in: [...visible] } } : {}),
+      },
       orderBy: { createdAt: 'asc' },
     });
     return rows.map(branchView);

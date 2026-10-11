@@ -1243,3 +1243,31 @@ Full specification: `SUBSCRIPTION_LICENSING_ENTITLEMENT.md`. Rules in force:
 Stage 8 Operational Gap Closure is founder approved and frozen (docs/STAGE8_OPERATIONAL_GAP_CLOSURE.md). B8 closed (partner "Add a merchant" Stage 7
 compatibility fix, now part of the frozen Stage 7 baseline); B9 monitored, not a regression. Pre-pilot items B1–B7 remain open for Stage 9 /
 pilot readiness; VALIDATE-market items remain central. Stage 9 not started.
+
+## Addendum (Oct 2026) — Stage 9 production-readiness rules (awaiting approval)
+- S9-1 Production refuses to start with development adapters, a dev / test database, no database TLS, the admin database account,
+  weak or development secrets, non-https origins, rate limits off or non-JSON logs. Staging may use development adapters only with
+  `ALLOW_MOCK_PROVIDERS`.
+- S9-2 Settlement rule (B1): cut-off time in the market's time zone, reserve % held and released after N days, payout method,
+  failed-payout retry limit, tax treatment (informational or withheld). All values come from an APPROVED market rule (VALIDATE-KSA).
+- S9-3 Payouts (B2): sent only by a finance approver who did not prepare the statement; a statement waits in PAYOUT_PENDING; a failed
+  payout may be resent up to the rule's limit; results are idempotent; PAID posts the ledger once.
+- S9-4 Points on partial refunds (B4): points earned on an order are reversed in proportion to the amount refunded, cumulatively across
+  refunds, rounded per configuration (default FLOOR), never more than was earned and never twice for the same refund.
+- S9-5 Customer case replies (B6): a customer reads DealDash's shared messages on their own case and replies while it is open (10 per
+  hour; card numbers refused; optional evidence reference). A reply returns a case waiting for the customer to DealDash. The business
+  never sees customer messages. A note sent when DealDash moves a case to wait for the customer or a business is shared with them.
+- S9-6 Governed configuration (B7): every change is a request with a reason, approved by a different person, applied immediately or at
+  a scheduled time; a request made against an older version is refused as stale; every version is kept and can be restored the same way.
+- S9-7 Emergency stops: immediate, per market, reason required, audited; they refuse only NEW purchases, reservations, Watch & Earn
+  views or campaign launches — what customers already hold stays valid. Pilot allowlist: only listed merchants / partners are exposed.
+- S9-8 Legal hold: placed with a reason, lifted only by a different person; while active, deletion of the subject's data is refused.
+- S9-9 Notifications: at most the configured number per user per hour (default 20); excess is suppressed (THROTTLED), never queued.
+
+## Stage 9 founder approval (2026-10-11): APPROVED AND FROZEN — technical readiness only
+Stage 9 Production & Public Launch Readiness is founder approved as technically complete and frozen
+(docs/STAGE9_PRODUCTION_LAUNCH_READINESS.md). This does NOT approve public launch: production readiness is pending and public launch is
+not authorized. Still open: hosting / production environment, production database, secrets / configuration, vendor selections, payment
+and payout production setup, SMS / OTP / email / push providers, penetration testing, native Arabic review, physical device testing,
+formal UAT, backup retention, RPO / RTO, manual payout process (if used), GitHub production reviewers, VALIDATE-KSA items, final go-live
+checklist (NOT READY). No Stage 10.

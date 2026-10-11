@@ -275,7 +275,13 @@ function DetailInner({ dealId }: { dealId: string }) {
         }}
       />
       {orgId ? (
-        <CommercialPanel orgId={orgId} product="EXCLUSIVE" subjectId={deal.id} content={{}} refreshKey={deal.version} />
+        <CommercialPanel
+          orgId={orgId}
+          product="EXCLUSIVE"
+          subjectId={deal.id}
+          content={{}}
+          refreshKey={deal.version}
+        />
       ) : null}
     </div>
   );

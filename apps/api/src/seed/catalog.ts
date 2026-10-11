@@ -80,8 +80,20 @@ export async function seedCatalog(db: Db) {
   // Markets. KSA is the only enabled market for the pilot; other markets exist as disabled configuration so the model is exercised.
   // Tax, payment, settlement, residency and legal text are VALIDATE-KSA placeholders, never statements of fact.
   const markets = [
-    { code: 'SA', nameEn: 'Saudi Arabia', nameAr: 'المملكة العربية السعودية', currency: 'SAR', enabled: true },
-    { code: 'AE', nameEn: 'United Arab Emirates', nameAr: 'الإمارات العربية المتحدة', currency: 'AED', enabled: false },
+    {
+      code: 'SA',
+      nameEn: 'Saudi Arabia',
+      nameAr: 'المملكة العربية السعودية',
+      currency: 'SAR',
+      enabled: true,
+    },
+    {
+      code: 'AE',
+      nameEn: 'United Arab Emirates',
+      nameAr: 'الإمارات العربية المتحدة',
+      currency: 'AED',
+      enabled: false,
+    },
     { code: 'QA', nameEn: 'Qatar', nameAr: 'قطر', currency: 'QAR', enabled: false },
   ];
   for (const m of markets)

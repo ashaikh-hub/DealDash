@@ -315,7 +315,9 @@ const readyCase = (product: string, subjectId: string) => ({
       issues: [],
     },
     pricing: { source: 'DEFAULT', reference: null, versionKey: 'D:1', unusedTreatment: null },
-    parties: [{ role: 'OWNER', organizationId: ORG, requiredChecks: ['REVIEWED_TERMS', 'ACCEPT_TERMS'] }],
+    parties: [
+      { role: 'OWNER', organizationId: ORG, requiredChecks: ['REVIEWED_TERMS', 'ACCEPT_TERMS'] },
+    ],
     fundingRequirements: [],
     workflow: [],
   },

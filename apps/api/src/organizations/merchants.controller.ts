@@ -5,7 +5,8 @@ import {
   CurrentActor,
   Idempotent,
   Meta,
-  RequirePermissions, ScopeAware
+  RequirePermissions,
+  ScopeAware,
 } from '../common/decorators';
 import {
   BranchListResponse,

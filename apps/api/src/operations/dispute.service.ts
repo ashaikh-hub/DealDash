@@ -5,6 +5,7 @@ import {
   CASE_OPEN_STATUSES,
   CASE_TERMINAL_STATUSES,
   CASE_TYPES,
+  looksLikeCardNumber,
   type CaseStatus,
 } from '@dealdash/types';
 import { Prisma } from '../generated/prisma/client';
@@ -159,7 +160,8 @@ export class DisputeService {
       supportCaseId: forOrg ? null : c.supportCaseId,
       awaitingYou: c.status === 'AWAITING_MERCHANT' || c.status === 'AWAITING_PARTNER',
       notes: c.notes
-        .filter((n) => !forOrg || n.visibility === 'SHARED')
+        // Stage 9 (B6): a business sees shared notes only, and never the customer's own messages to DealDash
+        .filter((n) => !forOrg || (n.visibility === 'SHARED' && n.authorKind !== 'CUSTOMER'))
         .map((n) => ({
           id: n.id,
           visibility: n.visibility,
@@ -168,6 +170,8 @@ export class DisputeService {
           channel: forOrg ? null : n.channel,
           direction: forOrg ? null : n.direction,
           fromBusiness: n.authorOrganizationId !== null,
+          fromCustomer: n.authorKind === 'CUSTOMER',
+          evidenceRef: forOrg ? null : n.evidenceRef,
           createdAt: n.createdAt.toISOString(),
         })),
     };
@@ -177,15 +181,25 @@ export class DisputeService {
     const all = (Array.isArray(c.evidence) ? c.evidence : []) as Attachment[];
     return all
       .filter((a) => !forOrg || a.visibility === 'SHARED')
-      .map((a) => ({ ...a, uploadedByUserId: forOrg && !a.fromBusiness ? null : a.uploadedByUserId }));
+      .map((a) => ({
+        ...a,
+        uploadedByUserId: forOrg && !a.fromBusiness ? null : a.uploadedByUserId,
+      }));
   }
 
   /** The market a case belongs to: given, else the legal entity's country, else the business's market. */
   private async marketOf(b: CaseOpenInput, org: string | null): Promise<string | null> {
     if (b.market) return b.market.toUpperCase();
     if (b.legalEntityId) {
-      const le = await this.prisma.legalEntity.findUnique({ where: { id: b.legalEntityId }, select: { country: true, organizationId: true } });
-      if (!le || (org && le.organizationId !== org)) throw AppError.validation('The legal entity does not belong to this business', 'legalEntityId');
+      const le = await this.prisma.legalEntity.findUnique({
+        where: { id: b.legalEntityId },
+        select: { country: true, organizationId: true },
+      });
+      if (!le || (org && le.organizationId !== org))
+        throw AppError.validation(
+          'The legal entity does not belong to this business',
+          'legalEntityId',
+        );
       return le.country;
     }
     if (org) return this.markets.resolveMarket(org).catch(() => null);
@@ -195,15 +209,29 @@ export class DisputeService {
   async open(actor: Actor, organizationId: string | null, b: CaseOpenInput, meta: RequestMeta) {
     const cfg = await this.cfg();
     const ops = await this.ops();
-    if (!(await this.types()).includes(b.type)) throw AppError.validation('Unknown case type', 'type');
+    if (!(await this.types()).includes(b.type))
+      throw AppError.validation('Unknown case type', 'type');
     const priority = b.priority ?? 'NORMAL';
     if (!(priority in cfg.slaHours)) throw AppError.validation('Unknown priority', 'priority');
     const subjectOrg = organizationId ?? b.targetOrganizationId ?? null;
-    if (subjectOrg && !(await this.prisma.organization.findUnique({ where: { id: subjectOrg }, select: { id: true } })))
+    if (
+      subjectOrg &&
+      !(await this.prisma.organization.findUnique({
+        where: { id: subjectOrg },
+        select: { id: true },
+      }))
+    )
       throw AppError.validation('The organization was not found', 'targetOrganizationId');
     if (b.businessAccountId) {
-      const acc = await this.prisma.businessAccount.findUnique({ where: { id: b.businessAccountId }, select: { organizationId: true } });
-      if (!acc || acc.organizationId !== subjectOrg) throw AppError.validation('The business account does not belong to this business', 'businessAccountId');
+      const acc = await this.prisma.businessAccount.findUnique({
+        where: { id: b.businessAccountId },
+        select: { organizationId: true },
+      });
+      if (!acc || acc.organizationId !== subjectOrg)
+        throw AppError.validation(
+          'The business account does not belong to this business',
+          'businessAccountId',
+        );
     }
     const route = ops.caseTypes[b.type];
     const market = await this.marketOf(b, subjectOrg);
@@ -226,13 +254,19 @@ export class DisputeService {
           openedByUserId: actor.userId,
           openedByOrganizationId: organizationId,
           slaDueAt: new Date(now.getTime() + hours * 3_600_000),
-          slaWarnAt: new Date(now.getTime() + (hours * warnPct * 36_000)),
+          slaWarnAt: new Date(now.getTime() + hours * warnPct * 36_000),
           severity: b.severity ?? route?.severity ?? 'MEDIUM',
           market,
           legalEntityId: b.legalEntityId ?? null,
           businessAccountId: b.businessAccountId ?? null,
-          assignedTeam: organizationId ? (route?.team ?? null) : (b.assignedTeam ?? route?.team ?? null),
-          queue: organizationId ? null : (b.queue ?? ops.supportQueues.find((q) => q.caseTypes.includes(b.type))?.code ?? null),
+          assignedTeam: organizationId
+            ? (route?.team ?? null)
+            : (b.assignedTeam ?? route?.team ?? null),
+          queue: organizationId
+            ? null
+            : (b.queue ??
+              ops.supportQueues.find((q) => q.caseTypes.includes(b.type))?.code ??
+              null),
           reasonCode: b.reasonCode ?? null,
           sourceEvent: organizationId ? null : (b.sourceEvent ?? null),
           sourceEventId: organizationId ? null : (b.sourceEventId ?? null),
@@ -244,7 +278,23 @@ export class DisputeService {
         include: { notes: true },
       });
       await this.audit.record(
-        { action: 'DISPUTE_OPENED', entityType: 'DisputeCase', entityId: row.id, actor, subjectOrganizationId: subjectOrg, newState: { type: b.type, priority, severity: row.severity, team: row.assignedTeam, ref: row.reference }, market, legalEntityId: row.legalEntityId, meta },
+        {
+          action: 'DISPUTE_OPENED',
+          entityType: 'DisputeCase',
+          entityId: row.id,
+          actor,
+          subjectOrganizationId: subjectOrg,
+          newState: {
+            type: b.type,
+            priority,
+            severity: row.severity,
+            team: row.assignedTeam,
+            ref: row.reference,
+          },
+          market,
+          legalEntityId: row.legalEntityId,
+          meta,
+        },
         tx,
       );
       return row;
@@ -259,7 +309,12 @@ export class DisputeService {
     return codes === null ? {} : { market: { in: [...codes] } };
   }
 
-  async list(where: Prisma.DisputeCaseWhereInput, forOrg: boolean, filter: CaseListFilter = {}, actor: Actor | null = null) {
+  async list(
+    where: Prisma.DisputeCaseWhereInput,
+    forOrg: boolean,
+    filter: CaseListFilter = {},
+    actor: Actor | null = null,
+  ) {
     const w: Prisma.DisputeCaseWhereInput = {
       ...where,
       ...(filter.status ? { status: filter.status } : filter.open ? { status: { in: OPEN } } : {}),
@@ -269,16 +324,33 @@ export class DisputeService {
       ...(filter.severity ? { severity: filter.severity } : {}),
       ...(filter.slaState ? { slaState: filter.slaState } : {}),
       ...(filter.customerUserId ? { customerUserId: filter.customerUserId } : {}),
-      ...(filter.q ? { OR: [{ reference: { contains: filter.q, mode: 'insensitive' } }, { title: { contains: filter.q, mode: 'insensitive' } }, { transactionRef: { contains: filter.q, mode: 'insensitive' } }] } : {}),
+      ...(filter.q
+        ? {
+            OR: [
+              { reference: { contains: filter.q, mode: 'insensitive' } },
+              { title: { contains: filter.q, mode: 'insensitive' } },
+              { transactionRef: { contains: filter.q, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
       AND: [filter.market ? { market: filter.market } : {}, await this.marketFilter(actor)],
     };
-    const rows = await this.prisma.disputeCase.findMany({ where: w, include: { notes: true }, orderBy: [{ slaDueAt: 'asc' }], take: 200 });
+    const rows = await this.prisma.disputeCase.findMany({
+      where: w,
+      include: { notes: true },
+      orderBy: [{ slaDueAt: 'asc' }],
+      take: 200,
+    });
     return rows.map((r) => this.view(r, forOrg));
   }
 
   async load(id: string, organizationId?: string, actor: Actor | null = null) {
     const c = await this.prisma.disputeCase.findFirst({
-      where: { id, ...(organizationId ? { organizationId } : {}), ...(await this.marketFilter(actor)) },
+      where: {
+        id,
+        ...(organizationId ? { organizationId } : {}),
+        ...(await this.marketFilter(actor)),
+      },
       include: { notes: { orderBy: { createdAt: 'asc' } } },
     });
     if (!c) throw AppError.notFound();
@@ -292,72 +364,357 @@ export class DisputeService {
   /** The full audit trail of one case (DealDash only). */
   async history(id: string, actor: Actor | null = null) {
     await this.load(id, undefined, actor);
-    const rows = await this.prisma.auditLog.findMany({ where: { entityType: 'DisputeCase', entityId: id }, orderBy: { occurredAt: 'asc' }, take: 500 });
-    return rows.map((a) => ({ at: a.occurredAt.toISOString(), action: a.action, actorUserId: a.actorUserId, actorRole: a.actorRole, reason: a.reason, previousState: a.previousState, newState: a.newState }));
+    const rows = await this.prisma.auditLog.findMany({
+      where: { entityType: 'DisputeCase', entityId: id },
+      orderBy: { occurredAt: 'asc' },
+      take: 500,
+    });
+    return rows.map((a) => ({
+      at: a.occurredAt.toISOString(),
+      action: a.action,
+      actorUserId: a.actorUserId,
+      actorRole: a.actorRole,
+      reason: a.reason,
+      previousState: a.previousState,
+      newState: a.newState,
+    }));
   }
 
   private requireOpen(c: { status: string }) {
     if (!OPEN.includes(c.status)) throw new AppError('INVALID_STATE', 'This case is closed', 409);
   }
 
-  async note(actor: Actor, id: string, organizationId: string | undefined, body: string, visibility: 'INTERNAL' | 'SHARED', meta: RequestMeta) {
+  async note(
+    actor: Actor,
+    id: string,
+    organizationId: string | undefined,
+    body: string,
+    visibility: 'INTERNAL' | 'SHARED',
+    meta: RequestMeta,
+  ) {
     const c = await this.load(id, organizationId, organizationId ? null : actor);
     this.requireOpen(c);
     const vis = organizationId ? 'SHARED' : visibility; // a business can never write an internal note
     // a business reply to a case waiting for it moves the case back to DealDash
-    const reply = organizationId && (c.status === 'AWAITING_MERCHANT' || c.status === 'AWAITING_PARTNER');
+    const reply =
+      organizationId && (c.status === 'AWAITING_MERCHANT' || c.status === 'AWAITING_PARTNER');
     await this.prisma.$transaction(async (tx) => {
-      await tx.caseNote.create({ data: { caseId: id, authorUserId: actor.userId, authorOrganizationId: organizationId ?? null, visibility: vis, body } });
-      if (reply) await tx.disputeCase.updateMany({ where: { id, status: c.status }, data: { status: 'INVESTIGATING' } });
-      await this.audit.record({ action: 'DISPUTE_NOTE_ADDED', entityType: 'DisputeCase', entityId: id, actor, subjectOrganizationId: c.organizationId, previousState: reply ? { status: c.status } : undefined, newState: { visibility: vis, ...(reply ? { status: 'INVESTIGATING' } : {}) }, market: c.market, meta }, tx);
+      await tx.caseNote.create({
+        data: {
+          caseId: id,
+          authorUserId: actor.userId,
+          authorOrganizationId: organizationId ?? null,
+          authorKind: organizationId ? 'BUSINESS' : 'DEALDASH',
+          visibility: vis,
+          body,
+        },
+      });
+      if (reply)
+        await tx.disputeCase.updateMany({
+          where: { id, status: c.status },
+          data: { status: 'INVESTIGATING' },
+        });
+      await this.audit.record(
+        {
+          action: 'DISPUTE_NOTE_ADDED',
+          entityType: 'DisputeCase',
+          entityId: id,
+          actor,
+          subjectOrganizationId: c.organizationId,
+          previousState: reply ? { status: c.status } : undefined,
+          newState: { visibility: vis, ...(reply ? { status: 'INVESTIGATING' } : {}) },
+          market: c.market,
+          meta,
+        },
+        tx,
+      );
     });
     return this.get(id, organizationId);
   }
 
   /** Stage 8: a logged contact with the customer or business (channel, direction); internal to DealDash. */
-  async contact(actor: Actor, id: string, b: { channel: string; direction: 'INBOUND' | 'OUTBOUND'; body: string }, meta: RequestMeta) {
+  async contact(
+    actor: Actor,
+    id: string,
+    b: { channel: string; direction: 'INBOUND' | 'OUTBOUND'; body: string },
+    meta: RequestMeta,
+  ) {
     const c = await this.load(id, undefined, actor);
     this.requireOpen(c);
     await this.prisma.$transaction(async (tx) => {
-      await tx.caseNote.create({ data: { caseId: id, authorUserId: actor.userId, visibility: 'INTERNAL', body: b.body, kind: 'CONTACT', channel: b.channel, direction: b.direction } });
-      await this.audit.record({ action: 'CASE_CONTACT_LOGGED', entityType: 'DisputeCase', entityId: id, actor, subjectOrganizationId: c.organizationId, newState: { channel: b.channel, direction: b.direction }, market: c.market, meta }, tx);
+      await tx.caseNote.create({
+        data: {
+          caseId: id,
+          authorUserId: actor.userId,
+          visibility: 'INTERNAL',
+          body: b.body,
+          kind: 'CONTACT',
+          channel: b.channel,
+          direction: b.direction,
+        },
+      });
+      await this.audit.record(
+        {
+          action: 'CASE_CONTACT_LOGGED',
+          entityType: 'DisputeCase',
+          entityId: id,
+          actor,
+          subjectOrganizationId: c.organizationId,
+          newState: { channel: b.channel, direction: b.direction },
+          market: c.market,
+          meta,
+        },
+        tx,
+      );
     });
     return this.get(id);
   }
 
-  async assign(actor: Actor, id: string, ownerUserId: string, meta: RequestMeta, team?: string | null) {
+  // ---------------------------------------------------------------- Stage 9 (B6): the customer's own cases
+  /** The customer's view of their case: plain status, what DealDash shared with them and their own messages. Never internal or business notes. */
+  customerView(c: Prisma.DisputeCaseGetPayload<{ include: { notes: true } }>) {
+    return {
+      id: c.id,
+      reference: c.reference,
+      title: c.title,
+      status: c.status,
+      open: OPEN.includes(c.status),
+      awaitingYou: c.status === 'AWAITING_CUSTOMER',
+      canReply: OPEN.includes(c.status),
+      resolution: c.resolution,
+      createdAt: c.createdAt.toISOString(),
+      resolvedAt: c.resolvedAt?.toISOString() ?? null,
+      messages: c.notes
+        .filter(
+          (n) =>
+            n.visibility === 'SHARED' &&
+            n.authorOrganizationId === null &&
+            (n.authorKind === 'DEALDASH' || n.authorKind === 'CUSTOMER'),
+        )
+        .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+        .map((n) => ({
+          id: n.id,
+          fromYou: n.authorKind === 'CUSTOMER',
+          body: n.body,
+          evidenceRef: n.authorKind === 'CUSTOMER' ? n.evidenceRef : null,
+          createdAt: n.createdAt.toISOString(),
+        })),
+    };
+  }
+
+  /** Stage 8 list shape kept: `notes` are DealDash's shared messages (the customer's own are in `messages`). */
+  private customerListView(c: Prisma.DisputeCaseGetPayload<{ include: { notes: true } }>) {
+    const v = this.customerView(c);
+    return {
+      ...v,
+      notes: v.messages
+        .filter((m) => !m.fromYou)
+        .map((m) => ({ body: m.body, createdAt: m.createdAt })),
+    };
+  }
+
+  private async loadForCustomer(userId: string, id: string) {
+    const c = await this.prisma.disputeCase.findFirst({
+      where: { id, customerUserId: userId, type: { not: 'FRAUD_REVIEW' } },
+      include: { notes: true },
+    });
+    // another customer's case (or a fraud review) is simply not found
+    if (!c) throw AppError.notFound();
+    return c;
+  }
+
+  async customerCases(userId: string) {
+    const rows = await this.prisma.disputeCase.findMany({
+      where: { customerUserId: userId, type: { not: 'FRAUD_REVIEW' } },
+      include: { notes: true },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+    return rows.map((c) => this.customerListView(c));
+  }
+
+  async customerCase(userId: string, id: string) {
+    return this.customerView(await this.loadForCustomer(userId, id));
+  }
+
+  /**
+   * The customer replies in the app. The message is a shared CONTACT (in-app, inbound) on the case, so DealDash sees it in the case
+   * and the customer timeline; the business never sees it. A reply to a case waiting for the customer moves it back to DealDash.
+   */
+  async customerReply(
+    actor: Actor,
+    id: string,
+    b: { body: string; evidenceRef?: string | null },
+    meta: RequestMeta,
+  ) {
+    const c = await this.loadForCustomer(actor.userId, id);
+    if (!OPEN.includes(c.status))
+      throw new AppError(
+        'INVALID_STATE',
+        'This case is closed. Open a new support request if you need more help.',
+        409,
+      );
+    if (looksLikeCardNumber(b.body) || (b.evidenceRef && looksLikeCardNumber(b.evidenceRef)))
+      throw new AppError(
+        'CARD_DATA_FORBIDDEN',
+        'Please remove the card number: DealDash never needs it',
+        422,
+      );
+    // abuse control: a bounded number of messages per case per hour
+    const since = new Date(Date.now() - 3_600_000);
+    if (
+      (await this.prisma.caseNote.count({
+        where: { caseId: id, authorKind: 'CUSTOMER', createdAt: { gte: since } },
+      })) >= 10
+    )
+      throw AppError.rateLimited(
+        'RATE_LIMITED',
+        'You have sent many messages on this case. Please wait for our reply.',
+      );
+    const back = c.status === 'AWAITING_CUSTOMER';
+    await this.prisma.$transaction(async (tx) => {
+      await tx.caseNote.create({
+        data: {
+          caseId: id,
+          authorUserId: actor.userId,
+          authorKind: 'CUSTOMER',
+          visibility: 'SHARED',
+          kind: 'CONTACT',
+          channel: 'IN_APP',
+          direction: 'INBOUND',
+          body: b.body,
+          evidenceRef: b.evidenceRef?.trim() || null,
+        },
+      });
+      if (back)
+        await tx.disputeCase.updateMany({
+          where: { id, status: 'AWAITING_CUSTOMER' },
+          data: { status: 'INVESTIGATING' },
+        });
+      // the audit keeps that the customer wrote (not the message text: it stays on the case only)
+      await this.audit.record(
+        {
+          action: 'CASE_CUSTOMER_REPLY',
+          entityType: 'DisputeCase',
+          entityId: id,
+          actor,
+          subjectOrganizationId: c.organizationId,
+          previousState: back ? { status: c.status } : undefined,
+          newState: { evidenceRef: !!b.evidenceRef, ...(back ? { status: 'INVESTIGATING' } : {}) },
+          market: c.market,
+          meta,
+        },
+        tx,
+      );
+    });
+    return this.customerCase(actor.userId, id);
+  }
+
+  async assign(
+    actor: Actor,
+    id: string,
+    ownerUserId: string,
+    meta: RequestMeta,
+    team?: string | null,
+  ) {
     const c = await this.load(id, undefined, actor);
     this.requireOpen(c);
-    const owner = await this.prisma.user.findFirst({ where: { id: ownerUserId, memberships: { some: { organization: { type: 'DEALDASH' } } } }, select: { id: true } });
+    const owner = await this.prisma.user.findFirst({
+      where: { id: ownerUserId, memberships: { some: { organization: { type: 'DEALDASH' } } } },
+      select: { id: true },
+    });
     if (!owner) throw AppError.validation('The owner must be a DealDash user', 'ownerUserId');
     await this.prisma.$transaction(async (tx) => {
       // assigning a new case starts the review (Phase 3 IN_REVIEW); a case already being worked keeps its status
-      await tx.disputeCase.update({ where: { id }, data: { ownerUserId, status: c.status === 'OPEN' ? 'IN_REVIEW' : c.status, ...(team ? { assignedTeam: team } : {}) } });
-      await this.audit.record({ action: 'DISPUTE_ASSIGNED', entityType: 'DisputeCase', entityId: id, actor, subjectOrganizationId: c.organizationId, previousState: { owner: c.ownerUserId, team: c.assignedTeam }, newState: { owner: ownerUserId, team: team ?? c.assignedTeam }, market: c.market, meta }, tx);
+      await tx.disputeCase.update({
+        where: { id },
+        data: {
+          ownerUserId,
+          status: c.status === 'OPEN' ? 'IN_REVIEW' : c.status,
+          ...(team ? { assignedTeam: team } : {}),
+        },
+      });
+      await this.audit.record(
+        {
+          action: 'DISPUTE_ASSIGNED',
+          entityType: 'DisputeCase',
+          entityId: id,
+          actor,
+          subjectOrganizationId: c.organizationId,
+          previousState: { owner: c.ownerUserId, team: c.assignedTeam },
+          newState: { owner: ownerUserId, team: team ?? c.assignedTeam },
+          market: c.market,
+          meta,
+        },
+        tx,
+      );
     });
     return this.get(id);
   }
 
   /** Stage 8: move a case along its configured lifecycle (not to a closing status: resolve / reject do that, with an outcome). */
-  async transition(actor: Actor, id: string, to: CaseStatus, note: string | null, meta: RequestMeta) {
+  async transition(
+    actor: Actor,
+    id: string,
+    to: CaseStatus,
+    note: string | null,
+    meta: RequestMeta,
+  ) {
     const c = await this.load(id, undefined, actor);
     this.requireOpen(c);
     if (TERMINAL.includes(to) || to === 'AWAITING_APPROVAL')
-      throw new AppError('CASE_TRANSITION_INVALID', 'Use resolve, reject or request approval for this step', 409);
+      throw new AppError(
+        'CASE_TRANSITION_INVALID',
+        'Use resolve, reject or request approval for this step',
+        409,
+      );
     const ops = await this.ops();
     if (!(ops.caseLifecycle[c.status] ?? []).includes(to))
-      throw new AppError('CASE_TRANSITION_INVALID', `A case cannot move from ${c.status} to ${to}`, 409);
+      throw new AppError(
+        'CASE_TRANSITION_INVALID',
+        `A case cannot move from ${c.status} to ${to}`,
+        409,
+      );
     if ((to === 'AWAITING_MERCHANT' || to === 'AWAITING_PARTNER') && !c.organizationId)
       throw new AppError('CASE_TRANSITION_INVALID', 'This case is not about a business', 409);
     if (to === 'AWAITING_CUSTOMER' && !c.customerUserId)
       throw new AppError('CASE_TRANSITION_INVALID', 'This case is not about a customer', 409);
     await this.prisma.$transaction(async (tx) => {
-      const r = await tx.disputeCase.updateMany({ where: { id, status: c.status }, data: { status: to } });
-      if (r.count !== 1) throw new AppError('VERSION_CONFLICT', 'The case changed. Reload and try again.', 409);
-      // a request to the business is a SHARED note it can answer; to the customer it is a notification
-      if (note) await tx.caseNote.create({ data: { caseId: id, authorUserId: actor.userId, visibility: to === 'AWAITING_MERCHANT' || to === 'AWAITING_PARTNER' ? 'SHARED' : 'INTERNAL', body: note, kind: to.startsWith('AWAITING_') ? 'ESCALATION' : 'NOTE' } });
+      const r = await tx.disputeCase.updateMany({
+        where: { id, status: c.status },
+        data: { status: to },
+      });
+      if (r.count !== 1)
+        throw new AppError('VERSION_CONFLICT', 'The case changed. Reload and try again.', 409);
+      // a request to the business or (Stage 9, B6) to the customer is a SHARED note they read and answer in their app; the
+      // customer is also notified. Any other move keeps its note internal.
+      if (note)
+        await tx.caseNote.create({
+          data: {
+            caseId: id,
+            authorUserId: actor.userId,
+            visibility: to.startsWith('AWAITING_') ? 'SHARED' : 'INTERNAL',
+            body: note,
+            kind: to.startsWith('AWAITING_') ? 'ESCALATION' : 'NOTE',
+          },
+        });
       if (to === 'AWAITING_CUSTOMER') await this.notifyCustomer(tx, c, 'INFORMATION_REQUESTED');
-      await this.audit.record({ action: 'CASE_STATUS_CHANGED', entityType: 'DisputeCase', entityId: id, actor, subjectOrganizationId: c.organizationId, reason: note, previousState: { status: c.status }, newState: { status: to }, market: c.market, legalEntityId: c.legalEntityId, meta }, tx);
+      await this.audit.record(
+        {
+          action: 'CASE_STATUS_CHANGED',
+          entityType: 'DisputeCase',
+          entityId: id,
+          actor,
+          subjectOrganizationId: c.organizationId,
+          reason: note,
+          previousState: { status: c.status },
+          newState: { status: to },
+          market: c.market,
+          legalEntityId: c.legalEntityId,
+          meta,
+        },
+        tx,
+      );
     });
     return this.get(id);
   }
@@ -366,20 +723,32 @@ export class DisputeService {
   async update(
     actor: Actor,
     id: string,
-    b: { severity?: string; priority?: string; assignedTeam?: string | null; queue?: string | null; financialImpactMinor?: number | null; currency?: string | null; proposedResolution?: string | null },
+    b: {
+      severity?: string;
+      priority?: string;
+      assignedTeam?: string | null;
+      queue?: string | null;
+      financialImpactMinor?: number | null;
+      currency?: string | null;
+      proposedResolution?: string | null;
+    },
     meta: RequestMeta,
   ) {
     const c = await this.load(id, undefined, actor);
     this.requireOpen(c);
-    if (c.approvalState === 'PENDING') throw new AppError('CASE_APPROVAL_PENDING', 'This case is waiting for approval', 409);
+    if (c.approvalState === 'PENDING')
+      throw new AppError('CASE_APPROVAL_PENDING', 'This case is waiting for approval', 409);
     const cfg = await this.cfg();
-    if (b.priority && !(b.priority in cfg.slaHours)) throw AppError.validation('Unknown priority', 'priority');
+    if (b.priority && !(b.priority in cfg.slaHours))
+      throw AppError.validation('Unknown priority', 'priority');
     const data: Prisma.DisputeCaseUpdateInput = {};
     if (b.severity) data.severity = b.severity;
     if (b.priority && b.priority !== c.priority) {
       data.priority = b.priority;
       // a new priority restarts the SLA clock from the case's creation (never extends a breached case silently: the change is audited)
-      data.slaDueAt = new Date(c.createdAt.getTime() + (cfg.slaHours[b.priority] ?? 72) * 3_600_000);
+      data.slaDueAt = new Date(
+        c.createdAt.getTime() + (cfg.slaHours[b.priority] ?? 72) * 3_600_000,
+      );
     }
     if (b.assignedTeam !== undefined) data.assignedTeam = b.assignedTeam;
     if (b.queue !== undefined) data.queue = b.queue;
@@ -388,7 +757,27 @@ export class DisputeService {
     if (b.proposedResolution !== undefined) data.proposedResolution = b.proposedResolution;
     await this.prisma.$transaction(async (tx) => {
       await tx.disputeCase.update({ where: { id }, data });
-      await this.audit.record({ action: 'CASE_UPDATED', entityType: 'DisputeCase', entityId: id, actor, subjectOrganizationId: c.organizationId, previousState: { severity: c.severity, priority: c.priority, team: c.assignedTeam, queue: c.queue, financialImpactMinor: c.financialImpactMinor, proposedResolution: c.proposedResolution }, newState: b, market: c.market, meta }, tx);
+      await this.audit.record(
+        {
+          action: 'CASE_UPDATED',
+          entityType: 'DisputeCase',
+          entityId: id,
+          actor,
+          subjectOrganizationId: c.organizationId,
+          previousState: {
+            severity: c.severity,
+            priority: c.priority,
+            team: c.assignedTeam,
+            queue: c.queue,
+            financialImpactMinor: c.financialImpactMinor,
+            proposedResolution: c.proposedResolution,
+          },
+          newState: b,
+          market: c.market,
+          meta,
+        },
+        tx,
+      );
     });
     return this.get(id);
   }
@@ -401,67 +790,200 @@ export class DisputeService {
   }
 
   /** Stage 8 maker: propose the resolution of a case with a financial impact; a different person approves it. */
-  async requestApproval(actor: Actor, id: string, b: { proposedResolution: string; financialImpactMinor?: number | null }, meta: RequestMeta) {
+  async requestApproval(
+    actor: Actor,
+    id: string,
+    b: { proposedResolution: string; financialImpactMinor?: number | null },
+    meta: RequestMeta,
+  ) {
     const c = await this.load(id, undefined, actor);
     this.requireOpen(c);
-    if (c.approvalState === 'PENDING') throw new AppError('CASE_APPROVAL_PENDING', 'This case is already waiting for approval', 409);
+    if (c.approvalState === 'PENDING')
+      throw new AppError('CASE_APPROVAL_PENDING', 'This case is already waiting for approval', 409);
     const impact = b.financialImpactMinor ?? c.financialImpactMinor;
     await this.prisma.$transaction(async (tx) => {
       const r = await tx.disputeCase.updateMany({
         where: { id, status: c.status },
-        data: { status: 'AWAITING_APPROVAL', approvalState: 'PENDING', proposedResolution: b.proposedResolution, financialImpactMinor: impact, approvalRequestedByUserId: actor.userId, approvalRequestedAt: new Date(), approvalDecidedByUserId: null, approvalDecidedAt: null, approvalReason: null },
+        data: {
+          status: 'AWAITING_APPROVAL',
+          approvalState: 'PENDING',
+          proposedResolution: b.proposedResolution,
+          financialImpactMinor: impact,
+          approvalRequestedByUserId: actor.userId,
+          approvalRequestedAt: new Date(),
+          approvalDecidedByUserId: null,
+          approvalDecidedAt: null,
+          approvalReason: null,
+        },
       });
-      if (r.count !== 1) throw new AppError('VERSION_CONFLICT', 'The case changed. Reload and try again.', 409);
-      await this.audit.record({ action: 'CASE_APPROVAL_REQUESTED', entityType: 'DisputeCase', entityId: id, actor, subjectOrganizationId: c.organizationId, reason: b.proposedResolution, previousState: { status: c.status }, newState: { status: 'AWAITING_APPROVAL', financialImpactMinor: impact }, market: c.market, meta }, tx);
+      if (r.count !== 1)
+        throw new AppError('VERSION_CONFLICT', 'The case changed. Reload and try again.', 409);
+      await this.audit.record(
+        {
+          action: 'CASE_APPROVAL_REQUESTED',
+          entityType: 'DisputeCase',
+          entityId: id,
+          actor,
+          subjectOrganizationId: c.organizationId,
+          reason: b.proposedResolution,
+          previousState: { status: c.status },
+          newState: { status: 'AWAITING_APPROVAL', financialImpactMinor: impact },
+          market: c.market,
+          meta,
+        },
+        tx,
+      );
     });
     return this.get(id);
   }
 
   /** Stage 8 checker: approve (the proposed resolution closes the case) or send back. Never the person who proposed it. */
-  async decideApproval(actor: Actor, id: string, approve: boolean, reason: string, meta: RequestMeta) {
+  async decideApproval(
+    actor: Actor,
+    id: string,
+    approve: boolean,
+    reason: string,
+    meta: RequestMeta,
+  ) {
     const c = await this.load(id, undefined, actor);
-    if (c.approvalState !== 'PENDING' || c.status !== 'AWAITING_APPROVAL') throw new AppError('INVALID_STATE', 'Nothing is waiting for approval on this case', 409);
-    if (c.approvalRequestedByUserId === actor.userId) throw new AppError('CHECKER_REQUIRED', 'A different person must approve this resolution', 403);
+    if (c.approvalState !== 'PENDING' || c.status !== 'AWAITING_APPROVAL')
+      throw new AppError('INVALID_STATE', 'Nothing is waiting for approval on this case', 409);
+    if (c.approvalRequestedByUserId === actor.userId)
+      throw new AppError(
+        'CHECKER_REQUIRED',
+        'A different person must approve this resolution',
+        403,
+      );
     if ((await this.needsApproval(c)) && !actor.permissions.has('admin.finance.approve'))
-      throw new AppError('FORBIDDEN', 'A finance approver must decide a resolution with a financial impact', 403);
+      throw new AppError(
+        'FORBIDDEN',
+        'A finance approver must decide a resolution with a financial impact',
+        403,
+      );
     const now = new Date();
     await this.prisma.$transaction(async (tx) => {
       const r = await tx.disputeCase.updateMany({
         where: { id, status: 'AWAITING_APPROVAL', approvalState: 'PENDING' },
         data: approve
-          ? { status: 'RESOLVED', approvalState: 'APPROVED', approvalDecidedByUserId: actor.userId, approvalDecidedAt: now, approvalReason: reason, resolution: c.proposedResolution, resolvedAt: now, resolvedByUserId: actor.userId, slaState: c.slaDueAt < now ? 'BREACHED' : 'MET' }
-          : { status: 'INVESTIGATING', approvalState: 'REJECTED', approvalDecidedByUserId: actor.userId, approvalDecidedAt: now, approvalReason: reason },
+          ? {
+              status: 'RESOLVED',
+              approvalState: 'APPROVED',
+              approvalDecidedByUserId: actor.userId,
+              approvalDecidedAt: now,
+              approvalReason: reason,
+              resolution: c.proposedResolution,
+              resolvedAt: now,
+              resolvedByUserId: actor.userId,
+              slaState: c.slaDueAt < now ? 'BREACHED' : 'MET',
+            }
+          : {
+              status: 'INVESTIGATING',
+              approvalState: 'REJECTED',
+              approvalDecidedByUserId: actor.userId,
+              approvalDecidedAt: now,
+              approvalReason: reason,
+            },
       });
-      if (r.count !== 1) throw new AppError('VERSION_CONFLICT', 'The case changed. Reload and try again.', 409);
+      if (r.count !== 1)
+        throw new AppError('VERSION_CONFLICT', 'The case changed. Reload and try again.', 409);
       if (approve) await this.notifyCustomer(tx, c, 'RESOLVED');
-      await this.audit.record({ action: approve ? 'CASE_APPROVAL_GRANTED' : 'CASE_APPROVAL_REJECTED', entityType: 'DisputeCase', entityId: id, actor, subjectOrganizationId: c.organizationId, reason, approvalRef: c.approvalRequestedByUserId, previousState: { status: c.status }, newState: { status: approve ? 'RESOLVED' : 'INVESTIGATING', financialImpactMinor: c.financialImpactMinor }, market: c.market, legalEntityId: c.legalEntityId, meta }, tx);
+      await this.audit.record(
+        {
+          action: approve ? 'CASE_APPROVAL_GRANTED' : 'CASE_APPROVAL_REJECTED',
+          entityType: 'DisputeCase',
+          entityId: id,
+          actor,
+          subjectOrganizationId: c.organizationId,
+          reason,
+          approvalRef: c.approvalRequestedByUserId,
+          previousState: { status: c.status },
+          newState: {
+            status: approve ? 'RESOLVED' : 'INVESTIGATING',
+            financialImpactMinor: c.financialImpactMinor,
+          },
+          market: c.market,
+          legalEntityId: c.legalEntityId,
+          meta,
+        },
+        tx,
+      );
     });
     return this.get(id);
   }
 
-  async resolve(actor: Actor, id: string, b: { outcome: 'RESOLVED' | 'CLOSED' | 'REJECTED'; resolution: string; financialAdjustmentId?: string | null }, meta: RequestMeta) {
+  async resolve(
+    actor: Actor,
+    id: string,
+    b: {
+      outcome: 'RESOLVED' | 'CLOSED' | 'REJECTED';
+      resolution: string;
+      financialAdjustmentId?: string | null;
+    },
+    meta: RequestMeta,
+  ) {
     const c = await this.load(id, undefined, actor);
-    if (!OPEN.includes(c.status)) throw new AppError('INVALID_STATE', 'This case is already closed', 409);
-    if (c.status === 'AWAITING_APPROVAL') throw new AppError('CASE_APPROVAL_PENDING', 'This case is waiting for approval', 409);
+    if (!OPEN.includes(c.status))
+      throw new AppError('INVALID_STATE', 'This case is already closed', 409);
+    if (c.status === 'AWAITING_APPROVAL')
+      throw new AppError('CASE_APPROVAL_PENDING', 'This case is waiting for approval', 409);
     // the person who raised it does not close it alone
-    if (c.openedByUserId === actor.userId && c.openedByOrganizationId === null && c.ownerUserId !== actor.userId)
-      throw new AppError('APPROVAL_REQUIRED', 'Another team member should close a case you raised', 403);
+    if (
+      c.openedByUserId === actor.userId &&
+      c.openedByOrganizationId === null &&
+      c.ownerUserId !== actor.userId
+    )
+      throw new AppError(
+        'APPROVAL_REQUIRED',
+        'Another team member should close a case you raised',
+        403,
+      );
     // a resolution with a financial impact above the threshold goes through the approval step (maker-checker)
     if (b.outcome === 'RESOLVED' && c.approvalState !== 'APPROVED' && (await this.needsApproval(c)))
-      throw new AppError('APPROVAL_REQUIRED', 'A resolution with a financial impact needs a second person: request approval', 409);
+      throw new AppError(
+        'APPROVAL_REQUIRED',
+        'A resolution with a financial impact needs a second person: request approval',
+        409,
+      );
     if (b.financialAdjustmentId) {
-      const j = await this.prisma.ledgerJournal.findUnique({ where: { id: b.financialAdjustmentId }, select: { id: true } });
-      if (!j) throw AppError.validation('The finance record was not found', 'financialAdjustmentId');
+      const j = await this.prisma.ledgerJournal.findUnique({
+        where: { id: b.financialAdjustmentId },
+        select: { id: true },
+      });
+      if (!j)
+        throw AppError.validation('The finance record was not found', 'financialAdjustmentId');
     }
     const now = new Date();
     await this.prisma.$transaction(async (tx) => {
       const r = await tx.disputeCase.updateMany({
         where: { id, status: { in: OPEN } },
-        data: { status: b.outcome, resolution: b.resolution, resolvedAt: now, resolvedByUserId: actor.userId, financialAdjustmentId: b.financialAdjustmentId ?? null, slaState: c.slaDueAt < now ? 'BREACHED' : 'MET' },
+        data: {
+          status: b.outcome,
+          resolution: b.resolution,
+          resolvedAt: now,
+          resolvedByUserId: actor.userId,
+          financialAdjustmentId: b.financialAdjustmentId ?? null,
+          slaState: c.slaDueAt < now ? 'BREACHED' : 'MET',
+        },
       });
-      if (r.count !== 1) throw new AppError('VERSION_CONFLICT', 'The case changed. Reload and try again.', 409);
+      if (r.count !== 1)
+        throw new AppError('VERSION_CONFLICT', 'The case changed. Reload and try again.', 409);
       await this.notifyCustomer(tx, c, b.outcome);
-      await this.audit.record({ action: 'DISPUTE_RESOLVED', entityType: 'DisputeCase', entityId: id, actor, subjectOrganizationId: c.organizationId, reason: b.resolution, previousState: { status: c.status }, newState: { status: b.outcome, financialAdjustmentId: b.financialAdjustmentId ?? null }, market: c.market, legalEntityId: c.legalEntityId, meta }, tx);
+      await this.audit.record(
+        {
+          action: 'DISPUTE_RESOLVED',
+          entityType: 'DisputeCase',
+          entityId: id,
+          actor,
+          subjectOrganizationId: c.organizationId,
+          reason: b.resolution,
+          previousState: { status: c.status },
+          newState: { status: b.outcome, financialAdjustmentId: b.financialAdjustmentId ?? null },
+          market: c.market,
+          legalEntityId: c.legalEntityId,
+          meta,
+        },
+        tx,
+      );
     });
     return this.get(id);
   }
@@ -471,7 +993,14 @@ export class DisputeService {
     // a fraud review is internal: the customer is told through the restriction workflow if (and only if) one is approved
     if (!c.customerUserId || c.type === 'FRAUD_REVIEW') return;
     await tx.notification.createMany({
-      data: [{ userId: c.customerUserId, type: 'CASE_UPDATED', dedupeKey: `case:${c.id}:${event}`, data: { caseId: c.id, reference: c.reference, event, title: c.title } }],
+      data: [
+        {
+          userId: c.customerUserId,
+          type: 'CASE_UPDATED',
+          dedupeKey: `case:${c.id}:${event}`,
+          data: { caseId: c.id, reference: c.reference, event, title: c.title },
+        },
+      ],
       skipDuplicates: true,
     });
     await tx.disputeCase.update({ where: { id: c.id }, data: { customerNotifiedAt: new Date() } });
@@ -481,12 +1010,18 @@ export class DisputeService {
   private async openCase(id: string, organizationId?: string) {
     const c = await this.load(id, organizationId);
     this.requireOpen(c);
-    if (!c.organizationId) throw AppError.validation('Evidence can only be attached to a case about a business');
+    if (!c.organizationId)
+      throw AppError.validation('Evidence can only be attached to a case about a business');
     return c as Case & { organizationId: string };
   }
 
   /** Step 1: a signed upload URL for the evidence file (the standard file flow: type, size and content are checked on completion). */
-  async attachmentIntent(actor: Actor, id: string, organizationId: string | undefined, input: { fileName: string; mimeType: string; sizeBytes: number }) {
+  async attachmentIntent(
+    actor: Actor,
+    id: string,
+    organizationId: string | undefined,
+    input: { fileName: string; mimeType: string; sizeBytes: number },
+  ) {
     const c = await this.openCase(id, organizationId);
     return this.files.createIntent(actor, c.organizationId, { kind: 'DOCUMENT', ...input });
   }
@@ -496,14 +1031,21 @@ export class DisputeService {
     actor: Actor,
     id: string,
     organizationId: string | undefined,
-    b: { fileId: string; type: Attachment['type']; label?: string | null; visibility?: 'INTERNAL' | 'SHARED' },
+    b: {
+      fileId: string;
+      type: Attachment['type'];
+      label?: string | null;
+      visibility?: 'INTERNAL' | 'SHARED';
+    },
     meta: RequestMeta,
   ) {
     const c = await this.openCase(id, organizationId);
     const file = await this.files.complete(actor, c.organizationId, b.fileId, meta);
     const list = (Array.isArray(c.evidence) ? c.evidence : []) as unknown as Attachment[];
-    if (list.some((a) => a.fileId === b.fileId)) throw new AppError('INVALID_STATE', 'This file is already attached', 409);
-    if (list.length >= MAX_ATTACHMENTS) throw AppError.validation(`A case holds at most ${MAX_ATTACHMENTS} files`);
+    if (list.some((a) => a.fileId === b.fileId))
+      throw new AppError('INVALID_STATE', 'This file is already attached', 409);
+    if (list.length >= MAX_ATTACHMENTS)
+      throw AppError.validation(`A case holds at most ${MAX_ATTACHMENTS} files`);
     const item: Attachment = {
       id: randomBytes(8).toString('hex'),
       fileId: b.fileId,
@@ -519,21 +1061,53 @@ export class DisputeService {
     };
     await this.prisma.$transaction(async (tx) => {
       // a conditional update on the current list, so two concurrent uploads cannot overwrite each other
-      const upd = await tx.$executeRaw`UPDATE "DisputeCase" SET "evidence" = "evidence" || ${JSON.stringify([item])}::jsonb, "updatedAt" = now()
+      const upd =
+        await tx.$executeRaw`UPDATE "DisputeCase" SET "evidence" = "evidence" || ${JSON.stringify([item])}::jsonb, "updatedAt" = now()
         WHERE "id" = ${id}::uuid AND "status" = ANY(${OPEN}::text[]) AND jsonb_array_length("evidence") < ${MAX_ATTACHMENTS}`;
-      if (upd !== 1) throw new AppError('VERSION_CONFLICT', 'The case changed. Reload and try again.', 409);
-      await this.audit.record({ action: 'DISPUTE_EVIDENCE_ADDED', entityType: 'DisputeCase', entityId: id, actor, subjectOrganizationId: c.organizationId, newState: { fileId: b.fileId, type: b.type, visibility: item.visibility }, market: c.market, meta }, tx);
+      if (upd !== 1)
+        throw new AppError('VERSION_CONFLICT', 'The case changed. Reload and try again.', 409);
+      await this.audit.record(
+        {
+          action: 'DISPUTE_EVIDENCE_ADDED',
+          entityType: 'DisputeCase',
+          entityId: id,
+          actor,
+          subjectOrganizationId: c.organizationId,
+          newState: { fileId: b.fileId, type: b.type, visibility: item.visibility },
+          market: c.market,
+          meta,
+        },
+        tx,
+      );
     });
     return this.get(id, organizationId);
   }
 
   /** Short-lived signed link. A business can only open SHARED evidence of its own cases. */
-  async attachmentUrl(actor: Actor, id: string, attachmentId: string, organizationId: string | undefined, meta: RequestMeta) {
+  async attachmentUrl(
+    actor: Actor,
+    id: string,
+    attachmentId: string,
+    organizationId: string | undefined,
+    meta: RequestMeta,
+  ) {
     const c = await this.load(id, organizationId);
-    const a = ((Array.isArray(c.evidence) ? c.evidence : []) as unknown as Attachment[]).find((x) => x.id === attachmentId);
-    if (!a || (organizationId && a.visibility !== 'SHARED') || !c.organizationId) throw AppError.notFound();
+    const a = ((Array.isArray(c.evidence) ? c.evidence : []) as unknown as Attachment[]).find(
+      (x) => x.id === attachmentId,
+    );
+    if (!a || (organizationId && a.visibility !== 'SHARED') || !c.organizationId)
+      throw AppError.notFound();
     const url = await this.files.readUrl(a.fileId, c.organizationId, 300);
-    await this.audit.record({ action: 'DISPUTE_EVIDENCE_VIEWED', entityType: 'DisputeCase', entityId: id, actor, subjectOrganizationId: c.organizationId, newState: { attachmentId }, market: c.market, meta });
+    await this.audit.record({
+      action: 'DISPUTE_EVIDENCE_VIEWED',
+      entityType: 'DisputeCase',
+      entityId: id,
+      actor,
+      subjectOrganizationId: c.organizationId,
+      newState: { attachmentId },
+      market: c.market,
+      meta,
+    });
     return url;
   }
 }

@@ -380,7 +380,16 @@ describe('Partner portal (Stage 7)', () => {
     const calls = stub({
       [`/partners/${ORG}/modules`]: modules(),
       [`/partners/${ORG}/network`]: ok({
-        items: [{ id: 'm1', nameEn: 'Corner Bakery', nameAr: null, externalId: 'GB-M-1', state: 'REFERENCED', capabilities: {} }],
+        items: [
+          {
+            id: 'm1',
+            nameEn: 'Corner Bakery',
+            nameAr: null,
+            externalId: 'GB-M-1',
+            state: 'REFERENCED',
+            capabilities: {},
+          },
+        ],
         page: 1,
         total: 1,
       }),
@@ -411,17 +420,30 @@ describe('Partner portal (Stage 7)', () => {
         <PartnerOffersPage />
       </Providers>,
     );
-    expect(await screen.findByTestId('pt-offer-pub-OFF-1')).toHaveTextContent('Awaiting DealDash confirmation');
+    expect(await screen.findByTestId('pt-offer-pub-OFF-1')).toHaveTextContent(
+      'Awaiting DealDash confirmation',
+    );
     expect(screen.getByTestId('pt-offer-table')).toHaveTextContent('GB-PROG-1');
     const form = await screen.findByTestId('pt-offer-create');
     await waitFor(() => expect(within(form).getByLabelText('Merchant')).toHaveValue('GB-M-1'));
-    await userEvent.type(within(form).getByLabelText('Publication authority (agreement reference)'), 'GB-PROG-2');
+    await userEvent.type(
+      within(form).getByLabelText('Publication authority (agreement reference)'),
+      'GB-PROG-2',
+    );
     await userEvent.type(within(form).getByLabelText('Title (English)'), 'Dine for less');
     await userEvent.type(within(form).getByLabelText('Benefit (English)'), '15% off');
     await userEvent.click(screen.getByTestId('pt-offer-submit'));
-    await waitFor(() => expect(calls.some((c) => c.method === 'POST' && c.url.endsWith('/offers'))).toBe(true));
-    const sent = JSON.parse(calls.find((c) => c.method === 'POST' && c.url.endsWith('/offers'))!.body!);
-    expect(sent).toMatchObject({ merchantSourceId: 'GB-M-1', publicationRef: 'GB-PROG-2', titleEn: 'Dine for less' });
+    await waitFor(() =>
+      expect(calls.some((c) => c.method === 'POST' && c.url.endsWith('/offers'))).toBe(true),
+    );
+    const sent = JSON.parse(
+      calls.find((c) => c.method === 'POST' && c.url.endsWith('/offers'))!.body!,
+    );
+    expect(sent).toMatchObject({
+      merchantSourceId: 'GB-M-1',
+      publicationRef: 'GB-PROG-2',
+      titleEn: 'Dine for less',
+    });
   });
 
   it('FD-S7-4 offers: an analyst sees the list but cannot add a Live Deal', async () => {
@@ -444,7 +466,10 @@ describe('Partner portal (Stage 7)', () => {
       importMethod: 'BULK',
       lastSyncAt: null,
     };
-    stub({ [`/partners/${ORG}/modules`]: modules(), [`/partners/${ORG}/offers`]: ok([row]) }, 'PARTNER_ANALYST');
+    stub(
+      { [`/partners/${ORG}/modules`]: modules(), [`/partners/${ORG}/offers`]: ok([row]) },
+      'PARTNER_ANALYST',
+    );
     render(
       <Providers locale="en">
         <PartnerOffersPage />
@@ -486,8 +511,14 @@ describe('Partner portal (Stage 7)', () => {
     expect(table).toHaveTextContent('Owned DRAFT 0');
     expect(screen.queryByTestId('pt-watch-own-form')).toBeNull(); // finance funds, it does not create campaigns
     await userEvent.click(within(table).getByRole('button', { name: 'Fund budget' }));
-    await waitFor(() => expect(calls.some((c) => c.method === 'POST' && c.url.endsWith('/watch/owned/w-DRAFT-0/fund'))).toBe(true));
-    expect(JSON.parse(calls.find((c) => c.url.endsWith('/fund'))!.body!)).toEqual({ amountHalalas: 10000 });
+    await waitFor(() =>
+      expect(
+        calls.some((c) => c.method === 'POST' && c.url.endsWith('/watch/owned/w-DRAFT-0/fund')),
+      ).toBe(true),
+    );
+    expect(JSON.parse(calls.find((c) => c.url.endsWith('/fund'))!.body!)).toEqual({
+      amountHalalas: 10000,
+    });
   });
 
   it('renders right-to-left in Arabic with Western digits', async () => {

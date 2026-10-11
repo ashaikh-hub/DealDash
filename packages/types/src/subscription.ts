@@ -28,15 +28,38 @@ export const CONTRACT_LIFECYCLE = [
 ] as const;
 export type ContractLifecycle = (typeof CONTRACT_LIFECYCLE)[number];
 /** Lifecycle states in which a contract's entitlements are defined (new exposure is then decided by the enforcement policy). */
-export const IN_FORCE_LIFECYCLE: readonly ContractLifecycle[] = ['TRIAL', 'ACTIVE', 'PAST_DUE', 'SUSPENDED'];
+export const IN_FORCE_LIFECYCLE: readonly ContractLifecycle[] = [
+  'TRIAL',
+  'ACTIVE',
+  'PAST_DUE',
+  'SUSPENDED',
+];
 
-export const RENEWAL_STATES = ['AUTO_RENEW', 'MANUAL_RENEWAL', 'NON_RENEWING', 'RENEWAL_PENDING'] as const;
+export const RENEWAL_STATES = [
+  'AUTO_RENEW',
+  'MANUAL_RENEWAL',
+  'NON_RENEWING',
+  'RENEWAL_PENDING',
+] as const;
 export type RenewalState = (typeof RENEWAL_STATES)[number];
 
-export const BILLING_CADENCES = ['NONE', 'MONTHLY', 'ANNUAL', 'MULTI_YEAR', 'MANUAL', 'CUSTOM'] as const;
+export const BILLING_CADENCES = [
+  'NONE',
+  'MONTHLY',
+  'ANNUAL',
+  'MULTI_YEAR',
+  'MANUAL',
+  'CUSTOM',
+] as const;
 export type BillingCadence = (typeof BILLING_CADENCES)[number];
 
-export const ENTITY_TYPES_FOR_PLANS = ['MERCHANT', 'BANK', 'SCHEME', 'CORPORATE', 'PARTNER'] as const;
+export const ENTITY_TYPES_FOR_PLANS = [
+  'MERCHANT',
+  'BANK',
+  'SCHEME',
+  'CORPORATE',
+  'PARTNER',
+] as const;
 
 /** Where an entitlement row came from. Resolution: an OVERRIDE replaces the PLAN default; ADDON rows add. */
 export const ENTITLEMENT_SOURCES = ['CONTRACT', 'PLAN', 'OVERRIDE', 'ADDON'] as const;
@@ -59,7 +82,12 @@ export const RESOURCE_LIMITS = [
   'markets.max',
 ] as const;
 /** Metrics accumulated over a period (events), reset by the limit's period. */
-export const PERIOD_LIMITS = ['api.requests', 'bulk_import.rows', 'campaigns.per_period', 'exports.per_period'] as const;
+export const PERIOD_LIMITS = [
+  'api.requests',
+  'bulk_import.rows',
+  'campaigns.per_period',
+  'exports.per_period',
+] as const;
 export const ALL_LIMIT_KEYS = [...RESOURCE_LIMITS, ...PERIOD_LIMITS] as const;
 
 /** Maps a limit key to the usage metric that measures it. */
@@ -77,7 +105,11 @@ export const METRIC_OF_LIMIT: Record<string, string> = {
 };
 
 /** Billable business events (event usage), distinct from resource counts and period meters. */
-export const BILLABLE_METRICS = ['qualified_views', 'verified_redemptions', 'voucher_transactions'] as const;
+export const BILLABLE_METRICS = [
+  'qualified_views',
+  'verified_redemptions',
+  'voucher_transactions',
+] as const;
 
 /** Products and features a contract can switch on (the enterprise lists are all contract controlled). */
 export const SUBSCRIPTION_PRODUCTS = [
@@ -160,9 +192,21 @@ export const BILLING_EVENT_TYPES = {
 export type BillingEventType = keyof typeof BILLING_EVENT_TYPES;
 
 /** What a campaign is billed on, kept on the campaign so billing is never inferred from dashboard totals. */
-export const BILLING_TRIGGERS = ['CAMPAIGN_ACTIVATION', 'QUALIFIED_VIEW', 'VERIFIED_REDEMPTION', 'TRANSACTION', 'FIXED_FEE'] as const;
+export const BILLING_TRIGGERS = [
+  'CAMPAIGN_ACTIVATION',
+  'QUALIFIED_VIEW',
+  'VERIFIED_REDEMPTION',
+  'TRANSACTION',
+  'FIXED_FEE',
+] as const;
 
-export const FINANCIAL_STATUSES = ['GOOD_STANDING', 'GRACE', 'PAST_DUE', 'FINANCIAL_HOLD', 'SUSPENDED'] as const;
+export const FINANCIAL_STATUSES = [
+  'GOOD_STANDING',
+  'GRACE',
+  'PAST_DUE',
+  'FINANCIAL_HOLD',
+  'SUSPENDED',
+] as const;
 export type FinancialStatus = (typeof FINANCIAL_STATUSES)[number];
 
 /** Actions the commercial engine can allow or refuse. The first group is new exposure; the second can never be blocked. */
@@ -197,8 +241,18 @@ export const AMENDMENT_TYPES = [
   'EXTENSION',
 ] as const;
 export type AmendmentType = (typeof AMENDMENT_TYPES)[number];
-export const AMENDMENT_STATUSES = ['PROPOSED', 'ACCEPTED', 'APPLIED', 'REJECTED', 'CANCELLED'] as const;
-export const EFFECTIVE_MODES = ['IMMEDIATE', 'NEXT_BILLING_CYCLE', 'CUSTOM_EFFECTIVE_DATE'] as const;
+export const AMENDMENT_STATUSES = [
+  'PROPOSED',
+  'ACCEPTED',
+  'APPLIED',
+  'REJECTED',
+  'CANCELLED',
+] as const;
+export const EFFECTIVE_MODES = [
+  'IMMEDIATE',
+  'NEXT_BILLING_CYCLE',
+  'CUSTOM_EFFECTIVE_DATE',
+] as const;
 
 export const PROMOTION_KINDS = [
   'FREE_ONBOARDING',

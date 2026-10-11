@@ -7,7 +7,14 @@ import {
 } from '@dealdash/types';
 import { dictionaries, type DictionaryKey } from './dictionaries';
 
-export { dictionaries, en, ar, type DictionaryKey, type Dictionary } from './dictionaries';
+export {
+  dictionaries,
+  en,
+  ar,
+  arReviewStatus,
+  type DictionaryKey,
+  type Dictionary,
+} from './dictionaries';
 export { LOCALES, DEFAULT_LOCALE };
 export type { Locale, BilingualText };
 

@@ -1,4 +1,5 @@
-import { Controller, Get, Inject, Module } from '@nestjs/common';
+import { Controller, Get, Inject, Module, Res } from '@nestjs/common';
+import type { Response } from 'express';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { readdirSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -82,6 +83,42 @@ export class HealthController {
       time,
       database: { connected, migrationsCurrent, pendingMigrations: Math.max(pending, 0) },
       postgis,
+    };
+  }
+
+  /** Stage 9: liveness for the orchestrator (the process answers; no dependency checks, so a slow database never restarts it). */
+  @Get('live')
+  @Public()
+  live() {
+    return { status: 'ok' as const, time: new Date().toISOString() };
+  }
+
+  /**
+   * Stage 9: readiness for the load balancer. 200 only when the database answers, every migration is applied and PostGIS is on;
+   * otherwise 503 so traffic goes elsewhere. Background jobs report failures through monitoring, not readiness.
+   */
+  @Get('ready')
+  @Public()
+  async ready(@Res({ passthrough: true }) res: Response) {
+    const h = await this.check();
+    const ok = h.status === 'ok';
+    res.status(ok ? 200 : 503);
+    const failedJobs = ok
+      ? await this.prisma.job
+          .count({
+            where: {
+              status: { in: ['FAILED', 'DEAD'] },
+              updatedAt: { gte: new Date(Date.now() - 3_600_000) },
+            },
+          })
+          .catch(() => -1)
+      : -1;
+    return {
+      status: ok ? ('ready' as const) : ('not_ready' as const),
+      time: h.time,
+      database: h.database,
+      postgis: { enabled: h.postgis.enabled },
+      failedJobsLastHour: failedJobs,
     };
   }
 }

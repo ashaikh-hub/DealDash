@@ -14,5 +14,10 @@ export function AdminSubscriptionsPage() {
 function Inner() {
   const { me } = useAuth();
   const perms = me?.permissions ?? [];
-  return <SubscriptionAdminWorkspace canManage={perms.includes('admin.subscriptions.manage')} canApprove={perms.includes('admin.subscriptions.approve')} />;
+  return (
+    <SubscriptionAdminWorkspace
+      canManage={perms.includes('admin.subscriptions.manage')}
+      canApprove={perms.includes('admin.subscriptions.approve')}
+    />
+  );
 }

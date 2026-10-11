@@ -5,8 +5,8 @@ import { useState } from 'react';
 import { CasesPanel, RequirePermission, useApi, useResource } from '@dealdash/app-shell';
 import { formatDateTime, formatNumber, withLocale } from '@dealdash/localization';
 import { OPS_EXCEPTION_AREAS, type OpsExceptionArea } from '@dealdash/types';
-import { Alert, Button, Card, Field, Input, KeyValue, Select, StatusChip, Textarea } from '@dealdash/ui';
-import { OPS_TONE, OpsHeader, OpsStates, ReasonField, reasonOk, useOpsCommand, usePerms, useT } from './ops-kit';
+import { Alert, Button, Card, Field, Input, KeyValue, Select, StatusChip } from '@dealdash/ui';
+import { OPS_TONE, OpsHeader, OpsStates, useOpsCommand, usePerms, useT } from './ops-kit';
 
 // ====================================================================================== cases (shared exception framework)
 /** Admin -> Cases: the shared exception / case framework (16 types, configurable lifecycle, SLA, maker-checker resolution). */
@@ -23,7 +23,10 @@ function Cases() {
   return (
     <div className="dd-stack" style={{ gap: 16 }} data-testid="ops-cases">
       <OpsHeader title={t('s8.cases.title')} intro={t('s8.cases.intro')} />
-      <CasesPanel scope={{ audience: 'admin' }} canManage={perms.includes('admin.disputes.manage')} />
+      <CasesPanel
+        scope={{ audience: 'admin' }}
+        canManage={perms.includes('admin.disputes.manage')}
+      />
     </div>
   );
 }
@@ -33,7 +36,12 @@ interface Exceptions {
   generatedAt: string;
   values: Record<OpsExceptionArea, number>;
   markets: Array<{ market: string | null; openCases: number; breached: number }>;
-  businesses: Array<{ organizationId: string | null; nameEn: string | null; nameAr: string | null; openCases: number }>;
+  businesses: Array<{
+    organizationId: string | null;
+    nameEn: string | null;
+    nameAr: string | null;
+    openCases: number;
+  }>;
 }
 
 /** Where each exception area is worked (the screen that resolves it). */
@@ -93,7 +101,21 @@ export function OpsExceptionsPanel() {
       >
         {DRILL.map((d) => (
           <Field key={d.key} label={t(d.label as never)} htmlFor={`exc-${d.key}`}>
-            <Input id={`exc-${d.key}`} className={d.ltr ? 'dd-ltr' : undefined} value={draft[d.key] ?? ''} onChange={(e) => setDraft({ ...draft, [d.key]: d.key === 'market' || d.key === 'product' ? e.target.value.toUpperCase() : e.target.value })} style={{ maxWidth: 180 }} />
+            <Input
+              id={`exc-${d.key}`}
+              className={d.ltr ? 'dd-ltr' : undefined}
+              value={draft[d.key] ?? ''}
+              onChange={(e) =>
+                setDraft({
+                  ...draft,
+                  [d.key]:
+                    d.key === 'market' || d.key === 'product'
+                      ? e.target.value.toUpperCase()
+                      : e.target.value,
+                })
+              }
+              style={{ maxWidth: 180 }}
+            />
           </Field>
         ))}
         <Button type="submit" data-testid="exc-apply">
@@ -115,7 +137,13 @@ export function OpsExceptionsPanel() {
       <OpsStates res={res}>
         {(d) => (
           <div className="dd-stack" style={{ gap: 12 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: 10 }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))',
+                gap: 10,
+              }}
+            >
               {OPS_EXCEPTION_AREAS.map((a) => {
                 const n = d.values[a] ?? 0;
                 const href = AREA_ROUTE[a];
@@ -126,7 +154,19 @@ export function OpsExceptionsPanel() {
                         {code('s8.exc.area', a)}
                       </span>
                       <strong style={{ fontSize: 20 }}>
-                        <StatusChip tone={n === 0 ? 'success' : a === 'FRAUD_FLAGS' || a === 'OVERDUE_TASKS' || a === 'NOTIFICATION_FAILURES' ? 'danger' : 'warning'}>{formatNumber(locale, n)}</StatusChip>
+                        <StatusChip
+                          tone={
+                            n === 0
+                              ? 'success'
+                              : a === 'FRAUD_FLAGS' ||
+                                  a === 'OVERDUE_TASKS' ||
+                                  a === 'NOTIFICATION_FAILURES'
+                                ? 'danger'
+                                : 'warning'
+                          }
+                        >
+                          {formatNumber(locale, n)}
+                        </StatusChip>
                       </strong>
                       {href && n > 0 ? (
                         <Link href={withLocale(href, locale)} className="dd-caption">
@@ -197,7 +237,16 @@ export function OpsExceptionsPanel() {
 interface SlaOverview {
   generatedAt: string;
   byArea: Array<{ area: string; open: number; warning: number; breached: number }>;
-  items: Array<{ id: string; area: string; subjectType: string; reference: string; state: string; dueAt: string; priority?: string; escalationLevel?: number }>;
+  items: Array<{
+    id: string;
+    area: string;
+    subjectType: string;
+    reference: string;
+    state: string;
+    dueAt: string;
+    priority?: string;
+    escalationLevel?: number;
+  }>;
 }
 
 export function AdminSlaPage() {
@@ -218,7 +267,19 @@ function Sla() {
         title={t('s8.sla.title')}
         intro={t('s8.sla.intro')}
         actions={
-          <Button variant="outline" disabled={cmd.busy} onClick={() => void cmd.run<{ changes: number }>('/v1/admin/ops/sla/sweep', {}, t('s8.sla.swept'), () => res.reload())} data-testid="sla-sweep">
+          <Button
+            variant="outline"
+            disabled={cmd.busy}
+            onClick={() =>
+              void cmd.run<{ changes: number }>(
+                '/v1/admin/ops/sla/sweep',
+                {},
+                t('s8.sla.swept'),
+                () => res.reload(),
+              )
+            }
+            data-testid="sla-sweep"
+          >
             {t('s8.sla.sweep')}
           </Button>
         }
@@ -228,7 +289,13 @@ function Sla() {
         {(d) => (
           <div className="dd-stack" style={{ gap: 12 }}>
             {d.byArea.length ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                  gap: 10,
+                }}
+              >
                 {d.byArea.map((a) => (
                   <Card flat key={a.area} data-testid={`sla-area-${a.area}`}>
                     <div className="dd-stack" style={{ gap: 4 }}>
@@ -271,7 +338,9 @@ function Sla() {
                         <td className="dd-ltr">{i.reference}</td>
                         <td>{code('s8.slaArea', i.area)}</td>
                         <td>
-                          <StatusChip tone={OPS_TONE[i.state] ?? 'neutral'}>{code('op.sla', i.state)}</StatusChip>
+                          <StatusChip tone={OPS_TONE[i.state] ?? 'neutral'}>
+                            {code('op.sla', i.state)}
+                          </StatusChip>
                         </td>
                         <td>{formatDateTime(locale, i.dueAt)}</td>
                         <td>{i.escalationLevel ?? 0}</td>
@@ -292,9 +361,21 @@ function Sla() {
 interface Report {
   days: number;
   generatedAt: string;
-  cases: { open: number; byType: Record<string, number>; byStatus: Record<string, number>; aging: Record<string, number>; slaBreaches: number };
+  cases: {
+    open: number;
+    byType: Record<string, number>;
+    byStatus: Record<string, number>;
+    aging: Record<string, number>;
+    slaBreaches: number;
+  };
   refunds: Array<{ status: string; count: number; valueMinor: number }>;
-  adjustments: Array<{ kind: string; status: string; count: number; amountMinor: number; points: number }>;
+  adjustments: Array<{
+    kind: string;
+    status: string;
+    count: number;
+    amountMinor: number;
+    points: number;
+  }>;
   settlements: Array<{ status: string; count: number; payableMinor: number; paidMinor: number }>;
   reconciliation: Array<{ source: string; status: string; count: number; varianceMinor: number }>;
   fraud: Array<{ domain: string; status: string; count: number }>;
@@ -330,7 +411,11 @@ function Reports() {
     a.click();
     URL.revokeObjectURL(url);
   };
-  const rows = (items: Array<[string, number | string]>) => items.map(([label, value]) => ({ label, value: typeof value === 'number' ? formatNumber(locale, value) : value }));
+  const rows = (items: Array<[string, number | string]>) =>
+    items.map(([label, value]) => ({
+      label,
+      value: typeof value === 'number' ? formatNumber(locale, value) : value,
+    }));
   return (
     <div className="dd-stack" style={{ gap: 16 }} data-testid="ops-reports">
       <OpsHeader
@@ -338,7 +423,11 @@ function Reports() {
         intro={t('s8.rep.intro')}
         actions={
           <>
-            <Select aria-label={t('s8.rep.period')} value={days} onChange={(e) => setDays(e.target.value)}>
+            <Select
+              aria-label={t('s8.rep.period')}
+              value={days}
+              onChange={(e) => setDays(e.target.value)}
+            >
               {['7', '30', '90', '365'].map((d) => (
                 <option key={d} value={d}>
                   {t('s8.rep.days').replace('{n}', d)}
@@ -354,7 +443,13 @@ function Reports() {
       {csvError ? <Alert tone="danger">{t('s8.state.error')}</Alert> : null}
       <OpsStates res={res}>
         {(r) => (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 12 }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+              gap: 12,
+            }}
+          >
             <Card flat data-testid="rep-cases">
               <h2 className="dd-title-sm">{t('s8.rep.cases')}</h2>
               <KeyValue
@@ -365,7 +460,9 @@ function Reports() {
                   [t('s8.rep.aging.d1to3'), r.cases.aging.d1to3 ?? 0],
                   [t('s8.rep.aging.d3to7'), r.cases.aging.d3to7 ?? 0],
                   [t('s8.rep.aging.gt7d'), r.cases.aging.gt7d ?? 0],
-                  ...Object.entries(r.cases.byType).map(([k2, v]) => [code('op.dtype', k2), v] as [string, number]),
+                  ...Object.entries(r.cases.byType).map(
+                    ([k2, v]) => [code('op.dtype', k2), v] as [string, number],
+                  ),
                 ])}
               />
             </Card>
@@ -373,23 +470,60 @@ function Reports() {
               <h2 className="dd-title-sm">{t('s8.rep.money')}</h2>
               <KeyValue
                 items={rows([
-                  ...r.refunds.map((x) => [`${t('s8.rep.refunds')} · ${code('s8.refStatus', x.status)}`, x.count] as [string, number]),
-                  ...r.adjustments.map((x) => [`${code('s8.adjKind', x.kind)} · ${code('s8.adjStatus', x.status)}`, x.count] as [string, number]),
-                  ...r.settlements.map((x) => [`${t('s8.rep.settlements')} · ${code('s8.setStatus', x.status)}`, x.count] as [string, number]),
+                  ...r.refunds.map(
+                    (x) =>
+                      [`${t('s8.rep.refunds')} · ${code('s8.refStatus', x.status)}`, x.count] as [
+                        string,
+                        number,
+                      ],
+                  ),
+                  ...r.adjustments.map(
+                    (x) =>
+                      [
+                        `${code('s8.adjKind', x.kind)} · ${code('s8.adjStatus', x.status)}`,
+                        x.count,
+                      ] as [string, number],
+                  ),
+                  ...r.settlements.map(
+                    (x) =>
+                      [
+                        `${t('s8.rep.settlements')} · ${code('s8.setStatus', x.status)}`,
+                        x.count,
+                      ] as [string, number],
+                  ),
                   [t('s8.rep.paymentFailures'), r.paymentFailures],
                 ])}
               />
             </Card>
             <Card flat data-testid="rep-recon">
               <h2 className="dd-title-sm">{t('s8.rep.recon')}</h2>
-              <KeyValue items={rows(r.reconciliation.map((x) => [`${code('s8.recSource', x.source)} · ${code('s8.recStatus', x.status)}`, x.count]))} />
+              <KeyValue
+                items={rows(
+                  r.reconciliation.map((x) => [
+                    `${code('s8.recSource', x.source)} · ${code('s8.recStatus', x.status)}`,
+                    x.count,
+                  ]),
+                )}
+              />
             </Card>
             <Card flat data-testid="rep-risk">
               <h2 className="dd-title-sm">{t('s8.rep.risk')}</h2>
               <KeyValue
                 items={rows([
-                  ...r.fraud.map((x) => [`${code('s8.domain', x.domain)} · ${code('s8.flagStatus', x.status)}`, x.count] as [string, number]),
-                  ...r.redemptionFailures.map((x) => [`${t('s8.rep.redemptionFailures')} · ${x.result}`, x.count] as [string, number]),
+                  ...r.fraud.map(
+                    (x) =>
+                      [
+                        `${code('s8.domain', x.domain)} · ${code('s8.flagStatus', x.status)}`,
+                        x.count,
+                      ] as [string, number],
+                  ),
+                  ...r.redemptionFailures.map(
+                    (x) =>
+                      [`${t('s8.rep.redemptionFailures')} · ${x.result}`, x.count] as [
+                        string,
+                        number,
+                      ],
+                  ),
                 ])}
               />
             </Card>
@@ -397,7 +531,13 @@ function Reports() {
               <h2 className="dd-title-sm">{t('s8.rep.delivery')}</h2>
               <KeyValue
                 items={rows([
-                  ...r.notificationDeliveries.map((x) => [`${code('s8.channel', x.channel)} · ${code('s8.dlvStatus', x.status)}`, x.count] as [string, number]),
+                  ...r.notificationDeliveries.map(
+                    (x) =>
+                      [
+                        `${code('s8.channel', x.channel)} · ${code('s8.dlvStatus', x.status)}`,
+                        x.count,
+                      ] as [string, number],
+                  ),
                   [t('s8.rep.failedRecords'), r.integration.failedRecords],
                   [t('s8.rep.failedSyncs'), r.integration.failedSyncs],
                   [t('s8.rep.dataConflicts'), r.conflicts.dataConflicts],
@@ -413,90 +553,6 @@ function Reports() {
   );
 }
 
-// ====================================================================================== rules and controls (versioned configuration)
-/**
- * Admin -> Rules and controls: the operations configuration (case lifecycle and routing, SLAs and escalation, maker-checker thresholds,
- * reasons, risk rules, restriction limits, notification retries and templates, review policy). Every save is validated, versioned and
- * audited with a reason; history shows who changed what and why. Market law (refunds, tax, retention) is never set here.
- */
-export function AdminRulesPage() {
-  return (
-    <RequirePermission any={['admin.config.read']}>
-      <Rules />
-    </RequirePermission>
-  );
-}
-
-function Rules() {
-  const { t, locale } = useT();
-  const perms = usePerms();
-  const canManage = perms.includes('admin.config.manage');
-  const res = useResource<{ value: unknown; version: number; updatedAt: string | null }>('/v1/admin/ops/config');
-  const history = useResource<Array<{ at: string; actorRole: string | null; reason: string | null; version: number | null }>>('/v1/admin/ops/config/history');
-  const cmd = useOpsCommand();
-  const [text, setText] = useState<string | null>(null);
-  const [reason, setReason] = useState('');
-  let parseError: string | null = null;
-  if (text !== null) {
-    try {
-      JSON.parse(text);
-    } catch (e) {
-      parseError = (e as Error).message;
-    }
-  }
-  return (
-    <div className="dd-stack" style={{ gap: 16 }} data-testid="ops-rules">
-      <OpsHeader title={t('s8.cfg.title')} intro={t('s8.cfg.intro')} />
-      <Alert tone="info">{t('s8.cfg.marketNote')}</Alert>
-      {cmd.banner}
-      <OpsStates res={res}>
-        {(c) => (
-          <Card>
-            <div className="dd-stack" style={{ gap: 8 }}>
-              <div className="dd-caption" data-testid="cfg-version">
-                {t('s8.cfg.version')} {c.version} {c.updatedAt ? `· ${formatDateTime(locale, c.updatedAt)}` : ''}
-              </div>
-              <Field label={t('s8.cfg.value')} htmlFor="cfg-json" help={t('s8.cfg.valueHelp')}>
-                <Textarea id="cfg-json" className="dd-ltr" rows={18} readOnly={!canManage} value={text ?? JSON.stringify(c.value, null, 2)} onChange={(e) => setText(e.target.value)} style={{ fontFamily: 'ui-monospace, monospace', fontSize: 12 }} />
-              </Field>
-              {parseError ? <Alert tone="danger">{parseError}</Alert> : null}
-              {canManage ? (
-                <>
-                  <ReasonField id="cfg-reason" value={reason} onChange={setReason} />
-                  <div className="dd-row">
-                    <Button
-                      disabled={text === null || !!parseError || !reasonOk(reason) || cmd.busy}
-                      onClick={() =>
-                        void cmd.run('/v1/admin/ops/config', { value: JSON.parse(text ?? '{}'), reason }, t('s8.cfg.saved'), async () => { setText(null); setReason(''); await res.reload(); await history.reload(); }, 'PUT')
-                      }
-                      data-testid="cfg-save"
-                    >
-                      {t('s8.cfg.save')}
-                    </Button>
-                    <Button variant="ghost" disabled={text === null} onClick={() => setText(null)}>
-                      {t('s8.cfg.discard')}
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <p className="dd-caption">{t('s8.cfg.readOnly')}</p>
-              )}
-            </div>
-          </Card>
-        )}
-      </OpsStates>
-      <OpsStates res={history} empty={(d) => d.length === 0} emptyTitle={t('s8.cfg.noHistory')}>
-        {(rows) => (
-          <section className="dd-stack" style={{ gap: 4 }} data-testid="cfg-history">
-            <h2 className="dd-title-sm">{t('s8.cfg.history')}</h2>
-            {rows.map((h, i) => (
-              <div key={i} className="dd-caption">
-                {formatDateTime(locale, h.at)} · {h.actorRole ?? '-'} {h.version !== null ? `· v${h.version}` : ''} · {h.reason ?? ''}
-              </div>
-            ))}
-          </section>
-        )}
-      </OpsStates>
-    </div>
-  );
-}
+// ====================================================================================== rules and controls
+// Stage 9 (B7): the raw JSON editor was replaced by the structured, governed editor (ops-controls.tsx).
+export { AdminRulesPage } from './ops-controls';

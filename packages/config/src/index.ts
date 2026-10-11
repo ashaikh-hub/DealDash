@@ -1,6 +1,8 @@
 import { z } from 'zod';
+import { DEFAULT_LAUNCH_CONTROLS } from './launch';
 import { DEFAULT_OPERATIONS_CONFIG } from './operations';
 
+export * from './launch';
 export * from './operations';
 
 const providerSchema = z.enum(['mock']).default('mock'); // real vendors are added when selected
@@ -38,8 +40,106 @@ export const apiEnvSchema = z.object({
   STORAGE_LOCAL_DIR: z.string().default('.storage'),
   VIDEO_PROVIDER: providerSchema,
   MAPS_PROVIDER: providerSchema,
+  // ---- Stage 9: production readiness
+  /** Deployment tier. Production never shares a database, secret, provider key, test user or test money with any other tier. */
+  APP_ENV: z.enum(['local', 'development', 'test', 'staging', 'production']).optional(),
+  /** Staging only: development adapters may stand in for providers not yet contracted (UAT). Refused in production. */
+  ALLOW_MOCK_PROVIDERS: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((v) => v === 'true'),
+  /** Settlement payouts (B2): `manual` = bank references recorded by finance; `mock` = development payout adapter. */
+  PAYOUT_PROVIDER: z.enum(['manual', 'mock']).default('manual'),
+  /** Shared secrets that sign provider callbacks (payout status, notification delivery status). Absent = callbacks refused. */
+  PAYOUT_WEBHOOK_SECRET: z.string().min(32).optional(),
+  NOTIFY_WEBHOOK_SECRET: z.string().min(32).optional(),
+  /** Requests per minute per client IP for the whole API, and for sign-in / OTP routes. 0 = off. */
+  RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(0).default(0),
+  AUTH_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(0).default(0),
+  /** Number of reverse-proxy hops in front of the API (so client IPs are real). 0 when the API is reached directly. */
+  TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(0),
+  /** json = one structured line per event (production); pretty = human-readable (local). */
+  LOG_FORMAT: z.enum(['json', 'pretty']).default('pretty'),
 });
 export type ApiEnv = z.infer<typeof apiEnvSchema>;
+
+/** The effective deployment tier (APP_ENV, else derived from NODE_ENV). */
+export function appEnvOf(
+  env: Pick<ApiEnv, 'APP_ENV' | 'NODE_ENV'>,
+): NonNullable<ApiEnv['APP_ENV']> {
+  return (
+    env.APP_ENV ??
+    (env.NODE_ENV === 'production' ? 'production' : env.NODE_ENV === 'test' ? 'test' : 'local')
+  );
+}
+
+/**
+ * Stage 9: a production process refuses to start with an unsafe configuration. Returns the problems (empty = safe). Messages name the
+ * setting, never its value. Staging (NODE_ENV=production, APP_ENV=staging) may use development adapters only with ALLOW_MOCK_PROVIDERS.
+ */
+export function productionSafetyProblems(env: ApiEnv): string[] {
+  if (env.NODE_ENV !== 'production') return [];
+  const tier = appEnvOf(env);
+  const problems: string[] = [];
+  const mocksAllowed = tier === 'staging' && env.ALLOW_MOCK_PROVIDERS;
+  if (tier === 'production' && env.ALLOW_MOCK_PROVIDERS)
+    problems.push('ALLOW_MOCK_PROVIDERS must not be set in production');
+  if (tier !== 'production' && tier !== 'staging')
+    problems.push('APP_ENV must be staging or production when NODE_ENV=production');
+  if (!mocksAllowed) {
+    for (const k of [
+      'SMS_PROVIDER',
+      'EMAIL_PROVIDER',
+      'PUSH_PROVIDER',
+      'PAYMENT_PROVIDER',
+      'VIDEO_PROVIDER',
+      'MAPS_PROVIDER',
+    ] as const)
+      if (env[k] === 'mock')
+        problems.push(
+          `${k} is a development adapter (select and configure the contracted provider)`,
+        );
+    if (env.STORAGE_PROVIDER === 'mock') problems.push('STORAGE_PROVIDER is a development adapter');
+    if (env.STORAGE_PROVIDER === 'local')
+      problems.push('STORAGE_PROVIDER=local keeps files on one server disk (use object storage)');
+    if (env.PAYOUT_PROVIDER === 'mock')
+      problems.push('PAYOUT_PROVIDER=mock is a development adapter');
+  }
+  let db: URL | null = null;
+  try {
+    db = new URL(env.DATABASE_URL);
+  } catch {
+    problems.push('DATABASE_URL is not a valid URL');
+  }
+  if (db) {
+    const name = db.pathname.replace(/^\//, '');
+    if (/_(dev|test)$/.test(name))
+      problems.push('DATABASE_URL points at a development / test database');
+    if (!/sslmode=(require|verify-ca|verify-full)/.test(db.search))
+      problems.push('DATABASE_URL must require TLS (sslmode=require or verify-full)');
+    if (db.username === 'postgres')
+      problems.push(
+        'DATABASE_URL must use the least-privilege application role, not the administrative account',
+      );
+  }
+  if (env.TEST_DATABASE_URL)
+    problems.push('TEST_DATABASE_URL must not be configured in production / staging');
+  if (env.SESSION_SECRET.length < 32)
+    problems.push('SESSION_SECRET must be at least 32 characters');
+  if (
+    /^(ci-|dev|test|change_me)/i.test(env.SESSION_SECRET) ||
+    /^(ci-|dev|test|change_me)/i.test(env.FIELD_ENCRYPTION_KEY)
+  )
+    problems.push('SESSION_SECRET / FIELD_ENCRYPTION_KEY look like development values');
+  if (!env.API_PUBLIC_URL.startsWith('https://')) problems.push('API_PUBLIC_URL must be https');
+  for (const o of env.CORS_ORIGINS)
+    if (!o.startsWith('https://') || /localhost|127\.0\.0\.1/.test(o))
+      problems.push('CORS_ORIGINS must list only https production origins');
+  if (env.RATE_LIMIT_PER_MINUTE === 0 || env.AUTH_RATE_LIMIT_PER_MINUTE === 0)
+    problems.push('RATE_LIMIT_PER_MINUTE and AUTH_RATE_LIMIT_PER_MINUTE must be set');
+  if (env.LOG_FORMAT !== 'json') problems.push('LOG_FORMAT must be json');
+  return problems;
+}
 
 export function parseApiEnv(source: Record<string, string | undefined> = process.env): ApiEnv {
   const parsed = apiEnvSchema.safeParse(source);
@@ -156,6 +256,8 @@ export const CONFIG_KEYS = {
   PARTNERS: 'partners',
   // Stage 8: operations (case lifecycle, SLAs, approval thresholds, reasons, risk rules, notification retries, reviews, queues)
   OPERATIONS: 'operations',
+  // Stage 9: launch controls (pilot allow-list, per-market emergency stops)
+  LAUNCH_CONTROLS: 'launch.controls',
 } as const;
 
 /**
@@ -468,10 +570,25 @@ export const CONFIG_DEFAULTS: Record<ConfigKey, unknown> = {
     MERCHANT_OWNER: ['ORGANIZATION'],
     MERCHANT_ADMIN: ['ORGANIZATION', 'LEGAL_ENTITY', 'COUNTRY', 'UNIT'],
     MERCHANT_FINANCE: ['ORGANIZATION', 'LEGAL_ENTITY', 'COUNTRY', 'CAMPAIGN'],
-    MERCHANT_CAMPAIGN_MANAGER: ['ORGANIZATION', 'LEGAL_ENTITY', 'COUNTRY', 'UNIT', 'BRANCH', 'PRODUCT', 'CAMPAIGN'],
+    MERCHANT_CAMPAIGN_MANAGER: [
+      'ORGANIZATION',
+      'LEGAL_ENTITY',
+      'COUNTRY',
+      'UNIT',
+      'BRANCH',
+      'PRODUCT',
+      'CAMPAIGN',
+    ],
     MERCHANT_STAFF: ['BRANCH', 'UNIT'],
     PARTNER_ADMIN: ['ORGANIZATION', 'LEGAL_ENTITY', 'COUNTRY'],
-    PARTNER_CAMPAIGN_MANAGER: ['ORGANIZATION', 'LEGAL_ENTITY', 'COUNTRY', 'UNIT', 'PRODUCT', 'CAMPAIGN'],
+    PARTNER_CAMPAIGN_MANAGER: [
+      'ORGANIZATION',
+      'LEGAL_ENTITY',
+      'COUNTRY',
+      'UNIT',
+      'PRODUCT',
+      'CAMPAIGN',
+    ],
     PARTNER_BENEFITS_MANAGER: ['ORGANIZATION', 'COUNTRY', 'UNIT'],
     PARTNER_ANALYST: ['ORGANIZATION', 'LEGAL_ENTITY', 'COUNTRY', 'UNIT', 'CAMPAIGN'],
   },
@@ -484,12 +601,34 @@ export const CONFIG_DEFAULTS: Record<ConfigKey, unknown> = {
     },
     PARTNER: { products: [], features: [], limits: {} },
     DEALDASH: { products: [], features: [], limits: {} },
-  },  // ---- Phase 2: how candidate duplicates are scored and how source / local disagreements are resolved. All configuration.
+  }, // ---- Phase 2: how candidate duplicates are scored and how source / local disagreements are resolved. All configuration.
   'platform.matching': {
     /** Below this confidence two records are not even suggested as duplicates. */
     candidateMinConfidence: 72,
     /** Words that carry no identity ("llc", "ksa", "saudi arabia" ...), removed before names are compared. */
-    stopWords: ['the', 'co', 'company', 'llc', 'ltd', 'limited', 'inc', 'ksa', 'saudi', 'arabia', 'sa', 'branch', 'store', 'shop', 'restaurant', 'ال', 'شركة', 'مؤسسة', 'فرع', 'السعودية', 'المملكة'],
+    stopWords: [
+      'the',
+      'co',
+      'company',
+      'llc',
+      'ltd',
+      'limited',
+      'inc',
+      'ksa',
+      'saudi',
+      'arabia',
+      'sa',
+      'branch',
+      'store',
+      'shop',
+      'restaurant',
+      'ال',
+      'شركة',
+      'مؤسسة',
+      'فرع',
+      'السعودية',
+      'المملكة',
+    ],
   },
   'platform.conflict_policy': {
     /** SOURCE_WINS | DEALDASH_WINS | MERCHANT_WINS | MANUAL_REVIEW. A field not listed uses `default`. */
@@ -505,7 +644,7 @@ export const CONFIG_DEFAULTS: Record<ConfigKey, unknown> = {
     adminApprovalAboveRows: 200,
     webhookMaxAttempts: 5,
     webhookBackoffSeconds: [60, 300, 900, 3600, 21600],
-  },  // ---- Phase 3: shared eligibility, loyalty, disputes and offer-conflict detection (all configuration).
+  }, // ---- Phase 3: shared eligibility, loyalty, disputes and offer-conflict detection (all configuration).
   'platform.eligibility': {
     /** Age and gender criteria stay OFF until the market's rules are validated (VALIDATE-KSA). DealDash does not collect them today. */
     sensitiveAttributesEnabled: false,
@@ -516,7 +655,12 @@ export const CONFIG_DEFAULTS: Record<ConfigKey, unknown> = {
     /** Funded rules need DealDash approval; a DealDash rule needs a different Admin to approve it. */
     approvalRequired: true,
     /** Event types the platform accepts rules for. Streaks and milestones are NOT in the MVP; a campaign bonus is a BONUS rule scoped to one campaign. */
-    eventTypes: ['QUALIFIED_VIEW', 'EXCLUSIVE_REDEMPTION', 'VOUCHER_PURCHASE', 'VOUCHER_REDEMPTION'],
+    eventTypes: [
+      'QUALIFIED_VIEW',
+      'EXCLUSIVE_REDEMPTION',
+      'VOUCHER_PURCHASE',
+      'VOUCHER_REDEMPTION',
+    ],
   },
   'platform.disputes': {
     types: [
@@ -546,8 +690,24 @@ export const CONFIG_DEFAULTS: Record<ConfigKey, unknown> = {
     autoSuspendAfterGrace: true,
     treatElapsedGraceAsSuspended: true,
     /** What a SUSPENDED / elapsed-grace / ended contract and a financial hold refuse: NEW exposure only. Issued customer rights are never in this list. */
-    blockedWhenSuspended: ['NEW_PAID_CAMPAIGN', 'ACTIVATE_CAMPAIGN', 'ADD_BRANCH', 'ADD_USER', 'PREMIUM_FEATURE', 'API_OPERATION', 'UPGRADE_EXPOSURE'],
-    blockedWhenEnded: ['NEW_PAID_CAMPAIGN', 'ACTIVATE_CAMPAIGN', 'ADD_BRANCH', 'ADD_USER', 'PREMIUM_FEATURE', 'API_OPERATION', 'UPGRADE_EXPOSURE'],
+    blockedWhenSuspended: [
+      'NEW_PAID_CAMPAIGN',
+      'ACTIVATE_CAMPAIGN',
+      'ADD_BRANCH',
+      'ADD_USER',
+      'PREMIUM_FEATURE',
+      'API_OPERATION',
+      'UPGRADE_EXPOSURE',
+    ],
+    blockedWhenEnded: [
+      'NEW_PAID_CAMPAIGN',
+      'ACTIVATE_CAMPAIGN',
+      'ADD_BRANCH',
+      'ADD_USER',
+      'PREMIUM_FEATURE',
+      'API_OPERATION',
+      'UPGRADE_EXPOSURE',
+    ],
     blockedOnFinancialHold: ['NEW_PAID_CAMPAIGN', 'ACTIVATE_CAMPAIGN', 'UPGRADE_EXPOSURE'],
     /** CONTINUE: an approved, live, prepaid campaign keeps running (default, protects customers). STOP_NEW_EXPOSURE: no new reservations, purchases or views. Stricter treatment is a contract / plan override. */
     liveCampaignsWhenSuspended: 'CONTINUE',
@@ -555,7 +715,12 @@ export const CONFIG_DEFAULTS: Record<ConfigKey, unknown> = {
   'commercial.signals': {
     /** Percent of a limit at which an approaching signal is raised. */
     thresholds: [80, 100],
-    leadDays: { TRIAL_EXPIRING: 7, PROMOTION_EXPIRING: 7, RENEWAL_APPROACHING: 30, CONTRACT_EXPIRING: 30 },
+    leadDays: {
+      TRIAL_EXPIRING: 7,
+      PROMOTION_EXPIRING: 7,
+      RENEWAL_APPROACHING: 30,
+      CONTRACT_EXPIRING: 30,
+    },
   },
   'commercial.trial': {
     /** A trial never turns into Starter unless this is switched on (and a post-trial plan is configured). */
@@ -578,8 +743,14 @@ export const CONFIG_DEFAULTS: Record<ConfigKey, unknown> = {
     flagWeakerExclusive: true,
     /** Percentage-points of difference below which two benefits are treated as equal. */
     equalWithinPoints: 0,
-  },  // Which products must complete commercial governance before going live (founder decision: all of them).
-  'commercial.requirements': { VOUCHER: true, WATCH: true, EXCLUSIVE: true, LIVE_BENEFIT: true, LOYALTY: true },
+  }, // Which products must complete commercial governance before going live (founder decision: all of them).
+  'commercial.requirements': {
+    VOUCHER: true,
+    WATCH: true,
+    EXCLUSIVE: true,
+    LIVE_BENEFIT: true,
+    LOYALTY: true,
+  },
   // ---------------------------------------------------------------- Phase 4: visibility and operations
   'visibility.analytics': {
     /** Rows read per source per projector pass (the projector catches up over several passes). */
@@ -592,7 +763,10 @@ export const CONFIG_DEFAULTS: Record<ConfigKey, unknown> = {
   'visibility.alerts': {
     /** One alert per (code, subject) per window: avoids fatigue. */
     cooldownHours: 24,
-    escalation: { afterMinutes: 240, toRoles: ['MERCHANT_OWNER', 'MERCHANT_ADMIN', 'DEALDASH_OPERATIONS'] },
+    escalation: {
+      afterMinutes: 240,
+      toRoles: ['MERCHANT_OWNER', 'MERCHANT_ADMIN', 'DEALDASH_OPERATIONS'],
+    },
     thresholds: {
       budgetExhaustHours: 48,
       inventoryExhaustHours: 24,
@@ -675,49 +849,163 @@ export const CONFIG_DEFAULTS: Record<ConfigKey, unknown> = {
   partners: {
     typeProfiles: {
       BANK: {
-        modules: ['CAMPAIGNS', 'MERCHANT_NETWORK', 'OFFERS', 'ELIGIBILITY', 'CARD_PROGRAMS', 'LIVE_DEAL_BENEFITS', 'EXCLUSIVE', 'VOUCHER', 'WATCH_SPONSORSHIP', 'LOYALTY', 'PERFORMANCE', 'FINANCE', 'INTEGRATIONS', 'AI_COPILOT'],
-        eligibilityAttributes: ['CARD', 'CARD_PRODUCT', 'CARD_TIER', 'SCHEME', 'COUNTRY', 'GEOGRAPHY', 'SEGMENT', 'MEMBERSHIP', 'PRODUCT_OWNERSHIP'],
+        modules: [
+          'CAMPAIGNS',
+          'MERCHANT_NETWORK',
+          'OFFERS',
+          'ELIGIBILITY',
+          'CARD_PROGRAMS',
+          'LIVE_DEAL_BENEFITS',
+          'EXCLUSIVE',
+          'VOUCHER',
+          'WATCH_SPONSORSHIP',
+          'LOYALTY',
+          'PERFORMANCE',
+          'FINANCE',
+          'INTEGRATIONS',
+          'AI_COPILOT',
+        ],
+        eligibilityAttributes: [
+          'CARD',
+          'CARD_PRODUCT',
+          'CARD_TIER',
+          'SCHEME',
+          'COUNTRY',
+          'GEOGRAPHY',
+          'SEGMENT',
+          'MEMBERSHIP',
+          'PRODUCT_OWNERSHIP',
+        ],
         ingestionMethods: ['MANUAL', 'BULK', 'API'],
         contractKinds: ['BANK_ENTERPRISE'],
         reporting: 'AGGREGATE',
       },
       FINANCIAL_INSTITUTION: {
-        modules: ['CAMPAIGNS', 'MERCHANT_NETWORK', 'OFFERS', 'ELIGIBILITY', 'CARD_PROGRAMS', 'LIVE_DEAL_BENEFITS', 'EXCLUSIVE', 'VOUCHER', 'LOYALTY', 'PERFORMANCE', 'FINANCE', 'INTEGRATIONS', 'AI_COPILOT'],
-        eligibilityAttributes: ['CARD', 'CARD_PRODUCT', 'CARD_TIER', 'SCHEME', 'COUNTRY', 'GEOGRAPHY', 'SEGMENT', 'MEMBERSHIP', 'PRODUCT_OWNERSHIP'],
+        modules: [
+          'CAMPAIGNS',
+          'MERCHANT_NETWORK',
+          'OFFERS',
+          'ELIGIBILITY',
+          'CARD_PROGRAMS',
+          'LIVE_DEAL_BENEFITS',
+          'EXCLUSIVE',
+          'VOUCHER',
+          'LOYALTY',
+          'PERFORMANCE',
+          'FINANCE',
+          'INTEGRATIONS',
+          'AI_COPILOT',
+        ],
+        eligibilityAttributes: [
+          'CARD',
+          'CARD_PRODUCT',
+          'CARD_TIER',
+          'SCHEME',
+          'COUNTRY',
+          'GEOGRAPHY',
+          'SEGMENT',
+          'MEMBERSHIP',
+          'PRODUCT_OWNERSHIP',
+        ],
         ingestionMethods: ['MANUAL', 'BULK', 'API'],
         contractKinds: ['BANK_ENTERPRISE', 'CUSTOM_ENTERPRISE'],
         reporting: 'AGGREGATE',
       },
       SCHEME: {
-        modules: ['CAMPAIGNS', 'MERCHANT_NETWORK', 'OFFERS', 'ELIGIBILITY', 'CARD_PROGRAMS', 'LIVE_DEAL_BENEFITS', 'EXCLUSIVE', 'VOUCHER', 'LOYALTY', 'PERFORMANCE', 'FINANCE', 'INTEGRATIONS', 'AI_COPILOT'],
-        eligibilityAttributes: ['SCHEME', 'CARD_PRODUCT', 'CARD_TIER', 'COUNTRY', 'GEOGRAPHY', 'SEGMENT'],
+        modules: [
+          'CAMPAIGNS',
+          'MERCHANT_NETWORK',
+          'OFFERS',
+          'ELIGIBILITY',
+          'CARD_PROGRAMS',
+          'LIVE_DEAL_BENEFITS',
+          'EXCLUSIVE',
+          'VOUCHER',
+          'LOYALTY',
+          'PERFORMANCE',
+          'FINANCE',
+          'INTEGRATIONS',
+          'AI_COPILOT',
+        ],
+        eligibilityAttributes: [
+          'SCHEME',
+          'CARD_PRODUCT',
+          'CARD_TIER',
+          'COUNTRY',
+          'GEOGRAPHY',
+          'SEGMENT',
+        ],
         ingestionMethods: ['MANUAL', 'BULK', 'API'],
         contractKinds: ['SCHEME_NETWORK_LICENCE'],
         reporting: 'AGGREGATE',
       },
       EMPLOYER: {
-        modules: ['CAMPAIGNS', 'MERCHANT_NETWORK', 'ELIGIBILITY', 'EMPLOYER_PROGRAMS', 'LIVE_DEAL_BENEFITS', 'EXCLUSIVE', 'VOUCHER', 'LOYALTY', 'PERFORMANCE', 'FINANCE', 'AI_COPILOT'],
+        modules: [
+          'CAMPAIGNS',
+          'MERCHANT_NETWORK',
+          'ELIGIBILITY',
+          'EMPLOYER_PROGRAMS',
+          'LIVE_DEAL_BENEFITS',
+          'EXCLUSIVE',
+          'VOUCHER',
+          'LOYALTY',
+          'PERFORMANCE',
+          'FINANCE',
+          'AI_COPILOT',
+        ],
         eligibilityAttributes: ['EMPLOYER', 'COUNTRY', 'GEOGRAPHY', 'SEGMENT', 'MEMBERSHIP'],
         ingestionMethods: ['MANUAL', 'BULK'],
         contractKinds: ['CORPORATE_PARTNER'],
         reporting: 'AGGREGATE',
       },
       CORPORATE: {
-        modules: ['CAMPAIGNS', 'MERCHANT_NETWORK', 'ELIGIBILITY', 'EMPLOYER_PROGRAMS', 'LIVE_DEAL_BENEFITS', 'EXCLUSIVE', 'VOUCHER', 'LOYALTY', 'PERFORMANCE', 'FINANCE', 'AI_COPILOT'],
+        modules: [
+          'CAMPAIGNS',
+          'MERCHANT_NETWORK',
+          'ELIGIBILITY',
+          'EMPLOYER_PROGRAMS',
+          'LIVE_DEAL_BENEFITS',
+          'EXCLUSIVE',
+          'VOUCHER',
+          'LOYALTY',
+          'PERFORMANCE',
+          'FINANCE',
+          'AI_COPILOT',
+        ],
         eligibilityAttributes: ['EMPLOYER', 'COUNTRY', 'GEOGRAPHY', 'SEGMENT', 'MEMBERSHIP'],
         ingestionMethods: ['MANUAL', 'BULK'],
         contractKinds: ['CORPORATE_PARTNER'],
         reporting: 'AGGREGATE',
       },
       STRATEGIC_PARTNER: {
-        modules: ['CAMPAIGNS', 'MERCHANT_NETWORK', 'OFFERS', 'ELIGIBILITY', 'LIVE_DEAL_BENEFITS', 'EXCLUSIVE', 'VOUCHER', 'LOYALTY', 'PERFORMANCE', 'FINANCE', 'INTEGRATIONS', 'AI_COPILOT'],
+        modules: [
+          'CAMPAIGNS',
+          'MERCHANT_NETWORK',
+          'OFFERS',
+          'ELIGIBILITY',
+          'LIVE_DEAL_BENEFITS',
+          'EXCLUSIVE',
+          'VOUCHER',
+          'LOYALTY',
+          'PERFORMANCE',
+          'FINANCE',
+          'INTEGRATIONS',
+          'AI_COPILOT',
+        ],
         eligibilityAttributes: ['MEMBERSHIP', 'SEGMENT', 'COUNTRY', 'GEOGRAPHY'],
         ingestionMethods: ['MANUAL', 'BULK', 'API'],
         contractKinds: ['CUSTOM_ENTERPRISE'],
         reporting: 'AGGREGATE',
       },
       OTHER_APPROVED_PARTNER: {
-        modules: ['CAMPAIGNS', 'MERCHANT_NETWORK', 'ELIGIBILITY', 'LIVE_DEAL_BENEFITS', 'PERFORMANCE', 'FINANCE'],
+        modules: [
+          'CAMPAIGNS',
+          'MERCHANT_NETWORK',
+          'ELIGIBILITY',
+          'LIVE_DEAL_BENEFITS',
+          'PERFORMANCE',
+          'FINANCE',
+        ],
         eligibilityAttributes: ['MEMBERSHIP', 'COUNTRY', 'GEOGRAPHY'],
         ingestionMethods: ['MANUAL', 'BULK'],
         contractKinds: ['CUSTOM_ENTERPRISE'],
@@ -734,11 +1022,15 @@ export const CONFIG_DEFAULTS: Record<ConfigKey, unknown> = {
     lifetimeBalanceCap: null,
     negativeBalancePolicy: 'ALLOW_NEGATIVE',
     adjustmentCheckerThresholdPoints: 100,
+    // Stage 9 (B4): points taken back for a partial refund = earned × refunded ÷ order total, rounded by this policy
+    // (FLOOR | NEAREST | CEIL). FLOOR never takes back more than the refunded share; a full refund always takes back everything.
+    refundReversalRounding: 'FLOOR',
   },
   // ---- Stage 8: operations. Every value is configuration (Admin > Rules and controls), versioned and audited. Nothing here is a
   // market rule: refund rights, tax treatment, settlement cycles and retention come from the Market configuration and its
   // VALIDATE-<market> items.
   operations: DEFAULT_OPERATIONS_CONFIG,
+  'launch.controls': DEFAULT_LAUNCH_CONTROLS,
 };
 
 export const FEATURE_FLAGS = {

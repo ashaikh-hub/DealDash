@@ -14,3 +14,5 @@ tooling
 infra
 README.md
 apps/*/public/sw.js
+# local, git-ignored tools and outputs
+.tools

@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import type { PartnerCreatableProduct, PartnerModule } from '@dealdash/types';
-import { hotDealContentSchema, voucherContentSchema, watchContentSchema } from '@dealdash/validation';
+import {
+  hotDealContentSchema,
+  voucherContentSchema,
+  watchContentSchema,
+} from '@dealdash/validation';
 import { AppError } from '../common/errors';
 import type { Actor, RequestMeta } from '../common/request-context';
 import { PrismaService } from '../prisma/prisma.service';
@@ -439,7 +443,13 @@ export class PartnerCampaignsService {
       const i = parsed.error.issues[0]!;
       throw AppError.validation(`${i.path.join('.')}: ${i.message}`, i.path.join('.'));
     }
-    const { market } = await this.preflight(actor, organizationId, 'WATCH_SPONSORSHIP', b.merchantOrganizationId, parsed.data);
+    const { market } = await this.preflight(
+      actor,
+      organizationId,
+      'WATCH_SPONSORSHIP',
+      b.merchantOrganizationId,
+      parsed.data,
+    );
     await this.entitlements.requireProduct(organizationId, 'WATCH', { market });
     const as = this.as(actor, organizationId, b.merchantOrganizationId);
     const created = await this.watchEngine.create(as, b.merchantOrganizationId, parsed.data, meta);
@@ -519,16 +529,37 @@ export class PartnerCampaignsService {
     meta: RequestMeta,
   ) {
     const row = await this.ownWatch(organizationId, id);
-    await this.preflight(actor, organizationId, 'WATCH_SPONSORSHIP', row.organizationId, row.content);
+    await this.preflight(
+      actor,
+      organizationId,
+      'WATCH_SPONSORSHIP',
+      row.organizationId,
+      row.content,
+    );
     const as = this.as(actor, organizationId, row.organizationId);
-    await this.watchFunding.fund(as, row.organizationId, id, amountHalalas, { source: 'MOCK_PAYMENT', idempotencyKey, meta });
+    await this.watchFunding.fund(as, row.organizationId, id, amountHalalas, {
+      source: 'MOCK_PAYMENT',
+      idempotencyKey,
+      meta,
+    });
     return this.watchEngine.get(as, row.organizationId, id);
   }
 
   async submitWatch(actor: Actor, organizationId: string, id: string, meta: RequestMeta) {
     const row = await this.ownWatch(organizationId, id);
-    await this.preflight(actor, organizationId, 'WATCH_SPONSORSHIP', row.organizationId, row.content);
-    return this.watchEngine.submit(this.as(actor, organizationId, row.organizationId), row.organizationId, id, meta);
+    await this.preflight(
+      actor,
+      organizationId,
+      'WATCH_SPONSORSHIP',
+      row.organizationId,
+      row.content,
+    );
+    return this.watchEngine.submit(
+      this.as(actor, organizationId, row.organizationId),
+      row.organizationId,
+      id,
+      meta,
+    );
   }
 
   async requireWatchSponsorable(organizationId: string, campaignId: string) {

@@ -260,7 +260,13 @@ function DetailInner({ voucherId }: { voucherId: string }) {
         }}
       />
       {orgId ? (
-        <CommercialPanel orgId={orgId} product="VOUCHER" subjectId={voucher.id} content={{}} refreshKey={voucher.version} />
+        <CommercialPanel
+          orgId={orgId}
+          product="VOUCHER"
+          subjectId={voucher.id}
+          content={{}}
+          refreshKey={voucher.version}
+        />
       ) : null}
     </div>
   );

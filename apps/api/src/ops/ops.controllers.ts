@@ -1,4 +1,15 @@
-import { Body, Controller, Get, Header, HttpCode, Param, ParseUUIDPipe, Post, Put, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Header,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
@@ -6,7 +17,6 @@ import { CONFIG_KEYS, operationsConfigSchema } from '@dealdash/config';
 import {
   ADJUSTMENT_DIRECTIONS,
   ADJUSTMENT_KINDS,
-  CASE_OPEN_STATUSES,
   DATA_REQUEST_TYPES,
   MODERATION_DECISIONS,
   ORDER_REFUND_REASONS,
@@ -14,10 +24,19 @@ import {
   REPORT_REASONS,
   RESTRICTION_KINDS,
 } from '@dealdash/types';
-import { Audiences, CurrentActor, Idempotent, Meta, OptionalActor, Public, RequirePermissions } from '../common/decorators';
+import {
+  Audiences,
+  CurrentActor,
+  Idempotent,
+  Meta,
+  OptionalActor,
+  Public,
+  RequirePermissions,
+} from '../common/decorators';
 import { AppError } from '../common/errors';
 import type { Actor, RequestMeta } from '../common/request-context';
 import { NotificationsService } from '../hot-deals/notifications.service';
+import { DisputeService } from '../operations/dispute.service';
 import { TenantService } from '../identity/tenant.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SystemConfigService } from '../system-config/system-config.service';
@@ -66,22 +85,50 @@ const adjustmentSchema = z.object({
 });
 const decisionSchema = z.object({ decision: z.enum(['APPROVE', 'REJECT']), reason });
 const reasonOnly = z.object({ reason });
-const runSchema = z.object({ market: z.string().trim().length(2), organizationId: uuid.nullable().optional(), currency: z.string().trim().length(3).optional(), periodTo: z.string().datetime({ offset: true }).nullable().optional() });
-const payoutSchema = z.object({ amountMinor: z.number().int().positive().max(1_000_000_000).nullable().optional(), externalRef: z.string().trim().min(3).max(100), idempotencyKey: z.string().trim().min(8).max(100).nullable().optional() });
+const runSchema = z.object({
+  market: z.string().trim().length(2),
+  organizationId: uuid.nullable().optional(),
+  currency: z.string().trim().length(3).optional(),
+  periodTo: z.string().datetime({ offset: true }).nullable().optional(),
+});
+const payoutSchema = z.object({
+  amountMinor: z.number().int().positive().max(1_000_000_000).nullable().optional(),
+  externalRef: z.string().trim().min(3).max(100),
+  idempotencyKey: z.string().trim().min(8).max(100).nullable().optional(),
+});
 const statementSchema = z.object({
   source: z.enum(RECON_SOURCES),
   currency: z.string().trim().length(3).optional(),
   fileName: z.string().trim().max(160).nullable().optional(),
   periodFrom: z.string().datetime({ offset: true }).nullable().optional(),
   periodTo: z.string().datetime({ offset: true }).nullable().optional(),
-  lines: z.array(z.object({ reference: z.string().trim().min(1).max(120), amountMinor: z.number().int(), currency: z.string().trim().length(3).optional(), occurredAt: z.string().datetime({ offset: true }) })).max(5000),
+  lines: z
+    .array(
+      z.object({
+        reference: z.string().trim().min(1).max(120),
+        amountMinor: z.number().int(),
+        currency: z.string().trim().length(3).optional(),
+        occurredAt: z.string().datetime({ offset: true }),
+      }),
+    )
+    .max(5000),
 });
 const assignSchema = z.object({ ownerUserId: uuid });
-const resolveSchema = z.object({ resolution: reason, adjustmentRequestId: uuid.nullable().optional() });
+const resolveSchema = z.object({
+  resolution: reason,
+  adjustmentRequestId: uuid.nullable().optional(),
+});
 const riskDecideSchema = z.object({
   outcome: z.enum(['CLEAR', 'CONFIRM']),
   reason,
-  restriction: z.object({ kind: z.enum(RESTRICTION_KINDS), days: z.number().int().min(1).max(365).optional(), reasonCode: z.string().trim().min(2).max(60) }).nullable().optional(),
+  restriction: z
+    .object({
+      kind: z.enum(RESTRICTION_KINDS),
+      days: z.number().int().min(1).max(365).optional(),
+      reasonCode: z.string().trim().min(2).max(60),
+    })
+    .nullable()
+    .optional(),
 });
 const restrictionSchema = z.object({
   kind: z.enum(RESTRICTION_KINDS),
@@ -94,15 +141,54 @@ const restrictionSchema = z.object({
   caseId: uuid.nullable().optional(),
   riskFlagId: uuid.nullable().optional(),
 });
-const moderationSchema = z.object({ decision: z.enum(MODERATION_DECISIONS), reasonCode: z.string().trim().min(2).max(60), reason });
-const escalateSchema = z.object({ priority: z.enum(['LOW', 'NORMAL', 'HIGH', 'CRITICAL']).optional(), targetOrganizationId: uuid.nullable().optional() });
-const orderRefundSchema = z.object({ orderId: uuid, paymentId: uuid, reason: z.enum(ORDER_REFUND_REASONS), note: reason, caseId: uuid.nullable().optional() });
+const moderationSchema = z.object({
+  decision: z.enum(MODERATION_DECISIONS),
+  reasonCode: z.string().trim().min(2).max(60),
+  reason,
+});
+const escalateSchema = z.object({
+  priority: z.enum(['LOW', 'NORMAL', 'HIGH', 'CRITICAL']).optional(),
+  targetOrganizationId: uuid.nullable().optional(),
+});
+const orderRefundSchema = z.object({
+  orderId: uuid,
+  paymentId: uuid,
+  reason: z.enum(ORDER_REFUND_REASONS),
+  note: reason,
+  caseId: uuid.nullable().optional(),
+});
 const linkCaseSchema = z.object({ caseId: uuid });
-const dataRequestSchema = z.object({ customerUserId: uuid, type: z.enum(DATA_REQUEST_TYPES), reason: z.string().trim().max(1000).nullable().optional() });
-const reviewSchema = z.object({ rating: z.number().int().min(1).max(5), text: z.string().trim().min(1).max(2000), locale: z.enum(['en', 'ar']).optional(), subjectType: z.enum(['MERCHANT', 'LIVE_DEAL', 'EXCLUSIVE', 'VOUCHER']).optional(), subjectId: uuid.nullable().optional() });
-const reportSchema = z.object({ reason: z.enum(REPORT_REASONS), note: z.string().trim().max(500).nullable().optional() });
-const contentReportSchema = z.object({ subjectType: z.enum(['MERCHANT_PROFILE', 'CAMPAIGN', 'MEDIA']), subjectId: uuid, product: z.enum(['LIVE_DEAL', 'EXCLUSIVE', 'VOUCHER', 'WATCH']).nullable().optional(), reason: z.enum(REPORT_REASONS), note: z.string().trim().max(500).nullable().optional() });
-const myDataRequestSchema = z.object({ type: z.enum(DATA_REQUEST_TYPES), reason: z.string().trim().max(1000).nullable().optional() });
+const dataRequestSchema = z.object({
+  customerUserId: uuid,
+  type: z.enum(DATA_REQUEST_TYPES),
+  reason: z.string().trim().max(1000).nullable().optional(),
+});
+const reviewSchema = z.object({
+  rating: z.number().int().min(1).max(5),
+  text: z.string().trim().min(1).max(2000),
+  locale: z.enum(['en', 'ar']).optional(),
+  subjectType: z.enum(['MERCHANT', 'LIVE_DEAL', 'EXCLUSIVE', 'VOUCHER']).optional(),
+  subjectId: uuid.nullable().optional(),
+});
+const reportSchema = z.object({
+  reason: z.enum(REPORT_REASONS),
+  note: z.string().trim().max(500).nullable().optional(),
+});
+const contentReportSchema = z.object({
+  subjectType: z.enum(['MERCHANT_PROFILE', 'CAMPAIGN', 'MEDIA']),
+  subjectId: uuid,
+  product: z.enum(['LIVE_DEAL', 'EXCLUSIVE', 'VOUCHER', 'WATCH']).nullable().optional(),
+  reason: z.enum(REPORT_REASONS),
+  note: z.string().trim().max(500).nullable().optional(),
+});
+const myDataRequestSchema = z.object({
+  type: z.enum(DATA_REQUEST_TYPES),
+  reason: z.string().trim().max(1000).nullable().optional(),
+});
+const caseReplySchema = z.object({
+  body: z.string().trim().min(2).max(2000),
+  evidenceRef: z.string().trim().max(120).nullable().optional(),
+});
 
 class DrillDto extends createZodDto(drillSchema) {}
 class ConfigDto extends createZodDto(configSchema) {}
@@ -125,6 +211,7 @@ class ReviewDto extends createZodDto(reviewSchema) {}
 class ReportDto extends createZodDto(reportSchema) {}
 class ContentReportDto extends createZodDto(contentReportSchema) {}
 class MyDataRequestDto extends createZodDto(myDataRequestSchema) {}
+class CaseReplyDto extends createZodDto(caseReplySchema) {}
 
 const POINTS = ['POINTS_ADJUSTMENT', 'REWARD_REVERSAL'];
 const any = (actor: Actor, ...codes: string[]) => {
@@ -190,8 +277,14 @@ export class AdminOpsController {
   @Get('config')
   @RequirePermissions('admin.config.read')
   async getConfig() {
-    const row = await this.prisma.systemConfiguration.findUnique({ where: { key: CONFIG_KEYS.OPERATIONS } });
-    return { value: await opsConfig(this.config), version: row?.version ?? 0, updatedAt: row?.updatedAt.toISOString() ?? null };
+    const row = await this.prisma.systemConfiguration.findUnique({
+      where: { key: CONFIG_KEYS.OPERATIONS },
+    });
+    return {
+      value: await opsConfig(this.config),
+      version: row?.version ?? 0,
+      updatedAt: row?.updatedAt.toISOString() ?? null,
+    };
   }
 
   @Put('config')
@@ -216,14 +309,29 @@ export class AdminOpsController {
   @Get('config/history')
   @RequirePermissions('admin.config.read')
   async configHistory() {
-    const rows = await this.prisma.auditLog.findMany({ where: { entityType: 'SystemConfiguration', entityId: CONFIG_KEYS.OPERATIONS }, orderBy: { occurredAt: 'desc' }, take: 50 });
-    return rows.map((r) => ({ at: r.occurredAt.toISOString(), actorUserId: r.actorUserId, actorRole: r.actorRole, reason: r.reason, version: (r.newState as { version?: number } | null)?.version ?? null }));
+    const rows = await this.prisma.auditLog.findMany({
+      where: { entityType: 'SystemConfiguration', entityId: CONFIG_KEYS.OPERATIONS },
+      orderBy: { occurredAt: 'desc' },
+      take: 50,
+    });
+    return rows.map((r) => ({
+      at: r.occurredAt.toISOString(),
+      actorUserId: r.actorUserId,
+      actorRole: r.actorRole,
+      reason: r.reason,
+      version: (r.newState as { version?: number } | null)?.version ?? null,
+    }));
   }
 
   // ---------------------------------------------------------------- financial adjustments
   @Get('adjustments')
   @RequirePermissions('admin.finance.read')
-  listAdjustments(@CurrentActor() actor: Actor, @Query('status') status?: string, @Query('kind') kind?: string, @Query('caseId') caseId?: string) {
+  listAdjustments(
+    @CurrentActor() actor: Actor,
+    @Query('status') status?: string,
+    @Query('kind') kind?: string,
+    @Query('caseId') caseId?: string,
+  ) {
     return this.adjustments.list({ status, kind, caseId }, actor);
   }
 
@@ -235,8 +343,13 @@ export class AdminOpsController {
 
   @Post('adjustments')
   @Idempotent()
-  requestAdjustment(@Body() b: AdjustmentDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
-    if (POINTS.includes(b.kind)) any(actor, 'admin.finance.manage', 'admin.rewards.request', 'admin.rewards.manage');
+  requestAdjustment(
+    @Body() b: AdjustmentDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
+    if (POINTS.includes(b.kind))
+      any(actor, 'admin.finance.manage', 'admin.rewards.request', 'admin.rewards.manage');
     else any(actor, 'admin.finance.manage', 'admin.settlements.manage');
     return this.adjustments.request(actor, b, meta);
   }
@@ -244,22 +357,41 @@ export class AdminOpsController {
   @Post('adjustments/:id/decide')
   @Idempotent()
   @HttpCode(200)
-  decideAdjustment(@Param('id', ParseUUIDPipe) id: string, @Body() b: DecisionDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  decideAdjustment(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: DecisionDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.adjustments.decide(actor, id, b.decision === 'APPROVE', b.reason, meta);
   }
 
   @Post('adjustments/:id/retry')
   @Idempotent()
   @HttpCode(200)
-  retryAdjustment(@Param('id', ParseUUIDPipe) id: string, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  retryAdjustment(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.adjustments.retry(actor, id, meta);
   }
 
   // ---------------------------------------------------------------- settlement
   @Get('settlements')
   @RequirePermissions('admin.finance.read')
-  listSettlements(@Query('status') status?: string, @Query('organizationId') organizationId?: string, @Query('market') market?: string, @Query('exceptions') exceptions?: string) {
-    return this.settlements.list({ status, organizationId, market, exceptions: exceptions === 'true' });
+  listSettlements(
+    @Query('status') status?: string,
+    @Query('organizationId') organizationId?: string,
+    @Query('market') market?: string,
+    @Query('exceptions') exceptions?: string,
+  ) {
+    return this.settlements.list({
+      status,
+      organizationId,
+      market,
+      exceptions: exceptions === 'true',
+    });
   }
 
   @Get('settlements/:id')
@@ -280,7 +412,12 @@ export class AdminOpsController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.settlements.manage')
-  hold(@Param('id', ParseUUIDPipe) id: string, @Body() b: ReasonDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  hold(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: ReasonDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.settlements.hold(actor, id, b.reason, meta);
   }
 
@@ -288,7 +425,12 @@ export class AdminOpsController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.settlements.manage')
-  release(@Param('id', ParseUUIDPipe) id: string, @Body() b: ReasonDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  release(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: ReasonDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.settlements.release(actor, id, b.reason, meta);
   }
 
@@ -296,7 +438,12 @@ export class AdminOpsController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.settlements.manage')
-  payout(@Param('id', ParseUUIDPipe) id: string, @Body() b: PayoutDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  payout(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: PayoutDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.settlements.payout(actor, id, b, meta);
   }
 
@@ -304,7 +451,12 @@ export class AdminOpsController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.settlements.manage')
-  fail(@Param('id', ParseUUIDPipe) id: string, @Body() b: ReasonDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  fail(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: ReasonDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.settlements.fail(actor, id, b.reason, meta);
   }
 
@@ -312,14 +464,24 @@ export class AdminOpsController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.settlements.manage')
-  reverse(@Param('id', ParseUUIDPipe) id: string, @Body() b: ReasonDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  reverse(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: ReasonDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.settlements.reverse(actor, id, b.reason, meta);
   }
 
   // ---------------------------------------------------------------- reconciliation exceptions
   @Get('reconciliation/items')
   @RequirePermissions('admin.finance.read')
-  reconItems(@Query('status') status?: string, @Query('source') source?: string, @Query('exceptions') exceptions?: string, @Query('runId') runId?: string) {
+  reconItems(
+    @Query('status') status?: string,
+    @Query('source') source?: string,
+    @Query('exceptions') exceptions?: string,
+    @Query('runId') runId?: string,
+  ) {
     return this.recon.list({ status, source, exceptions: exceptions === 'true', runId });
   }
 
@@ -332,7 +494,11 @@ export class AdminOpsController {
   @Post('reconciliation/statements')
   @Idempotent()
   @RequirePermissions('admin.reconciliation.manage')
-  importStatement(@Body() b: StatementDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  importStatement(
+    @Body() b: StatementDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.recon.importStatement(actor, b, meta);
   }
 
@@ -348,7 +514,12 @@ export class AdminOpsController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.reconciliation.manage')
-  reconAssign(@Param('id', ParseUUIDPipe) id: string, @Body() b: AssignDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  reconAssign(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: AssignDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.recon.assign(actor, id, b.ownerUserId, meta);
   }
 
@@ -356,7 +527,12 @@ export class AdminOpsController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.reconciliation.manage')
-  reconReview(@Param('id', ParseUUIDPipe) id: string, @Body() b: ReasonDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  reconReview(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: ReasonDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.recon.review(actor, id, b.reason, meta);
   }
 
@@ -364,7 +540,12 @@ export class AdminOpsController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.reconciliation.manage')
-  reconResolve(@Param('id', ParseUUIDPipe) id: string, @Body() b: ResolveDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  reconResolve(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: ResolveDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.recon.resolve(actor, id, b, meta);
   }
 
@@ -372,7 +553,11 @@ export class AdminOpsController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.reconciliation.manage')
-  reconCase(@Param('id', ParseUUIDPipe) id: string, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  reconCase(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.recon.openCase(actor, id, meta);
   }
 
@@ -400,7 +585,12 @@ export class AdminOpsController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.risk.manage')
-  riskDecide(@Param('id', ParseUUIDPipe) id: string, @Body() b: RiskDecideDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  riskDecide(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: RiskDecideDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     if (b.restriction) any(actor, 'admin.restrictions.manage');
     return this.risk.decide(actor, id, b, meta);
   }
@@ -409,13 +599,22 @@ export class AdminOpsController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.risk.manage')
-  riskCase(@Param('id', ParseUUIDPipe) id: string, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  riskCase(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.risk.openCase(actor, id, meta);
   }
 
   // ---------------------------------------------------------------- restrictions and holds
   @Get('restrictions')
-  listRestrictions(@CurrentActor() actor: Actor, @Query('status') status?: string, @Query('kind') kind?: string, @Query('subjectId') subjectId?: string) {
+  listRestrictions(
+    @CurrentActor() actor: Actor,
+    @Query('status') status?: string,
+    @Query('kind') kind?: string,
+    @Query('subjectId') subjectId?: string,
+  ) {
     any(actor, 'admin.restrictions.manage', 'admin.restrictions.approve');
     return this.restrictions.list({ status, kind, subjectId }, actor);
   }
@@ -423,7 +622,11 @@ export class AdminOpsController {
   @Post('restrictions')
   @Idempotent()
   @RequirePermissions('admin.restrictions.manage')
-  requestRestriction(@Body() b: RestrictionDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  requestRestriction(
+    @Body() b: RestrictionDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.restrictions.request(actor, b, meta);
   }
 
@@ -431,7 +634,12 @@ export class AdminOpsController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.restrictions.approve')
-  decideRestriction(@Param('id', ParseUUIDPipe) id: string, @Body() b: DecisionDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  decideRestriction(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: DecisionDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.restrictions.decide(actor, id, b.decision === 'APPROVE', b.reason, meta);
   }
 
@@ -439,7 +647,12 @@ export class AdminOpsController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.restrictions.manage')
-  liftRestriction(@Param('id', ParseUUIDPipe) id: string, @Body() b: ReasonDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  liftRestriction(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: ReasonDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.restrictions.lift(actor, id, b.reason, meta);
   }
 
@@ -454,7 +667,12 @@ export class AdminOpsController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.content.manage')
-  moderate(@Param('id', ParseUUIDPipe) id: string, @Body() b: ModerationDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  moderate(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: ModerationDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.reviews.decide(actor, id, b, meta);
   }
 
@@ -462,7 +680,12 @@ export class AdminOpsController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.content.manage')
-  removeReview(@Param('id', ParseUUIDPipe) id: string, @Body() b: ReasonDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  removeReview(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: ReasonDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.reviews.removeReview(actor, id, b.reason, meta);
   }
 
@@ -470,11 +693,37 @@ export class AdminOpsController {
   @Get('notifications')
   @RequirePermissions('admin.notifications.manage')
   async deliveries(@Query('status') status?: string, @Query('channel') channel?: string) {
-    const rows = await this.prisma.notificationDelivery.findMany({ where: { ...(status ? { status } : {}), ...(channel ? { channel } : {}) }, orderBy: { createdAt: 'desc' }, take: 200 });
-    const counts = await this.prisma.notificationDelivery.groupBy({ by: ['status'], _count: { _all: true } });
+    const rows = await this.prisma.notificationDelivery.findMany({
+      where: { ...(status ? { status } : {}), ...(channel ? { channel } : {}) },
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+    });
+    const counts = await this.prisma.notificationDelivery.groupBy({
+      by: ['status'],
+      _count: { _all: true },
+    });
     return {
       counts: Object.fromEntries(counts.map((c) => [c.status, c._count._all])),
-      items: rows.map((d) => ({ id: d.id, notificationId: d.notificationId, userId: d.userId, channel: d.channel, provider: d.provider, templateCode: d.templateCode, templateVersion: d.templateVersion, market: d.market, locale: d.locale, status: d.status, attempts: d.attempts, maxAttempts: d.maxAttempts, failureReason: d.failureReason, suppressedReason: d.suppressedReason, consentChecked: d.consentChecked, nextRetryAt: d.nextRetryAt?.toISOString() ?? null, lastAttemptAt: d.lastAttemptAt?.toISOString() ?? null, createdAt: d.createdAt.toISOString() })),
+      items: rows.map((d) => ({
+        id: d.id,
+        notificationId: d.notificationId,
+        userId: d.userId,
+        channel: d.channel,
+        provider: d.provider,
+        templateCode: d.templateCode,
+        templateVersion: d.templateVersion,
+        market: d.market,
+        locale: d.locale,
+        status: d.status,
+        attempts: d.attempts,
+        maxAttempts: d.maxAttempts,
+        failureReason: d.failureReason,
+        suppressedReason: d.suppressedReason,
+        consentChecked: d.consentChecked,
+        nextRetryAt: d.nextRetryAt?.toISOString() ?? null,
+        lastAttemptAt: d.lastAttemptAt?.toISOString() ?? null,
+        createdAt: d.createdAt.toISOString(),
+      })),
     };
   }
 
@@ -491,7 +740,10 @@ export class AdminOpsController {
   @HttpCode(200)
   @RequirePermissions('admin.notifications.manage')
   async sweepDeliveries() {
-    return { tracked: await this.notifications.sweepUntracked(), retried: await this.notifications.retryDue() };
+    return {
+      tracked: await this.notifications.sweepUntracked(),
+      retried: await this.notifications.retryDue(),
+    };
   }
 
   // ---------------------------------------------------------------- customer support and refunds
@@ -511,7 +763,12 @@ export class AdminOpsController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.disputes.manage')
-  escalate(@Param('id', ParseUUIDPipe) id: string, @Body() b: EscalateDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  escalate(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: EscalateDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.support.escalate(actor, id, b, meta);
   }
 
@@ -522,7 +779,11 @@ export class AdminOpsController {
   }
 
   @Get('refunds/eligibility')
-  refundEligibility(@CurrentActor() actor: Actor, @Query('instanceId') instanceId?: string, @Query('orderId') orderId?: string) {
+  refundEligibility(
+    @CurrentActor() actor: Actor,
+    @Query('instanceId') instanceId?: string,
+    @Query('orderId') orderId?: string,
+  ) {
     any(actor, 'admin.refunds.manage', 'admin.vouchers.lookup');
     return this.support.eligibility({ instanceId, orderId });
   }
@@ -538,13 +799,22 @@ export class AdminOpsController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.refunds.manage')
-  linkRefund(@Param('id', ParseUUIDPipe) id: string, @Body() b: LinkCaseDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  linkRefund(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: LinkCaseDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.support.linkRefund(actor, id, b.caseId, meta);
   }
 
   // ---------------------------------------------------------------- privacy data requests
   @Get('data-requests')
-  dataRequestList(@CurrentActor() actor: Actor, @Query('status') status?: string, @Query('customerUserId') customerUserId?: string) {
+  dataRequestList(
+    @CurrentActor() actor: Actor,
+    @Query('status') status?: string,
+    @Query('customerUserId') customerUserId?: string,
+  ) {
     any(actor, 'admin.privacy.manage', 'admin.privacy.approve');
     return this.dataRequests.list({ status, customerUserId });
   }
@@ -552,7 +822,11 @@ export class AdminOpsController {
   @Post('data-requests')
   @Idempotent()
   @RequirePermissions('admin.privacy.manage')
-  createDataRequest(@Body() b: DataRequestDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  createDataRequest(
+    @Body() b: DataRequestDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.dataRequests.create(actor, b, 'SUPPORT', meta);
   }
 
@@ -560,7 +834,12 @@ export class AdminOpsController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.privacy.approve')
-  decideDataRequest(@Param('id', ParseUUIDPipe) id: string, @Body() b: DecisionDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  decideDataRequest(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: DecisionDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.dataRequests.decide(actor, id, b.decision === 'APPROVE', b.reason, meta);
   }
 }
@@ -585,7 +864,11 @@ export class MerchantOpsController {
 
   @Get('settlements/:id')
   @RequirePermissions('merchant.finance.read')
-  get(@Param('orgId', ParseUUIDPipe) orgId: string, @Param('id', ParseUUIDPipe) id: string, @CurrentActor() actor: Actor) {
+  get(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentActor() actor: Actor,
+  ) {
     this.tenant.requireOwnOrganization(actor, orgId, 'MERCHANT');
     return this.settlements.get(id, orgId);
   }
@@ -601,7 +884,13 @@ export class MerchantOpsController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('merchant.insights.read')
-  report(@Param('orgId', ParseUUIDPipe) orgId: string, @Param('id', ParseUUIDPipe) id: string, @Body() b: ReportDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  report(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: ReportDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     this.tenant.requireOwnOrganization(actor, orgId, 'MERCHANT');
     return this.reviews.report(actor, id, b, { type: 'MERCHANT', organizationId: orgId }, meta);
   }
@@ -615,7 +904,7 @@ export class CustomerOpsController {
   constructor(
     private readonly reviews: ReviewsService,
     private readonly dataRequests: DataRequestsService,
-    private readonly prisma: PrismaService,
+    private readonly disputes: DisputeService,
   ) {}
 
   @Get('merchants/:orgId/reviews')
@@ -627,7 +916,12 @@ export class CustomerOpsController {
   @Post('merchants/:orgId/reviews')
   @Idempotent()
   @RequirePermissions('customer.reviews.manage')
-  write(@Param('orgId', ParseUUIDPipe) orgId: string, @Body() b: ReviewDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  write(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Body() b: ReviewDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.reviews.create(actor, orgId, b, meta);
   }
 
@@ -635,7 +929,12 @@ export class CustomerOpsController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('customer.reviews.manage')
-  report(@Param('id', ParseUUIDPipe) id: string, @Body() b: ReportDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  report(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: ReportDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.reviews.report(actor, id, b, { type: 'CUSTOMER' }, meta);
   }
 
@@ -643,16 +942,39 @@ export class CustomerOpsController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('customer.reviews.manage')
-  reportContent(@Body() b: ContentReportDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  reportContent(
+    @Body() b: ContentReportDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.reviews.reportContent(actor, b, meta);
   }
 
-  /** The customer's own cases: status, resolution and the notes DealDash shared (never internal notes or routing). */
+  /** The customer's own cases: status, resolution, what DealDash shared and their own messages (never internal notes or routing). */
   @Get('me/cases')
   @RequirePermissions('customer.profile.read')
-  async myCases(@CurrentActor() actor: Actor) {
-    const rows = await this.prisma.disputeCase.findMany({ where: { customerUserId: actor.userId, type: { not: 'FRAUD_REVIEW' } }, include: { notes: { where: { visibility: 'SHARED' }, orderBy: { createdAt: 'asc' } } }, orderBy: { createdAt: 'desc' }, take: 50 });
-    return rows.map((c) => ({ id: c.id, reference: c.reference, title: c.title, status: c.status, open: (CASE_OPEN_STATUSES as readonly string[]).includes(c.status), resolution: c.resolution, createdAt: c.createdAt.toISOString(), resolvedAt: c.resolvedAt?.toISOString() ?? null, notes: c.notes.filter((n) => n.authorOrganizationId === null).map((n) => ({ body: n.body, createdAt: n.createdAt.toISOString() })) }));
+  myCases(@CurrentActor() actor: Actor) {
+    return this.disputes.customerCases(actor.userId);
+  }
+
+  /** Stage 9 (B6): one of the customer's cases (another customer's case is not found). */
+  @Get('me/cases/:id')
+  @RequirePermissions('customer.profile.read')
+  myCase(@Param('id', ParseUUIDPipe) id: string, @CurrentActor() actor: Actor) {
+    return this.disputes.customerCase(actor.userId, id);
+  }
+
+  /** Stage 9 (B6): the customer replies in the app (optionally pointing to evidence such as an order or receipt reference). */
+  @Post('me/cases/:id/replies')
+  @Idempotent()
+  @RequirePermissions('customer.profile.write')
+  reply(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: CaseReplyDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
+    return this.disputes.customerReply(actor, id, b, meta);
   }
 
   @Get('me/data-requests')
@@ -664,7 +986,16 @@ export class CustomerOpsController {
   @Post('me/data-requests')
   @Idempotent()
   @RequirePermissions('customer.profile.write')
-  requestData(@Body() b: MyDataRequestDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
-    return this.dataRequests.create(actor, { customerUserId: actor.userId, type: b.type, reason: b.reason ?? null }, 'CUSTOMER', meta);
+  requestData(
+    @Body() b: MyDataRequestDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
+    return this.dataRequests.create(
+      actor,
+      { customerUserId: actor.userId, type: b.type, reason: b.reason ?? null },
+      'CUSTOMER',
+      meta,
+    );
   }
 }

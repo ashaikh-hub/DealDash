@@ -49,7 +49,7 @@ export function ShellHome() {
 
   return (
     <div className="dd-stack">
-      {status !== 'authenticated' || needsMfa ? <LoginPanel /> : null}
+      {status !== 'authenticated' || needsMfa ? <LoginPanel heading="h1" /> : null}
 
       {status === 'authenticated' && me && !needsMfa ? (
         <Card>

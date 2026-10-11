@@ -264,7 +264,9 @@ function PartnerBenefits({ dealId, city }: { dealId: string; city: string }) {
   const [rows, setRows] = useState<PartnerBenefit[]>([]);
   useEffect(() => {
     let alive = true;
-    void call<PartnerBenefit[]>('GET', `/v1/app/live-deals/${dealId}/partner-benefits`, { query: { city } }).then((r) => {
+    void call<PartnerBenefit[]>('GET', `/v1/app/live-deals/${dealId}/partner-benefits`, {
+      query: { city },
+    }).then((r) => {
       if (alive) setRows(r.ok && Array.isArray(r.data) ? r.data : []);
     });
     return () => {
@@ -278,9 +280,14 @@ function PartnerBenefits({ dealId, city }: { dealId: string; city: string }) {
       <ul className="dd-list" style={{ margin: 0, paddingInlineStart: 18 }}>
         {rows.map((b) => (
           <li key={b.reference} data-testid={`deal-partner-benefit-${b.result}`}>
-            <strong>{locale === 'ar' ? b.labelAr : b.labelEn}</strong> · {locale === 'ar' ? b.partnerNameAr : b.partnerNameEn}
-            <div className="dd-muted">{b.result === 'ELIGIBLE' ? t('pt.ben.youQualify') : t('pt.ben.unlock')}</div>
-            {(locale === 'ar' ? b.termsAr : b.termsEn) ? <div className="dd-muted">{locale === 'ar' ? b.termsAr : b.termsEn}</div> : null}
+            <strong>{locale === 'ar' ? b.labelAr : b.labelEn}</strong> ·{' '}
+            {locale === 'ar' ? b.partnerNameAr : b.partnerNameEn}
+            <div className="dd-muted">
+              {b.result === 'ELIGIBLE' ? t('pt.ben.youQualify') : t('pt.ben.unlock')}
+            </div>
+            {(locale === 'ar' ? b.termsAr : b.termsEn) ? (
+              <div className="dd-muted">{locale === 'ar' ? b.termsAr : b.termsEn}</div>
+            ) : null}
           </li>
         ))}
       </ul>
@@ -405,7 +412,11 @@ export function MerchantPageView({ id }: { id: string }) {
             className="dd-dd__tab"
             onClick={() => setTab(k)}
           >
-            {k === 'offers' ? t('merch.offers', { n: page.deals.length }) : k === 'info' ? t('merch.info') : t('s8.rev.title')}
+            {k === 'offers'
+              ? t('merch.offers', { n: page.deals.length })
+              : k === 'info'
+                ? t('merch.info')
+                : t('s8.rev.title')}
           </button>
         ))}
       </div>

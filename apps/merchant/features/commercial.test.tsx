@@ -53,11 +53,19 @@ function stub(routes: Record<string, R | ((c: Call) => R)>, perms = PERMS) {
   vi.stubGlobal(
     'fetch',
     vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
-      const call: Call = { url, method: init?.method ?? 'GET', body: init?.body as string | undefined };
+      const url =
+        typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+      const call: Call = {
+        url,
+        method: init?.method ?? 'GET',
+        body: init?.body as string | undefined,
+      };
       calls.push(call);
       const json = (status: number, body: unknown) =>
-        new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
+        new Response(JSON.stringify(body), {
+          status,
+          headers: { 'content-type': 'application/json' },
+        });
       if (url.includes('/v1/auth/me')) return json(200, { data: me(perms), meta: {} });
       for (const key of Object.keys(routes).sort((a, b) => b.length - a.length))
         if (url.includes(key)) {
@@ -110,8 +118,14 @@ const line = (kind: string, code: string, amount: number, over: Record<string, u
 const preview = (over: Record<string, unknown> = {}) => ({
   lines: [
     line('DEALDASH_CHARGE', 'Redemption fee', 500),
-    line('SPONSOR_FUNDING', 'Sponsor funding', 1000, { partyOrganizationId: SPONSOR, partyRole: 'SPONSOR' }),
-    line('MERCHANT_BENEFIT', 'Merchant benefit', 9000, { collection: null, trigger: 'VERIFIED_REDEMPTION' }),
+    line('SPONSOR_FUNDING', 'Sponsor funding', 1000, {
+      partyOrganizationId: SPONSOR,
+      partyRole: 'SPONSOR',
+    }),
+    line('MERCHANT_BENEFIT', 'Merchant benefit', 9000, {
+      collection: null,
+      trigger: 'VERIFIED_REDEMPTION',
+    }),
   ],
   totals: totals(),
   pricing: { source: 'DEFAULT', reference: null, versionKey: 'D:1', unusedTreatment: null },
@@ -121,7 +135,11 @@ const preview = (over: Record<string, unknown> = {}) => ({
       organizationId: ORG,
       requiredChecks: ['REVIEWED_TERMS', 'UNDERSTAND_CHARGES', 'CONFIRM_FUNDING', 'ACCEPT_TERMS'],
     },
-    { role: 'SPONSOR', organizationId: SPONSOR, requiredChecks: ['REVIEWED_TERMS', 'CONFIRM_FUNDING', 'ACCEPT_TERMS'] },
+    {
+      role: 'SPONSOR',
+      organizationId: SPONSOR,
+      requiredChecks: ['REVIEWED_TERMS', 'CONFIRM_FUNDING', 'ACCEPT_TERMS'],
+    },
   ],
   fundingRequirements: [],
   workflow: [],
@@ -137,7 +155,14 @@ const caseView = (over: Record<string, unknown> = {}) => ({
   fulfilmentOrganizationId: ORG,
   developmentFixture: false,
   unusedTreatment: null,
-  quotation: { id: QUOTE, reference: 'QT-000001', version: 1, status: 'PENDING_ACCEPTANCE', createdAt: new Date().toISOString(), delta: null },
+  quotation: {
+    id: QUOTE,
+    reference: 'QT-000001',
+    version: 1,
+    status: 'PENDING_ACCEPTANCE',
+    createdAt: new Date().toISOString(),
+    delta: null,
+  },
   preview: preview(),
   acceptances: [],
   approvals: [],
@@ -194,7 +219,16 @@ describe('CommercialPanel', () => {
             ? caseView({
                 status: 'AWAITING_FUNDING',
                 acceptances: [
-                  { reference: 'AC-000007', role: 'OWNER', organizationId: ORG, userName: 'Owner', userRole: 'MERCHANT_OWNER', onBehalf: false, createdAt: new Date().toISOString(), quotationId: QUOTE },
+                  {
+                    reference: 'AC-000007',
+                    role: 'OWNER',
+                    organizationId: ORG,
+                    userName: 'Owner',
+                    userRole: 'MERCHANT_OWNER',
+                    onBehalf: false,
+                    createdAt: new Date().toISOString(),
+                    quotationId: QUOTE,
+                  },
                 ],
                 submitBlockers: [],
                 allowedActions: [],
@@ -210,18 +244,32 @@ describe('CommercialPanel', () => {
       },
     });
     const ready = vi.fn();
-    mount(<CommercialPanel orgId={ORG} product="EXCLUSIVE" subjectId={SUBJECT} content={{}} onReady={ready} />);
+    mount(
+      <CommercialPanel
+        orgId={ORG}
+        product="EXCLUSIVE"
+        subjectId={SUBJECT}
+        content={{}}
+        onReady={ready}
+      />,
+    );
     const accept = await screen.findByTestId('cm-accept');
     expect(accept).toBeDisabled();
     const user = userEvent.setup();
     for (const c of ['REVIEWED_TERMS', 'UNDERSTAND_CHARGES', 'CONFIRM_FUNDING']) {
-      await user.click(within(screen.getByTestId(`cm-check-${c}`).parentElement!).getByRole('checkbox'));
+      await user.click(
+        within(screen.getByTestId(`cm-check-${c}`).parentElement!).getByRole('checkbox'),
+      );
       expect(screen.getByTestId('cm-accept')).toBeDisabled();
     }
-    await user.click(within(screen.getByTestId('cm-check-ACCEPT_TERMS').parentElement!).getByRole('checkbox'));
+    await user.click(
+      within(screen.getByTestId('cm-check-ACCEPT_TERMS').parentElement!).getByRole('checkbox'),
+    );
     expect(screen.getByTestId('cm-accept')).toBeEnabled();
     await user.click(screen.getByTestId('cm-accept'));
-    await waitFor(() => expect(calls.some((c) => c.url.includes('/accept') && c.method === 'POST')).toBe(true));
+    await waitFor(() =>
+      expect(calls.some((c) => c.url.includes('/accept') && c.method === 'POST')).toBe(true),
+    );
     const sent = JSON.parse(calls.find((c) => c.url.includes('/accept'))!.body!);
     expect(sent.quotationId).toBe(QUOTE);
     expect(sent.checks).toHaveLength(4);
@@ -234,9 +282,19 @@ describe('CommercialPanel', () => {
   });
 
   it('offers no way to accept without the permission, and says the draft must be saved first', async () => {
-    stub({ '/commercial/preview': { body: { data: preview(), meta: {} } } }, ['merchant.commercial.read']);
+    stub({ '/commercial/preview': { body: { data: preview(), meta: {} } } }, [
+      'merchant.commercial.read',
+    ]);
     const ready = vi.fn();
-    mount(<CommercialPanel orgId={ORG} product="EXCLUSIVE" subjectId={null} content={{ title: 'x' }} onReady={ready} />);
+    mount(
+      <CommercialPanel
+        orgId={ORG}
+        product="EXCLUSIVE"
+        subjectId={null}
+        content={{ title: 'x' }}
+        onReady={ready}
+      />,
+    );
     expect(await screen.findByTestId('cm-panel')).toHaveTextContent('Save the draft');
     expect(screen.queryByTestId('cm-accept')).toBeNull();
     expect(ready).toHaveBeenLastCalledWith(false);
@@ -248,14 +306,41 @@ describe('CommercialPanel', () => {
         body: {
           data: caseView({
             status: 'AWAITING_FUNDING',
-            quotation: { id: QUOTE, reference: 'QT-000001', version: 1, status: 'ACCEPTED', createdAt: new Date().toISOString(), delta: null },
+            quotation: {
+              id: QUOTE,
+              reference: 'QT-000001',
+              version: 1,
+              status: 'ACCEPTED',
+              createdAt: new Date().toISOString(),
+              delta: null,
+            },
             acceptances: [],
             funding: [
-              { id: 'f1', organizationId: ORG, role: 'OWNER', kind: 'CHARGE', mode: 'PREPAID', upfrontHalalas: 0, usageMaxHalalas: 500, maxHalalas: 500, receivedHalalas: 0, utilizedHalalas: 0, earnedHalalas: 0, remainingCommitmentHalalas: 500, outstandingHalalas: 500, status: 'OPEN' },
+              {
+                id: 'f1',
+                organizationId: ORG,
+                role: 'OWNER',
+                kind: 'CHARGE',
+                mode: 'PREPAID',
+                upfrontHalalas: 0,
+                usageMaxHalalas: 500,
+                maxHalalas: 500,
+                receivedHalalas: 0,
+                utilizedHalalas: 0,
+                earnedHalalas: 0,
+                remainingCommitmentHalalas: 500,
+                outstandingHalalas: 500,
+                status: 'OPEN',
+              },
             ],
-            approvals: [{ step: 'FINANCE_APPROVER', status: 'PENDING', decidedByName: null, reason: null }],
+            approvals: [
+              { step: 'FINANCE_APPROVER', status: 'PENDING', decidedByName: null, reason: null },
+            ],
             allowedActions: ['PAY', 'APPROVE_FINANCE'],
-            blockers: [{ code: 'FUNDING_MISSING', party: 'OWNER', detail: '500' }, { code: 'APPROVAL_PENDING', party: 'FINANCE_APPROVER', detail: null }],
+            blockers: [
+              { code: 'FUNDING_MISSING', party: 'OWNER', detail: '500' },
+              { code: 'APPROVAL_PENDING', party: 'FINANCE_APPROVER', detail: null },
+            ],
             submitBlockers: [],
           }),
           meta: {},
@@ -307,12 +392,30 @@ describe('CommercialHub', () => {
       [`/commercial/cases`]: () => ({
         body: {
           data: [
-            { id: CASE, reference: 'CC-000001', product: 'EXCLUSIVE', subjectId: SUBJECT, title: { en: 'Flash dinner', ar: 'عشاء سريع' }, status: 'AWAITING_ACCEPTANCE', ownerOrganizationId: SPONSOR, ownerName: { en: 'Alpha Grill', ar: 'ألفا' }, maxCashHalalas: 500, benefitCommitmentHalalas: 9000, developmentFixture: false, myRole: 'FULFILMENT_MERCHANT' },
+            {
+              id: CASE,
+              reference: 'CC-000001',
+              product: 'EXCLUSIVE',
+              subjectId: SUBJECT,
+              title: { en: 'Flash dinner', ar: 'عشاء سريع' },
+              status: 'AWAITING_ACCEPTANCE',
+              ownerOrganizationId: SPONSOR,
+              ownerName: { en: 'Alpha Grill', ar: 'ألفا' },
+              maxCashHalalas: 500,
+              benefitCommitmentHalalas: 9000,
+              developmentFixture: false,
+              myRole: 'FULFILMENT_MERCHANT',
+            },
           ],
           meta: {},
         },
       }),
-      '/commercial/case': { body: { data: caseView({ ownerOrganizationId: SPONSOR, fulfilmentOrganizationId: ORG }), meta: {} } },
+      '/commercial/case': {
+        body: {
+          data: caseView({ ownerOrganizationId: SPONSOR, fulfilmentOrganizationId: ORG }),
+          meta: {},
+        },
+      },
     });
     mount(<CommercialHub />);
     const row = await screen.findByTestId('cmh-row-CC-000001');

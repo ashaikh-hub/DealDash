@@ -30,7 +30,13 @@ import { NetworkOffersService } from './network-offers.service';
     IngestController,
     CustomerNetworkOffersController,
   ],
-  providers: [MasterService, IngestService, IntegrationService, ImportService, NetworkOffersService],
+  providers: [
+    MasterService,
+    IngestService,
+    IntegrationService,
+    ImportService,
+    NetworkOffersService,
+  ],
   exports: [MasterService, IngestService, IntegrationService, ImportService, NetworkOffersService],
 })
 export class MasterModule implements OnModuleInit {
@@ -44,14 +50,25 @@ export class MasterModule implements OnModuleInit {
     this.jobs.register('integrations.sweep', async () => {
       await this.integrations.markStale();
       await this.integrations.deliverDue(async (url, body, headers) => {
-        const res = await fetch(url, { method: 'POST', headers, body, signal: AbortSignal.timeout(8000) });
+        const res = await fetch(url, {
+          method: 'POST',
+          headers,
+          body,
+          signal: AbortSignal.timeout(8000),
+        });
         return { ok: res.ok, status: res.status };
       });
     });
     if (this.env.NODE_ENV !== 'test' && process.env.JOB_WORKER_ENABLED !== 'false') {
       const enqueue = () => {
         const slot = Math.floor(Date.now() / 60_000);
-        void this.jobs.enqueue('integrations.sweep', {}, { idempotencyKey: `integrations.sweep:${slot}`, maxAttempts: 1 }).catch(() => undefined);
+        void this.jobs
+          .enqueue(
+            'integrations.sweep',
+            {},
+            { idempotencyKey: `integrations.sweep:${slot}`, maxAttempts: 1 },
+          )
+          .catch(() => undefined);
       };
       enqueue();
       setInterval(enqueue, 60_000).unref();

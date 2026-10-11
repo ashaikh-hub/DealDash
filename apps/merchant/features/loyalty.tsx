@@ -15,5 +15,12 @@ export function MerchantLoyaltyPage() {
 function Inner() {
   const orgId = useOrgId();
   if (!orgId) return null;
-  return <LoyaltyWorkspace scope={{ audience: 'org', orgId }} canManage canApprove={false} fundingOptions={['MERCHANT', 'CAMPAIGN']} />;
+  return (
+    <LoyaltyWorkspace
+      scope={{ audience: 'org', orgId }}
+      canManage
+      canApprove={false}
+      fundingOptions={['MERCHANT', 'CAMPAIGN']}
+    />
+  );
 }

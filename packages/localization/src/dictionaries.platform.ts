@@ -61,13 +61,31 @@ const PL = {
   'op.kind.DISPUTE': ['Case', 'قضية'],
   'op.kind.CHANGES_REQUESTED': ['Changes requested', 'تعديلات مطلوبة'],
   'op.kind.LOYALTY_RULE': ['Loyalty rule', 'قاعدة ولاء'],
-  'op.task.CAMPAIGN_REVIEW': ['Campaign waiting for review: {name}', 'حملة بانتظار المراجعة: {name}'],
-  'op.task.LOYALTY_APPROVAL': ['Loyalty rule waiting for approval: {name}', 'قاعدة ولاء بانتظار الاعتماد: {name}'],
-  'op.task.IMPORT_APPROVAL': ['Import waiting for approval: {name}', 'استيراد بانتظار الاعتماد: {name}'],
+  'op.task.CAMPAIGN_REVIEW': [
+    'Campaign waiting for review: {name}',
+    'حملة بانتظار المراجعة: {name}',
+  ],
+  'op.task.LOYALTY_APPROVAL': [
+    'Loyalty rule waiting for approval: {name}',
+    'قاعدة ولاء بانتظار الاعتماد: {name}',
+  ],
+  'op.task.IMPORT_APPROVAL': [
+    'Import waiting for approval: {name}',
+    'استيراد بانتظار الاعتماد: {name}',
+  ],
   'op.task.DATA_CONFLICT': ['Sources disagree on: {name}', 'المصادر مختلفة حول: {name}'],
-  'op.task.DUPLICATE_SUGGESTION': ['Two merchant records may be the same ({name})', 'قد يكون سجلا تاجر هما نفسه ({name})'],
-  'op.task.OFFER_CONFLICT': ['Offer conflict to decide: {name}', 'تعارض عروض يحتاج إلى قرار: {name}'],
-  'op.task.CHANGES_REQUESTED': ['DealDash asked for changes: {name}', 'طلبت ديل داش تعديلات: {name}'],
+  'op.task.DUPLICATE_SUGGESTION': [
+    'Two merchant records may be the same ({name})',
+    'قد يكون سجلا تاجر هما نفسه ({name})',
+  ],
+  'op.task.OFFER_CONFLICT': [
+    'Offer conflict to decide: {name}',
+    'تعارض عروض يحتاج إلى قرار: {name}',
+  ],
+  'op.task.CHANGES_REQUESTED': [
+    'DealDash asked for changes: {name}',
+    'طلبت ديل داش تعديلات: {name}',
+  ],
   'op.task.LOYALTY_RULE': ['Loyalty rule: {name}', 'قاعدة ولاء: {name}'],
   'op.detail.SLA_MISSED': ['Deadline passed', 'انتهى الموعد النهائي'],
   'op.priority.LOW': ['Low', 'منخفضة'],
@@ -121,7 +139,10 @@ const PL = {
   'op.dtype.DUPLICATE_FUNDING': ['Funding was counted twice', 'احتساب التمويل مرتين'],
   'op.dtype.SETTLEMENT_MISMATCH': ['A payout does not match', 'عدم تطابق في الدفعة'],
   'op.dtype.INVALID_VOUCHER_REDEMPTION': ['A voucher was redeemed wrongly', 'استبدال قسيمة خاطئ'],
-  'op.dtype.IMPORT_CONFLICT': ['An import conflicts with existing data', 'تعارض استيراد مع بيانات قائمة'],
+  'op.dtype.IMPORT_CONFLICT': [
+    'An import conflicts with existing data',
+    'تعارض استيراد مع بيانات قائمة',
+  ],
   'op.dtype.FEED_DISCREPANCY': ['A data feed does not match', 'عدم تطابق في مصدر البيانات'],
   'op.dtype.RECONCILIATION_BREAK': ['A reconciliation does not balance', 'عدم توازن في المطابقة'],
   'op.dtype.OTHER': ['Something else', 'أمر آخر'],
@@ -160,12 +181,24 @@ const PL = {
     'لا تمنع ديل داش عرضاً لمجرد أنه مثير للشك؛ بل تضع عليه علامة ويقرر شخص.',
   ],
   'op.conf.scan': ['Check live offers now', 'فحص العروض الحالية الآن'],
-  'op.conf.scanned': ['Checked {checked} offers; {flagged} new flags.', 'تم فحص {checked} عرضاً؛ {flagged} علامات جديدة.'],
+  'op.conf.scanned': [
+    'Checked {checked} offers; {flagged} new flags.',
+    'تم فحص {checked} عرضاً؛ {flagged} علامات جديدة.',
+  ],
   'op.conf.empty': ['No offer conflicts.', 'لا توجد تعارضات عروض.'],
-  'op.conf.type.OVERLAP_WEAKER_EXCLUSIVE': ['An Exclusive Deal is weaker than the public deal', 'عرض حصري أضعف من العرض العام'],
-  'op.conf.type.DUPLICATE': ['Two identical offers at the same time', 'عرضان متطابقان في الوقت نفسه'],
+  'op.conf.type.OVERLAP_WEAKER_EXCLUSIVE': [
+    'An Exclusive Deal is weaker than the public deal',
+    'عرض حصري أضعف من العرض العام',
+  ],
+  'op.conf.type.DUPLICATE': [
+    'Two identical offers at the same time',
+    'عرضان متطابقان في الوقت نفسه',
+  ],
   'op.conf.type.CONTRADICTORY_TERMS': ['Contradictory terms', 'شروط متناقضة'],
-  'op.conf.type.DUPLICATE_IMPORTED': ['An imported offer duplicates a registered one', 'عرض مستورد مكرر لعرض مسجل'],
+  'op.conf.type.DUPLICATE_IMPORTED': [
+    'An imported offer duplicates a registered one',
+    'عرض مستورد مكرر لعرض مسجل',
+  ],
   'op.conf.status.OPEN': ['Open', 'مفتوح'],
   'op.conf.status.ACKNOWLEDGED': ['Accepted as it is', 'مقبول كما هو'],
   'op.conf.status.DISMISSED': ['Dismissed', 'مستبعد'],
@@ -179,7 +212,10 @@ const PL = {
 
   // ---------------------------------------------------------------- activity
   'op.act.title': ['Activity', 'النشاط'],
-  'op.act.sub': ['A plain-language history of what changed and who did it.', 'سجل مبسّط بما تغيّر ومن قام به.'],
+  'op.act.sub': [
+    'A plain-language history of what changed and who did it.',
+    'سجل مبسّط بما تغيّر ومن قام به.',
+  ],
   'op.act.empty': ['No activity yet.', 'لا يوجد نشاط بعد.'],
   'op.act.more': ['Show older activity', 'عرض نشاط أقدم'],
   'op.act.by.DEALDASH': ['DealDash', 'ديل داش'],
@@ -196,13 +232,19 @@ const PL = {
   'op.action.DISPUTE_EVIDENCE_VIEWED': ['Evidence was opened', 'تم فتح دليل'],
   'op.action.OFFER_CONFLICT_DECIDED': ['An offer conflict was decided', 'تم البت في تعارض عروض'],
   'op.action.LOYALTY_RULE_CREATED': ['A loyalty rule was created', 'تم إنشاء قاعدة ولاء'],
-  'op.action.LOYALTY_RULE_SUBMITTED': ['A loyalty rule was sent for approval', 'أُرسلت قاعدة ولاء للاعتماد'],
+  'op.action.LOYALTY_RULE_SUBMITTED': [
+    'A loyalty rule was sent for approval',
+    'أُرسلت قاعدة ولاء للاعتماد',
+  ],
   'op.action.LOYALTY_RULE_APPROVED': ['A loyalty rule was approved', 'تم اعتماد قاعدة ولاء'],
   'op.action.LOYALTY_RULE_REJECTED': ['A loyalty rule was rejected', 'تم رفض قاعدة ولاء'],
   'op.action.LOYALTY_RULE_PAUSED': ['A loyalty rule was paused', 'تم إيقاف قاعدة ولاء مؤقتاً'],
   'op.action.LOYALTY_RULE_RESUMED': ['A loyalty rule was resumed', 'تم استئناف قاعدة ولاء'],
   'op.action.LOYALTY_RULE_ENDED': ['A loyalty rule was ended', 'تم إنهاء قاعدة ولاء'],
-  'op.action.LOYALTY_ALLOCATION_INCREASED': ['A loyalty rule limit was raised', 'تم رفع حد قاعدة ولاء'],
+  'op.action.LOYALTY_ALLOCATION_INCREASED': [
+    'A loyalty rule limit was raised',
+    'تم رفع حد قاعدة ولاء',
+  ],
   'op.action.merchant.branch.updated': ['A branch was updated', 'تم تحديث فرع'],
   'op.action.access.denied': ['An action was refused', 'تم رفض إجراء'],
 
@@ -253,14 +295,23 @@ const PL = {
   'lo.f.per100': ['Points per SAR 100 spent', 'النقاط لكل 100 ريال مُنفق'],
   'lo.f.dailyCap': ['Most points a customer earns per day', 'أقصى نقاط يكتسبها العميل يومياً'],
   'lo.f.monthlyCap': ['Most points a customer earns per month', 'أقصى نقاط يكتسبها العميل شهرياً'],
-  'lo.f.customerCap': ['Most points one customer earns in total', 'أقصى نقاط يكتسبها العميل إجمالاً'],
-  'lo.f.alloc': ['Most points this rule may give in total', 'أقصى نقاط يجوز لهذه القاعدة منحها إجمالاً'],
+  'lo.f.customerCap': [
+    'Most points one customer earns in total',
+    'أقصى نقاط يكتسبها العميل إجمالاً',
+  ],
+  'lo.f.alloc': [
+    'Most points this rule may give in total',
+    'أقصى نقاط يجوز لهذه القاعدة منحها إجمالاً',
+  ],
   'lo.f.funding': ['Who pays for the points', 'من يتحمل تكلفة النقاط'],
   'lo.f.funder': ['Funder (business id)', 'الجهة الممولة (معرّف النشاط)'],
   'lo.f.rate': ['The funder pays per point (SAR)', 'تدفع الجهة الممولة لكل نقطة (ريال)'],
   'lo.f.expiry': ['Points expire after (days, optional)', 'تنتهي النقاط بعد (أيام، اختياري)'],
   'lo.f.until': ['Ends on (optional)', 'تنتهي في (اختياري)'],
-  'lo.f.help.alloc': ['A hard ceiling. When it is reached the rule stops giving points.', 'سقف صارم. عند بلوغه تتوقف القاعدة عن منح النقاط.'],
+  'lo.f.help.alloc': [
+    'A hard ceiling. When it is reached the rule stops giving points.',
+    'سقف صارم. عند بلوغه تتوقف القاعدة عن منح النقاط.',
+  ],
   'lo.f.help.funding': [
     'A rule paid for by a business needs the commercial agreement and prepaid funding before it can start.',
     'القاعدة التي تموّلها جهة تجارية تحتاج إلى الاتفاقية التجارية وتمويل مسبق قبل أن تبدأ.',
@@ -306,7 +357,10 @@ type PlatformPairs = typeof PL;
 export type PlatformKey = keyof PlatformPairs;
 
 const pick = (index: 0 | 1) =>
-  Object.fromEntries(Object.entries(PL).map(([k, v]) => [k, v[index]])) as Record<PlatformKey, string>;
+  Object.fromEntries(Object.entries(PL).map(([k, v]) => [k, v[index]])) as Record<
+    PlatformKey,
+    string
+  >;
 
 export const enPlatform = pick(0);
 export const arPlatform = pick(1);

@@ -21,8 +21,26 @@ import { UsageService } from './usage.service';
 @Module({
   imports: [JobsModule],
   controllers: [AdminSubscriptionController, OrgSubscriptionController],
-  providers: [PlanService, PricingResolver, BillingEventService, SignalService, UsageService, SubscriptionService, AmendmentService, CommercialAccessService],
-  exports: [PlanService, PricingResolver, BillingEventService, SignalService, UsageService, SubscriptionService, AmendmentService, CommercialAccessService],
+  providers: [
+    PlanService,
+    PricingResolver,
+    BillingEventService,
+    SignalService,
+    UsageService,
+    SubscriptionService,
+    AmendmentService,
+    CommercialAccessService,
+  ],
+  exports: [
+    PlanService,
+    PricingResolver,
+    BillingEventService,
+    SignalService,
+    UsageService,
+    SubscriptionService,
+    AmendmentService,
+    CommercialAccessService,
+  ],
 })
 export class SubscriptionModule implements OnModuleInit {
   constructor(
@@ -41,7 +59,13 @@ export class SubscriptionModule implements OnModuleInit {
     if (this.env.NODE_ENV !== 'test' && process.env.JOB_WORKER_ENABLED !== 'false') {
       const enqueue = () => {
         const slot = Math.floor(Date.now() / 3_600_000);
-        void this.jobs.enqueue('subscription.run_due', {}, { idempotencyKey: `subscription.run_due:${slot}`, maxAttempts: 1 }).catch(() => undefined);
+        void this.jobs
+          .enqueue(
+            'subscription.run_due',
+            {},
+            { idempotencyKey: `subscription.run_due:${slot}`, maxAttempts: 1 },
+          )
+          .catch(() => undefined);
       };
       enqueue();
       setInterval(enqueue, 3_600_000).unref();

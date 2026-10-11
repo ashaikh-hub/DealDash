@@ -1,4 +1,14 @@
-import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
@@ -26,7 +36,14 @@ import {
   unitUpdateSchema,
   unitViewSchema,
 } from '@dealdash/validation';
-import { Audiences, CurrentActor, Idempotent, Meta, RequirePermissions, ScopeAware } from '../common/decorators';
+import {
+  Audiences,
+  CurrentActor,
+  Idempotent,
+  Meta,
+  RequirePermissions,
+  ScopeAware,
+} from '../common/decorators';
 import { AppError } from '../common/errors';
 import type { Actor, RequestMeta } from '../common/request-context';
 import { ContractService } from './contract.service';
@@ -90,7 +107,11 @@ export class OrgStructureController {
 
   private own(actor: Actor, orgId: string) {
     const m = actor.membership;
-    if (!m || m.organizationId !== orgId || (m.organizationType !== 'MERCHANT' && m.organizationType !== 'PARTNER'))
+    if (
+      !m ||
+      m.organizationId !== orgId ||
+      (m.organizationType !== 'MERCHANT' && m.organizationType !== 'PARTNER')
+    )
       throw AppError.notFound();
   }
 
@@ -119,7 +140,9 @@ export class OrgStructureController {
   ) {
     this.own(actor, orgId);
     // a legal entity belongs to the whole business account: only an organization-wide manager may create one
-    await this.scope.require(actor, this.perm(actor, 'structure.manage'), { organizationId: orgId });
+    await this.scope.require(actor, this.perm(actor, 'structure.manage'), {
+      organizationId: orgId,
+    });
     return this.hierarchy.createLegalEntity(actor, orgId, b, meta);
   }
 
@@ -135,7 +158,9 @@ export class OrgStructureController {
   async units(@Param('orgId', ParseUUIDPipe) orgId: string, @CurrentActor() actor: Actor) {
     await this.need(actor, orgId, 'structure.read');
     const all = await this.hierarchy.listUnits(orgId);
-    const grants = (await this.scope.grantsOf(actor)).filter((g) => g.permissions.has(this.perm(actor, 'structure.read')));
+    const grants = (await this.scope.grantsOf(actor)).filter((g) =>
+      g.permissions.has(this.perm(actor, 'structure.read')),
+    );
     if (grants.some((g) => g.set.orgWide)) return all;
     const visible = new Set<string>();
     for (const g of grants) for (const u of g.set.unitIds) visible.add(u);
@@ -255,11 +280,21 @@ export class OrgStructureController {
   @Post('access/check')
   @HttpCode(200)
   @ApiOkResponse({ type: AccessCheckResponse })
-  async accessCheck(@Param('orgId', ParseUUIDPipe) orgId: string, @Body() b: AccessCheckDto, @CurrentActor() actor: Actor) {
+  async accessCheck(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Body() b: AccessCheckDto,
+    @CurrentActor() actor: Actor,
+  ) {
     this.own(actor, orgId);
-    if (!(PERMISSION_CODES as readonly string[]).includes(b.permission)) throw AppError.validation('Unknown permission', 'permission');
+    if (!(PERMISSION_CODES as readonly string[]).includes(b.permission))
+      throw AppError.validation('Unknown permission', 'permission');
     const { permission, ...target } = b;
-    return { allowed: await this.scope.can(actor, permission as PermissionCode, { organizationId: orgId, ...target }) };
+    return {
+      allowed: await this.scope.can(actor, permission as PermissionCode, {
+        organizationId: orgId,
+        ...target,
+      }),
+    };
   }
 
   @Get('entitlements')

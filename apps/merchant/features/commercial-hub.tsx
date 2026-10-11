@@ -1,7 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { CommercialPanel, RequirePermission, commercialTone, useApi, useAuth } from '@dealdash/app-shell';
+import {
+  CommercialPanel,
+  RequirePermission,
+  commercialTone,
+  useApi,
+  useAuth,
+} from '@dealdash/app-shell';
 import { createTranslator, formatMoney, type DictionaryKey } from '@dealdash/localization';
 import { Button, Card, EmptyState, LoadingState, StatusChip } from '@dealdash/ui';
 import { useOrgId } from './deal-utils';
@@ -83,11 +89,17 @@ function Inner() {
                   <td>{t(k('ac.product', r.product))}</td>
                   <td>{r.myRole ? t(k('cm.role', r.myRole)) : '-'}</td>
                   <td>
-                    <StatusChip tone={commercialTone(r.status)}>{t(k('cm.status', r.status))}</StatusChip>
+                    <StatusChip tone={commercialTone(r.status)}>
+                      {t(k('cm.status', r.status))}
+                    </StatusChip>
                   </td>
                   <td className="dd-ltr">{formatMoney(locale, r.maxCashHalalas)}</td>
                   <td>
-                    <Button variant="outline" onClick={() => setOpen(open?.id === r.id ? null : r)} data-testid={`cmh-open-${r.reference}`}>
+                    <Button
+                      variant="outline"
+                      onClick={() => setOpen(open?.id === r.id ? null : r)}
+                      data-testid={`cmh-open-${r.reference}`}
+                    >
                       {t('cmh.open')}
                     </Button>
                   </td>

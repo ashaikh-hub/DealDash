@@ -44,11 +44,22 @@ export class RewardsLedgerService {
     return this.points.apply(tx, userId, i);
   }
 
-  private lot(tx: Prisma.TransactionClient, accountId: string, entryId: string, points: number, expiresAt: Date | null) {
+  private lot(
+    tx: Prisma.TransactionClient,
+    accountId: string,
+    entryId: string,
+    points: number,
+    expiresAt: Date | null,
+  ) {
     return this.points.lot(tx, accountId, entryId, points, expiresAt);
   }
 
-  private consumeLots(tx: Prisma.TransactionClient, accountId: string, points: number, preferEntryId?: string): Promise<number> {
+  private consumeLots(
+    tx: Prisma.TransactionClient,
+    accountId: string,
+    points: number,
+    preferEntryId?: string,
+  ): Promise<number> {
     return this.points.consumeLots(tx, accountId, points, preferEntryId);
   }
   private async expiryFor(now: Date): Promise<Date | null> {

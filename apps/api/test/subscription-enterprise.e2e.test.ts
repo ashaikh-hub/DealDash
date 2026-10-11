@@ -19,24 +19,77 @@ describe.skipIf(!DB_READY)('Subscription engine: enterprise, usage, suspension, 
   afterAll(() => t?.close());
 
   const base = (orgId: string) => `/v1/orgs/${orgId}/subscription`;
-  const events = async (contractId: string, type?: string) => (await s.get(s.admin, `${s.AS}/billing-events?contractId=${contractId}${type ? `&eventType=${type}` : ''}`)).body.data as Array<Record<string, unknown>>;
+  const events = async (contractId: string, type?: string) =>
+    (
+      await s.get(
+        s.admin,
+        `${s.AS}/billing-events?contractId=${contractId}${type ? `&eventType=${type}` : ''}`,
+      )
+    ).body.data as Array<Record<string, unknown>>;
   const addBranch = (owner: Parameters<SubWorld['post']>[0], orgId: string, n: number) =>
-    s.api(owner).post(`/v1/merchants/${orgId}/branches`).set('Idempotency-Key', idem()).send({ nameEn: `Extra ${n}`, nameAr: `إضافي ${n}`, addressEn: 'Karachi', addressAr: 'كراتشي', city: 'Riyadh', latitude: 24.7 + n / 100, longitude: 46.7 + n / 100 });
+    s
+      .api(owner)
+      .post(`/v1/merchants/${orgId}/branches`)
+      .set('Idempotency-Key', idem())
+      .send({
+        nameEn: `Extra ${n}`,
+        nameAr: `إضافي ${n}`,
+        addressEn: 'Karachi',
+        addressAr: 'كراتشي',
+        city: 'Riyadh',
+        latitude: 24.7 + n / 100,
+        longitude: 46.7 + n / 100,
+      });
 
   describe('Enterprise agreements are contracts of an enterprise kind: no sponsor-subscription concept', () => {
     it('a bank is a Business Account with its own legal entity and a BANK_ENTERPRISE contract; the licence bills at the legal entity', async () => {
       const bank = await s.mkPartner('SubBank', 'BANK');
-      const le = await t.prisma.legalEntity.create({ data: { organizationId: bank.orgId, legalName: `Bank Legal ${idem()}`, country: 'PK', currency: 'PKR' } });
-      const a = await s.post(s.admin, `${s.AS}/contracts/assign`, { organizationId: bank.orgId, planCode: 'BANK_ENTERPRISE', market: 'PK', legalEntityId: le.id, billingLegalEntityId: le.id, coveredLegalEntityIds: [le.id], cadence: 'ANNUAL' });
+      const le = await t.prisma.legalEntity.create({
+        data: {
+          organizationId: bank.orgId,
+          legalName: `Bank Legal ${idem()}`,
+          country: 'PK',
+          currency: 'PKR',
+        },
+      });
+      const a = await s.post(s.admin, `${s.AS}/contracts/assign`, {
+        organizationId: bank.orgId,
+        planCode: 'BANK_ENTERPRISE',
+        market: 'PK',
+        legalEntityId: le.id,
+        billingLegalEntityId: le.id,
+        coveredLegalEntityIds: [le.id],
+        cadence: 'ANNUAL',
+      });
       expect(a.status, JSON.stringify(a.body)).toBe(201);
-      expect(a.body.data).toMatchObject({ kind: 'BANK_ENTERPRISE', status: 'PENDING_ACTIVATION', billingCadence: 'ANNUAL', currency: 'PKR', legalEntityId: le.id });
-      const acc = await s.post(bank.admin, `${base(bank.orgId)}/accept`, { language: 'en', confirm: true });
+      expect(a.body.data).toMatchObject({
+        kind: 'BANK_ENTERPRISE',
+        status: 'PENDING_ACTIVATION',
+        billingCadence: 'ANNUAL',
+        currency: 'PKR',
+        legalEntityId: le.id,
+      });
+      const acc = await s.post(bank.admin, `${base(bank.orgId)}/accept`, {
+        language: 'en',
+        confirm: true,
+      });
       expect(acc.status, JSON.stringify(acc.body)).toBe(200);
       const ev = await events(a.body.data.id, 'ANNUAL_LICENCE_RENEWAL');
       expect(ev).toHaveLength(1);
-      expect(ev[0]).toMatchObject({ amountMinor: 2_500_000 * 100, currency: 'PKR', billingLegalEntityId: le.id, billingCategory: 'SUBSCRIPTION_LICENCE' });
+      expect(ev[0]).toMatchObject({
+        amountMinor: 2_500_000 * 100,
+        currency: 'PKR',
+        billingLegalEntityId: le.id,
+        billingCategory: 'SUBSCRIPTION_LICENCE',
+      });
       const e = await t.app.get(EntitlementService).effective(bank.orgId);
-      expect(e.features).toEqual(expect.arrayContaining(['BANK_MERCHANT_NETWORK', 'CARDHOLDER_ELIGIBILITY', 'BANK_FUNDED_CAMPAIGNS']));
+      expect(e.features).toEqual(
+        expect.arrayContaining([
+          'BANK_MERCHANT_NETWORK',
+          'CARDHOLDER_ELIGIBILITY',
+          'BANK_FUNDED_CAMPAIGNS',
+        ]),
+      );
       expect(e.limits).toEqual({});
     });
 
@@ -44,22 +97,45 @@ describe.skipIf(!DB_READY)('Subscription engine: enterprise, usage, suspension, 
       const corp = await s.mkPartner('SubCorp', 'EMPLOYER');
       const a = await s.assign(corp.orgId, 'CORPORATE_PARTNER', corp.admin);
       expect(a).toMatchObject({ kind: 'CORPORATE_PARTNER', status: 'ACTIVE' });
-      expect((await t.app.get(EntitlementService).effective(corp.orgId)).features).toEqual(expect.arrayContaining(['EMPLOYEE_PROGRAMS', 'CORPORATE_FUNDED_CAMPAIGNS']));
+      expect((await t.app.get(EntitlementService).effective(corp.orgId)).features).toEqual(
+        expect.arrayContaining(['EMPLOYEE_PROGRAMS', 'CORPORATE_FUNDED_CAMPAIGNS']),
+      );
       const setup = (await events(a.id as string, 'SETUP_FEE'))[0];
       expect(setup).toBeUndefined(); // "from PKR 250,000" is a reference, never a charge
-      expect((await s.post(s.finance, `${s.AS}/contracts/${a.id}/rates`, { itemCode: 'SETUP_FEE', model: 'FIXED', amountMinor: 30_000_000, approvalRef: 'CORP-1' })).status).toBe(201);
+      expect(
+        (
+          await s.post(s.finance, `${s.AS}/contracts/${a.id}/rates`, {
+            itemCode: 'SETUP_FEE',
+            model: 'FIXED',
+            amountMinor: 30_000_000,
+            approvalRef: 'CORP-1',
+          })
+        ).status,
+      ).toBe(201);
       const fee = (await s.get(s.admin, `${s.AS}/contracts/${a.id}/terms`)).body.data;
-      expect(fee.fees.find((f: { code: string }) => f.code === 'SETUP_FEE')).toMatchObject({ amountMinor: 30_000_000, indicative: false });
+      expect(fee.fees.find((f: { code: string }) => f.code === 'SETUP_FEE')).toMatchObject({
+        amountMinor: 30_000_000,
+        indicative: false,
+      });
     });
 
     it('a scheme can hold a country licence and later a multi-market agreement; each is its own contract with its own markets', async () => {
       const sch = await s.mkPartner('SubScheme', 'SCHEME');
       const country = await s.assign(sch.orgId, 'SCHEME_COUNTRY_NETWORK', sch.admin);
-      expect(country).toMatchObject({ kind: 'SCHEME_NETWORK_LICENCE', status: 'ACTIVE', billingCadence: 'ANNUAL' });
-      const multi = await s.post(s.admin, `${s.AS}/contracts/assign`, { organizationId: sch.orgId, planCode: 'SCHEME_MULTI_MARKET', market: 'PK' });
+      expect(country).toMatchObject({
+        kind: 'SCHEME_NETWORK_LICENCE',
+        status: 'ACTIVE',
+        billingCadence: 'ANNUAL',
+      });
+      const multi = await s.post(s.admin, `${s.AS}/contracts/assign`, {
+        organizationId: sch.orgId,
+        planCode: 'SCHEME_MULTI_MARKET',
+        market: 'PK',
+      });
       expect(multi.status, JSON.stringify(multi.body)).toBe(201);
       expect(multi.body.data.kind).toBe('SCHEME_NETWORK_LICENCE');
-      const all = (await s.get(s.admin, `${s.AS}/contracts?organizationId=${sch.orgId}`)).body.data as unknown[];
+      const all = (await s.get(s.admin, `${s.AS}/contracts?organizationId=${sch.orgId}`)).body
+        .data as unknown[];
       expect(all.length).toBeGreaterThanOrEqual(2);
     });
 
@@ -93,7 +169,17 @@ describe.skipIf(!DB_READY)('Subscription engine: enterprise, usage, suspension, 
     let contractId: string;
 
     beforeAll(async () => {
-      expect((await s.post(s.admin, `${s.AS}/plans`, { code: 'USAGE_TEST', nameEn: 'Usage test', nameAr: 'اختبار الاستخدام', entityType: 'MERCHANT', contractKind: 'MERCHANT_SUBSCRIPTION' })).status).toBe(201);
+      expect(
+        (
+          await s.post(s.admin, `${s.AS}/plans`, {
+            code: 'USAGE_TEST',
+            nameEn: 'Usage test',
+            nameAr: 'اختبار الاستخدام',
+            entityType: 'MERCHANT',
+            contractKind: 'MERCHANT_SUBSCRIPTION',
+          })
+        ).status,
+      ).toBe(201);
       const v = await s.post(s.admin, `${s.AS}/plans/USAGE_TEST/versions`, {
         market: 'PK',
         currency: 'PKR',
@@ -103,18 +189,39 @@ describe.skipIf(!DB_READY)('Subscription engine: enterprise, usage, suspension, 
           products: ['LIVE_DEAL'],
           features: ['API_ACCESS', 'BULK_IMPORT'],
           limits: [
-            { key: 'api.requests', value: 3, mode: 'HARD', period: 'MONTH', warnPercents: [80, 100] },
-            { key: 'bulk_import.rows', value: 2, mode: 'SOFT', period: 'MONTH', warnPercents: [100], softAction: 'OVERAGE_CHARGE', overageRateMinor: 500 },
+            {
+              key: 'api.requests',
+              value: 3,
+              mode: 'HARD',
+              period: 'MONTH',
+              warnPercents: [80, 100],
+            },
+            {
+              key: 'bulk_import.rows',
+              value: 2,
+              mode: 'SOFT',
+              period: 'MONTH',
+              warnPercents: [100],
+              softAction: 'OVERAGE_CHARGE',
+              overageRateMinor: 500,
+            },
           ],
         },
       });
       expect(v.status, JSON.stringify(v.body)).toBe(201);
-      expect((await s.post(s.finance, `${s.AS}/plan-versions/${v.body.data.id}/publish`, {})).status).toBe(200);
+      expect(
+        (await s.post(s.finance, `${s.AS}/plan-versions/${v.body.data.id}/publish`, {})).status,
+      ).toBe(200);
       m = await s.mkMerchant('usage', 1);
       contractId = (await s.assign(m.orgId, 'USAGE_TEST', m.owner)).id as string;
     });
 
-    const record = (key: string, metricKey: string, quantity = 1) => s.post(s.admin, `${s.AS}/organizations/${m.orgId}/usage`, { idempotencyKey: key, metricKey, quantity });
+    const record = (key: string, metricKey: string, quantity = 1) =>
+      s.post(s.admin, `${s.AS}/organizations/${m.orgId}/usage`, {
+        idempotencyKey: key,
+        metricKey,
+        quantity,
+      });
 
     it('a HARD allowance is consumed atomically and refused at the limit', async () => {
       const k = idem();
@@ -126,7 +233,11 @@ describe.skipIf(!DB_READY)('Subscription engine: enterprise, usage, suspension, 
       const over = await record(`${k}-4`, 'api.requests');
       expect(over.status).toBe(403);
       expect(over.body.errors[0].code).toBe('ENTITLEMENT_LIMIT_REACHED');
-      expect(await t.prisma.usageEvent.count({ where: { organizationId: m.orgId, metricKey: 'api.requests' } })).toBe(3);
+      expect(
+        await t.prisma.usageEvent.count({
+          where: { organizationId: m.orgId, metricKey: 'api.requests' },
+        }),
+      ).toBe(3);
     });
 
     it('an event is idempotent: replaying its key counts once', async () => {
@@ -153,7 +264,14 @@ describe.skipIf(!DB_READY)('Subscription engine: enterprise, usage, suspension, 
       const next = new Date(Date.now() + 40 * day);
       const v = await t.app.get(UsageService).periodValue(m.orgId, 'api.requests', { at: next });
       expect(v).toBe(0);
-      const r = await t.app.get(UsageService).consume({ organizationId: m.orgId, limitKey: 'api.requests', idempotencyKey: `next-${idem()}`, sourceType: 'TEST', sourceId: 'next', at: next });
+      const r = await t.app.get(UsageService).consume({
+        organizationId: m.orgId,
+        limitKey: 'api.requests',
+        idempotencyKey: `next-${idem()}`,
+        sourceType: 'TEST',
+        sourceId: 'next',
+        at: next,
+      });
       expect(r).toMatchObject({ recorded: true, value: 1 });
       expect(await t.app.get(UsageService).periodValue(m.orgId, 'api.requests')).toBe(3);
     });
@@ -162,21 +280,37 @@ describe.skipIf(!DB_READY)('Subscription engine: enterprise, usage, suspension, 
       const m2 = await s.mkMerchant('usage-race', 1);
       await s.assign(m2.orgId, 'USAGE_TEST', m2.owner);
       const svc = t.app.get(UsageService);
-      const out = await Promise.allSettled(Array.from({ length: 8 }, (_, i) => svc.consume({ organizationId: m2.orgId, limitKey: 'api.requests', idempotencyKey: `race-${m2.orgId}-${i}`, sourceType: 'TEST', sourceId: String(i) })));
+      const out = await Promise.allSettled(
+        Array.from({ length: 8 }, (_, i) =>
+          svc.consume({
+            organizationId: m2.orgId,
+            limitKey: 'api.requests',
+            idempotencyKey: `race-${m2.orgId}-${i}`,
+            sourceType: 'TEST',
+            sourceId: String(i),
+          }),
+        ),
+      );
       expect(out.filter((x) => x.status === 'fulfilled')).toHaveLength(3);
       expect(await svc.periodValue(m2.orgId, 'api.requests')).toBe(3);
     });
 
     it('usage events are append-only', async () => {
-      const row = await t.prisma.usageEvent.findFirstOrThrow({ where: { organizationId: m.orgId } });
-      await expect(t.prisma.usageEvent.update({ where: { id: row.id }, data: { quantity: 99 } })).rejects.toThrow();
+      const row = await t.prisma.usageEvent.findFirstOrThrow({
+        where: { organizationId: m.orgId },
+      });
+      await expect(
+        t.prisma.usageEvent.update({ where: { id: row.id }, data: { quantity: 99 } }),
+      ).rejects.toThrow();
       await expect(t.prisma.usageEvent.delete({ where: { id: row.id } })).rejects.toThrow();
     });
 
     it('the business sees its own usage against the allowance; another business cannot', async () => {
       const mine = await s.get(m.owner, `${base(m.orgId)}/usage`);
       expect(mine.status).toBe(200);
-      expect(mine.body.data.find((u: { limitKey: string }) => u.limitKey === 'api.requests')).toMatchObject({ used: 3, limit: 3 });
+      expect(
+        mine.body.data.find((u: { limitKey: string }) => u.limitKey === 'api.requests'),
+      ).toMatchObject({ used: 3, limit: 3 });
       const other = await s.mkMerchant('usage-other', 1);
       expect((await s.get(other.owner, `${base(m.orgId)}/usage`)).status).toBe(404);
     });
@@ -192,32 +326,57 @@ describe.skipIf(!DB_READY)('Subscription engine: enterprise, usage, suspension, 
     });
 
     it('PAST_DUE within the grace window keeps everything working', async () => {
-      const r = await s.post(s.admin, `${s.AS}/contracts/${contractId}/past-due`, { reason: 'Invoice unpaid' });
+      const r = await s.post(s.admin, `${s.AS}/contracts/${contractId}/past-due`, {
+        reason: 'Invoice unpaid',
+      });
       expect(r.status, JSON.stringify(r.body)).toBe(200);
       expect(r.body.data.status).toBe('PAST_DUE');
-      const fs = (await s.get(s.admin, `${s.AS}/organizations/${m.orgId}/financial-status`)).body.data;
+      const fs = (await s.get(s.admin, `${s.AS}/organizations/${m.orgId}/financial-status`)).body
+        .data;
       expect(['GRACE', 'PAST_DUE']).toContain(fs.status);
       if (fs.status === 'GRACE') expect((await addBranch(m.owner, m.orgId, 3)).status).toBe(201);
     });
 
     it('SUSPENDED blocks new branches and users, premium/API actions and new paid campaigns; the reason is audited', async () => {
-      const r = await s.post(s.finance, `${s.AS}/contracts/${contractId}/suspend`, { reason: 'Grace elapsed' });
+      const r = await s.post(s.finance, `${s.AS}/contracts/${contractId}/suspend`, {
+        reason: 'Grace elapsed',
+      });
       expect(r.status, JSON.stringify(r.body)).toBe(200);
       expect(r.body.data.status).toBe('SUSPENDED');
       const b = await addBranch(m.owner, m.orgId, 9);
       expect(b.status).toBe(403);
       expect(b.body.errors[0].code).toBe('COMMERCIAL_SUSPENDED');
       const ent = t.app.get(EntitlementService);
-      for (const action of ['NEW_PAID_CAMPAIGN', 'ACTIVATE_CAMPAIGN', 'ADD_BRANCH', 'ADD_USER', 'PREMIUM_FEATURE', 'API_OPERATION', 'UPGRADE_EXPOSURE']) {
-        await expect(ent.requireNewExposure(m.orgId, action)).rejects.toMatchObject({ code: 'COMMERCIAL_SUSPENDED' });
+      for (const action of [
+        'NEW_PAID_CAMPAIGN',
+        'ACTIVATE_CAMPAIGN',
+        'ADD_BRANCH',
+        'ADD_USER',
+        'PREMIUM_FEATURE',
+        'API_OPERATION',
+        'UPGRADE_EXPOSURE',
+      ]) {
+        await expect(ent.requireNewExposure(m.orgId, action)).rejects.toMatchObject({
+          code: 'COMMERCIAL_SUSPENDED',
+        });
       }
-      const audit = await t.prisma.auditLog.findFirst({ where: { entityId: contractId, action: { contains: 'SUSPEND' } } });
+      const audit = await t.prisma.auditLog.findFirst({
+        where: { entityId: contractId, action: { contains: 'SUSPEND' } },
+      });
       expect(audit?.reason).toBe('Grace elapsed');
     });
 
     it('never blocks what the customer already holds: redemption, rewards, refunds, finance and history stay open', async () => {
       const ent = t.app.get(EntitlementService);
-      for (const action of ['REDEEM_VOUCHER', 'REDEEM_CREDENTIAL', 'CREDIT_REWARD', 'REFUND', 'FULFIL_ORDER', 'VIEW_FINANCE', 'VIEW_HISTORY']) {
+      for (const action of [
+        'REDEEM_VOUCHER',
+        'REDEEM_CREDENTIAL',
+        'CREDIT_REWARD',
+        'REFUND',
+        'FULFIL_ORDER',
+        'VIEW_FINANCE',
+        'VIEW_HISTORY',
+      ]) {
         await expect(ent.requireNewExposure(m.orgId, action)).resolves.toBeUndefined();
       }
       // history and the commercial status remain readable by the business itself
@@ -230,33 +389,66 @@ describe.skipIf(!DB_READY)('Subscription engine: enterprise, usage, suspension, 
     it('a live prepaid campaign continues by default (CONTINUE) and can be made stricter per contract', async () => {
       const ent = t.app.get(EntitlementService);
       await expect(ent.assertLiveCampaignOpen(m.orgId)).resolves.toBeUndefined();
-      await t.prisma.contract.update({ where: { id: contractId }, data: { enforcement: { liveCampaignsWhenSuspended: 'STOP_NEW_EXPOSURE' } } });
-      await expect(ent.assertLiveCampaignOpen(m.orgId)).rejects.toMatchObject({ code: 'OFFER_UNAVAILABLE' });
+      await t.prisma.contract.update({
+        where: { id: contractId },
+        data: { enforcement: { liveCampaignsWhenSuspended: 'STOP_NEW_EXPOSURE' } },
+      });
+      await expect(ent.assertLiveCampaignOpen(m.orgId)).rejects.toMatchObject({
+        code: 'OFFER_UNAVAILABLE',
+      });
       await t.prisma.contract.update({ where: { id: contractId }, data: { enforcement: {} } });
     });
 
     it('reinstating restores new exposure; nothing was lost', async () => {
-      const r = await s.post(s.finance, `${s.AS}/contracts/${contractId}/reinstate`, { reason: 'Payment received' });
+      const r = await s.post(s.finance, `${s.AS}/contracts/${contractId}/reinstate`, {
+        reason: 'Payment received',
+      });
       expect(r.status, JSON.stringify(r.body)).toBe(200);
       expect(r.body.data.status).toBe('ACTIVE');
-      await expect(t.app.get(EntitlementService).requireNewExposure(m.orgId, 'ADD_BRANCH')).resolves.toBeUndefined();
+      await expect(
+        t.app.get(EntitlementService).requireNewExposure(m.orgId, 'ADD_BRANCH'),
+      ).resolves.toBeUndefined();
       expect((await addBranch(m.owner, m.orgId, 10)).status).toBe(201);
     });
 
     it('an organization-level financial hold blocks campaigns and upgrades, not branches or customer rights', async () => {
       const m2 = await s.mkMerchant('hold', 1);
       await s.assign(m2.orgId, 'GROWTH', m2.owner);
-      const adminUser = await t.prisma.user.findFirstOrThrow({ where: { email: { contains: 'sub-fin' } } });
-      const hold = await t.prisma.financialHold.create({ data: { organizationId: m2.orgId, reason: 'Disputed funding', placedByUserId: adminUser.id } });
+      const adminUser = await t.prisma.user.findFirstOrThrow({
+        where: { email: { contains: 'sub-fin' } },
+      });
+      const hold = await t.prisma.financialHold.create({
+        data: {
+          organizationId: m2.orgId,
+          reason: 'Disputed funding',
+          placedByUserId: adminUser.id,
+        },
+      });
       const ent = t.app.get(EntitlementService);
-      await expect(ent.requireNewExposure(m2.orgId, 'NEW_PAID_CAMPAIGN')).rejects.toMatchObject({ code: 'FINANCIAL_HOLD' });
-      await expect(ent.requireNewExposure(m2.orgId, 'UPGRADE_EXPOSURE')).rejects.toMatchObject({ code: 'FINANCIAL_HOLD' });
+      await expect(ent.requireNewExposure(m2.orgId, 'NEW_PAID_CAMPAIGN')).rejects.toMatchObject({
+        code: 'FINANCIAL_HOLD',
+      });
+      await expect(ent.requireNewExposure(m2.orgId, 'UPGRADE_EXPOSURE')).rejects.toMatchObject({
+        code: 'FINANCIAL_HOLD',
+      });
       await expect(ent.requireNewExposure(m2.orgId, 'ADD_BRANCH')).resolves.toBeUndefined();
       await expect(ent.requireNewExposure(m2.orgId, 'REDEEM_VOUCHER')).resolves.toBeUndefined();
-      const fs = (await s.get(s.admin, `${s.AS}/organizations/${m2.orgId}/financial-status`)).body.data;
+      const fs = (await s.get(s.admin, `${s.AS}/organizations/${m2.orgId}/financial-status`)).body
+        .data;
       expect(fs.status).toBe('FINANCIAL_HOLD');
-      await t.prisma.financialHold.update({ where: { id: hold.id }, data: { status: 'RELEASED', releasedAt: new Date(), releasedByUserId: adminUser.id, releaseReason: 'Resolved' } });
-      expect((await s.get(s.admin, `${s.AS}/organizations/${m2.orgId}/financial-status`)).body.data.status).toBe('GOOD_STANDING');
+      await t.prisma.financialHold.update({
+        where: { id: hold.id },
+        data: {
+          status: 'RELEASED',
+          releasedAt: new Date(),
+          releasedByUserId: adminUser.id,
+          releaseReason: 'Resolved',
+        },
+      });
+      expect(
+        (await s.get(s.admin, `${s.AS}/organizations/${m2.orgId}/financial-status`)).body.data
+          .status,
+      ).toBe('GOOD_STANDING');
     });
   });
 
@@ -274,10 +466,24 @@ describe.skipIf(!DB_READY)('Subscription engine: enterprise, usage, suspension, 
     });
 
     it('a merchant cannot reach the admin catalog, contract or billing-event endpoints', async () => {
-      for (const p of ['plans', 'contracts', 'billing-events', 'signals', 'price-items', 'add-ons']) {
+      for (const p of [
+        'plans',
+        'contracts',
+        'billing-events',
+        'signals',
+        'price-items',
+        'add-ons',
+      ]) {
         expect([401, 403], p).toContain((await s.get(m.owner, `${s.AS}/${p}`)).status);
       }
-      expect([401, 403]).toContain((await s.post(m.owner, `${s.AS}/contracts/assign`, { organizationId: m.orgId, planCode: 'MERCHANT_ENTERPRISE' })).status);
+      expect([401, 403]).toContain(
+        (
+          await s.post(m.owner, `${s.AS}/contracts/assign`, {
+            organizationId: m.orgId,
+            planCode: 'MERCHANT_ENTERPRISE',
+          })
+        ).status,
+      );
     });
 
     it('another business cannot read or act on this business’s subscription', async () => {
@@ -285,28 +491,59 @@ describe.skipIf(!DB_READY)('Subscription engine: enterprise, usage, suspension, 
       for (const p of ['', '/usage', '/explain', '/plans', '/amendments', '/pending']) {
         expect((await s.get(other.owner, `${base(m.orgId)}${p}`)).status, p).toBe(404);
       }
-      expect((await s.post(other.owner, `${base(m.orgId)}/stop-renewal`, { reason: 'sabotage' })).status).toBe(404);
+      expect(
+        (await s.post(other.owner, `${base(m.orgId)}/stop-renewal`, { reason: 'sabotage' })).status,
+      ).toBe(404);
     });
 
     it('a Finance team member can read the commercial status but cannot change the plan', async () => {
       const fin = await m.mk('MERCHANT_FINANCE');
       expect((await s.get(fin, base(m.orgId))).status).toBe(200);
-      expect((await s.post(fin, `${base(m.orgId)}/amendments`, { type: 'UPGRADE', targetPlanCode: 'BUSINESS' })).status).toBe(403);
-      expect((await s.post(fin, `${base(m.orgId)}/stop-renewal`, { reason: 'not mine to stop' })).status).toBe(403);
+      expect(
+        (
+          await s.post(fin, `${base(m.orgId)}/amendments`, {
+            type: 'UPGRADE',
+            targetPlanCode: 'BUSINESS',
+          })
+        ).status,
+      ).toBe(403);
+      expect(
+        (await s.post(fin, `${base(m.orgId)}/stop-renewal`, { reason: 'not mine to stop' })).status,
+      ).toBe(403);
     });
 
     it('a DealDash operations user without the approve permission cannot publish, cancel or suspend', async () => {
-      const contract = await t.prisma.contract.findFirstOrThrow({ where: { organizationId: m.orgId } });
-      const version = await t.prisma.commercialPlanVersion.findFirstOrThrow({ where: { status: 'PUBLISHED' } });
-      expect((await s.post(s.ops, `${s.AS}/plan-versions/${version.id}/publish`, {})).status).toBe(403);
-      expect((await s.post(s.ops, `${s.AS}/contracts/${contract.id}/cancel`, { reason: 'try this' })).status).toBe(403);
+      const contract = await t.prisma.contract.findFirstOrThrow({
+        where: { organizationId: m.orgId },
+      });
+      const version = await t.prisma.commercialPlanVersion.findFirstOrThrow({
+        where: { status: 'PUBLISHED' },
+      });
+      expect((await s.post(s.ops, `${s.AS}/plan-versions/${version.id}/publish`, {})).status).toBe(
+        403,
+      );
+      expect(
+        (await s.post(s.ops, `${s.AS}/contracts/${contract.id}/cancel`, { reason: 'try this' }))
+          .status,
+      ).toBe(403);
     });
 
     it('commercial billing events cannot be edited or deleted except status and consumedAt', async () => {
-      const ev = await t.prisma.commercialBillingEvent.findFirstOrThrow({ where: { organizationId: m.orgId } });
-      await expect(t.prisma.commercialBillingEvent.update({ where: { id: ev.id }, data: { amountMinor: 1 } })).rejects.toThrow();
-      await expect(t.prisma.commercialBillingEvent.delete({ where: { id: ev.id } })).rejects.toThrow();
-      await expect(t.prisma.commercialBillingEvent.update({ where: { id: ev.id }, data: { status: 'CONSUMED', consumedAt: new Date() } })).resolves.toBeTruthy();
+      const ev = await t.prisma.commercialBillingEvent.findFirstOrThrow({
+        where: { organizationId: m.orgId },
+      });
+      await expect(
+        t.prisma.commercialBillingEvent.update({ where: { id: ev.id }, data: { amountMinor: 1 } }),
+      ).rejects.toThrow();
+      await expect(
+        t.prisma.commercialBillingEvent.delete({ where: { id: ev.id } }),
+      ).rejects.toThrow();
+      await expect(
+        t.prisma.commercialBillingEvent.update({
+          where: { id: ev.id },
+          data: { status: 'CONSUMED', consumedAt: new Date() },
+        }),
+      ).resolves.toBeTruthy();
     });
   });
 });

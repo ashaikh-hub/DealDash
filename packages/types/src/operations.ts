@@ -127,7 +127,11 @@ export const ADJUSTMENT_DIRECTIONS = ['CREDIT', 'DEBIT'] as const;
 export type AdjustmentDirection = (typeof ADJUSTMENT_DIRECTIONS)[number];
 
 // ---------------------------------------------------------------- refunds (Stage 5 engine; order-level exceptional refunds)
-export const ORDER_REFUND_REASONS = ['DUPLICATE_PAYMENT', 'FAILED_ISSUANCE', 'PAYMENT_REVERSAL'] as const;
+export const ORDER_REFUND_REASONS = [
+  'DUPLICATE_PAYMENT',
+  'FAILED_ISSUANCE',
+  'PAYMENT_REVERSAL',
+] as const;
 export type OrderRefundReason = (typeof ORDER_REFUND_REASONS)[number];
 
 // ---------------------------------------------------------------- settlement
@@ -136,6 +140,8 @@ export const SETTLEMENT_STATUSES = [
   'ELIGIBLE',
   'HELD',
   'DISPUTE_HOLD',
+  // Stage 9 (B2): an instruction is with the payout provider
+  'PAYOUT_PENDING',
   'PARTIALLY_PAID',
   'COMPLETED',
   'FAILED',
@@ -229,7 +235,13 @@ export const OPS_RESTRICTION_STATUSES = [
 export type OpsRestrictionStatus = (typeof OPS_RESTRICTION_STATUSES)[number];
 
 // ---------------------------------------------------------------- reviews and moderation (MR-52 / FDC-05)
-export const REVIEW_STATUSES = ['PENDING_REVIEW', 'PUBLISHED', 'REPORTED', 'HIDDEN', 'REMOVED'] as const;
+export const REVIEW_STATUSES = [
+  'PENDING_REVIEW',
+  'PUBLISHED',
+  'REPORTED',
+  'HIDDEN',
+  'REMOVED',
+] as const;
 export type ReviewStatus = (typeof REVIEW_STATUSES)[number];
 /** Interactions that make a review "Verified". Watch & Earn viewing never qualifies. */
 export const VERIFIED_INTERACTIONS = [

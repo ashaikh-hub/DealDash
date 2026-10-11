@@ -32,7 +32,11 @@ export const addMonths = (d: Date, n: number) => {
 };
 
 /** Start and end (exclusive) of the meter period that contains `at`. CONTRACT_TERM uses the contract dates. */
-export function periodBounds(period: string, at: Date, term?: { from: Date; until: Date | null }): { start: Date; end: Date } {
+export function periodBounds(
+  period: string,
+  at: Date,
+  term?: { from: Date; until: Date | null },
+): { start: Date; end: Date } {
   const y = at.getUTCFullYear();
   const m = at.getUTCMonth();
   const d = at.getUTCDate();
@@ -44,7 +48,10 @@ export function periodBounds(period: string, at: Date, term?: { from: Date; unti
     case 'YEAR':
       return { start: new Date(Date.UTC(y, 0, 1)), end: new Date(Date.UTC(y + 1, 0, 1)) };
     case 'CONTRACT_TERM':
-      return { start: term?.from ?? new Date(0), end: term?.until ?? new Date(Date.UTC(9999, 0, 1)) };
+      return {
+        start: term?.from ?? new Date(0),
+        end: term?.until ?? new Date(Date.UTC(9999, 0, 1)),
+      };
     default:
       return { start: new Date(Date.UTC(1970, 0, 1)), end: new Date(Date.UTC(9999, 0, 1)) };
   }
@@ -58,7 +65,11 @@ export async function resolvePolicy(
   entityType?: string | null,
 ): Promise<EnforcementPolicy> {
   const base = (await config.get<EnforcementConfig>(CONFIG_KEYS.COMMERCIAL_ENFORCEMENT)) ?? {};
-  const layers: Array<Partial<EnforcementPolicy>> = [base, (planVersion?.enforcement ?? {}) as Partial<EnforcementPolicy>, (contract?.enforcement ?? {}) as Partial<EnforcementPolicy>];
+  const layers: Array<Partial<EnforcementPolicy>> = [
+    base,
+    (planVersion?.enforcement ?? {}) as Partial<EnforcementPolicy>,
+    (contract?.enforcement ?? {}) as Partial<EnforcementPolicy>,
+  ];
   const merged = Object.assign({}, ...layers) as EnforcementPolicy;
   // grace: contract, then plan version, then entity type, then market, then the platform default
   const grace =
@@ -95,14 +106,25 @@ export const FINANCIAL_STATUS_PROVIDER = Symbol('FINANCIAL_STATUS_PROVIDER');
 const IN_FORCE = ['TRIAL', 'ACTIVE', 'PAST_DUE', 'SUSPENDED'];
 
 /** Default derivation from the contract lifecycle, the grace window and organization-level financial holds. */
-export async function deriveFinancialStatus(prisma: PrismaService, organizationId: string, at = new Date()): Promise<FinancialStatusView> {
+export async function deriveFinancialStatus(
+  prisma: PrismaService,
+  organizationId: string,
+  at = new Date(),
+): Promise<FinancialStatusView> {
   const reasons: string[] = [];
   const contracts = await prisma.contract.findMany({
-    where: { organizationId, status: { in: IN_FORCE }, effectiveFrom: { lte: at }, OR: [{ effectiveUntil: null }, { effectiveUntil: { gt: at } }] },
+    where: {
+      organizationId,
+      status: { in: IN_FORCE },
+      effectiveFrom: { lte: at },
+      OR: [{ effectiveUntil: null }, { effectiveUntil: { gt: at } }],
+    },
     orderBy: { effectiveFrom: 'desc' },
   });
   // organization-level holds only (a hold on one campaign's case stops that campaign, not the whole account)
-  const hold = await prisma.financialHold.findFirst({ where: { organizationId, status: 'ACTIVE', caseId: null } });
+  const hold = await prisma.financialHold.findFirst({
+    where: { organizationId, status: 'ACTIVE', caseId: null },
+  });
   const suspended = contracts.find((c) => c.status === 'SUSPENDED');
   const pastDue = contracts.find((c) => c.status === 'PAST_DUE');
   let status: FinancialStatus = 'GOOD_STANDING';
@@ -112,7 +134,9 @@ export async function deriveFinancialStatus(prisma: PrismaService, organizationI
     graceUntil = pastDue.graceUntil?.toISOString() ?? null;
     contractId = pastDue.id;
     status = pastDue.graceUntil && pastDue.graceUntil > at ? 'GRACE' : 'PAST_DUE';
-    reasons.push(status === 'GRACE' ? 'CONTRACT_PAST_DUE_IN_GRACE' : 'CONTRACT_PAST_DUE_GRACE_ELAPSED');
+    reasons.push(
+      status === 'GRACE' ? 'CONTRACT_PAST_DUE_IN_GRACE' : 'CONTRACT_PAST_DUE_GRACE_ELAPSED',
+    );
   }
   if (hold) {
     status = 'FINANCIAL_HOLD';

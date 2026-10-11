@@ -1,6 +1,6 @@
 {
-  "at": "2026-10-10T16:14:46.712Z",
-  "tag": "c5dfa5",
+  "at": "2026-10-11T07:27:21.543Z",
+  "tag": "6c2fa4",
   "results": [
     {
       "name": "merchant sees the Vouchers hub as a third Campaigns tab with seeded vouchers",
@@ -45,7 +45,7 @@
     {
       "name": "voucher detail opens with a Monitor / Sales / Activity layout",
       "ok": true,
-      "detail": "01a12697-0192-76cd-9128-0e66f56df999"
+      "detail": "01a129da-4569-7346-a1e2-7222a2d4655f"
     },
     {
       "name": "admin sees Vouchers and Finance in the navigation",
@@ -75,7 +75,7 @@
     {
       "name": "the approved voucher is on sale for customers",
       "ok": true,
-      "detail": "01a12697-0192-76cd-9128-0e66f56df999"
+      "detail": "01a129da-4569-7346-a1e2-7222a2d4655f"
     },
     {
       "name": "Home shows a Vouchers rail",

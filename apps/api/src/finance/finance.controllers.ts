@@ -30,7 +30,13 @@ import {
   reconciliationViewSchema,
   recordPaymentSchema,
 } from '@dealdash/validation';
-import { Audiences, CurrentActor, Idempotent, Meta, RequirePermissions } from '../common/decorators';
+import {
+  Audiences,
+  CurrentActor,
+  Idempotent,
+  Meta,
+  RequirePermissions,
+} from '../common/decorators';
 import { AppError } from '../common/errors';
 import type { Actor, RequestMeta } from '../common/request-context';
 import { TenantService } from '../identity/tenant.service';
@@ -70,9 +76,14 @@ class DocumentDto extends createZodDto(documentCreateSchema) {}
 class DocumentListResponse extends createZodDto(envelope(z.array(commercialDocumentViewSchema))) {}
 class AdjustDto extends createZodDto(adjustmentCreateSchema) {}
 class OnBehalfDto extends createZodDto(onBehalfAcceptSchema) {}
-class CloseDto extends createZodDto(z.object({ transferTargetCaseId: z.string().uuid().optional() })) {}
+class CloseDto extends createZodDto(
+  z.object({ transferTargetCaseId: z.string().uuid().optional() }),
+) {}
 class SubjectQueryDto extends createZodDto(
-  z.object({ product: z.enum(['VOUCHER', 'WATCH', 'EXCLUSIVE', 'LIVE_BENEFIT']), subjectId: z.string().uuid() }),
+  z.object({
+    product: z.enum(['VOUCHER', 'WATCH', 'EXCLUSIVE', 'LIVE_BENEFIT']),
+    subjectId: z.string().uuid(),
+  }),
 ) {}
 
 /**
@@ -91,7 +102,11 @@ export class MerchantCommercialController {
   ) {}
 
   /** Own business only; branch staff never; a scoped member needs an organization-wide grant of the permission (finance is not branch-level data). */
-  private async scope(actor: Actor, orgId: string, permission: PermissionCode = 'merchant.commercial.read') {
+  private async scope(
+    actor: Actor,
+    orgId: string,
+    permission: PermissionCode = 'merchant.commercial.read',
+  ) {
     this.tenant.requireOwnOrganization(actor, orgId, 'MERCHANT');
     if (this.tenant.isBranchBound(actor)) throw AppError.forbidden();
     await this.access.org(actor, permission);
@@ -101,9 +116,18 @@ export class MerchantCommercialController {
   @HttpCode(200)
   @RequirePermissions('merchant.commercial.read')
   @ApiOkResponse({ type: PreviewResponse })
-  async preview(@Param('orgId', ParseUUIDPipe) orgId: string, @Body() b: PreviewDto, @CurrentActor() actor: Actor) {
+  async preview(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Body() b: PreviewDto,
+    @CurrentActor() actor: Actor,
+  ) {
     await this.scope(actor, orgId);
-    const { hash, economics, pricingRaw, ...view } = await this.commercial.preview(b.product, orgId, b.content, null);
+    const { hash, economics, pricingRaw, ...view } = await this.commercial.preview(
+      b.product,
+      orgId,
+      b.content,
+      null,
+    );
     void hash;
     void economics;
     void pricingRaw;
@@ -114,7 +138,11 @@ export class MerchantCommercialController {
   @Get('case')
   @RequirePermissions('merchant.commercial.read')
   @ApiOkResponse({ type: CaseResponse })
-  async forSubject(@Param('orgId', ParseUUIDPipe) orgId: string, @Query() q: SubjectQueryDto, @CurrentActor() actor: Actor) {
+  async forSubject(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Query() q: SubjectQueryDto,
+    @CurrentActor() actor: Actor,
+  ) {
     await this.scope(actor, orgId);
     // owner, fulfilment merchant or a named sponsor may open it; others get 404
     if ((await this.commercial.subjectOrganization(q.product, q.subjectId)) === orgId) {
@@ -137,7 +165,11 @@ export class MerchantCommercialController {
   @Get('cases/:caseId')
   @RequirePermissions('merchant.commercial.read')
   @ApiOkResponse({ type: CaseResponse })
-  async get(@Param('orgId', ParseUUIDPipe) orgId: string, @Param('caseId', ParseUUIDPipe) caseId: string, @CurrentActor() actor: Actor) {
+  async get(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Param('caseId', ParseUUIDPipe) caseId: string,
+    @CurrentActor() actor: Actor,
+  ) {
     await this.scope(actor, orgId);
     return this.commercial.view(caseId, actor, orgId);
   }
@@ -174,7 +206,15 @@ export class MerchantCommercialController {
   ) {
     await this.scope(actor, orgId);
     if (step !== 'INTERNAL_APPROVER' && step !== 'FINANCE_APPROVER') throw AppError.notFound();
-    await this.commercial.decideApproval(actor, caseId, b.quotationId, step, b.decision, b.reason, meta);
+    await this.commercial.decideApproval(
+      actor,
+      caseId,
+      b.quotationId,
+      step,
+      b.decision,
+      b.reason,
+      meta,
+    );
     return { ok: true as const };
   }
 
@@ -197,7 +237,11 @@ export class MerchantCommercialController {
   @Get('cases/:caseId/blockers')
   @RequirePermissions('merchant.commercial.read')
   @ApiOkResponse({ type: BlockersResponse })
-  async blockers(@Param('orgId', ParseUUIDPipe) orgId: string, @Param('caseId', ParseUUIDPipe) caseId: string, @CurrentActor() actor: Actor) {
+  async blockers(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Param('caseId', ParseUUIDPipe) caseId: string,
+    @CurrentActor() actor: Actor,
+  ) {
     await this.scope(actor, orgId);
     return (await this.commercial.view(caseId, actor, orgId)).blockers;
   }
@@ -247,7 +291,12 @@ export class AdminFinanceController {
   @HttpCode(200)
   @RequirePermissions('admin.finance.manage')
   @ApiOkResponse({ type: ReconResponse })
-  close(@Param('id', ParseUUIDPipe) id: string, @Body() b: CloseDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  close(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: CloseDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.finance.closeCase(actor, id, b.transferTargetCaseId ?? null, meta);
   }
 
@@ -256,7 +305,11 @@ export class AdminFinanceController {
   @HttpCode(200)
   @RequirePermissions('admin.finance.manage')
   @ApiOkResponse({ type: OkResponse })
-  async applyAgreement(@Param('id', ParseUUIDPipe) id: string, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async applyAgreement(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     await this.finance.applyAgreementTreatment(actor, id, meta);
     return { ok: true as const };
   }
@@ -266,7 +319,12 @@ export class AdminFinanceController {
   @HttpCode(200)
   @RequirePermissions('admin.finance.manage')
   @ApiOkResponse({ type: OkResponse })
-  async acceptOnBehalf(@Param('id', ParseUUIDPipe) id: string, @Body() b: OnBehalfDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async acceptOnBehalf(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: OnBehalfDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     await this.commercial.accept(actor, id, b.quotationId, b.checks, b.language, meta, {
       organizationId: b.organizationId,
       authorizationId: b.authorizationId,
@@ -287,7 +345,11 @@ export class AdminFinanceController {
   @Idempotent()
   @RequirePermissions('admin.finance.pricing.manage')
   @ApiOkResponse({ type: IdResponse })
-  createPricing(@Body() b: AgreementCreateDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  createPricing(
+    @Body() b: AgreementCreateDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.finance.createAgreement(actor, b as never, meta);
   }
 
@@ -295,7 +357,12 @@ export class AdminFinanceController {
   @Idempotent()
   @RequirePermissions('admin.finance.pricing.manage')
   @ApiOkResponse({ type: IdResponse })
-  async version(@Param('id', ParseUUIDPipe) id: string, @Body() b: AgreementVersionDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async version(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: AgreementVersionDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     const r = await this.finance.addVersion(actor, id, b as never, meta);
     return { id: String(r.version) };
   }
@@ -320,7 +387,12 @@ export class AdminFinanceController {
   @HttpCode(200)
   @RequirePermissions('admin.finance.pricing.manage')
   @ApiOkResponse({ type: OkResponse })
-  async toggleRule(@Param('id', ParseUUIDPipe) id: string, @Param('state') state: string, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async toggleRule(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('state') state: string,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     if (state !== 'enable' && state !== 'disable') throw AppError.notFound();
     await this.finance.setRuleActive(actor, id, state === 'enable', meta);
     return { ok: true as const };
@@ -347,7 +419,11 @@ export class AdminFinanceController {
   @HttpCode(200)
   @RequirePermissions('admin.finance.manage')
   @ApiOkResponse({ type: OkResponse })
-  async revokeAuth(@Param('id', ParseUUIDPipe) id: string, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async revokeAuth(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     await this.finance.revokeAuthorization(actor, id, meta);
     return { ok: true as const };
   }
@@ -364,7 +440,11 @@ export class AdminFinanceController {
   @Idempotent()
   @RequirePermissions('admin.finance.credit.manage')
   @ApiOkResponse({ type: IdResponse })
-  requestCredit(@Body() b: CreditRequestDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  requestCredit(
+    @Body() b: CreditRequestDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.finance.requestCredit(actor, b, meta);
   }
 
@@ -373,11 +453,21 @@ export class AdminFinanceController {
   @HttpCode(200)
   @RequirePermissions('admin.finance.credit.approve')
   @ApiOkResponse({ type: OkResponse })
-  async decideCredit(@Param('id', ParseUUIDPipe) id: string, @Param('decision') decision: string, @Body() b: ReasonDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
-    if (decision === 'approve') await this.finance.decideCredit(actor, id, 'ACTIVE', b.reason, meta);
-    else if (decision === 'reject') await this.finance.decideCredit(actor, id, 'REJECTED', b.reason, meta);
-    else if (decision === 'suspend') await this.finance.setCreditStatus(actor, id, 'SUSPENDED', b.reason, meta);
-    else if (decision === 'reinstate') await this.finance.setCreditStatus(actor, id, 'ACTIVE', b.reason, meta);
+  async decideCredit(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('decision') decision: string,
+    @Body() b: ReasonDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
+    if (decision === 'approve')
+      await this.finance.decideCredit(actor, id, 'ACTIVE', b.reason, meta);
+    else if (decision === 'reject')
+      await this.finance.decideCredit(actor, id, 'REJECTED', b.reason, meta);
+    else if (decision === 'suspend')
+      await this.finance.setCreditStatus(actor, id, 'SUSPENDED', b.reason, meta);
+    else if (decision === 'reinstate')
+      await this.finance.setCreditStatus(actor, id, 'ACTIVE', b.reason, meta);
     else throw AppError.notFound();
     return { ok: true as const };
   }
@@ -403,7 +493,12 @@ export class AdminFinanceController {
   @HttpCode(200)
   @RequirePermissions('admin.finance.manage')
   @ApiOkResponse({ type: OkResponse })
-  async release(@Param('id', ParseUUIDPipe) id: string, @Body() b: ReasonDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async release(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: ReasonDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     await this.finance.releaseHold(actor, id, b.reason, meta);
     return { ok: true as const };
   }
@@ -435,7 +530,11 @@ export class AdminFinanceController {
   @Idempotent()
   @RequirePermissions('admin.finance.manage')
   @ApiOkResponse({ type: IdResponse })
-  async createDocument(@Body() b: DocumentDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async createDocument(
+    @Body() b: DocumentDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     const r = await this.finance.createDocument(actor, b, meta);
     return { id: r.id };
   }
@@ -448,6 +547,4 @@ export class AdminFinanceController {
     await assertDirectAdjustmentAllowed(this.config, b.amountHalalas);
     return this.finance.adjust(actor, b, meta);
   }
-
-
 }

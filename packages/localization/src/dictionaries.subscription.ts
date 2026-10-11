@@ -9,12 +9,30 @@ const SB = {
   'nav.subscriptions': ['Subscriptions', 'الاشتراكات'],
 
   // ---------------------------------------------------------------- errors
-  'error.COMMERCIAL_SUSPENDED': ['Your subscription is suspended: new paid activity is paused until it is reinstated.', 'اشتراكك موقوف: النشاط المدفوع الجديد متوقف حتى إعادة التفعيل.'],
-  'error.CONTRACT_ENDED': ['Your agreement has ended: new paid activity is not available.', 'انتهت اتفاقيتك: النشاط المدفوع الجديد غير متاح.'],
-  'error.DOWNGRADE_BLOCKED': ['Your current usage is above the new plan’s limits. Reduce it first, or schedule the change for later.', 'استخدامك الحالي أعلى من حدود الباقة الجديدة. خفّضه أولاً أو جدول التغيير لموعد لاحق.'],
-  'error.PLAN_NOT_AVAILABLE': ['This plan is not available for your market.', 'هذه الباقة غير متاحة لسوقك.'],
-  'error.PRICING_NOT_AVAILABLE': ['This option has no price yet. DealDash will arrange it for you.', 'لا يوجد سعر لهذا الخيار بعد. سترتّبه ديل داش لك.'],
-  'error.AMENDMENT_INVALID': ['This change is not valid for your agreement.', 'هذا التغيير غير صالح لاتفاقيتك.'],
+  'error.COMMERCIAL_SUSPENDED': [
+    'Your subscription is suspended: new paid activity is paused until it is reinstated.',
+    'اشتراكك موقوف: النشاط المدفوع الجديد متوقف حتى إعادة التفعيل.',
+  ],
+  'error.CONTRACT_ENDED': [
+    'Your agreement has ended: new paid activity is not available.',
+    'انتهت اتفاقيتك: النشاط المدفوع الجديد غير متاح.',
+  ],
+  'error.DOWNGRADE_BLOCKED': [
+    'Your current usage is above the new plan’s limits. Reduce it first, or schedule the change for later.',
+    'استخدامك الحالي أعلى من حدود الباقة الجديدة. خفّضه أولاً أو جدول التغيير لموعد لاحق.',
+  ],
+  'error.PLAN_NOT_AVAILABLE': [
+    'This plan is not available for your market.',
+    'هذه الباقة غير متاحة لسوقك.',
+  ],
+  'error.PRICING_NOT_AVAILABLE': [
+    'This option has no price yet. DealDash will arrange it for you.',
+    'لا يوجد سعر لهذا الخيار بعد. سترتّبه ديل داش لك.',
+  ],
+  'error.AMENDMENT_INVALID': [
+    'This change is not valid for your agreement.',
+    'هذا التغيير غير صالح لاتفاقيتك.',
+  ],
 
   // ---------------------------------------------------------------- shared vocabulary
   'sb.status.DRAFT': ['Draft', 'مسودة'],
@@ -137,18 +155,33 @@ const SB = {
   'sb.when.IMMEDIATE': ['Immediately', 'فوراً'],
   'sb.when.NEXT_BILLING_CYCLE': ['From the next billing cycle', 'من دورة الفوترة التالية'],
   'sb.when.CUSTOM_EFFECTIVE_DATE': ['On a chosen date', 'في تاريخ محدد'],
-  'sb.remedy.DEACTIVATE_EXCESS': ['Close or deactivate what is above the new limit', 'أغلق أو أوقف ما يزيد عن الحد الجديد'],
-  'sb.remedy.SCHEDULE_FOR_LATER': ['Schedule the change for the next billing cycle', 'جدول التغيير لدورة الفوترة التالية'],
-  'sb.remedy.BUY_ADD_ON': ['Keep the extra capacity with an add-on', 'احتفظ بالسعة الإضافية عبر إضافة'],
+  'sb.remedy.DEACTIVATE_EXCESS': [
+    'Close or deactivate what is above the new limit',
+    'أغلق أو أوقف ما يزيد عن الحد الجديد',
+  ],
+  'sb.remedy.SCHEDULE_FOR_LATER': [
+    'Schedule the change for the next billing cycle',
+    'جدول التغيير لدورة الفوترة التالية',
+  ],
+  'sb.remedy.BUY_ADD_ON': [
+    'Keep the extra capacity with an add-on',
+    'احتفظ بالسعة الإضافية عبر إضافة',
+  ],
   'sb.remedy.CANCEL_DOWNGRADE': ['Keep your current plan', 'احتفظ بباقتك الحالية'],
   'sb.remedy.UPGRADE_PLAN': ['Move to a plan that includes it', 'انتقل إلى باقة تتضمنه'],
   'sb.remedy.REQUEST_ADD_ON': ['Ask for an add-on', 'اطلب إضافة'],
   'sb.remedy.REDUCE_USAGE': ['Reduce your current usage', 'خفّض استخدامك الحالي'],
-  'sb.remedy.OVERAGE_APPLIES': ['You can continue; usage above the allowance is charged', 'يمكنك المتابعة؛ يُحتسب الاستخدام الزائد عن الحد'],
+  'sb.remedy.OVERAGE_APPLIES': [
+    'You can continue; usage above the allowance is charged',
+    'يمكنك المتابعة؛ يُحتسب الاستخدام الزائد عن الحد',
+  ],
   'sb.remedy.CONTACT_DEALDASH': ['Contact DealDash', 'تواصل مع ديل داش'],
   'sb.remedy.CONTACT_DEALDASH_FINANCE': ['Contact DealDash Finance', 'تواصل مع مالية ديل داش'],
   'sb.remedy.SETTLE_PAYMENT': ['Settle the overdue payment', 'سدّد الدفعة المتأخرة'],
-  'sb.remedy.ASK_AN_ADMIN': ['Ask an administrator of your business', 'اطلب من مسؤول في نشاطك التجاري'],
+  'sb.remedy.ASK_AN_ADMIN': [
+    'Ask an administrator of your business',
+    'اطلب من مسؤول في نشاطك التجاري',
+  ],
 
   'sb.check.PROTECTED_ACTION': ['Always available to your customers', 'متاح دائماً لعملائك'],
   'sb.check.BUSINESS_ACCOUNT_ACTIVE': ['Business account active', 'حساب النشاط التجاري نشط'],
@@ -161,7 +194,10 @@ const SB = {
   'sb.check.SCOPE_AUTHORIZED': ['Your access covers it', 'نطاق وصولك يشمله'],
   'sb.check.USAGE_WITHIN_LIMIT': ['Within your limit', 'ضمن حدك'],
   'sb.check.ADD_ON_AVAILABLE': ['An add-on is available', 'تتوفر إضافة'],
-  'sb.check.COMMERCIAL_ACCEPTANCE_COMPLETE': ['Commercial terms accepted', 'تم قبول الشروط التجارية'],
+  'sb.check.COMMERCIAL_ACCEPTANCE_COMPLETE': [
+    'Commercial terms accepted',
+    'تم قبول الشروط التجارية',
+  ],
   'sb.check.FINANCIAL_STATUS_ALLOWS': ['Financial status allows it', 'الوضع المالي يسمح بذلك'],
   'sb.action.ADD_BRANCH': ['Add a branch', 'إضافة فرع'],
   'sb.action.ADD_USER': ['Add a user', 'إضافة مستخدم'],
@@ -231,9 +267,18 @@ const SB = {
 
   // ---------------------------------------------------------------- merchant: plan and usage
   'sb.m.title': ['Plan and usage', 'الباقة والاستخدام'],
-  'sb.m.sub': ['Your plan, what it includes, how much you use, and how to change it. Invoices and payments are in Finance.', 'باقتك وما تتضمنه ومقدار استخدامك وكيفية تغييرها. الفواتير والمدفوعات في قسم المالية.'],
-  'sb.m.defaultPlan': ['Your business is on the default plan. DealDash assigns your plan.', 'نشاطك التجاري على الباقة الافتراضية. ستحدد ديل داش باقتك.'],
-  'sb.m.ended': ['Your agreement has ended. Your history and finance records stay available; new paid activity is paused.', 'انتهت اتفاقيتك. يبقى سجلك وسجلاتك المالية متاحة؛ والنشاط المدفوع الجديد متوقف.'],
+  'sb.m.sub': [
+    'Your plan, what it includes, how much you use, and how to change it. Invoices and payments are in Finance.',
+    'باقتك وما تتضمنه ومقدار استخدامك وكيفية تغييرها. الفواتير والمدفوعات في قسم المالية.',
+  ],
+  'sb.m.defaultPlan': [
+    'Your business is on the default plan. DealDash assigns your plan.',
+    'نشاطك التجاري على الباقة الافتراضية. ستحدد ديل داش باقتك.',
+  ],
+  'sb.m.ended': [
+    'Your agreement has ended. Your history and finance records stay available; new paid activity is paused.',
+    'انتهت اتفاقيتك. يبقى سجلك وسجلاتك المالية متاحة؛ والنشاط المدفوع الجديد متوقف.',
+  ],
   'sb.m.current': ['Current plan', 'الباقة الحالية'],
   'sb.m.status': ['Status', 'الحالة'],
   'sb.m.price': ['Price', 'السعر'],
@@ -246,9 +291,18 @@ const SB = {
   'sb.m.until': ['Ends on', 'تنتهي في'],
   'sb.m.financial': ['Commercial status', 'الوضع التجاري'],
   'sb.m.graceUntil': ['Grace period until {date}', 'فترة السماح حتى {date}'],
-  'sb.m.suspendedNote': ['New paid activity is paused. Your customers can still redeem what they already hold, and your finance records stay available.', 'النشاط المدفوع الجديد متوقف. يمكن لعملائك استرداد ما لديهم بالفعل، وتبقى سجلاتك المالية متاحة.'],
-  'sb.m.graceNote': ['A payment is overdue. Everything keeps working during the grace period.', 'هناك دفعة متأخرة. يستمر كل شيء بالعمل خلال فترة السماح.'],
-  'sb.m.holdNote': ['A financial hold is in place: new paid campaigns and upgrades are paused. Contact DealDash Finance.', 'يوجد تعليق مالي: الحملات المدفوعة الجديدة والترقيات متوقفة. تواصل مع مالية ديل داش.'],
+  'sb.m.suspendedNote': [
+    'New paid activity is paused. Your customers can still redeem what they already hold, and your finance records stay available.',
+    'النشاط المدفوع الجديد متوقف. يمكن لعملائك استرداد ما لديهم بالفعل، وتبقى سجلاتك المالية متاحة.',
+  ],
+  'sb.m.graceNote': [
+    'A payment is overdue. Everything keeps working during the grace period.',
+    'هناك دفعة متأخرة. يستمر كل شيء بالعمل خلال فترة السماح.',
+  ],
+  'sb.m.holdNote': [
+    'A financial hold is in place: new paid campaigns and upgrades are paused. Contact DealDash Finance.',
+    'يوجد تعليق مالي: الحملات المدفوعة الجديدة والترقيات متوقفة. تواصل مع مالية ديل داش.',
+  ],
   'sb.m.trialUntil': ['Trial until {date}', 'فترة تجريبية حتى {date}'],
   'sb.m.trialThen': ['Then: {plan}', 'ثم: {plan}'],
   'sb.m.usage': ['Usage', 'الاستخدام'],
@@ -260,21 +314,36 @@ const SB = {
   'sb.m.features': ['Features', 'الميزات'],
   'sb.m.none': ['None', 'لا يوجد'],
   'sb.m.limits': ['Limits', 'الحدود'],
-  'sb.m.limitDetail': ['{base} in the plan, {addOns} from add-ons', '{base} في الباقة، و{addOns} من الإضافات'],
+  'sb.m.limitDetail': [
+    '{base} in the plan, {addOns} from add-ons',
+    '{base} في الباقة، و{addOns} من الإضافات',
+  ],
   'sb.m.addOns': ['Add-ons', 'الإضافات'],
   'sb.m.addOnRow': ['{name} × {quantity}', '{name} (العدد {quantity})'],
   'sb.m.addOnsEmpty': ['No add-ons.', 'لا توجد إضافات.'],
   'sb.m.promotions': ['Promotions and adjustments', 'العروض الترويجية والتعديلات'],
   'sb.m.promotionsEmpty': ['No promotion applies now.', 'لا يوجد عرض ترويجي ساري حالياً.'],
   'sb.m.pending': ['An agreement is waiting for your acceptance', 'هناك اتفاقية بانتظار قبولك'],
-  'sb.m.pendingBody': ['Review the plan and the price, then accept to activate it. Nothing is charged before you accept.', 'راجع الباقة والسعر، ثم اقبل لتفعيلها. لا يُحتسب أي مبلغ قبل قبولك.'],
+  'sb.m.pendingBody': [
+    'Review the plan and the price, then accept to activate it. Nothing is charged before you accept.',
+    'راجع الباقة والسعر، ثم اقبل لتفعيلها. لا يُحتسب أي مبلغ قبل قبولك.',
+  ],
   'sb.m.maxExposure': ['Most you commit to now: {amount}', 'الحد الأقصى لالتزامك الآن: {amount}'],
-  'sb.m.confirm': ['I have read the terms and accept them for my business', 'قرأت الشروط وأقبلها نيابة عن نشاطي التجاري'],
+  'sb.m.confirm': [
+    'I have read the terms and accept them for my business',
+    'قرأت الشروط وأقبلها نيابة عن نشاطي التجاري',
+  ],
   'sb.m.accept': ['Accept', 'قبول'],
   'sb.m.accepted': ['Accepted. Your plan is active.', 'تم القبول. باقتك نشطة.'],
-  'sb.m.cannotAccept': ['Only an authorised person of your business can accept.', 'لا يقبل إلا الشخص المفوض في نشاطك التجاري.'],
+  'sb.m.cannotAccept': [
+    'Only an authorised person of your business can accept.',
+    'لا يقبل إلا الشخص المفوض في نشاطك التجاري.',
+  ],
   'sb.m.change': ['Change plan', 'تغيير الباقة'],
-  'sb.m.changeNote': ['See the difference and the price before anything changes. A change takes effect only after you accept it.', 'اطّلع على الفرق والسعر قبل أي تغيير. لا يسري التغيير إلا بعد قبولك.'],
+  'sb.m.changeNote': [
+    'See the difference and the price before anything changes. A change takes effect only after you accept it.',
+    'اطّلع على الفرق والسعر قبل أي تغيير. لا يسري التغيير إلا بعد قبولك.',
+  ],
   'sb.m.plans': ['Available plans', 'الباقات المتاحة'],
   'sb.m.yourPlan': ['Your plan', 'باقتك'],
   'sb.m.preview': ['See the difference', 'عرض الفرق'],
@@ -287,8 +356,14 @@ const SB = {
   'sb.m.added': ['You gain', 'تحصل على'],
   'sb.m.removed': ['You lose', 'تفقد'],
   'sb.m.limitChange': ['{name}: {from} → {to}', '{name}: {from} ← {to}'],
-  'sb.m.excess': ['{name}: you use {current}, the new plan allows {limit}', '{name}: تستخدم {current}، والباقة الجديدة تسمح بـ {limit}'],
-  'sb.m.blocked': ['This change is blocked until your usage fits the new plan. Nothing is deleted.', 'هذا التغيير متوقف حتى يتوافق استخدامك مع الباقة الجديدة. لا يُحذف أي شيء.'],
+  'sb.m.excess': [
+    '{name}: you use {current}, the new plan allows {limit}',
+    '{name}: تستخدم {current}، والباقة الجديدة تسمح بـ {limit}',
+  ],
+  'sb.m.blocked': [
+    'This change is blocked until your usage fits the new plan. Nothing is deleted.',
+    'هذا التغيير متوقف حتى يتوافق استخدامك مع الباقة الجديدة. لا يُحذف أي شيء.',
+  ],
   'sb.m.request': ['Request this change', 'طلب هذا التغيير'],
   'sb.m.requested': ['Requested. Accept it below to apply it.', 'تم الطلب. اقبله أدناه لتطبيقه.'],
   'sb.m.changes': ['Changes waiting', 'تغييرات بانتظار الإجراء'],
@@ -301,7 +376,10 @@ const SB = {
   'sb.m.historyEmpty': ['No changes yet.', 'لا توجد تغييرات بعد.'],
   'sb.m.previous': ['Previous agreements', 'الاتفاقيات السابقة'],
   'sb.m.stopRenewal': ['Stop renewal', 'إيقاف التجديد'],
-  'sb.m.stopRenewalNote': ['Your plan stays in force until the end of the current period, then ends. Nothing is deleted.', 'تبقى باقتك سارية حتى نهاية الفترة الحالية ثم تنتهي. لا يُحذف أي شيء.'],
+  'sb.m.stopRenewalNote': [
+    'Your plan stays in force until the end of the current period, then ends. Nothing is deleted.',
+    'تبقى باقتك سارية حتى نهاية الفترة الحالية ثم تنتهي. لا يُحذف أي شيء.',
+  ],
   'sb.m.reason': ['Reason', 'السبب'],
   'sb.m.stopped': ['Renewal stopped.', 'تم إيقاف التجديد.'],
   'sb.m.why': ['Why is something unavailable?', 'لماذا شيء ما غير متاح؟'],
@@ -310,11 +388,17 @@ const SB = {
   'sb.m.allowed': ['Allowed', 'مسموح'],
   'sb.m.notAllowed': ['Not available', 'غير متاح'],
   'sb.m.whatHelps': ['What helps', 'ما الذي يساعد'],
-  'sb.m.invoicesInFinance': ['Invoices, payments and statements are in Finance.', 'الفواتير والمدفوعات والكشوف في قسم المالية.'],
+  'sb.m.invoicesInFinance': [
+    'Invoices, payments and statements are in Finance.',
+    'الفواتير والمدفوعات والكشوف في قسم المالية.',
+  ],
 
   // ---------------------------------------------------------------- admin: subscriptions workspace
   'sb.a.title': ['Subscriptions and licences', 'الاشتراكات والتراخيص'],
-  'sb.a.sub': ['Plans, prices and agreements are data: a change needs no release. Published versions never change; publishing needs a second person.', 'الباقات والأسعار والاتفاقيات بيانات: لا يحتاج التغيير إلى إصدار جديد. النسخ المنشورة لا تتغير، والنشر يحتاج شخصاً ثانياً.'],
+  'sb.a.sub': [
+    'Plans, prices and agreements are data: a change needs no release. Published versions never change; publishing needs a second person.',
+    'الباقات والأسعار والاتفاقيات بيانات: لا يحتاج التغيير إلى إصدار جديد. النسخ المنشورة لا تتغير، والنشر يحتاج شخصاً ثانياً.',
+  ],
   'sb.a.tab.agreements': ['Agreements', 'الاتفاقيات'],
   'sb.a.tab.catalog': ['Plan catalog', 'دليل الباقات'],
   'sb.a.tab.priceBook': ['Price book', 'دليل الأسعار'],
@@ -360,7 +444,10 @@ const SB = {
   'sb.a.marketCode': ['Market (country code)', 'السوق (رمز الدولة)'],
   'sb.a.trialDays': ['Trial days (optional)', 'أيام التجربة (اختياري)'],
   'sb.a.postTrial': ['Plan after the trial (optional)', 'الباقة بعد التجربة (اختياري)'],
-  'sb.a.assigned': ['Plan assigned. A paid plan waits for the business’s acceptance.', 'تم تعيين الباقة. الباقة المدفوعة تنتظر قبول النشاط التجاري.'],
+  'sb.a.assigned': [
+    'Plan assigned. A paid plan waits for the business’s acceptance.',
+    'تم تعيين الباقة. الباقة المدفوعة تنتظر قبول النشاط التجاري.',
+  ],
   'sb.a.open': ['Open', 'فتح'],
   'sb.a.back': ['Back to the list', 'العودة إلى القائمة'],
   'sb.a.agreement': ['Agreement', 'الاتفاقية'],
@@ -386,10 +473,16 @@ const SB = {
   'sb.a.renew': ['Renew now', 'التجديد الآن'],
   'sb.a.setRenewal': ['Set renewal', 'تعيين التجديد'],
   'sb.a.acceptOnBehalf': ['Accept on the business’s behalf', 'القبول نيابة عن النشاط التجاري'],
-  'sb.a.suspendNote': ['Suspension stops NEW exposure only. Issued vouchers, rewards, refunds, history and finance stay available.', 'الإيقاف يمنع الالتزامات الجديدة فقط. تبقى القسائم الصادرة والمكافآت والاستردادات والسجل والمالية متاحة.'],
+  'sb.a.suspendNote': [
+    'Suspension stops NEW exposure only. Issued vouchers, rewards, refunds, history and finance stay available.',
+    'الإيقاف يمنع الالتزامات الجديدة فقط. تبقى القسائم الصادرة والمكافآت والاستردادات والسجل والمالية متاحة.',
+  ],
   'sb.a.rates': ['Negotiated rates', 'الأسعار المتفاوض عليها'],
   'sb.a.addRate': ['Add a rate', 'إضافة سعر'],
-  'sb.a.itemCode': ['Item (SUBSCRIPTION, SETUP_FEE, API_FEE, ADDON:CODE, price-book code)', 'البند (SUBSCRIPTION أو SETUP_FEE أو API_FEE أو ADDON:CODE أو رمز من دليل الأسعار)'],
+  'sb.a.itemCode': [
+    'Item (SUBSCRIPTION, SETUP_FEE, API_FEE, ADDON:CODE, price-book code)',
+    'البند (SUBSCRIPTION أو SETUP_FEE أو API_FEE أو ADDON:CODE أو رمز من دليل الأسعار)',
+  ],
   'sb.a.amountMinor': ['Amount in minor units', 'المبلغ بالوحدة الصغرى'],
   'sb.a.discountBps': ['Discount (basis points)', 'الخصم (نقاط أساس)'],
   'sb.a.waived': ['Waived', 'معفى'],
@@ -403,7 +496,10 @@ const SB = {
   'sb.a.amendments': ['Changes to this agreement', 'التغييرات على هذه الاتفاقية'],
   'sb.a.newAmendment': ['Propose a change', 'اقتراح تغيير'],
   'sb.a.targetPlan': ['Target plan', 'الباقة المستهدفة'],
-  'sb.a.forced': ['Forced by DealDash (excess is restricted, never deleted)', 'مفروض من ديل داش (يُقيَّد الزائد ولا يُحذف)'],
+  'sb.a.forced': [
+    'Forced by DealDash (excess is restricted, never deleted)',
+    'مفروض من ديل داش (يُقيَّد الزائد ولا يُحذف)',
+  ],
   'sb.a.override': ['Entitlement override', 'استثناء في الصلاحيات'],
   'sb.a.overrideKey': ['Limit, product or feature', 'الحد أو المنتج أو الميزة'],
   'sb.a.overrideValue': ['Value (limits) / on-off', 'القيمة (للحدود) / تشغيل-إيقاف'],
@@ -421,8 +517,14 @@ const SB = {
   'sb.a.plan.newVersion': ['New draft version', 'نسخة مسودة جديدة'],
   'sb.a.plan.publish': ['Publish (second person)', 'نشر (شخص ثانٍ)'],
   'sb.a.plan.retire': ['Retire', 'إيقاف'],
-  'sb.a.plan.monthly': ['Monthly price (minor units, blank = none)', 'السعر الشهري (بالوحدة الصغرى، فارغ = لا يوجد)'],
-  'sb.a.plan.annual': ['Annual price (minor units, blank = none)', 'السعر السنوي (بالوحدة الصغرى، فارغ = لا يوجد)'],
+  'sb.a.plan.monthly': [
+    'Monthly price (minor units, blank = none)',
+    'السعر الشهري (بالوحدة الصغرى، فارغ = لا يوجد)',
+  ],
+  'sb.a.plan.annual': [
+    'Annual price (minor units, blank = none)',
+    'السعر السنوي (بالوحدة الصغرى، فارغ = لا يوجد)',
+  ],
   'sb.a.plan.currency': ['Currency', 'العملة'],
   'sb.a.plan.products': ['Products (comma separated)', 'المنتجات (مفصولة بفواصل)'],
   'sb.a.plan.features': ['Features (comma separated)', 'الميزات (مفصولة بفواصل)'],
@@ -436,11 +538,20 @@ const SB = {
   'sb.a.item.rate': ['{rate} %', '{rate} ٪'],
   'sb.a.item.inactive': ['Not active', 'غير نشط'],
   'sb.a.addon.effect': ['{key} +{n} each', '{key} +{n} لكل وحدة'],
-  'sb.a.billingNote': ['Standard billing events handed to Finance (Phase 5 invoices them). Funding of customer points, rewards and sponsor funding is never DealDash revenue and never appears here.', 'أحداث فوترة موحّدة تُسلَّم إلى المالية (تصدر فواتيرها في المرحلة 5). تمويل نقاط العملاء والمكافآت وتمويل الرعاة ليس إيراداً لديل داش ولا يظهر هنا.'],
-  'sb.a.signalsNote': ['Commercial signals waiting for the alert engine (Phase 4). Each is raised once per threshold.', 'إشارات تجارية بانتظار محرك التنبيهات (المرحلة 4). تُرفع كل إشارة مرة واحدة لكل عتبة.'],
+  'sb.a.billingNote': [
+    'Standard billing events handed to Finance (Phase 5 invoices them). Funding of customer points, rewards and sponsor funding is never DealDash revenue and never appears here.',
+    'أحداث فوترة موحّدة تُسلَّم إلى المالية (تصدر فواتيرها في المرحلة 5). تمويل نقاط العملاء والمكافآت وتمويل الرعاة ليس إيراداً لديل داش ولا يظهر هنا.',
+  ],
+  'sb.a.signalsNote': [
+    'Commercial signals waiting for the alert engine (Phase 4). Each is raised once per threshold.',
+    'إشارات تجارية بانتظار محرك التنبيهات (المرحلة 4). تُرفع كل إشارة مرة واحدة لكل عتبة.',
+  ],
   'sb.a.consumed': ['Taken', 'مستلمة'],
   'sb.a.waiting': ['Waiting', 'بانتظار'],
-  'sb.a.readinessNote': ['Businesses still on the default plan with no agreement of their own. Each needs an explicit plan before launch.', 'أنشطة تجارية ما زالت على الباقة الافتراضية دون اتفاقية خاصة بها. يحتاج كل منها إلى باقة محددة قبل الإطلاق.'],
+  'sb.a.readinessNote': [
+    'Businesses still on the default plan with no agreement of their own. Each needs an explicit plan before launch.',
+    'أنشطة تجارية ما زالت على الباقة الافتراضية دون اتفاقية خاصة بها. يحتاج كل منها إلى باقة محددة قبل الإطلاق.',
+  ],
   'sb.a.readinessEmpty': ['Every business has an agreement.', 'لكل نشاط تجاري اتفاقية.'],
   'sb.a.runDue': ['Run scheduled pass now', 'تشغيل المعالجة المجدولة الآن'],
   'sb.a.ranDue': ['Scheduled pass complete.', 'اكتملت المعالجة المجدولة.'],
@@ -449,7 +560,11 @@ const SB = {
 type SubscriptionPairs = typeof SB;
 export type SubscriptionKey = keyof SubscriptionPairs;
 
-const pick = (index: 0 | 1) => Object.fromEntries(Object.entries(SB).map(([k, v]) => [k, v[index]])) as Record<SubscriptionKey, string>;
+const pick = (index: 0 | 1) =>
+  Object.fromEntries(Object.entries(SB).map(([k, v]) => [k, v[index]])) as Record<
+    SubscriptionKey,
+    string
+  >;
 
 export const enSubscription = pick(0);
 export const arSubscription = pick(1);

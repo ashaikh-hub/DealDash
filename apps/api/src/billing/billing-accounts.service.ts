@@ -509,7 +509,8 @@ export class BillingAccountsService {
     meta: RequestMeta,
   ) {
     // a manual override of the source rate is allowed only with a reason (still maker-checker approved and audited)
-    if (b.isManualOverride && !(b.overrideReason ?? '').trim()) throw AppError.validation('A manual override needs a reason', 'overrideReason');
+    if (b.isManualOverride && !(b.overrideReason ?? '').trim())
+      throw AppError.validation('A manual override needs a reason', 'overrideReason');
     if (!/^[0-9]+(\.[0-9]{1,10})?$/.test(b.rate) || Number(b.rate) <= 0)
       throw AppError.validation('A rate is a positive decimal (up to 10 places)', 'rate');
     if (b.baseCurrency === b.quoteCurrency)

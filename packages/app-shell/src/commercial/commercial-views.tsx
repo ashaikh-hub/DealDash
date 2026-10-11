@@ -1,7 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { createTranslator, formatMoney, formatNumber, type DictionaryKey, type Locale } from '@dealdash/localization';
+import {
+  createTranslator,
+  formatMoney,
+  formatNumber,
+  type DictionaryKey,
+  type Locale,
+} from '@dealdash/localization';
 import type { AcceptanceCheck, CommercialProduct } from '@dealdash/types';
 import { Alert, Button, Card, Checkbox, Field, Input, StatusChip } from '@dealdash/ui';
 import type {
@@ -96,34 +102,88 @@ export function CommercialInputsEditor({ value, onChange, product, disabled }: E
           </p>
         </div>
         {exclusive ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: 12,
+            }}
+          >
             <Field label={t('cm.inputs.normalPrice')} htmlFor="cm-normal">
-              <MoneyInput id="cm-normal" nullable disabled={disabled} value={value.normalPriceHalalas} onChange={(h) => set({ normalPriceHalalas: h })} />
+              <MoneyInput
+                id="cm-normal"
+                nullable
+                disabled={disabled}
+                value={value.normalPriceHalalas}
+                onChange={(h) => set({ normalPriceHalalas: h })}
+              />
             </Field>
             <Field label={t('cm.inputs.dealPrice')} htmlFor="cm-deal">
-              <MoneyInput id="cm-deal" nullable disabled={disabled} value={value.dealPriceHalalas} onChange={(h) => set({ dealPriceHalalas: h })} />
+              <MoneyInput
+                id="cm-deal"
+                nullable
+                disabled={disabled}
+                value={value.dealPriceHalalas}
+                onChange={(h) => set({ dealPriceHalalas: h })}
+              />
             </Field>
-            <Field label={t('cm.inputs.benefitValue')} htmlFor="cm-benefit" help={t('cm.inputs.benefitHelp')}>
-              <MoneyInput id="cm-benefit" nullable disabled={disabled} value={value.benefitValueHalalas} onChange={(h) => set({ benefitValueHalalas: h })} />
+            <Field
+              label={t('cm.inputs.benefitValue')}
+              htmlFor="cm-benefit"
+              help={t('cm.inputs.benefitHelp')}
+            >
+              <MoneyInput
+                id="cm-benefit"
+                nullable
+                disabled={disabled}
+                value={value.benefitValueHalalas}
+                onChange={(h) => set({ benefitValueHalalas: h })}
+              />
             </Field>
-            <Field label={t('cm.inputs.maxRedemptions')} htmlFor="cm-max" help={t('cm.inputs.maxHelp')}>
+            <Field
+              label={t('cm.inputs.maxRedemptions')}
+              htmlFor="cm-max"
+              help={t('cm.inputs.maxHelp')}
+            >
               <Input
                 id="cm-max"
                 inputMode="numeric"
                 disabled={disabled}
                 value={value.maxRedemptions ?? ''}
                 onChange={(e) =>
-                  set({ maxRedemptions: e.target.value === '' ? null : Math.max(1, Number(e.target.value) || 1) })
+                  set({
+                    maxRedemptions:
+                      e.target.value === '' ? null : Math.max(1, Number(e.target.value) || 1),
+                  })
                 }
               />
             </Field>
           </div>
         ) : null}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
-          <Field label={t('cm.inputs.merchantCash')} htmlFor="cm-mcash" help={t('cm.inputs.merchantCashHelp')}>
-            <MoneyInput id="cm-mcash" disabled={disabled} value={value.merchantCashPerUnitHalalas} onChange={(h) => set({ merchantCashPerUnitHalalas: h ?? 0 })} />
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: 12,
+          }}
+        >
+          <Field
+            label={t('cm.inputs.merchantCash')}
+            htmlFor="cm-mcash"
+            help={t('cm.inputs.merchantCashHelp')}
+          >
+            <MoneyInput
+              id="cm-mcash"
+              disabled={disabled}
+              value={value.merchantCashPerUnitHalalas}
+              onChange={(h) => set({ merchantCashPerUnitHalalas: h ?? 0 })}
+            />
           </Field>
-          <Field label={t('cm.inputs.fulfilment')} htmlFor="cm-fulfil" help={t('cm.inputs.fulfilmentHelp')}>
+          <Field
+            label={t('cm.inputs.fulfilment')}
+            htmlFor="cm-fulfil"
+            help={t('cm.inputs.fulfilmentHelp')}
+          >
             <Input
               id="cm-fulfil"
               disabled={disabled}
@@ -147,14 +207,33 @@ export function CommercialInputsEditor({ value, onChange, product, disabled }: E
                   disabled={disabled}
                   value={s.organizationId}
                   onChange={(e) =>
-                    set({ sponsors: value.sponsors.map((x, j) => (j === i ? { ...x, organizationId: e.target.value.trim() } : x)) })
+                    set({
+                      sponsors: value.sponsors.map((x, j) =>
+                        j === i ? { ...x, organizationId: e.target.value.trim() } : x,
+                      ),
+                    })
                   }
                 />
               </Field>
               <Field label={t('cm.inputs.sponsorPerUnit')} htmlFor={`cm-sp-amt-${i}`}>
-                <MoneyInput id={`cm-sp-amt-${i}`} disabled={disabled} value={s.perUnitHalalas} onChange={(h) => set({ sponsors: value.sponsors.map((x, j) => (j === i ? { ...x, perUnitHalalas: h ?? 0 } : x)) })} />
+                <MoneyInput
+                  id={`cm-sp-amt-${i}`}
+                  disabled={disabled}
+                  value={s.perUnitHalalas}
+                  onChange={(h) =>
+                    set({
+                      sponsors: value.sponsors.map((x, j) =>
+                        j === i ? { ...x, perUnitHalalas: h ?? 0 } : x,
+                      ),
+                    })
+                  }
+                />
               </Field>
-              <Button variant="outline" disabled={disabled} onClick={() => set({ sponsors: value.sponsors.filter((_, j) => j !== i) })}>
+              <Button
+                variant="outline"
+                disabled={disabled}
+                onClick={() => set({ sponsors: value.sponsors.filter((_, j) => j !== i) })}
+              >
                 {t('cm.inputs.remove')}
               </Button>
             </div>
@@ -166,7 +245,12 @@ export function CommercialInputsEditor({ value, onChange, product, disabled }: E
                 disabled={disabled}
                 data-testid="cm-add-sponsor"
                 onClick={() =>
-                  set({ sponsors: [...value.sponsors, { organizationId: '', perUnitHalalas: 0, trigger: 'VERIFIED_REDEMPTION' }] })
+                  set({
+                    sponsors: [
+                      ...value.sponsors,
+                      { organizationId: '', perUnitHalalas: 0, trigger: 'VERIFIED_REDEMPTION' },
+                    ],
+                  })
                 }
               >
                 {t('cm.inputs.addSponsor')}
@@ -202,7 +286,8 @@ export function CommercialSummary({ preview, locale, delta }: SummaryProps) {
   const t = createTranslator(locale);
   const { totals, lines } = preview;
   const nm = (l: { label: { en: string; ar: string } }) => l.label[locale];
-  const group = (kind: string) => lines.filter((l) => l.kind === kind && (l.amountHalalas > 0 || l.kind === 'TAX'));
+  const group = (kind: string) =>
+    lines.filter((l) => l.kind === kind && (l.amountHalalas > 0 || l.kind === 'TAX'));
   const section = (kind: string, titleKey: DictionaryKey) => {
     const rows = group(kind);
     if (!rows.length) return null;
@@ -276,7 +361,12 @@ export function CommercialSummary({ preview, locale, delta }: SummaryProps) {
         {totals.merchantCashContributionHalalas > 0
           ? row('cm.total.merchantCash', totals.merchantCashContributionHalalas, 'cm-total-mcash')
           : null}
-        {row('cm.total.benefit', totals.maxMerchantBenefitCommitmentHalalas, 'cm-total-benefit', true)}
+        {row(
+          'cm.total.benefit',
+          totals.maxMerchantBenefitCommitmentHalalas,
+          'cm-total-benefit',
+          true,
+        )}
       </dl>
       <p className="dd-muted" style={{ margin: 0 }}>
         {t('cm.nonCashNote')}
@@ -295,8 +385,12 @@ export function CommercialSummary({ preview, locale, delta }: SummaryProps) {
                 <div className="dd-kv__row" key={k}>
                   <dt>{t(label)}</dt>
                   <dd>
-                    <Money locale={locale} v={delta[k].original} /> → <Money locale={locale} v={delta[k].revised} />{' '}
-                    <span className="dd-muted">(+<Money locale={locale} v={delta[k].additional} />)</span>
+                    <Money locale={locale} v={delta[k].original} /> →{' '}
+                    <Money locale={locale} v={delta[k].revised} />{' '}
+                    <span className="dd-muted">
+                      (+
+                      <Money locale={locale} v={delta[k].additional} />)
+                    </span>
                   </dd>
                 </div>
               ) : null,
@@ -339,7 +433,17 @@ interface PanelProps {
  * Commercial summary, explicit acknowledgement and funding for one campaign. The server decides everything (economics, who must
  * accept, which acknowledgements, what blocks activation): this component only shows it and sends the user's decisions.
  */
-export function CommercialPanel({ orgId, product, subjectId, content, dirty, onReady, refreshKey, base: baseProp, previewExtra }: PanelProps) {
+export function CommercialPanel({
+  orgId,
+  product,
+  subjectId,
+  content,
+  dirty,
+  onReady,
+  refreshKey,
+  base: baseProp,
+  previewExtra,
+}: PanelProps) {
   const base = baseProp ?? `/v1/merchants/${orgId}/commercial`;
   const { locale, me } = useAuth();
   const { call } = useApi();
@@ -388,7 +492,10 @@ export function CommercialPanel({ orgId, product, subjectId, content, dirty, onR
     () => view?.preview?.parties.find((p) => p.organizationId === orgId) ?? null,
     [view, orgId],
   );
-  const canAccept = Boolean(view?.allowedActions.includes('ACCEPT') && (perms.includes('merchant.commercial.accept') || perms.includes('partner.commercial.accept')));
+  const canAccept = Boolean(
+    view?.allowedActions.includes('ACCEPT') &&
+    (perms.includes('merchant.commercial.accept') || perms.includes('partner.commercial.accept')),
+  );
   const required = myParty?.requiredChecks ?? [];
   const allChecked = required.length > 0 && required.every((c) => checks.includes(c));
 
@@ -414,7 +521,10 @@ export function CommercialPanel({ orgId, product, subjectId, content, dirty, onR
     });
     setBusy(false);
     if (!r.ok) return setBanner({ tone: 'danger', text: errorMessage(locale, r.errors) });
-    setBanner({ tone: 'success', text: t('cm.paid', { amount: formatMoney(locale, r.data?.paidHalalas ?? 0) }) });
+    setBanner({
+      tone: 'success',
+      text: t('cm.paid', { amount: formatMoney(locale, r.data?.paidHalalas ?? 0) }),
+    });
     await load();
   };
 
@@ -426,7 +536,9 @@ export function CommercialPanel({ orgId, product, subjectId, content, dirty, onR
       </div>
     );
 
-  const mine = view?.acceptances.find((a) => a.organizationId === orgId && a.quotationId === view.quotation?.id);
+  const mine = view?.acceptances.find(
+    (a) => a.organizationId === orgId && a.quotationId === view.quotation?.id,
+  );
   const delta = (view?.quotation?.delta ?? null) as SummaryProps['delta'];
   const myFunding = view?.funding.filter((f) => f.organizationId === orgId) ?? [];
   const owing = myFunding.some((f) => f.mode === 'PREPAID' && f.outstandingHalalas > 0);
@@ -460,7 +572,10 @@ export function CommercialPanel({ orgId, product, subjectId, content, dirty, onR
               <ul className="dd-list" style={{ margin: 0, paddingInlineStart: 18 }}>
                 {view.preview?.parties.map((p) => {
                   const a = view.acceptances.find(
-                    (x) => x.organizationId === p.organizationId && x.role === p.role && x.quotationId === view.quotation?.id,
+                    (x) =>
+                      x.organizationId === p.organizationId &&
+                      x.role === p.role &&
+                      x.quotationId === view.quotation?.id,
                   );
                   return (
                     <li key={`${p.role}-${p.organizationId}`} data-testid={`cm-party-${p.role}`}>
@@ -469,7 +584,9 @@ export function CommercialPanel({ orgId, product, subjectId, content, dirty, onR
                         <>
                           <StatusChip tone="success">{t('cm.party.accepted')}</StatusChip>{' '}
                           <span className="dd-muted dd-ltr">{a.reference}</span>
-                          {a.onBehalf ? <span className="dd-muted"> · {t('cm.onBehalf')}</span> : null}
+                          {a.onBehalf ? (
+                            <span className="dd-muted"> · {t('cm.onBehalf')}</span>
+                          ) : null}
                         </>
                       ) : (
                         <StatusChip tone="warning">{t('cm.party.pending')}</StatusChip>
@@ -489,13 +606,20 @@ export function CommercialPanel({ orgId, product, subjectId, content, dirty, onR
                     data-testid={`cm-check-${c}`}
                     checked={checks.includes(c)}
                     onChange={(e) =>
-                      setChecks((cur) => (e.target.checked ? [...cur, c] : cur.filter((x) => x !== c)))
+                      setChecks((cur) =>
+                        e.target.checked ? [...cur, c] : cur.filter((x) => x !== c),
+                      )
                     }
                     label={t(key('cm.check', c))}
                   />
                 ))}
                 <div>
-                  <Button disabled={!allChecked} loading={busy} onClick={() => void accept()} data-testid="cm-accept">
+                  <Button
+                    disabled={!allChecked}
+                    loading={busy}
+                    onClick={() => void accept()}
+                    data-testid="cm-accept"
+                  >
                     {t('cm.accept')}
                   </Button>
                 </div>
@@ -503,7 +627,9 @@ export function CommercialPanel({ orgId, product, subjectId, content, dirty, onR
             ) : null}
             {mine ? (
               <div data-testid="cm-accepted-ref">
-                <Alert tone="success">{t('cm.acceptedBy', { ref: mine.reference, who: mine.userName ?? '' })}</Alert>
+                <Alert tone="success">
+                  {t('cm.acceptedBy', { ref: mine.reference, who: mine.userName ?? '' })}
+                </Alert>
               </div>
             ) : null}
 
@@ -527,10 +653,18 @@ export function CommercialPanel({ orgId, product, subjectId, content, dirty, onR
                         <tr key={f.id}>
                           <td>{t(key('cm.role', f.role))}</td>
                           <td>{t(key('cm.mode', f.mode))}</td>
-                          <td><Money locale={locale} v={f.maxHalalas} /></td>
-                          <td><Money locale={locale} v={f.receivedHalalas} /></td>
-                          <td><Money locale={locale} v={f.earnedHalalas} /></td>
-                          <td><Money locale={locale} v={f.outstandingHalalas} /></td>
+                          <td>
+                            <Money locale={locale} v={f.maxHalalas} />
+                          </td>
+                          <td>
+                            <Money locale={locale} v={f.receivedHalalas} />
+                          </td>
+                          <td>
+                            <Money locale={locale} v={f.earnedHalalas} />
+                          </td>
+                          <td>
+                            <Money locale={locale} v={f.outstandingHalalas} />
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -556,12 +690,27 @@ export function CommercialPanel({ orgId, product, subjectId, content, dirty, onR
                   {view.approvals.map((a) => (
                     <li key={a.step}>
                       {t(key('cm.step', a.step))}:{' '}
-                      <StatusChip tone={a.status === 'APPROVED' ? 'success' : a.status === 'REJECTED' ? 'danger' : 'warning'}>
+                      <StatusChip
+                        tone={
+                          a.status === 'APPROVED'
+                            ? 'success'
+                            : a.status === 'REJECTED'
+                              ? 'danger'
+                              : 'warning'
+                        }
+                      >
                         {t(key('cm.approval', a.status))}
                       </StatusChip>
-                      {view.allowedActions.includes(a.step === 'INTERNAL_APPROVER' ? 'APPROVE_INTERNAL' : 'APPROVE_FINANCE') &&
-                      a.status === 'PENDING' ? (
-                        <ApprovalButtons base={base} caseId={view.id} quotationId={view.quotation!.id} step={a.step} onDone={load} />
+                      {view.allowedActions.includes(
+                        a.step === 'INTERNAL_APPROVER' ? 'APPROVE_INTERNAL' : 'APPROVE_FINANCE',
+                      ) && a.status === 'PENDING' ? (
+                        <ApprovalButtons
+                          base={base}
+                          caseId={view.id}
+                          quotationId={view.quotation!.id}
+                          step={a.step}
+                          onDone={load}
+                        />
                       ) : null}
                     </li>
                   ))}
@@ -613,7 +762,11 @@ function ApprovalButtons({
   const decide = async (decision: 'APPROVED' | 'REJECTED') => {
     setBusy(true);
     const r = await call('POST', `${base}/cases/${caseId}/approvals/${step}`, {
-      body: { quotationId, decision, reason: decision === 'REJECTED' ? t('cm.rejectedReason') : undefined },
+      body: {
+        quotationId,
+        decision,
+        reason: decision === 'REJECTED' ? t('cm.rejectedReason') : undefined,
+      },
       idempotent: true,
     });
     setBusy(false);
@@ -622,7 +775,12 @@ function ApprovalButtons({
   };
   return (
     <span className="dd-row" style={{ display: 'inline-flex', marginInlineStart: 8 }}>
-      <Button variant="secondary" loading={busy} onClick={() => void decide('APPROVED')} data-testid={`cm-approve-${step}`}>
+      <Button
+        variant="secondary"
+        loading={busy}
+        onClick={() => void decide('APPROVED')}
+        data-testid={`cm-approve-${step}`}
+      >
         {t('cm.approve')}
       </Button>
       <Button variant="outline" loading={busy} onClick={() => void decide('REJECTED')}>

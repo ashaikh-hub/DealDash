@@ -388,7 +388,8 @@ export class RedemptionService {
     let reference: string | null = null;
     let redeemedAt: Date | null = null;
     // Stage 8: a governed branch redemption hold pauses redemption here; the customer keeps the reservation
-    if (result === 'VALID' && row) await this.restrictions?.assertBranchRedemptionOpen(row.branchId);
+    if (result === 'VALID' && row)
+      await this.restrictions?.assertBranchRedemptionOpen(row.branchId);
 
     if (result === 'VALID' && row) {
       const target = row;
@@ -656,7 +657,13 @@ export class RedemptionService {
         organizationId,
         ...(q.dealId ? { dealId: q.dealId } : {}),
         ...(allowedBranchIds
-          ? { branchId: q.branchId ? (allowedBranchIds.includes(q.branchId) ? q.branchId : { in: [] as string[] }) : { in: allowedBranchIds } }
+          ? {
+              branchId: q.branchId
+                ? allowedBranchIds.includes(q.branchId)
+                  ? q.branchId
+                  : { in: [] as string[] }
+                : { in: allowedBranchIds },
+            }
           : q.branchId
             ? { branchId: q.branchId }
             : {}),
@@ -744,7 +751,12 @@ export class RedemptionService {
         tx,
       );
       await this.usage?.voidBillable('VERIFIED_REDEMPTION_USAGE', red.id, tx);
-      await this.loyalty?.reverseForSource(tx, { sourceType: 'REDEMPTION', sourceId: red.id, reason: 'REDEMPTION_REVERSED', actor: { userId: actor.userId, role: actor.membership?.roleCode ?? null } });
+      await this.loyalty?.reverseForSource(tx, {
+        sourceType: 'REDEMPTION',
+        sourceId: red.id,
+        reason: 'REDEMPTION_REVERSED',
+        actor: { userId: actor.userId, role: actor.membership?.roleCode ?? null },
+      });
       const res = await tx.reservation.updateMany({
         where: { id: red.reservationId, status: 'REDEEMED' },
         data: cancelled

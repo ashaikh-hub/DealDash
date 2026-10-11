@@ -175,7 +175,11 @@ export function hotDealIssues(
   }
   if (!c.terms.textEn.trim()) out.push({ field: 'terms.textEn', code: 'REQUIRED_EN' });
   if (!c.terms.textAr.trim()) out.push({ field: 'terms.textAr', code: 'REQUIRED_AR' });
-  if (c.eligibility.kind === 'COMPOSITE' ? !c.eligibility.expression : c.eligibility.kind !== 'PUBLIC' && c.eligibility.valueRefs.length < 1)
+  if (
+    c.eligibility.kind === 'COMPOSITE'
+      ? !c.eligibility.expression
+      : c.eligibility.kind !== 'PUBLIC' && c.eligibility.valueRefs.length < 1
+  )
     out.push({ field: 'eligibility', code: 'REQUIRED' });
   return out;
 }

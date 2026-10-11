@@ -207,7 +207,11 @@ export class MerchantVouchersService {
     this.core.requireMerchantScope(actor, organizationId);
     await this.core.access.newCampaign(actor, 'VOUCHER', organizationId, input);
     const content = dedupe(input);
-    content.commercial.creatorOrganizationId = campaignCreator(actor, null, content.commercial.creatorOrganizationId);
+    content.commercial.creatorOrganizationId = campaignCreator(
+      actor,
+      null,
+      content.commercial.creatorOrganizationId,
+    );
     await this.core.validateReferences(organizationId, content);
     const id = await this.prisma.$transaction(async (tx) => {
       const v = await tx.voucher.create({
@@ -258,7 +262,11 @@ export class MerchantVouchersService {
     // ---- free editing (drafts and requested changes)
     if (v.status === 'DRAFT' || v.status === 'NEEDS_CHANGES') {
       const next = dedupe(input);
-      next.commercial.creatorOrganizationId = campaignCreator(actor, live.commercial.creatorOrganizationId, next.commercial.creatorOrganizationId);
+      next.commercial.creatorOrganizationId = campaignCreator(
+        actor,
+        live.commercial.creatorOrganizationId,
+        next.commercial.creatorOrganizationId,
+      );
       await this.core.validateReferences(organizationId, next);
       const changed = diffFields(live, next);
       if (!changed.length) return done('SAVED');
@@ -287,7 +295,11 @@ export class MerchantVouchersService {
 
     // ---- approved vouchers: wording and photos only. Issuance capacity changes through the stock endpoint.
     const next = dedupe({ ...input, totalQty: live.totalQty });
-    next.commercial.creatorOrganizationId = campaignCreator(actor, live.commercial.creatorOrganizationId, next.commercial.creatorOrganizationId);
+    next.commercial.creatorOrganizationId = campaignCreator(
+      actor,
+      live.commercial.creatorOrganizationId,
+      next.commercial.creatorOrganizationId,
+    );
     await this.core.validateReferences(organizationId, next);
     const material = voucherMaterialChanges(live, next);
     if (material.length)
@@ -464,8 +476,10 @@ export class MerchantVouchersService {
     const limits = await this.core.limits();
     if (v.totalQty + input.delta > limits.maxQtyPerVoucher)
       throw AppError.validation('That is more than the platform allows for one voucher', 'delta');
-    if (input.delta > 0) await this.core.commercial.requireCoverage('VOUCHER', id, v.totalQty + input.delta, actor);
-    const amendQuote = input.delta > 0 ? await this.core.commercial.acceptedQuotationId('VOUCHER', id) : null;
+    if (input.delta > 0)
+      await this.core.commercial.requireCoverage('VOUCHER', id, v.totalQty + input.delta, actor);
+    const amendQuote =
+      input.delta > 0 ? await this.core.commercial.acceptedQuotationId('VOUCHER', id) : null;
     await this.prisma.$transaction(async (tx) => {
       const moved =
         await tx.$executeRaw`UPDATE "Voucher" SET "totalQty" = "totalQty" + ${input.delta}, "updatedAt" = now()
@@ -586,7 +600,11 @@ export class MerchantVouchersService {
   ): Promise<Page<MerchantVoucherSaleRow>> {
     this.core.requireMerchantScope(actor, organizationId);
     const visible = await this.core.access.visibleCampaignIds(actor, 'VOUCHER', organizationId);
-    const allowed = visible ? (q.voucherId ? visible.filter((v) => v === q.voucherId) : visible) : null;
+    const allowed = visible
+      ? q.voucherId
+        ? visible.filter((v) => v === q.voucherId)
+        : visible
+      : null;
     const page = await keysetPage({
       findMany: (query) =>
         this.prisma.voucherInstance.findMany({
@@ -598,7 +616,11 @@ export class MerchantVouchersService {
         }),
       baseWhere: {
         organizationId,
-        ...(allowed ? { voucherId: { in: allowed } } : q.voucherId ? { voucherId: q.voucherId } : {}),
+        ...(allowed
+          ? { voucherId: { in: allowed } }
+          : q.voucherId
+            ? { voucherId: q.voucherId }
+            : {}),
         ...(q.status ? { status: q.status } : {}),
       } as Record<string, unknown>,
       sort: { field: 'issuedAt', dir: 'desc' },
@@ -655,9 +677,15 @@ export class MerchantVouchersService {
   ) {
     this.core.requireMerchantScope(actor, organizationId);
     if (this.core.access.isScoped(actor)) {
-      const r = await this.prisma.voucherRedemption.findFirst({ where: { id: redemptionId, organizationId }, select: { branchId: true, voucherId: true } });
+      const r = await this.prisma.voucherRedemption.findFirst({
+        where: { id: redemptionId, organizationId },
+        select: { branchId: true, voucherId: true },
+      });
       if (!r) throw AppError.notFound();
-      await this.core.access.branch(actor, 'merchant.redemptions.reverse', r.branchId, { product: 'VOUCHER', campaignId: r.voucherId });
+      await this.core.access.branch(actor, 'merchant.redemptions.reverse', r.branchId, {
+        product: 'VOUCHER',
+        campaignId: r.voucherId,
+      });
     }
     return this.redemption.reverse(actor, redemptionId, reason, { organizationId }, meta);
   }

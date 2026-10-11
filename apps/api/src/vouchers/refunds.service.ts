@@ -89,7 +89,11 @@ export class RefundsService {
   async needsChecker(r: { kind: string; amountHalalas: number }): Promise<boolean> {
     if (r.kind === 'CUSTOMER_REQUEST') {
       // Stage 8: a large customer refund under review can need a second person (configuration; off by default)
-      const ops = await this.core.config.get<{ approvals?: { refundReviewCheckerAboveMinor?: number | null } }>(CONFIG_KEYS.OPERATIONS).catch(() => null);
+      const ops = await this.core.config
+        .get<{ approvals?: { refundReviewCheckerAboveMinor?: number | null } }>(
+          CONFIG_KEYS.OPERATIONS,
+        )
+        .catch(() => null);
       const above = ops?.approvals?.refundReviewCheckerAboveMinor;
       return above !== null && above !== undefined && r.amountHalalas > above;
     }
@@ -564,12 +568,40 @@ export class RefundsService {
     // Stage 8 fix: the order's purchase points are reversed only when NOTHING of the order remains (every voucher refunded or
     // never issued), never for a duplicate / late payment refund (the points belong to the payment that issued the vouchers, which
     // stands). Before this a one-voucher refund of a multi-voucher order, or a duplicate-payment refund, removed every point.
-    const duplicate = r.reasonCode === 'LATE_OR_DUPLICATE_PAYMENT' || r.reasonCode === 'DUPLICATE_PAYMENT';
-    const remaining = await tx.voucherInstance.count({
-      where: { orderId: r.orderId, status: { in: ['ACTIVE', 'REDEEMED', 'EXPIRED'] }, ...(r.instanceId ? { id: { not: r.instanceId } } : {}) },
-    });
-    if (!duplicate && remaining === 0)
-      await this.loyalty?.reverseForSource(tx, { sourceType: 'EVENT', sourceId: r.orderId, reason: 'PURCHASE_REFUNDED' });
+    // Stage 9 (B4): a partial refund (one voucher of several) takes back the refunded share of the purchase points; the last refund
+    // of the order takes back the rest. Shares are cumulative over the order's refunds, so replays and rounding never over-collect.
+    const duplicate =
+      r.reasonCode === 'LATE_OR_DUPLICATE_PAYMENT' || r.reasonCode === 'DUPLICATE_PAYMENT';
+    if (!duplicate && this.loyalty) {
+      const order = await tx.voucherOrder.findUniqueOrThrow({
+        where: { id: r.orderId },
+        select: { totalHalalas: true },
+      });
+      const remaining = await tx.voucherInstance.count({
+        where: {
+          orderId: r.orderId,
+          status: { in: ['ACTIVE', 'REDEEMED', 'EXPIRED'] },
+          ...(r.instanceId ? { id: { not: r.instanceId } } : {}),
+        },
+      });
+      const refunded = await tx.refund.aggregate({
+        where: {
+          orderId: r.orderId,
+          status: 'REFUNDED',
+          reasonCode: { notIn: ['LATE_OR_DUPLICATE_PAYMENT', 'DUPLICATE_PAYMENT'] },
+        },
+        _sum: { amountHalalas: true },
+      });
+      await this.loyalty.reverseProportional(tx, {
+        sourceType: 'EVENT',
+        sourceId: r.orderId,
+        refundId: r.id,
+        // nothing of the order remains: everything is taken back whatever the amounts say
+        refundedMinor: remaining === 0 ? order.totalHalalas : (refunded._sum?.amountHalalas ?? 0),
+        baseMinor: order.totalHalalas,
+        reason: 'PURCHASE_REFUNDED',
+      });
+    }
     if (r.instanceId)
       await tx.voucherInstance.updateMany({
         where: { id: r.instanceId, status: { in: ['VOIDED', 'ACTIVE'] } },

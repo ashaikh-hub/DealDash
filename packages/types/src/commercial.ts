@@ -10,7 +10,13 @@
  * VALIDATE-KSA and configurable.
  */
 
-export const COMMERCIAL_PRODUCTS = ['VOUCHER', 'WATCH', 'EXCLUSIVE', 'LIVE_BENEFIT', 'LOYALTY'] as const;
+export const COMMERCIAL_PRODUCTS = [
+  'VOUCHER',
+  'WATCH',
+  'EXCLUSIVE',
+  'LIVE_BENEFIT',
+  'LOYALTY',
+] as const;
 export type CommercialProduct = (typeof COMMERCIAL_PRODUCTS)[number];
 
 /** Commercial status is independent of the campaign's operational status (an approved campaign can still be blocked). */
@@ -30,7 +36,12 @@ export type CommercialStatus = (typeof COMMERCIAL_STATUSES)[number];
 
 export const PRICING_BASES = ['FIXED', 'PER_UNIT', 'PERCENT_OF_BASE'] as const;
 export type PricingBasis = (typeof PRICING_BASES)[number];
-export const PRICING_BASE_OF = ['SELLING_PRICE', 'FACE_VALUE', 'MEDIA_SPEND', 'BENEFIT_VALUE'] as const;
+export const PRICING_BASE_OF = [
+  'SELLING_PRICE',
+  'FACE_VALUE',
+  'MEDIA_SPEND',
+  'BENEFIT_VALUE',
+] as const;
 export type PricingBaseOf = (typeof PRICING_BASE_OF)[number];
 /** When the charge is incurred. UPFRONT is earned at activation, the others per verified event. */
 export const CHARGE_TRIGGERS = ['UPFRONT', 'VERIFIED_REDEMPTION', 'SALE'] as const;
@@ -94,7 +105,13 @@ export const FINANCE_DOCUMENT_TYPES = [
 ] as const;
 export type FinanceDocumentType = (typeof FINANCE_DOCUMENT_TYPES)[number];
 
-export const CREDIT_STATUSES = ['PENDING_APPROVAL', 'ACTIVE', 'SUSPENDED', 'EXPIRED', 'REJECTED'] as const;
+export const CREDIT_STATUSES = [
+  'PENDING_APPROVAL',
+  'ACTIVE',
+  'SUSPENDED',
+  'EXPIRED',
+  'REJECTED',
+] as const;
 export type CreditStatus = (typeof CREDIT_STATUSES)[number];
 
 /** The seven explicit acknowledgements. Which ones apply depends on the party's lines in the quotation. */

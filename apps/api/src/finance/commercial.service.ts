@@ -29,6 +29,7 @@ import { BillingEventService } from '../subscription/billing-event.service';
 import { SystemConfigService } from '../system-config/system-config.service';
 import { PricingService, type ResolvedPricing } from './pricing.service';
 import { MarketService } from '../platform/markets/market.service';
+import { LaunchControlService } from '../operations/launch-control.service';
 import { RestrictionCheckService } from '../operations/restriction-check.service';
 import {
   amendmentDelta,
@@ -81,6 +82,8 @@ export class CommercialService {
     @Optional() private readonly markets?: MarketService,
     // Stage 8: governed restrictions / holds (global operations module)
     @Optional() private readonly restrictions?: RestrictionCheckService,
+    // Stage 9: launch controls (pilot allow-list, market stops)
+    @Optional() private readonly launch?: LaunchControlService,
   ) {}
 
   // ---------------------------------------------------------------- numbering (statutory formats are configuration / VALIDATE-KSA)
@@ -168,13 +171,21 @@ export class CommercialService {
   }
 
   // ---------------------------------------------------------------- calculation
-  private checksFor(role: PartyRole, t: QuoteTotals, ownerIsFulfilment: boolean): AcceptanceCheck[] {
+  private checksFor(
+    role: PartyRole,
+    t: QuoteTotals,
+    ownerIsFulfilment: boolean,
+  ): AcceptanceCheck[] {
     const c = new Set<AcceptanceCheck>(['REVIEWED_TERMS']);
     const benefit = t.maxMerchantBenefitCommitmentHalalas > 0 || t.customerBenefitTotalHalalas > 0;
     if (role === 'SPONSOR') c.add('CONFIRM_FUNDING');
     else {
-      if (role === 'OWNER' && (t.dealdashChargesHalalas > 0 || t.taxHalalas > 0)) c.add('UNDERSTAND_CHARGES');
-      if (role === 'OWNER' && (t.merchantCashContributionHalalas > 0 || t.maxCashPayableToDealDashHalalas > 0))
+      if (role === 'OWNER' && (t.dealdashChargesHalalas > 0 || t.taxHalalas > 0))
+        c.add('UNDERSTAND_CHARGES');
+      if (
+        role === 'OWNER' &&
+        (t.merchantCashContributionHalalas > 0 || t.maxCashPayableToDealDashHalalas > 0)
+      )
         c.add('CONFIRM_FUNDING');
       if (role === 'FULFILMENT_MERCHANT' || ownerIsFulfilment) {
         if (benefit) c.add('CONFIRM_BENEFIT');
@@ -204,11 +215,17 @@ export class CommercialService {
         requiredChecks: this.checksFor('FULFILMENT_MERCHANT', t, false),
       });
     const sponsorOrgs = new Set(
-      lines.filter((l) => l.kind === 'SPONSOR_FUNDING' && l.amountHalalas > 0).map((l) => l.partyOrganizationId!),
+      lines
+        .filter((l) => l.kind === 'SPONSOR_FUNDING' && l.amountHalalas > 0)
+        .map((l) => l.partyOrganizationId!),
     );
     for (const org of sponsorOrgs)
       if (org !== e.ownerOrganizationId && org !== e.fulfilmentOrganizationId)
-        parties.push({ role: 'SPONSOR', organizationId: org, requiredChecks: this.checksFor('SPONSOR', t, false) });
+        parties.push({
+          role: 'SPONSOR',
+          organizationId: org,
+          requiredChecks: this.checksFor('SPONSOR', t, false),
+        });
     return parties;
   }
 
@@ -223,7 +240,9 @@ export class CommercialService {
     const ownerCash = lines.filter(
       (l) => l.kind === 'DEALDASH_CHARGE' && l.collection === 'CASH' && l.code !== 'media_spend',
     );
-    const upfront = ownerCash.filter((l) => l.trigger === 'UPFRONT').reduce((n, l) => n + l.amountHalalas, 0) + t.taxHalalas;
+    const upfront =
+      ownerCash.filter((l) => l.trigger === 'UPFRONT').reduce((n, l) => n + l.amountHalalas, 0) +
+      t.taxHalalas;
     const perEvent = ownerCash.filter((l) => l.trigger !== 'UPFRONT');
     const usage = perEvent.reduce((n, l) => n + l.amountHalalas, 0);
     const perUnit = perEvent.reduce((n, l) => n + l.unitHalalas, 0);
@@ -269,7 +288,8 @@ export class CommercialService {
       if (f.managed) continue;
       const pos = await this.creditPosition(f.organizationId);
       const account = await this.accountOf(this.prisma, f.organizationId);
-      if (account.fundingMode === 'CREDIT' && pos.facility && pos.availableHalalas >= f.maxHalalas) f.mode = 'CREDIT';
+      if (account.fundingMode === 'CREDIT' && pos.facility && pos.availableHalalas >= f.maxHalalas)
+        f.mode = 'CREDIT';
     }
     return out;
   }
@@ -281,19 +301,46 @@ export class CommercialService {
     content: unknown,
     subjectId: string | null,
     override?: Partial<Economics>,
-  ): Promise<CommercialPreview & { hash: string; economics: Economics; pricingRaw: ResolvedPricing; market: string | null }> {
+  ): Promise<
+    CommercialPreview & {
+      hash: string;
+      economics: Economics;
+      pricingRaw: ResolvedPricing;
+      market: string | null;
+    }
+  > {
     const adapter = this.registry.get(product);
-    const economics = { ...(await adapter.economics(organizationId, content, subjectId)), ...(override ?? {}) };
+    const economics = {
+      ...(await adapter.economics(organizationId, content, subjectId)),
+      ...(override ?? {}),
+    };
     // the campaign's market (its branches' country, else the business's market) decides pricing and tax; never another country's
-    const market = this.markets ? await this.markets.marketOfCampaign(economics.ownerOrganizationId, content) : null;
-    const pricing = await this.pricing.resolve(economics.ownerOrganizationId, product, new Date(), market);
+    const market = this.markets
+      ? await this.markets.marketOfCampaign(economics.ownerOrganizationId, content)
+      : null;
+    const pricing = await this.pricing.resolve(
+      economics.ownerOrganizationId,
+      product,
+      new Date(),
+      market,
+    );
     if (this.markets) {
       const ledger = (await this.markets.settings()).campaignLedgerCurrencies;
       if (!ledger.includes(pricing.currency))
-        throw new AppError('MARKET_CURRENCY_NOT_SUPPORTED', `Campaign funding in ${pricing.currency} is not supported yet (the campaign ledger supports ${ledger.join(', ')})`, 409);
+        throw new AppError(
+          'MARKET_CURRENCY_NOT_SUPPORTED',
+          `Campaign funding in ${pricing.currency} is not supported yet (the campaign ledger supports ${ledger.join(', ')})`,
+          409,
+        );
     }
     const { lines, totals } = calculateQuote(economics, pricing);
-    const funding = await this.fundingOf(economics, lines, totals, Boolean(adapter.managedFunding), adapter.fundingKind);
+    const funding = await this.fundingOf(
+      economics,
+      lines,
+      totals,
+      Boolean(adapter.managedFunding),
+      adapter.fundingKind,
+    );
     const workflow = await this.pricing.workflow(
       economics.ownerOrganizationId,
       product,
@@ -338,7 +385,13 @@ export class CommercialService {
   ) {
     const adapter = this.registry.get(product);
     const subject = await adapter.load(subjectId);
-    const p = await this.preview(product, subject.organizationId, subject.content, subjectId, override);
+    const p = await this.preview(
+      product,
+      subject.organizationId,
+      subject.content,
+      subjectId,
+      override,
+    );
     const existing = await this.prisma.commercialCase.findUnique({
       where: { product_subjectId: { product, subjectId } },
     });
@@ -346,7 +399,14 @@ export class CommercialService {
       ? await this.prisma.quotation.findUnique({ where: { id: existing.currentQuotationId } })
       : null;
     // an expired, rejected or modification-requested quotation is never reused: the same economics are re-quoted as a new version
-    const reusable = current && !['EXPIRED', 'REJECTED', 'MODIFICATION_REQUESTED'].includes(current.status) && !(current.status === 'PENDING_ACCEPTANCE' && current.validUntil && current.validUntil <= new Date());
+    const reusable =
+      current &&
+      !['EXPIRED', 'REJECTED', 'MODIFICATION_REQUESTED'].includes(current.status) &&
+      !(
+        current.status === 'PENDING_ACCEPTANCE' &&
+        current.validUntil &&
+        current.validUntil <= new Date()
+      );
     if (existing && current && reusable && (current.inputs as { hash?: string }).hash === p.hash)
       return { caseId: existing.id, quotationId: current.id, created: false };
     const accepted = existing?.acceptedQuotationId
@@ -357,14 +417,24 @@ export class CommercialService {
     // Once live, a change that does not raise any commitment needs no new acceptance; a pending amendment stays until decided.
     if (existing && accepted && nonDraft && !override && existing.currentQuotationId) {
       const d = amendmentDelta(accepted.totals as unknown as QuoteTotals, p.totals);
-      if (!d.increasesExposure) return { caseId: existing.id, quotationId: existing.currentQuotationId, created: false };
+      if (!d.increasesExposure)
+        return { caseId: existing.id, quotationId: existing.currentQuotationId, created: false };
     }
     // the campaign keeps the contract in force and what it is billed on, so billing is never inferred later from dashboard totals
     const billing = this.systemConfig
-      ? ((await this.systemConfig.get<Record<string, { trigger: string; model: string }>>(CONFIG_KEYS.COMMERCIAL_CAMPAIGN_BILLING)) ?? {})[product]
+      ? ((await this.systemConfig.get<Record<string, { trigger: string; model: string }>>(
+          CONFIG_KEYS.COMMERCIAL_CAMPAIGN_BILLING,
+        )) ?? {})[product]
       : undefined;
-    const contractId = existing?.contractId ?? (await this.entitlements.effective(e.ownerOrganizationId)).contractId;
-    const validityDays = this.systemConfig ? ((await this.systemConfig.get<{ quotationValidityDays?: number }>(CONFIG_KEYS.FINANCE_BILLING))?.quotationValidityDays ?? 14) : 14;
+    const contractId =
+      existing?.contractId ?? (await this.entitlements.effective(e.ownerOrganizationId)).contractId;
+    const validityDays = this.systemConfig
+      ? ((
+          await this.systemConfig.get<{ quotationValidityDays?: number }>(
+            CONFIG_KEYS.FINANCE_BILLING,
+          )
+        )?.quotationValidityDays ?? 14)
+      : 14;
     return this.prisma.$transaction(async (tx) => {
       const c =
         existing ??
@@ -384,9 +454,13 @@ export class CommercialService {
         }));
       const version = (current?.version ?? 0) + 1;
       // The accepted commitments stay in force until the amended version is accepted (live campaigns); a draft is replaced.
-      const keepAccepted = Boolean(accepted) && subject.status !== 'DRAFT' && subject.status !== 'NEEDS_CHANGES';
+      const keepAccepted =
+        Boolean(accepted) && subject.status !== 'DRAFT' && subject.status !== 'NEEDS_CHANGES';
       if (current && (current.status === 'PENDING_ACCEPTANCE' || current.status === 'DRAFT'))
-        await tx.quotation.update({ where: { id: current.id }, data: { status: 'SUPERSEDED', supersededAt: new Date() } });
+        await tx.quotation.update({
+          where: { id: current.id },
+          data: { status: 'SUPERSEDED', supersededAt: new Date() },
+        });
       const q = await tx.quotation.create({
         data: {
           caseId: c.id,
@@ -413,7 +487,10 @@ export class CommercialService {
           unusedTreatment: p.pricing.unusedTreatment,
           requiredParties: p.parties as unknown as Prisma.InputJsonValue,
           delta: keepAccepted
-            ? (amendmentDelta(accepted!.totals as unknown as QuoteTotals, p.totals) as unknown as Prisma.InputJsonValue)
+            ? (amendmentDelta(
+                accepted!.totals as unknown as QuoteTotals,
+                p.totals,
+              ) as unknown as Prisma.InputJsonValue)
             : Prisma.JsonNull,
           createdByUserId: actor?.userId ?? c.createdByUserId,
           createdByName: actor?.displayName ?? null,
@@ -426,9 +503,12 @@ export class CommercialService {
           ownerOrganizationId: e.ownerOrganizationId,
           fulfilmentOrganizationId: e.fulfilmentOrganizationId,
           market: p.market,
-          maxCashHalalas: p.totals.maxCashPayableToDealDashHalalas + p.totals.maxSponsorLiabilityHalalas,
+          maxCashHalalas:
+            p.totals.maxCashPayableToDealDashHalalas + p.totals.maxSponsorLiabilityHalalas,
           benefitCommitmentHalalas: p.totals.maxMerchantBenefitCommitmentHalalas,
-          ...(keepAccepted ? {} : { acceptedQuotationId: null, status: 'AWAITING_ACCEPTANCE' as const }),
+          ...(keepAccepted
+            ? {}
+            : { acceptedQuotationId: null, status: 'AWAITING_ACCEPTANCE' as const }),
           unusedTreatment: keepAccepted ? undefined : p.pricing.unusedTreatment,
         },
       });
@@ -450,14 +530,28 @@ export class CommercialService {
   // ---------------------------------------------------------------- quotation decisions other than acceptance
   /** A pending quotation past its validity lapses (EXPIRED); the next sync re-quotes. Returns whether it changed. */
   async expireQuotation(id: string): Promise<boolean> {
-    const r = await this.prisma.quotation.updateMany({ where: { id, status: 'PENDING_ACCEPTANCE', validUntil: { lte: new Date() } }, data: { status: 'EXPIRED' } });
-    if (r.count) await this.audit.record({ action: 'COMMERCIAL_QUOTATION_EXPIRED', entityType: 'Quotation', entityId: id, actor: null, source: 'SYSTEM' });
+    const r = await this.prisma.quotation.updateMany({
+      where: { id, status: 'PENDING_ACCEPTANCE', validUntil: { lte: new Date() } },
+      data: { status: 'EXPIRED' },
+    });
+    if (r.count)
+      await this.audit.record({
+        action: 'COMMERCIAL_QUOTATION_EXPIRED',
+        entityType: 'Quotation',
+        entityId: id,
+        actor: null,
+        source: 'SYSTEM',
+      });
     return r.count > 0;
   }
 
   /** Scheduled pass: expires every lapsed pending quotation. */
   async expireDueQuotations(now = new Date()) {
-    const due = await this.prisma.quotation.findMany({ where: { status: 'PENDING_ACCEPTANCE', validUntil: { lte: now } }, select: { id: true }, take: 500 });
+    const due = await this.prisma.quotation.findMany({
+      where: { status: 'PENDING_ACCEPTANCE', validUntil: { lte: now } },
+      select: { id: true },
+      take: 500,
+    });
     let n = 0;
     for (const q of due) if (await this.expireQuotation(q.id)) n++;
     return n;
@@ -470,29 +564,76 @@ export class CommercialService {
   /** The calling business (merchant or, since Stage 7, partner) and its permission prefix. Own organization only (404 otherwise). */
   private businessOf(actor: Actor): { organizationId: string; prefix: 'merchant' | 'partner' } {
     const type = actor.membership?.organizationType === 'PARTNER' ? 'PARTNER' : 'MERCHANT';
-    const organizationId = this.tenant.requireOwnOrganization(actor, actor.membership?.organizationId ?? '', type);
+    const organizationId = this.tenant.requireOwnOrganization(
+      actor,
+      actor.membership?.organizationId ?? '',
+      type,
+    );
     return { organizationId, prefix: type === 'PARTNER' ? 'partner' : 'merchant' };
   }
 
-  async decline(actor: Actor, organizationId: string, caseId: string, quotationId: string, decision: 'REJECT' | 'REQUEST_MODIFICATION', reason: string, meta: RequestMeta) {
+  async decline(
+    actor: Actor,
+    organizationId: string,
+    caseId: string,
+    quotationId: string,
+    decision: 'REJECT' | 'REQUEST_MODIFICATION',
+    reason: string,
+    meta: RequestMeta,
+  ) {
     const q = await this.prisma.quotation.findFirst({ where: { id: quotationId, caseId } });
     if (!q) throw AppError.notFound();
     const parties = await this.requiredParties(q);
     if (!parties.some((p) => p.organizationId === organizationId)) throw AppError.notFound();
-    if (q.status !== 'PENDING_ACCEPTANCE') throw new AppError('INVALID_STATE', 'Only a quotation waiting for acceptance can be declined', 409);
+    if (q.status !== 'PENDING_ACCEPTANCE')
+      throw new AppError(
+        'INVALID_STATE',
+        'Only a quotation waiting for acceptance can be declined',
+        409,
+      );
     const now = new Date();
     await this.prisma.$transaction(async (tx) => {
       const r = await tx.quotation.updateMany({
         where: { id: q.id, status: 'PENDING_ACCEPTANCE' },
-        data: decision === 'REJECT' ? { status: 'REJECTED', rejectedAt: now, rejectedByUserId: actor.userId, rejectionReason: reason } : { status: 'MODIFICATION_REQUESTED', modificationRequestedAt: now, modificationRequest: reason },
+        data:
+          decision === 'REJECT'
+            ? {
+                status: 'REJECTED',
+                rejectedAt: now,
+                rejectedByUserId: actor.userId,
+                rejectionReason: reason,
+              }
+            : {
+                status: 'MODIFICATION_REQUESTED',
+                modificationRequestedAt: now,
+                modificationRequest: reason,
+              },
       });
-      if (r.count !== 1) throw new AppError('INVALID_STATE', 'This quotation changed meanwhile', 409);
-      await this.audit.record({ action: decision === 'REJECT' ? 'COMMERCIAL_QUOTATION_REJECTED' : 'COMMERCIAL_MODIFICATION_REQUESTED', entityType: 'CommercialCase', entityId: caseId, actor, subjectOrganizationId: organizationId, newState: { quotation: q.reference }, reason, meta }, tx);
+      if (r.count !== 1)
+        throw new AppError('INVALID_STATE', 'This quotation changed meanwhile', 409);
+      await this.audit.record(
+        {
+          action:
+            decision === 'REJECT'
+              ? 'COMMERCIAL_QUOTATION_REJECTED'
+              : 'COMMERCIAL_MODIFICATION_REQUESTED',
+          entityType: 'CommercialCase',
+          entityId: caseId,
+          actor,
+          subjectOrganizationId: organizationId,
+          newState: { quotation: q.reference },
+          reason,
+          meta,
+        },
+        tx,
+      );
     });
   }
 
   // ---------------------------------------------------------------- acceptance
-  private async requiredParties(q: { requiredParties: Prisma.JsonValue }): Promise<RequiredParty[]> {
+  private async requiredParties(q: {
+    requiredParties: Prisma.JsonValue;
+  }): Promise<RequiredParty[]> {
     return (q.requiredParties as unknown as RequiredParty[]) ?? [];
   }
 
@@ -522,37 +663,59 @@ export class CommercialService {
       );
     if (q.validUntil && q.validUntil <= new Date()) {
       await this.expireQuotation(q.id);
-      throw new AppError('QUOTATION_EXPIRED', 'This quotation has expired. Request a new quotation to continue.', 409);
+      throw new AppError(
+        'QUOTATION_EXPIRED',
+        'This quotation has expired. Request a new quotation to continue.',
+        409,
+      );
     }
     const parties = await this.requiredParties(q);
     let organizationId: string;
     let onBehalfId: string | null = null;
     if (on) {
-      if (actor.membership?.organizationType !== 'DEALDASH' || !actor.permissions.has('admin.finance.manage'))
+      if (
+        actor.membership?.organizationType !== 'DEALDASH' ||
+        !actor.permissions.has('admin.finance.manage')
+      )
         throw AppError.forbidden();
       // Admin may act for the owner or a sponsor under an auditable authorisation. NEVER for the fulfilment merchant.
-      if (on.role === 'FULFILMENT_MERCHANT') throw AppError.forbidden('A fulfilment merchant must approve its own obligations');
+      if (on.role === 'FULFILMENT_MERCHANT')
+        throw AppError.forbidden('A fulfilment merchant must approve its own obligations');
       const auth = await this.prisma.adminAuthorization.findFirst({
-        where: { id: on.authorizationId, organizationId: on.organizationId, revokedAt: null, validUntil: { gt: new Date() } },
+        where: {
+          id: on.authorizationId,
+          organizationId: on.organizationId,
+          revokedAt: null,
+          validUntil: { gt: new Date() },
+        },
       });
-      if (!auth) throw AppError.validation('A valid authorisation record for this business is required');
+      if (!auth)
+        throw AppError.validation('A valid authorisation record for this business is required');
       organizationId = on.organizationId;
       onBehalfId = auth.id;
     } else {
       const biz = this.businessOf(actor);
       organizationId = biz.organizationId;
       if (this.tenant.isBranchBound(actor)) throw AppError.forbidden();
-      if (!actor.permissions.has(`${biz.prefix}.commercial.accept` as PermissionCode)) throw AppError.forbidden();
+      if (!actor.permissions.has(`${biz.prefix}.commercial.accept` as PermissionCode))
+        throw AppError.forbidden();
     }
-    const party = parties.find((p) => p.organizationId === organizationId && (!on || p.role === on.role));
+    const party = parties.find(
+      (p) => p.organizationId === organizationId && (!on || p.role === on.role),
+    );
     if (!party) throw AppError.forbidden('You are not a party to this quotation');
     const missing = party.requiredChecks.filter((x) => !checks.includes(x));
     if (missing.length)
-      throw new AppError('COMMERCIAL_ACCEPTANCE_REQUIRED', `Every acknowledgement is required (${missing.join(', ')})`, 422);
+      throw new AppError(
+        'COMMERCIAL_ACCEPTANCE_REQUIRED',
+        `Every acknowledgement is required (${missing.join(', ')})`,
+        422,
+      );
     const econ = (q.inputs as unknown as { economics: Economics }).economics;
     if (party.role !== 'SPONSOR') {
       const org = await this.prisma.organization.findUnique({ where: { id: organizationId } });
-      if (!org || org.status !== 'ACTIVE') throw new AppError('ACTIVATION_BLOCKED', 'The business is not active', 409);
+      if (!org || org.status !== 'ACTIVE')
+        throw new AppError('ACTIVATION_BLOCKED', 'The business is not active', 409);
     }
     const totals = q.totals as unknown as QuoteTotals;
     const result = await this.prisma.$transaction(async (tx) => {
@@ -587,11 +750,17 @@ export class CommercialService {
         })
         .catch((err: unknown) => {
           if ((err as { code?: string }).code === 'P2002')
-            throw new AppError('INVALID_STATE', 'This quotation was already accepted by your business', 409);
+            throw new AppError(
+              'INVALID_STATE',
+              'This quotation was already accepted by your business',
+              409,
+            );
           throw err;
         });
       const all = await tx.commercialAcceptance.findMany({ where: { quotationId } });
-      const done = parties.every((p) => all.some((a) => a.organizationId === p.organizationId && a.role === p.role));
+      const done = parties.every((p) =>
+        all.some((a) => a.organizationId === p.organizationId && a.role === p.role),
+      );
       if (done) await this.finalizeAcceptance(tx, c.id, q.id, econ, actor);
       await this.audit.record(
         {
@@ -612,7 +781,13 @@ export class CommercialService {
   }
 
   /** All required parties accepted: this version becomes the binding commitment; funding commitments and approval steps appear. */
-  private async finalizeAcceptance(tx: Tx, caseId: string, quotationId: string, econ: Economics, actor: Actor | null) {
+  private async finalizeAcceptance(
+    tx: Tx,
+    caseId: string,
+    quotationId: string,
+    econ: Economics,
+    actor: Actor | null,
+  ) {
     const q = await tx.quotation.findUniqueOrThrow({ where: { id: quotationId } });
     const c = await tx.commercialCase.findUniqueOrThrow({ where: { id: caseId } });
     if (c.acceptedQuotationId && c.acceptedQuotationId !== quotationId)
@@ -624,7 +799,13 @@ export class CommercialService {
     const adapter = this.registry.get(c.product);
     const lines = q.lines as unknown as QuoteLine[];
     const totals = q.totals as unknown as QuoteTotals;
-    const reqs = await this.fundingOf(econ, lines, totals, Boolean(adapter.managedFunding), adapter.fundingKind);
+    const reqs = await this.fundingOf(
+      econ,
+      lines,
+      totals,
+      Boolean(adapter.managedFunding),
+      adapter.fundingKind,
+    );
     for (const r of reqs) {
       const kind = r.kind;
       const existing = await tx.fundingCommitment.findFirst({
@@ -692,19 +873,22 @@ export class CommercialService {
     const hold = await this.activeHold(tx, c.ownerOrganizationId, c.id);
     let status = c.status;
     if (hold) status = 'FINANCIAL_HOLD';
-    else if (!c.acceptedQuotationId) status = c.currentQuotationId ? 'AWAITING_ACCEPTANCE' : 'PRICING_DRAFT';
+    else if (!c.acceptedQuotationId)
+      status = c.currentQuotationId ? 'AWAITING_ACCEPTANCE' : 'PRICING_DRAFT';
     else {
       const cash = c.commitments.filter((m) => !m.adapterManaged);
       const credit = cash.filter((m) => m.mode === 'CREDIT');
       const prepaid = cash.filter((m) => m.mode === 'PREPAID');
-      const covered = (m: (typeof cash)[number]) => m.receivedHalalas >= m.upfrontHalalas + m.usageMaxHalalas;
+      const covered = (m: (typeof cash)[number]) =>
+        m.receivedHalalas >= m.upfrontHalalas + m.usageMaxHalalas;
       const any = prepaid.some((m) => m.receivedHalalas > 0);
       if (!cash.length) status = 'ACCEPTED';
       else if (prepaid.every(covered) && credit.length) status = 'CREDIT_APPROVED';
       else if (prepaid.every(covered)) status = 'FULLY_FUNDED';
       else status = any ? 'PARTIALLY_FUNDED' : 'AWAITING_FUNDING';
     }
-    if (status !== c.status) await tx.commercialCase.update({ where: { id: caseId }, data: { status } });
+    if (status !== c.status)
+      await tx.commercialCase.update({ where: { id: caseId }, data: { status } });
     return status;
   }
 
@@ -731,24 +915,32 @@ export class CommercialService {
     if (!c) throw AppError.notFound();
     const biz = this.businessOf(actor);
     if (biz.organizationId !== c.ownerOrganizationId) throw AppError.notFound();
-    const need = `${biz.prefix}.commercial.${step === 'INTERNAL_APPROVER' ? 'approve_internal' : 'approve_finance'}` as PermissionCode;
+    const need =
+      `${biz.prefix}.commercial.${step === 'INTERNAL_APPROVER' ? 'approve_internal' : 'approve_finance'}` as PermissionCode;
     if (!actor.permissions.has(need)) throw AppError.forbidden();
     const ap = await this.prisma.commercialApproval.findUnique({
       where: { quotationId_step: { quotationId, step } },
     });
     if (!ap || ap.caseId !== caseId) throw AppError.notFound();
-    if (ap.status !== 'PENDING') throw new AppError('INVALID_STATE', 'This approval was already decided', 409);
+    if (ap.status !== 'PENDING')
+      throw new AppError('INVALID_STATE', 'This approval was already decided', 409);
     // Maker-checker: the person who accepted the quotation cannot also approve it.
     const accepted = await this.prisma.commercialAcceptance.findFirst({
       where: { quotationId, userId: actor.userId },
     });
     if (accepted)
-      throw new AppError('APPROVAL_REQUIRED', 'A different person must approve (maker-checker)', 403);
+      throw new AppError(
+        'APPROVAL_REQUIRED',
+        'A different person must approve (maker-checker)',
+        403,
+      );
     const other = await this.prisma.commercialApproval.findFirst({
       where: { quotationId, decidedByUserId: actor.userId },
     });
-    if (other) throw new AppError('APPROVAL_REQUIRED', 'Each approval step needs a different person', 403);
-    if (decision === 'REJECTED' && !reason) throw AppError.validation('A reason is required', 'reason');
+    if (other)
+      throw new AppError('APPROVAL_REQUIRED', 'Each approval step needs a different person', 403);
+    if (decision === 'REJECTED' && !reason)
+      throw AppError.validation('A reason is required', 'reason');
     await this.prisma.$transaction(async (tx) => {
       const res = await tx.commercialApproval.updateMany({
         where: { id: ap.id, status: 'PENDING' },
@@ -760,7 +952,8 @@ export class CommercialService {
           reason: reason ?? null,
         },
       });
-      if (res.count !== 1) throw new AppError('INVALID_STATE', 'This approval was already decided', 409);
+      if (res.count !== 1)
+        throw new AppError('INVALID_STATE', 'This approval was already decided', 409);
       await this.audit.record(
         {
           action: 'COMMERCIAL_APPROVAL_DECIDED',
@@ -787,7 +980,9 @@ export class CommercialService {
     const out: ActivationBlocker[] = [];
     const add = (code: string, party: string | null = null, detail: string | null = null) =>
       out.push({ code, party, detail });
-    const cur = c.currentQuotationId ? await this.prisma.quotation.findUnique({ where: { id: c.currentQuotationId } }) : null;
+    const cur = c.currentQuotationId
+      ? await this.prisma.quotation.findUnique({ where: { id: c.currentQuotationId } })
+      : null;
     if (!cur) {
       add('NO_QUOTATION');
       return out;
@@ -796,7 +991,9 @@ export class CommercialService {
     if (totals.issues.length) add('UNBOUNDED_LIABILITY', null, totals.issues.join(','));
     if (c.acceptedQuotationId !== cur.id) {
       const parties = await this.requiredParties(cur);
-      const acc = await this.prisma.commercialAcceptance.findMany({ where: { quotationId: cur.id } });
+      const acc = await this.prisma.commercialAcceptance.findMany({
+        where: { quotationId: cur.id },
+      });
       for (const p of parties)
         if (!acc.some((a) => a.organizationId === p.organizationId && a.role === p.role))
           add('ACCEPTANCE_MISSING', p.role, p.organizationId);
@@ -812,11 +1009,16 @@ export class CommercialService {
         add('FULFILMENT_NOT_ONBOARDED', 'FULFILMENT_MERCHANT', c.fulfilmentOrganizationId);
     }
     if (c.acceptedQuotationId) {
-      const apps = await this.prisma.commercialApproval.findMany({ where: { quotationId: c.acceptedQuotationId } });
-      for (const a of apps) if (a.status !== 'APPROVED') add(a.status === 'REJECTED' ? 'APPROVAL_REJECTED' : 'APPROVAL_PENDING', a.step);
+      const apps = await this.prisma.commercialApproval.findMany({
+        where: { quotationId: c.acceptedQuotationId },
+      });
+      for (const a of apps)
+        if (a.status !== 'APPROVED')
+          add(a.status === 'REJECTED' ? 'APPROVAL_REJECTED' : 'APPROVAL_PENDING', a.step);
       const hasSponsor = c.commitments.some((m) => m.kind === 'SPONSOR_FUNDING');
       const hasManaged = c.commitments.some((m) => m.adapterManaged);
-      if ((hasSponsor || hasManaged) && !c.unusedTreatment) add('UNUSED_FUNDING_TREATMENT_NOT_CONFIGURED');
+      if ((hasSponsor || hasManaged) && !c.unusedTreatment)
+        add('UNUSED_FUNDING_TREATMENT_NOT_CONFIGURED');
       const managed = adapter.managedFunding ? await adapter.managedFunding(c.subjectId) : null;
       for (const m of c.commitments) {
         if (m.adapterManaged) {
@@ -830,7 +1032,7 @@ export class CommercialService {
         if (m.mode === 'CREDIT') {
           const pos = await this.creditPosition(m.organizationId);
           if (!pos.facility) add('CREDIT_NOT_ACTIVE', m.role, m.organizationId);
-          else if (await this.creditExposure(m.organizationId) > pos.facility.limitHalalas)
+          else if ((await this.creditExposure(m.organizationId)) > pos.facility.limitHalalas)
             add('CREDIT_LIMIT_EXCEEDED', m.role, m.organizationId);
         }
       }
@@ -843,14 +1045,18 @@ export class CommercialService {
   async submitBlockers(caseId: string): Promise<ActivationBlocker[]> {
     const c = await this.prisma.commercialCase.findUnique({ where: { id: caseId } });
     if (!c?.currentQuotationId) return [{ code: 'NO_QUOTATION', party: null, detail: null }];
-    const q = await this.prisma.quotation.findUniqueOrThrow({ where: { id: c.currentQuotationId } });
+    const q = await this.prisma.quotation.findUniqueOrThrow({
+      where: { id: c.currentQuotationId },
+    });
     const owner = await this.prisma.commercialAcceptance.findFirst({
       where: { quotationId: q.id, role: 'OWNER', organizationId: c.ownerOrganizationId },
     });
     const out: ActivationBlocker[] = [];
-    if (!owner && c.acceptedQuotationId !== q.id) out.push({ code: 'ACCEPTANCE_MISSING', party: 'OWNER', detail: c.ownerOrganizationId });
+    if (!owner && c.acceptedQuotationId !== q.id)
+      out.push({ code: 'ACCEPTANCE_MISSING', party: 'OWNER', detail: c.ownerOrganizationId });
     const totals = q.totals as unknown as QuoteTotals;
-    if (totals.issues.length) out.push({ code: 'UNBOUNDED_LIABILITY', party: null, detail: totals.issues.join(',') });
+    if (totals.issues.length)
+      out.push({ code: 'UNBOUNDED_LIABILITY', party: null, detail: totals.issues.join(',') });
     return out;
   }
 
@@ -878,7 +1084,10 @@ export class CommercialService {
   ) {
     await this.entitlements.assertLiveCampaignOpen(organizationId);
     await this.restrictions?.assertMerchantOpen(organizationId);
-    if (customer) await this.restrictions?.assertCustomerAllowed(customer.userId, customer.scope);
+    if (customer) {
+      await this.restrictions?.assertCustomerAllowed(customer.userId, customer.scope);
+      await this.launch?.assertCustomerAction(organizationId, customer.scope);
+    }
   }
 
   /** The decisive gate: nothing goes live (manual approval, auto-approval, scheduled activation) with open blockers. */
@@ -891,12 +1100,17 @@ export class CommercialService {
   async assertEntitled(product: CommercialProduct, subjectId: string) {
     const subject = await this.registry.get(product).load(subjectId);
     // Stage 7: the campaign is entitled through its COMMERCIAL OWNER's contract (a partner creator / budget owner, else the merchant)
-    const owner = (await this.registry.get(product).economics(subject.organizationId, subject.content, subjectId)).ownerOrganizationId;
+    const owner = (
+      await this.registry.get(product).economics(subject.organizationId, subject.content, subjectId)
+    ).ownerOrganizationId;
     // the product must be in the contract AND open in the campaign's market (never inherited from another country)
-    const market = this.markets ? await this.markets.marketOfCampaign(subject.organizationId, subject.content) : null;
+    const market = this.markets
+      ? await this.markets.marketOfCampaign(subject.organizationId, subject.content)
+      : null;
     await this.entitlements.requireProduct(owner, ENTITLEMENT_PRODUCT_OF[product], { market });
     // a suspended / ended agreement, an elapsed grace or a financial hold refuses NEW paid exposure (issued customer rights are untouched)
     await this.entitlements.requireNewExposure(owner, 'ACTIVATE_CAMPAIGN');
+    await this.launch?.assertCampaignActivation(owner, market);
     const open = await this.prisma.commercialCase.count({
       where: {
         ownerOrganizationId: owner,
@@ -924,12 +1138,21 @@ export class CommercialService {
    * A live campaign may only grow beyond what was accepted after the amendment (new totals, delta, re-acceptance by every party).
    * Raising stock first creates the amendment quotation and refuses; once accepted, the same request succeeds.
    */
-  async requireCoverage(product: CommercialProduct, subjectId: string, newUnits: number, actor: Actor | null) {
-    const c = await this.prisma.commercialCase.findUnique({ where: { product_subjectId: { product, subjectId } } });
+  async requireCoverage(
+    product: CommercialProduct,
+    subjectId: string,
+    newUnits: number,
+    actor: Actor | null,
+  ) {
+    const c = await this.prisma.commercialCase.findUnique({
+      where: { product_subjectId: { product, subjectId } },
+    });
     const accepted = c?.acceptedQuotationId
       ? await this.prisma.quotation.findUnique({ where: { id: c.acceptedQuotationId } })
       : null;
-    const acceptedUnits = accepted ? (accepted.inputs as unknown as { economics: Economics }).economics.maxUnits : -1;
+    const acceptedUnits = accepted
+      ? (accepted.inputs as unknown as { economics: Economics }).economics.maxUnits
+      : -1;
     if (accepted && newUnits <= acceptedUnits) return;
     const subject = await this.registry.get(product).load(subjectId);
     await this.entitlements.requireNewExposure(subject.organizationId, 'UPGRADE_EXPOSURE');
@@ -967,7 +1190,8 @@ export class CommercialService {
     caseId: string,
     memo: string,
   ) {
-    const credit = m.kind === 'CHARGE' ? ('PLATFORM_REVENUE' as const) : ('FUNDING_UTILIZED' as const);
+    const credit =
+      m.kind === 'CHARGE' ? ('PLATFORM_REVENUE' as const) : ('FUNDING_UTILIZED' as const);
     const debit = m.mode === 'PREPAID' ? ('CAMPAIGN_FUNDS_HELD' as const) : ('RECEIVABLE' as const);
     return this.ledger.post(tx, {
       type: 'FUNDING_UTILIZED',
@@ -977,32 +1201,53 @@ export class CommercialService {
       memo,
       lines: [
         { family: debit, organizationId: m.organizationId, amountHalalas: amount },
-        { family: credit, organizationId: m.kind === 'CHARGE' ? null : m.organizationId, amountHalalas: -amount },
+        {
+          family: credit,
+          organizationId: m.kind === 'CHARGE' ? null : m.organizationId,
+          amountHalalas: -amount,
+        },
       ],
     });
   }
 
   /** The campaign pricing version that governed a quotation, as an event key (PAV:<agreement version>). */
-  async pricingKeyOf(db: Tx | PrismaService, quotationId: string | null | undefined): Promise<string | null> {
+  async pricingKeyOf(
+    db: Tx | PrismaService,
+    quotationId: string | null | undefined,
+  ): Promise<string | null> {
     if (!quotationId) return null;
-    const q = await db.quotation.findUnique({ where: { id: quotationId }, select: { pricingVersionId: true } });
+    const q = await db.quotation.findUnique({
+      where: { id: quotationId },
+      select: { pricingVersionId: true },
+    });
     return q?.pricingVersionId ? `PAV:${q.pricingVersionId}` : null;
   }
 
   /** Upfront (fixed) charges are earned once, when the campaign goes live. Recognition timing is VALIDATE-KSA. */
   async earnUpfront(product: CommercialProduct, subjectId: string, tx?: Tx) {
     const db = tx ?? this.prisma;
-    const c = await db.commercialCase.findUnique({ where: { product_subjectId: { product, subjectId } } });
+    const c = await db.commercialCase.findUnique({
+      where: { product_subjectId: { product, subjectId } },
+    });
     if (!c) return;
     const run = async (t: Tx) => {
-      const ms = await t.fundingCommitment.findMany({ where: { caseId: c.id, upfrontHalalas: { gt: 0 } } });
+      const ms = await t.fundingCommitment.findMany({
+        where: { caseId: c.id, upfrontHalalas: { gt: 0 } },
+      });
       for (const m of ms) {
         const res = await t.fundingCommitment.updateMany({
           where: { id: m.id, upfrontEarnedHalalas: 0 },
           data: { upfrontEarnedHalalas: m.upfrontHalalas },
         });
         if (res.count === 1) {
-          await this.post(t, m, m.upfrontHalalas, `earn-upfront:${m.id}`, c.id, 'Upfront charge earned');
+          await this.post(
+            t,
+            m,
+            m.upfrontHalalas,
+            `earn-upfront:${m.id}`,
+            c.id,
+            'Upfront charge earned',
+          );
           // the billing hook of the CAMPAIGN_ACTIVATION trigger: only DealDash's own charge to the campaign owner is revenue
           if (m.kind === 'CHARGE' && this.billingEvents)
             await this.billingEvents.emit(
@@ -1040,29 +1285,54 @@ export class CommercialService {
     tx?: Tx,
   ) {
     const db = tx ?? this.prisma;
-    const c = await db.commercialCase.findUnique({ where: { product_subjectId: { product, subjectId } } });
+    const c = await db.commercialCase.findUnique({
+      where: { product_subjectId: { product, subjectId } },
+    });
     if (!c) return { applied: 0, eventIds: [] as string[] };
     const units = src.units ?? 1;
     const run = async (t: Tx) => {
       let applied = 0;
       const eventIds: string[] = [];
       const ms = await t.fundingCommitment.findMany({
-        where: { caseId: c.id, adapterManaged: false, perUnitHalalas: { gt: 0 }, trigger: CASH_TRIGGER_EVENT, status: 'OPEN' },
+        where: {
+          caseId: c.id,
+          adapterManaged: false,
+          perUnitHalalas: { gt: 0 },
+          trigger: CASH_TRIGGER_EVENT,
+          status: 'OPEN',
+        },
       });
       for (const m of ms) {
         const want = m.perUnitHalalas * units;
         const seen = await t.utilizationEvent.findUnique({
-          where: { commitmentId_sourceType_sourceId: { commitmentId: m.id, sourceType: src.sourceType, sourceId: src.sourceId } },
+          where: {
+            commitmentId_sourceType_sourceId: {
+              commitmentId: m.id,
+              sourceType: src.sourceType,
+              sourceId: src.sourceId,
+            },
+          },
         });
         if (seen) continue;
         const room = Math.max(0, m.usageMaxHalalas - m.utilizedHalalas);
         const amount = Math.min(want, room);
         if (amount > 0) {
-          const res = await t.$executeRaw`UPDATE "FundingCommitment" SET "utilizedHalalas" = "utilizedHalalas" + ${amount}
+          const res =
+            await t.$executeRaw`UPDATE "FundingCommitment" SET "utilizedHalalas" = "utilizedHalalas" + ${amount}
             WHERE "id" = ${m.id}::uuid AND "utilizedHalalas" + ${amount} <= "usageMaxHalalas"`;
           if (res !== 1) continue;
         }
-        const j = amount > 0 ? await this.post(t, m, amount, `util:${m.id}:${src.sourceType}:${src.sourceId}`, c.id, 'Verified event') : null;
+        const j =
+          amount > 0
+            ? await this.post(
+                t,
+                m,
+                amount,
+                `util:${m.id}:${src.sourceType}:${src.sourceId}`,
+                c.id,
+                'Verified event',
+              )
+            : null;
         const ev = await t.utilizationEvent.create({
           data: {
             campaignVersion: await this.versions.current(t, c.product, c.subjectId),
@@ -1087,12 +1357,24 @@ export class CommercialService {
    * How many more units (points, redemptions) the prepaid funding still covers. Null when the case has no per-unit funding at all
    * (so the caller can tell 'nothing funded' from 'fully used').
    */
-  async remainingUnits(product: CommercialProduct, subjectId: string, db: Tx | PrismaService = this.prisma): Promise<number | null> {
-    const c = await db.commercialCase.findUnique({ where: { product_subjectId: { product, subjectId } } });
+  async remainingUnits(
+    product: CommercialProduct,
+    subjectId: string,
+    db: Tx | PrismaService = this.prisma,
+  ): Promise<number | null> {
+    const c = await db.commercialCase.findUnique({
+      where: { product_subjectId: { product, subjectId } },
+    });
     if (!c || !c.acceptedQuotationId) return null;
-    const ms = await db.fundingCommitment.findMany({ where: { caseId: c.id, adapterManaged: false, perUnitHalalas: { gt: 0 }, status: 'OPEN' } });
+    const ms = await db.fundingCommitment.findMany({
+      where: { caseId: c.id, adapterManaged: false, perUnitHalalas: { gt: 0 }, status: 'OPEN' },
+    });
     if (!ms.length) return null;
-    return Math.min(...ms.map((m) => Math.max(0, Math.floor((m.usageMaxHalalas - m.utilizedHalalas) / m.perUnitHalalas))));
+    return Math.min(
+      ...ms.map((m) =>
+        Math.max(0, Math.floor((m.usageMaxHalalas - m.utilizedHalalas) / m.perUnitHalalas)),
+      ),
+    );
   }
 
   /** A reversed redemption gives the drawn amount back (a new reversing journal; history is never edited). */
@@ -1103,14 +1385,24 @@ export class CommercialService {
     tx?: Tx,
   ) {
     const db = tx ?? this.prisma;
-    const c = await db.commercialCase.findUnique({ where: { product_subjectId: { product, subjectId } } });
+    const c = await db.commercialCase.findUnique({
+      where: { product_subjectId: { product, subjectId } },
+    });
     if (!c) return;
     const run = async (t: Tx) => {
       const evs = await t.utilizationEvent.findMany({
-        where: { caseId: c.id, sourceType: src.sourceType, sourceId: src.sourceId, reversedAt: null },
+        where: {
+          caseId: c.id,
+          sourceType: src.sourceType,
+          sourceId: src.sourceId,
+          reversedAt: null,
+        },
       });
       for (const ev of evs) {
-        const res = await t.utilizationEvent.updateMany({ where: { id: ev.id, reversedAt: null }, data: { reversedAt: new Date() } });
+        const res = await t.utilizationEvent.updateMany({
+          where: { id: ev.id, reversedAt: null },
+          data: { reversedAt: new Date() },
+        });
         if (res.count !== 1) continue;
         if (ev.amountHalalas > 0) {
           await t.$executeRaw`UPDATE "FundingCommitment" SET "utilizedHalalas" = "utilizedHalalas" - ${ev.amountHalalas}
@@ -1122,7 +1414,10 @@ export class CommercialService {
               idempotencyKey: `util-rev:${ev.id}`,
               memo: 'Redemption reversed',
             });
-            await t.utilizationEvent.update({ where: { id: ev.id }, data: { reversalJournalId: r.journalId } });
+            await t.utilizationEvent.update({
+              where: { id: ev.id },
+              data: { reversalJournalId: r.journalId },
+            });
           }
         }
       }
@@ -1132,8 +1427,12 @@ export class CommercialService {
 
   async acceptedQuotationId(product: CommercialProduct, subjectId: string): Promise<string | null> {
     return (
-      (await this.prisma.commercialCase.findUnique({ where: { product_subjectId: { product, subjectId } }, select: { acceptedQuotationId: true } }))
-        ?.acceptedQuotationId ?? null
+      (
+        await this.prisma.commercialCase.findUnique({
+          where: { product_subjectId: { product, subjectId } },
+          select: { acceptedQuotationId: true },
+        })
+      )?.acceptedQuotationId ?? null
     );
   }
 
@@ -1143,7 +1442,14 @@ export class CommercialService {
   }
 
   async caseIdOf(product: CommercialProduct, subjectId: string) {
-    return (await this.prisma.commercialCase.findUnique({ where: { product_subjectId: { product, subjectId } }, select: { id: true } }))?.id ?? null;
+    return (
+      (
+        await this.prisma.commercialCase.findUnique({
+          where: { product_subjectId: { product, subjectId } },
+          select: { id: true },
+        })
+      )?.id ?? null
+    );
   }
 
   /** Every case the business is a party to: as owner, fulfilment merchant, or a sponsor named on a quotation. */
@@ -1174,9 +1480,14 @@ export class CommercialService {
       }
       const o = owners.find((x) => x.id === c.ownerOrganizationId);
       const q = c.currentQuotationId
-        ? await this.prisma.quotation.findUnique({ where: { id: c.currentQuotationId }, select: { requiredParties: true } })
+        ? await this.prisma.quotation.findUnique({
+            where: { id: c.currentQuotationId },
+            select: { requiredParties: true },
+          })
         : null;
-      const mine = ((q?.requiredParties as unknown as RequiredParty[]) ?? []).find((p) => p.organizationId === organizationId);
+      const mine = ((q?.requiredParties as unknown as RequiredParty[]) ?? []).find(
+        (p) => p.organizationId === organizationId,
+      );
       out.push({
         id: c.id,
         reference: c.reference,
@@ -1196,16 +1507,27 @@ export class CommercialService {
     return out;
   }
 
-  async view(caseId: string, actor: Actor, viewerOrganizationId: string | null): Promise<CommercialCaseView> {
+  async view(
+    caseId: string,
+    actor: Actor,
+    viewerOrganizationId: string | null,
+  ): Promise<CommercialCaseView> {
     const c = await this.prisma.commercialCase.findUnique({
       where: { id: caseId },
-      include: { commitments: true, acceptances: { orderBy: { createdAt: 'asc' } }, approvals: true, quotations: { orderBy: { version: 'desc' }, take: 1 } },
+      include: {
+        commitments: true,
+        acceptances: { orderBy: { createdAt: 'asc' } },
+        approvals: true,
+        quotations: { orderBy: { version: 'desc' }, take: 1 },
+      },
     });
     if (!c) throw AppError.notFound();
     const isAdmin = actor.membership?.organizationType === 'DEALDASH';
     if (!isAdmin) {
       const parties = c.currentQuotationId
-        ? await this.prisma.quotation.findUnique({ where: { id: c.currentQuotationId } }).then((q) => (q ? ((q.requiredParties as unknown as RequiredParty[]) ?? []) : []))
+        ? await this.prisma.quotation
+            .findUnique({ where: { id: c.currentQuotationId } })
+            .then((q) => (q ? ((q.requiredParties as unknown as RequiredParty[]) ?? []) : []))
         : [];
       const involved =
         viewerOrganizationId === c.ownerOrganizationId ||
@@ -1218,18 +1540,47 @@ export class CommercialService {
     const submitBlockers = await this.submitBlockers(c.id);
     const hold = await this.activeHold(this.prisma, c.ownerOrganizationId, c.id);
     // Sponsors see only their own lines; the owner and DealDash see everything.
-    const full = isAdmin || viewerOrganizationId === c.ownerOrganizationId || viewerOrganizationId === c.fulfilmentOrganizationId;
+    const full =
+      isAdmin ||
+      viewerOrganizationId === c.ownerOrganizationId ||
+      viewerOrganizationId === c.fulfilmentOrganizationId;
     const mine = (orgId: string) => full || orgId === viewerOrganizationId;
     const allowed: string[] = [];
-    if (q?.status === 'PENDING_ACCEPTANCE' && viewerOrganizationId && (actor.permissions.has('merchant.commercial.accept') || actor.permissions.has('partner.commercial.accept'))) {
+    if (
+      q?.status === 'PENDING_ACCEPTANCE' &&
+      viewerOrganizationId &&
+      (actor.permissions.has('merchant.commercial.accept') ||
+        actor.permissions.has('partner.commercial.accept'))
+    ) {
       const parties = (q.requiredParties as unknown as RequiredParty[]) ?? [];
       const p = parties.find((x) => x.organizationId === viewerOrganizationId);
-      if (p && !c.acceptances.some((a) => a.quotationId === q.id && a.organizationId === viewerOrganizationId && a.role === p.role)) allowed.push('ACCEPT');
+      if (
+        p &&
+        !c.acceptances.some(
+          (a) =>
+            a.quotationId === q.id &&
+            a.organizationId === viewerOrganizationId &&
+            a.role === p.role,
+        )
+      )
+        allowed.push('ACCEPT');
     }
-    if (c.commitments.some((m) => m.mode === 'PREPAID' && !m.adapterManaged && m.organizationId === viewerOrganizationId && m.receivedHalalas < m.upfrontHalalas + m.usageMaxHalalas))
+    if (
+      c.commitments.some(
+        (m) =>
+          m.mode === 'PREPAID' &&
+          !m.adapterManaged &&
+          m.organizationId === viewerOrganizationId &&
+          m.receivedHalalas < m.upfrontHalalas + m.usageMaxHalalas,
+      )
+    )
       allowed.push('PAY');
     for (const a of c.approvals)
-      if (a.status === 'PENDING' && a.quotationId === c.acceptedQuotationId && viewerOrganizationId === c.ownerOrganizationId)
+      if (
+        a.status === 'PENDING' &&
+        a.quotationId === c.acceptedQuotationId &&
+        viewerOrganizationId === c.ownerOrganizationId
+      )
         allowed.push(a.step === 'INTERNAL_APPROVER' ? 'APPROVE_INTERNAL' : 'APPROVE_FINANCE');
     return {
       id: c.id,
@@ -1242,7 +1593,14 @@ export class CommercialService {
       developmentFixture: c.developmentFixture,
       unusedTreatment: c.unusedTreatment,
       quotation: q
-        ? { id: q.id, reference: q.reference, version: q.version, status: q.status, createdAt: q.createdAt.toISOString(), delta: q.delta }
+        ? {
+            id: q.id,
+            reference: q.reference,
+            version: q.version,
+            status: q.status,
+            createdAt: q.createdAt.toISOString(),
+            delta: q.delta,
+          }
         : null,
       preview: q ? this.previewOf(q, full ? null : viewerOrganizationId, c) : null,
       acceptances: c.acceptances
@@ -1257,7 +1615,12 @@ export class CommercialService {
           createdAt: a.createdAt.toISOString(),
           quotationId: a.quotationId,
         })),
-      approvals: c.approvals.map((a) => ({ step: a.step, status: a.status, decidedByName: a.decidedByName, reason: a.reason })),
+      approvals: c.approvals.map((a) => ({
+        step: a.step,
+        status: a.status,
+        decidedByName: a.decidedByName,
+        reason: a.reason,
+      })),
       funding: c.commitments
         .filter((m) => mine(m.organizationId))
         .map((m) => {
@@ -1276,7 +1639,10 @@ export class CommercialService {
             utilizedHalalas: m.utilizedHalalas,
             earnedHalalas: earned,
             remainingCommitmentHalalas: Math.max(0, max - earned),
-            outstandingHalalas: m.mode === 'CREDIT' ? Math.max(0, earned - m.receivedHalalas) : Math.max(0, max - m.receivedHalalas),
+            outstandingHalalas:
+              m.mode === 'CREDIT'
+                ? Math.max(0, earned - m.receivedHalalas)
+                : Math.max(0, max - m.receivedHalalas),
             status: m.status,
           };
         }),
@@ -1289,7 +1655,13 @@ export class CommercialService {
   }
 
   private previewOf(
-    q: { lines: Prisma.JsonValue; totals: Prisma.JsonValue; pricingSnapshot: Prisma.JsonValue; requiredParties: Prisma.JsonValue; unusedTreatment: UnusedTreatment | null },
+    q: {
+      lines: Prisma.JsonValue;
+      totals: Prisma.JsonValue;
+      pricingSnapshot: Prisma.JsonValue;
+      requiredParties: Prisma.JsonValue;
+      unusedTreatment: UnusedTreatment | null;
+    },
     sponsorOrgId: string | null,
     c: { id: string },
   ): CommercialPreview {
@@ -1306,16 +1678,37 @@ export class CommercialService {
     let parties = (q.requiredParties as unknown as RequiredParty[]) ?? [];
     if (sponsorOrgId) {
       // a sponsor sees only its own funding obligation: never the merchant's pricing or benefit
-      lines = lines.filter((l) => l.partyOrganizationId === sponsorOrgId && l.kind === 'SPONSOR_FUNDING');
-      totals = { ...totals, dealdashChargesHalalas: 0, taxHalalas: 0, maxCashPayableToDealDashHalalas: 0, nettedChargesHalalas: 0, merchantCashContributionHalalas: 0, maxMerchantBenefitCommitmentHalalas: 0, customerBenefitTotalHalalas: 0, totalEconomicCommitmentHalalas: lines.reduce((n, l) => n + l.amountHalalas, 0), sponsorLiability: totals.sponsorLiability.filter((s) => s.organizationId === sponsorOrgId), maxSponsorLiabilityHalalas: lines.reduce((n, l) => n + l.amountHalalas, 0) };
+      lines = lines.filter(
+        (l) => l.partyOrganizationId === sponsorOrgId && l.kind === 'SPONSOR_FUNDING',
+      );
+      totals = {
+        ...totals,
+        dealdashChargesHalalas: 0,
+        taxHalalas: 0,
+        maxCashPayableToDealDashHalalas: 0,
+        nettedChargesHalalas: 0,
+        merchantCashContributionHalalas: 0,
+        maxMerchantBenefitCommitmentHalalas: 0,
+        customerBenefitTotalHalalas: 0,
+        totalEconomicCommitmentHalalas: lines.reduce((n, l) => n + l.amountHalalas, 0),
+        sponsorLiability: totals.sponsorLiability.filter((s) => s.organizationId === sponsorOrgId),
+        maxSponsorLiabilityHalalas: lines.reduce((n, l) => n + l.amountHalalas, 0),
+      };
       parties = parties.filter((p) => p.organizationId === sponsorOrgId);
     }
     return {
       lines: lines as CommercialPreview['lines'],
       totals,
-      pricing: { source: snap.source, reference: snap.reference, versionKey: snap.versionKey, unusedTreatment: q.unusedTreatment },
+      pricing: {
+        source: snap.source,
+        reference: snap.reference,
+        versionKey: snap.versionKey,
+        unusedTreatment: q.unusedTreatment,
+      },
       parties,
-      fundingRequirements: (snap.fundingRequirements ?? []).filter((f) => !sponsorOrgId || f.organizationId === sponsorOrgId),
+      fundingRequirements: (snap.fundingRequirements ?? []).filter(
+        (f) => !sponsorOrgId || f.organizationId === sponsorOrgId,
+      ),
       workflow: snap.workflow ?? [],
     };
   }
@@ -1326,19 +1719,28 @@ export class CommercialService {
    * campaigns satisfy the gate, and marks the case as a development fixture. Refused in production; not exposed over HTTP.
    */
   async devComplete(product: CommercialProduct, subjectId: string) {
-    if (process.env.NODE_ENV === 'production') throw new Error('devComplete is not available in production');
+    if (process.env.NODE_ENV === 'production')
+      throw new Error('devComplete is not available in production');
     await this.pricing.ensureDevAgreement();
     const { caseId } = await this.syncQuotation(product, subjectId);
     const c = await this.prisma.commercialCase.findUniqueOrThrow({ where: { id: caseId } });
     if (c.acceptedQuotationId !== c.currentQuotationId) {
-      const q = await this.prisma.quotation.findUniqueOrThrow({ where: { id: c.currentQuotationId! } });
+      const q = await this.prisma.quotation.findUniqueOrThrow({
+        where: { id: c.currentQuotationId! },
+      });
       const parties = (q.requiredParties as unknown as RequiredParty[]) ?? [];
       const econ = (q.inputs as unknown as { economics: Economics }).economics;
       await this.prisma.$transaction(async (tx) => {
         for (const p of parties) {
           const acc = await this.accountOf(tx, p.organizationId);
           await tx.commercialAcceptance.upsert({
-            where: { quotationId_role_organizationId: { quotationId: q.id, role: p.role, organizationId: p.organizationId } },
+            where: {
+              quotationId_role_organizationId: {
+                quotationId: q.id,
+                role: p.role,
+                organizationId: p.organizationId,
+              },
+            },
             update: {},
             create: {
               reference: await this.nextNumber(tx, 'acceptance', 'AC'),
@@ -1357,17 +1759,38 @@ export class CommercialService {
           });
         }
         await this.finalizeAcceptance(tx, caseId, q.id, econ, null);
-        await tx.commercialCase.update({ where: { id: caseId }, data: { developmentFixture: true } });
-        const apps = await tx.commercialApproval.findMany({ where: { quotationId: q.id, status: 'PENDING' } });
+        await tx.commercialCase.update({
+          where: { id: caseId },
+          data: { developmentFixture: true },
+        });
+        const apps = await tx.commercialApproval.findMany({
+          where: { quotationId: q.id, status: 'PENDING' },
+        });
         for (const a of apps)
-          await tx.commercialApproval.update({ where: { id: a.id }, data: { status: 'APPROVED', decidedAt: new Date(), decidedByName: 'Development fixture' } });
+          await tx.commercialApproval.update({
+            where: { id: a.id },
+            data: {
+              status: 'APPROVED',
+              decidedAt: new Date(),
+              decidedByName: 'Development fixture',
+            },
+          });
       });
     }
     // fund every prepaid commitment in full through the same ledger path as a real payment
-    const ms = await this.prisma.fundingCommitment.findMany({ where: { caseId, adapterManaged: false, mode: 'PREPAID' } });
+    const ms = await this.prisma.fundingCommitment.findMany({
+      where: { caseId, adapterManaged: false, mode: 'PREPAID' },
+    });
     for (const m of ms) {
       const need = m.upfrontHalalas + m.usageMaxHalalas - m.receivedHalalas;
-      if (need > 0) await this.receivePayment({ commitmentId: m.id, amountHalalas: need, method: 'DEV_FIXTURE', actor: null, key: `dev-fund:${m.id}:${m.receivedHalalas}` });
+      if (need > 0)
+        await this.receivePayment({
+          commitmentId: m.id,
+          amountHalalas: need,
+          method: 'DEV_FIXTURE',
+          actor: null,
+          key: `dev-fund:${m.id}:${m.receivedHalalas}`,
+        });
     }
     await this.prisma.$transaction((tx) => this.refreshStatus(tx, caseId));
     return caseId;
@@ -1388,9 +1811,15 @@ export class CommercialService {
       const max = m.upfrontHalalas + m.usageMaxHalalas;
       const existing = await tx.financePayment.findUnique({ where: { idempotencyKey: p.key } });
       if (existing) return existing;
-      const res = await tx.$executeRaw`UPDATE "FundingCommitment" SET "receivedHalalas" = "receivedHalalas" + ${p.amountHalalas}
+      const res =
+        await tx.$executeRaw`UPDATE "FundingCommitment" SET "receivedHalalas" = "receivedHalalas" + ${p.amountHalalas}
         WHERE "id" = ${m.id}::uuid AND "receivedHalalas" + ${p.amountHalalas} <= ${max}`;
-      if (res !== 1) throw new AppError('INVALID_STATE', `The amount is more than the remaining commitment (${Math.max(0, max - m.receivedHalalas)} halalas)`, 409);
+      if (res !== 1)
+        throw new AppError(
+          'INVALID_STATE',
+          `The amount is more than the remaining commitment (${Math.max(0, max - m.receivedHalalas)} halalas)`,
+          409,
+        );
       const acc = await this.accountOf(tx, m.organizationId);
       const ref = await this.nextNumber(tx, 'payment', 'PY');
       const j = await this.ledger.post(tx, {
@@ -1399,10 +1828,20 @@ export class CommercialService {
         sourceId: m.caseId,
         idempotencyKey: `pay:${p.key}`,
         memo: `Payment ${ref} (${p.method})`,
-        actor: p.actor ? { userId: p.actor.userId, role: p.actor.membership?.roleCode ?? null } : null,
+        actor: p.actor
+          ? { userId: p.actor.userId, role: p.actor.membership?.roleCode ?? null }
+          : null,
         lines: [
-          { family: 'PSP_CLEARING', amountHalalas: p.amountHalalas, memo: 'Funds received (development mock / manual record)' },
-          { family: m.mode === 'PREPAID' ? 'CAMPAIGN_FUNDS_HELD' : 'RECEIVABLE', organizationId: m.organizationId, amountHalalas: -p.amountHalalas },
+          {
+            family: 'PSP_CLEARING',
+            amountHalalas: p.amountHalalas,
+            memo: 'Funds received (development mock / manual record)',
+          },
+          {
+            family: m.mode === 'PREPAID' ? 'CAMPAIGN_FUNDS_HELD' : 'RECEIVABLE',
+            organizationId: m.organizationId,
+            amountHalalas: -p.amountHalalas,
+          },
         ],
       });
       const payment = await tx.financePayment.create({
@@ -1454,12 +1893,21 @@ export class CommercialService {
 
   /** A business pays what it owes on a case (development mock of a payment provider; the real PSP is VALIDATE-KSA). */
   async pay(actor: Actor, caseId: string, amount: number | undefined, meta: RequestMeta) {
-    const c = await this.prisma.commercialCase.findUnique({ where: { id: caseId }, include: { commitments: true } });
+    const c = await this.prisma.commercialCase.findUnique({
+      where: { id: caseId },
+      include: { commitments: true },
+    });
     if (!c) throw AppError.notFound();
     const biz = this.businessOf(actor);
     const org = biz.organizationId;
-    if (!actor.permissions.has(`${biz.prefix}.finance.manage` as PermissionCode) && !actor.permissions.has(`${biz.prefix}.commercial.accept` as PermissionCode)) throw AppError.forbidden();
-    const mine = c.commitments.filter((m) => m.organizationId === org && !m.adapterManaged && m.mode === 'PREPAID');
+    if (
+      !actor.permissions.has(`${biz.prefix}.finance.manage` as PermissionCode) &&
+      !actor.permissions.has(`${biz.prefix}.commercial.accept` as PermissionCode)
+    )
+      throw AppError.forbidden();
+    const mine = c.commitments.filter(
+      (m) => m.organizationId === org && !m.adapterManaged && m.mode === 'PREPAID',
+    );
     if (!mine.length) throw AppError.notFound();
     let left = amount ?? Infinity;
     const key = meta.requestId;
@@ -1468,7 +1916,13 @@ export class CommercialService {
       const room = m.upfrontHalalas + m.usageMaxHalalas - m.receivedHalalas;
       const x = Math.min(room, left);
       if (x <= 0) continue;
-      await this.receivePayment({ commitmentId: m.id, amountHalalas: x, method: 'CARD_DEV_MOCK', actor, key: `${key}:${m.id}` });
+      await this.receivePayment({
+        commitmentId: m.id,
+        amountHalalas: x,
+        method: 'CARD_DEV_MOCK',
+        actor,
+        key: `${key}:${m.id}`,
+      });
       left -= x;
       total += x;
     }

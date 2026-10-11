@@ -1216,7 +1216,12 @@ function BuilderInner({ campaignId }: { campaignId?: string }) {
                   {live ? t('builder.saveChanges') : t('mhb.save')}
                 </Button>
                 {last ? (
-                  <Button onClick={() => void submit()} loading={saving} disabled={!live && !cmReady} data-testid="watch-submit">
+                  <Button
+                    onClick={() => void submit()}
+                    loading={saving}
+                    disabled={!live && !cmReady}
+                    data-testid="watch-submit"
+                  >
                     {live ? t('builder.saveChanges') : t('mhb.submit')}
                   </Button>
                 ) : (

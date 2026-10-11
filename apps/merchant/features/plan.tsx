@@ -20,5 +20,11 @@ function Inner() {
   const { me } = useAuth();
   const perms = me?.permissions ?? [];
   if (!orgId) return null;
-  return <PlanUsageWorkspace orgId={orgId} canManage={perms.includes('merchant.subscription.manage')} canAccept={perms.includes('merchant.commercial.accept')} />;
+  return (
+    <PlanUsageWorkspace
+      orgId={orgId}
+      canManage={perms.includes('merchant.subscription.manage')}
+      canAccept={perms.includes('merchant.commercial.accept')}
+    />
+  );
 }

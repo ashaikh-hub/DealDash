@@ -438,14 +438,20 @@ const PT = {
   'pt.offers.valid': ['Valid', 'الصلاحية'],
   'pt.offers.source': ['Source and authority', 'المصدر وصلاحية النشر'],
   'pt.offers.pub.PUBLISHABLE': ['Published', 'منشور'],
-  'pt.offers.pub.AWAITING_CONFIRMATION': ['Awaiting DealDash confirmation', 'بانتظار تأكيد ديل داش'],
+  'pt.offers.pub.AWAITING_CONFIRMATION': [
+    'Awaiting DealDash confirmation',
+    'بانتظار تأكيد ديل داش',
+  ],
   'pt.offers.pub.STALE': ['Feed out of date', 'ملف البيانات غير محدّث'],
   'pt.offers.create': ['Add a Live Deal', 'إضافة عرض مباشر'],
   'pt.offers.createIntro': [
     'For a merchant of your network whose offer you have the right to publish. DealDash confirms the right before customers see it. This does not give the merchant Exclusive Deals, vouchers, redemption, staff, settlement or finance access.',
     'لتاجر من شبكتك يحق لك نشر عرضه. تؤكد ديل داش هذا الحق قبل أن يراه العملاء. لا يمنح ذلك التاجر عروضًا حصرية أو قسائم أو استردادًا أو وصول الموظفين أو التسوية أو المالية.',
   ],
-  'pt.offers.publicationRef': ['Publication authority (agreement reference)', 'صلاحية النشر (مرجع الاتفاقية)'],
+  'pt.offers.publicationRef': [
+    'Publication authority (agreement reference)',
+    'صلاحية النشر (مرجع الاتفاقية)',
+  ],
   'pt.offers.externalId': ['Your offer ID', 'معرّف العرض لديك'],
   'pt.offers.titleEn': ['Title (English)', 'العنوان (بالإنجليزية)'],
   'pt.offers.titleAr': ['Title (Arabic)', 'العنوان (بالعربية)'],
@@ -454,7 +460,10 @@ const PT = {
   'pt.offers.from': ['Starts', 'يبدأ'],
   'pt.offers.until': ['Ends', 'ينتهي'],
   'pt.offers.submit': ['Send for confirmation', 'إرسال للتأكيد'],
-  'pt.offers.created': ['Live Deal added. DealDash will confirm the publication right.', 'تمت إضافة العرض. ستؤكد ديل داش حق النشر.'],
+  'pt.offers.created': [
+    'Live Deal added. DealDash will confirm the publication right.',
+    'تمت إضافة العرض. ستؤكد ديل داش حق النشر.',
+  ],
 
   // ---------------------------------------------------------------- eligibility
   'pt.elig.title': ['Eligibility', 'الأهلية'],
@@ -651,13 +660,19 @@ const PT = {
   'pt.watch.fund': ['Fund budget', 'تمويل الميزانية'],
   'pt.watch.submit': ['Send for review', 'إرسال للمراجعة'],
   'pt.watch.video': ['Merchant video', 'فيديو التاجر'],
-  'pt.watch.noVideo': ['This merchant has no video ready yet.', 'لا يوجد فيديو جاهز لدى هذا التاجر بعد.'],
+  'pt.watch.noVideo': [
+    'This merchant has no video ready yet.',
+    'لا يوجد فيديو جاهز لدى هذا التاجر بعد.',
+  ],
   'pt.watch.descEn': ['Description (English)', 'الوصف (بالإنجليزية)'],
   'pt.watch.descAr': ['Description (Arabic)', 'الوصف (بالعربية)'],
   'pt.watch.seconds': ['Video length (seconds)', 'مدة الفيديو (بالثواني)'],
   'pt.watch.ownCta': ['See offers', 'شاهد العروض'],
   'pt.watch.ownCreate': ['Create campaign', 'إنشاء حملة'],
-  'pt.watch.ownCreated': ['Campaign created. Accept the terms and fund the budget, then send it for review.', 'تم إنشاء الحملة. اقبل الشروط وموّل الميزانية ثم أرسلها للمراجعة.'],
+  'pt.watch.ownCreated': [
+    'Campaign created. Accept the terms and fund the budget, then send it for review.',
+    'تم إنشاء الحملة. اقبل الشروط وموّل الميزانية ثم أرسلها للمراجعة.',
+  ],
   'pt.watch.ownFunded': ['Budget funded.', 'تم تمويل الميزانية.'],
   'pt.perf.title': ['Performance', 'الأداء'],
   'pt.perf.intro': [

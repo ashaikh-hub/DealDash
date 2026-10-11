@@ -78,7 +78,10 @@ import { PartnerProgramsService } from './partner-programs.service';
 import { PartnerTeamService } from './partner-team.service';
 
 class OwnedWatchDto extends createZodDto(
-  z.object({ merchantOrganizationId: z.string().uuid(), content: z.record(z.string(), z.unknown()) }),
+  z.object({
+    merchantOrganizationId: z.string().uuid(),
+    content: z.record(z.string(), z.unknown()),
+  }),
 ) {}
 class OwnedWatchFundDto extends createZodDto(
   z.object({ amountHalalas: z.number().int().positive().max(1_000_000_000) }),

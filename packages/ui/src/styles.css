@@ -1089,6 +1089,7 @@ html[lang='ar'] body,
   border-radius: 50%;
   background: radial-gradient(circle, rgba(255, 255, 255, 0.25), transparent 70%);
 }
+.dd-hero h1,
 .dd-hero h2 {
   margin: 0;
   font-size: 26px;

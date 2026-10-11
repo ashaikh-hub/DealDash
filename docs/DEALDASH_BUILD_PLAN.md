@@ -516,3 +516,20 @@ Stage 9 not started.
 Stage 8 Operational Gap Closure is founder approved and frozen (docs/STAGE8_OPERATIONAL_GAP_CLOSURE.md). B8 closed (partner "Add a merchant" Stage 7
 compatibility fix, now part of the frozen Stage 7 baseline); B9 monitored, not a regression. Pre-pilot items B1–B7 remain open for Stage 9 /
 pilot readiness; VALIDATE-market items remain central. Stage 9 not started.
+
+## Stage 9 status (2026-10-11): BUILT — AWAITING FOUNDER APPROVAL
+Production & Public Launch Readiness (`docs/STAGE9_PRODUCTION_LAUNCH_READINESS.md` and companions). Regression (fresh test database):
+API 844/844 (52 files, incl. Stage 9 17 e2e); apps and packages 421/421; browser 684 checks across 12 suites (Stage 2 30, Stage 3 98,
+Stage 4 121, Stage 5 101, Stage 6 88, Phase 3 32, Phase 4/5 59, Markets 19, Subscription 31, Stage 7 40, Stage 8 48, Stage 9 17);
+load / concurrency baseline 9/9; accessibility sweep 20/20; typecheck 24/24; lint 0 errors (64 baseline warnings); format clean;
+builds 15/15; secret scan clean; restore test verified. Development database backed up, recovered from a failed first migration
+attempt without data loss, migrated (21/21), catalog synced, no drift, backed up again. Not deployed, not committed, not pushed.
+Go-live NOT READY by design (hosting, providers, VALIDATE-KSA, UAT). No stage after Stage 9 started.
+
+## Stage 9 founder approval (2026-10-11): APPROVED AND FROZEN — technical readiness only
+Stage 9 Production & Public Launch Readiness is founder approved as technically complete and frozen
+(docs/STAGE9_PRODUCTION_LAUNCH_READINESS.md). This does NOT approve public launch: production readiness is pending and public launch is
+not authorized. Still open: hosting / production environment, production database, secrets / configuration, vendor selections, payment
+and payout production setup, SMS / OTP / email / push providers, penetration testing, native Arabic review, physical device testing,
+formal UAT, backup retention, RPO / RTO, manual payout process (if used), GitHub production reviewers, VALIDATE-KSA items, final go-live
+checklist (NOT READY). No Stage 10.

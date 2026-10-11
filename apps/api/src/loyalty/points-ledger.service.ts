@@ -45,7 +45,9 @@ export class PointsLedgerService {
 
   /** Writes one ledger entry and moves the cached balance by the same amount. Idempotent per key. */
   async apply(tx: Prisma.TransactionClient, userId: string, i: PointsEntryInput) {
-    const existing = await tx.rewardEntry.findUnique({ where: { idempotencyKey: i.idempotencyKey } });
+    const existing = await tx.rewardEntry.findUnique({
+      where: { idempotencyKey: i.idempotencyKey },
+    });
     if (existing) return { entry: existing, created: false };
     const accountId = await this.ensureAccount(tx, userId);
     const a = i.bucket === 'AVAILABLE' ? i.points : 0;
@@ -90,12 +92,25 @@ export class PointsLedgerService {
   }
 
   /** A lot tracks how much of an EARN / RELEASE entry is still unspent, and when it expires. */
-  async lot(tx: Prisma.TransactionClient, accountId: string, entryId: string, points: number, expiresAt: Date | null) {
-    await tx.rewardLot.create({ data: { accountId, entryId, points, remaining: points, expiresAt } });
+  async lot(
+    tx: Prisma.TransactionClient,
+    accountId: string,
+    entryId: string,
+    points: number,
+    expiresAt: Date | null,
+  ) {
+    await tx.rewardLot.create({
+      data: { accountId, entryId, points, remaining: points, expiresAt },
+    });
   }
 
   /** Takes points out of the lots (oldest expiry first; `preferEntryId` first for reversals). Returns what the lots covered. */
-  async consumeLots(tx: Prisma.TransactionClient, accountId: string, points: number, preferEntryId?: string): Promise<number> {
+  async consumeLots(
+    tx: Prisma.TransactionClient,
+    accountId: string,
+    points: number,
+    preferEntryId?: string,
+  ): Promise<number> {
     let left = points;
     const lots = await tx.$queryRaw<Array<{ id: string; remaining: number }>>`
       SELECT "id", "remaining" FROM "RewardLot"

@@ -324,9 +324,15 @@ export class MerchantHotDealsController {
   ) {
     this.core.requireMerchantScope(actor, orgId);
     if (this.core.access.isScoped(actor)) {
-      const r = await this.core.prisma.redemption.findFirst({ where: { id: redemptionId, organizationId: orgId }, select: { branchId: true, dealId: true } });
+      const r = await this.core.prisma.redemption.findFirst({
+        where: { id: redemptionId, organizationId: orgId },
+        select: { branchId: true, dealId: true },
+      });
       if (!r) throw AppError.notFound();
-      await this.core.access.branch(actor, 'merchant.redemptions.reverse', r.branchId, { product: 'EXCLUSIVE', campaignId: r.dealId });
+      await this.core.access.branch(actor, 'merchant.redemptions.reverse', r.branchId, {
+        product: 'EXCLUSIVE',
+        campaignId: r.dealId,
+      });
     }
     return this.redemptions.reverse(
       actor,

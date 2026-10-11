@@ -88,7 +88,13 @@ function MyDealsLink({ locale }: { locale: Locale }) {
  * responsive sidebar. Navigation shows only what the signed-in role may use (hidden, not greyed); the API
  * enforces every permission regardless of what is shown here.
  */
-export function AppShell({ children, hiddenKeys }: { children: ReactNode; /** Stage 7: navigation items hidden because the contract does not include them. */ hiddenKeys?: readonly string[] }) {
+export function AppShell({
+  children,
+  hiddenKeys,
+}: {
+  children: ReactNode;
+  /** Stage 7: navigation items hidden because the contract does not include them. */ hiddenKeys?: readonly string[];
+}) {
   const { audience, locale, me, status, signOut } = useAuth();
   const t = createTranslator(locale);
   const pathname = usePathname() ?? '/';
@@ -96,7 +102,8 @@ export function AppShell({ children, hiddenKeys }: { children: ReactNode; /** St
   const mobileFirst = audience === 'customer' || audience === 'staff';
 
   const items = filterNav(NAV_BY_AUDIENCE[audience], me?.permissions ?? []).filter(
-    (i) => (status === 'authenticated' || i.requiresAny === undefined) && !hiddenKeys?.includes(i.key),
+    (i) =>
+      (status === 'authenticated' || i.requiresAny === undefined) && !hiddenKeys?.includes(i.key),
   );
   const isCustomer = audience === 'customer';
   // Customers browse as guests, so their tabs show before sign-in.

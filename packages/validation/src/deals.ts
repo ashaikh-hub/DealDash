@@ -58,22 +58,34 @@ export const dealTermsBlocksSchema = z.object({
 export const ELIGIBILITY_EXPRESSION_LIMITS = { maxDepth: 5, maxNodes: 40, maxValues: 50 } as const;
 export const eligibilityExpressionSchema: z.ZodType<EligibilityExpression> = z.lazy(() =>
   z.union([
-    z.object({ op: z.enum(['AND', 'OR']), children: z.array(eligibilityExpressionSchema).min(1).max(20) }),
+    z.object({
+      op: z.enum(['AND', 'OR']),
+      children: z.array(eligibilityExpressionSchema).min(1).max(20),
+    }),
     z.object({ op: z.literal('NOT'), child: eligibilityExpressionSchema }),
     z.object({
       op: z.literal('ATTR'),
       attr: z.enum(ELIGIBILITY_ATTRIBUTE_TYPES),
-      values: z.array(z.string().trim().min(1).max(100)).min(1).max(ELIGIBILITY_EXPRESSION_LIMITS.maxValues),
+      values: z
+        .array(z.string().trim().min(1).max(100))
+        .min(1)
+        .max(ELIGIBILITY_EXPRESSION_LIMITS.maxValues),
       level: z.enum(ELIGIBILITY_LEVELS).optional(),
     }),
   ]),
 );
 /** Depth and size of an expression (used to refuse rules that are too deep or too big). */
-export function eligibilityExpressionShape(e: EligibilityExpression): { depth: number; nodes: number } {
+export function eligibilityExpressionShape(e: EligibilityExpression): {
+  depth: number;
+  nodes: number;
+} {
   if (e.op === 'ATTR') return { depth: 1, nodes: 1 };
   const kids = e.op === 'NOT' ? [e.child] : e.children;
   const shapes = kids.map(eligibilityExpressionShape);
-  return { depth: 1 + Math.max(0, ...shapes.map((s) => s.depth)), nodes: 1 + shapes.reduce((n, s) => n + s.nodes, 0) };
+  return {
+    depth: 1 + Math.max(0, ...shapes.map((s) => s.depth)),
+    nodes: 1 + shapes.reduce((n, s) => n + s.nodes, 0),
+  };
 }
 
 export const dealEligibilitySchema = z.object({
@@ -164,9 +176,11 @@ export function liveDealIssues(c: LiveDealContent, opts: { now?: Date } = {}): D
     out.push({ field: 'endAt', code: 'IN_PAST' });
   if (!c.terms.textEn.trim()) out.push({ field: 'terms.textEn', code: 'REQUIRED_EN' });
   if (!c.terms.textAr.trim()) out.push({ field: 'terms.textAr', code: 'REQUIRED_AR' });
-  const missing = c.eligibility.kind === 'COMPOSITE' ? !c.eligibility.expression : c.eligibility.kind !== 'PUBLIC' && c.eligibility.valueRefs.length < 1;
-  if (missing)
-    out.push({ field: 'eligibility', code: 'REQUIRED' });
+  const missing =
+    c.eligibility.kind === 'COMPOSITE'
+      ? !c.eligibility.expression
+      : c.eligibility.kind !== 'PUBLIC' && c.eligibility.valueRefs.length < 1;
+  if (missing) out.push({ field: 'eligibility', code: 'REQUIRED' });
   return out;
 }
 

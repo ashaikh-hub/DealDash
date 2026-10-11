@@ -258,7 +258,8 @@ export class VoucherRedemptionService implements StaffCodeExtension, OnModuleIni
     let reference: string | null = null;
     let redeemedAt: Date | null = null;
     // Stage 8: a governed branch redemption hold pauses redemption here; the customer keeps the voucher
-    if (result === 'VALID' && branchId) await this.restrictions?.assertBranchRedemptionOpen(branchId);
+    if (result === 'VALID' && branchId)
+      await this.restrictions?.assertBranchRedemptionOpen(branchId);
 
     if (result === 'VALID' && row && branchId) {
       const target = row;
@@ -552,7 +553,12 @@ export class VoucherRedemptionService implements StaffCodeExtension, OnModuleIni
         tx,
       );
       await this.usage?.voidBillable('VOUCHER_TRANSACTION_COMMISSION', red.id, tx);
-      await this.loyalty?.reverseForSource(tx, { sourceType: 'REDEMPTION', sourceId: red.id, reason: 'REDEMPTION_REVERSED', actor: { userId: actor.userId, role: actor.membership?.roleCode ?? null } });
+      await this.loyalty?.reverseForSource(tx, {
+        sourceType: 'REDEMPTION',
+        sourceId: red.id,
+        reason: 'REDEMPTION_REVERSED',
+        actor: { userId: actor.userId, role: actor.membership?.roleCode ?? null },
+      });
       const back = await tx.voucherInstance.updateMany({
         where: { id: red.instanceId, status: 'REDEEMED' },
         data: { status: 'ACTIVE', redeemedAt: null, version: { increment: 1 } },

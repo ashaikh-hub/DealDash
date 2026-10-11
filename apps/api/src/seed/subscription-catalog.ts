@@ -15,8 +15,24 @@ const PKR = 100;
 const MARKET = 'PK';
 const CURRENCY = 'PKR';
 
-type Limit = { key: string; value: number | null; mode?: 'HARD' | 'SOFT'; period?: string; warnPercents?: number[]; softAction?: string; overageRateMinor?: number | null };
-const limit = (key: string, value: number | null): Limit => ({ key, value, mode: 'HARD', period: 'NONE', warnPercents: [80, 100], softAction: 'WARN', overageRateMinor: null });
+type Limit = {
+  key: string;
+  value: number | null;
+  mode?: 'HARD' | 'SOFT';
+  period?: string;
+  warnPercents?: number[];
+  softAction?: string;
+  overageRateMinor?: number | null;
+};
+const limit = (key: string, value: number | null): Limit => ({
+  key,
+  value,
+  mode: 'HARD',
+  period: 'NONE',
+  warnPercents: [80, 100],
+  softAction: 'WARN',
+  overageRateMinor: null,
+});
 
 const MERCHANT_BASE_PRODUCTS = ['LIVE_DEAL', 'EXCLUSIVE', 'VOUCHER', 'WATCH', 'FEATURED_PLACEMENT'];
 
@@ -45,8 +61,22 @@ interface PlanSeed {
 }
 
 const SCHEME_FEATURES = [
-  'MERCHANT_INGESTION_MANUAL', 'MERCHANT_INGESTION_BULK', 'MERCHANT_INGESTION_API', 'OFFER_API_INTEGRATION', 'OFFER_SYNCHRONIZATION', 'ELIGIBILITY_SYNCHRONIZATION',
-  'LOCAL_OFFERS', 'NATIONAL_OFFERS', 'REGIONAL_OFFERS', 'INTERNATIONAL_OFFERS', 'SPONSORED_VISIBILITY', 'API_ACCESS', 'BULK_IMPORT', 'WEBHOOKS', 'ADVANCED_REPORTING', 'NETWORK_INTEGRATION',
+  'MERCHANT_INGESTION_MANUAL',
+  'MERCHANT_INGESTION_BULK',
+  'MERCHANT_INGESTION_API',
+  'OFFER_API_INTEGRATION',
+  'OFFER_SYNCHRONIZATION',
+  'ELIGIBILITY_SYNCHRONIZATION',
+  'LOCAL_OFFERS',
+  'NATIONAL_OFFERS',
+  'REGIONAL_OFFERS',
+  'INTERNATIONAL_OFFERS',
+  'SPONSORED_VISIBILITY',
+  'API_ACCESS',
+  'BULK_IMPORT',
+  'WEBHOOKS',
+  'ADVANCED_REPORTING',
+  'NETWORK_INTEGRATION',
 ];
 
 export const PAKISTAN_PLANS: PlanSeed[] = [
@@ -96,10 +126,29 @@ export const PAKISTAN_PLANS: PlanSeed[] = [
     version: {
       defaultCadence: 'MONTHLY',
       prices: [{ cadence: 'MONTHLY', amountMinor: 14_999 * PKR }],
-      products: [...MERCHANT_BASE_PRODUCTS, 'LOYALTY', 'MEMBER_BENEFIT', 'PUSH_CAMPAIGNS', 'HOMEPAGE_PLACEMENT'],
-      features: ['BULK_IMPORT', 'ADVANCED_REPORTING', 'API_ACCESS', 'WEBHOOKS', 'PREMIUM_ANALYTICS', 'DATA_EXPORT'],
+      products: [
+        ...MERCHANT_BASE_PRODUCTS,
+        'LOYALTY',
+        'MEMBER_BENEFIT',
+        'PUSH_CAMPAIGNS',
+        'HOMEPAGE_PLACEMENT',
+      ],
+      features: [
+        'BULK_IMPORT',
+        'ADVANCED_REPORTING',
+        'API_ACCESS',
+        'WEBHOOKS',
+        'PREMIUM_ANALYTICS',
+        'DATA_EXPORT',
+      ],
       limits: [limit('branches.max', 25), limit('users.max', 50)],
-      addOnCodes: ['EXTRA_BRANCH', 'EXTRA_USER', 'API_CAPACITY', 'ADDITIONAL_MARKET', 'DEDICATED_SUPPORT'],
+      addOnCodes: [
+        'EXTRA_BRANCH',
+        'EXTRA_USER',
+        'API_CAPACITY',
+        'ADDITIONAL_MARKET',
+        'DEDICATED_SUPPORT',
+      ],
       supportLevel: 'PRIORITY',
       trialDays: 14,
     },
@@ -118,13 +167,44 @@ export const PAKISTAN_PLANS: PlanSeed[] = [
       prices: [{ cadence: 'MONTHLY', amountMinor: 50_000 * PKR, indicative: true }],
       fees: [
         { code: 'SETUP_FEE', amountMinor: 100_000 * PKR, indicative: true, note: 'from' },
-        { code: 'API_FEE', amountMinor: 250_000 * PKR, indicative: true, note: 'API integration, from' },
+        {
+          code: 'API_FEE',
+          amountMinor: 250_000 * PKR,
+          indicative: true,
+          note: 'API integration, from',
+        },
       ],
-      products: ['LIVE_DEAL', 'MEMBER_BENEFIT', 'EXCLUSIVE', 'VOUCHER', 'WATCH', 'LOYALTY', 'SPONSORED_CAMPAIGNS', 'PUSH_CAMPAIGNS', 'FEATURED_PLACEMENT', 'HOMEPAGE_PLACEMENT'],
-      features: ['API_ACCESS', 'BULK_IMPORT', 'WEBHOOKS', 'ADVANCED_REPORTING', 'PREMIUM_ANALYTICS', 'DEDICATED_SUPPORT', 'DATA_EXPORT', 'NETWORK_INTEGRATION'],
+      products: [
+        'LIVE_DEAL',
+        'MEMBER_BENEFIT',
+        'EXCLUSIVE',
+        'VOUCHER',
+        'WATCH',
+        'LOYALTY',
+        'SPONSORED_CAMPAIGNS',
+        'PUSH_CAMPAIGNS',
+        'FEATURED_PLACEMENT',
+        'HOMEPAGE_PLACEMENT',
+      ],
+      features: [
+        'API_ACCESS',
+        'BULK_IMPORT',
+        'WEBHOOKS',
+        'ADVANCED_REPORTING',
+        'PREMIUM_ANALYTICS',
+        'DEDICATED_SUPPORT',
+        'DATA_EXPORT',
+        'NETWORK_INTEGRATION',
+      ],
       limits: [],
       supportLevel: 'DEDICATED',
-      referencePricing: { subscription: 'indicative from PKR 50,000 / month', setup: 'from PKR 100,000', apiIntegration: 'from PKR 250,000', customDevelopment: 'quoted separately', dedicatedSupport: 'included or custom' },
+      referencePricing: {
+        subscription: 'indicative from PKR 50,000 / month',
+        setup: 'from PKR 100,000',
+        apiIntegration: 'from PKR 250,000',
+        customDevelopment: 'quoted separately',
+        dedicatedSupport: 'included or custom',
+      },
     },
   },
   {
@@ -142,15 +222,42 @@ export const PAKISTAN_PLANS: PlanSeed[] = [
       ],
       fees: [
         { code: 'SETUP_FEE', amountMinor: 500_000 * PKR, indicative: true, note: 'from' },
-        { code: 'API_FEE', amountMinor: 500_000 * PKR, indicative: true, note: 'standard API integration, from' },
+        {
+          code: 'API_FEE',
+          amountMinor: 500_000 * PKR,
+          indicative: true,
+          note: 'standard API integration, from',
+        },
       ],
-      addOnPrices: { PREMIUM_ANALYTICS: { amountMinor: 100_000 * PKR, cadence: 'MONTHLY', indicative: true } },
-      products: ['LIVE_DEAL', 'MEMBER_BENEFIT', 'EXCLUSIVE', 'VOUCHER', 'WATCH', 'LOYALTY', 'SPONSORED_CAMPAIGNS'],
-      features: ['BANK_MERCHANT_NETWORK', 'CARDHOLDER_ELIGIBILITY', 'BANK_FUNDED_CAMPAIGNS', 'MERCHANT_FUNDED_CAMPAIGNS', 'CO_FUNDED_CAMPAIGNS', 'API_ACCESS', 'BULK_IMPORT', 'ADVANCED_REPORTING'],
+      addOnPrices: {
+        PREMIUM_ANALYTICS: { amountMinor: 100_000 * PKR, cadence: 'MONTHLY', indicative: true },
+      },
+      products: [
+        'LIVE_DEAL',
+        'MEMBER_BENEFIT',
+        'EXCLUSIVE',
+        'VOUCHER',
+        'WATCH',
+        'LOYALTY',
+        'SPONSORED_CAMPAIGNS',
+      ],
+      features: [
+        'BANK_MERCHANT_NETWORK',
+        'CARDHOLDER_ELIGIBILITY',
+        'BANK_FUNDED_CAMPAIGNS',
+        'MERCHANT_FUNDED_CAMPAIGNS',
+        'CO_FUNDED_CAMPAIGNS',
+        'API_ACCESS',
+        'BULK_IMPORT',
+        'ADVANCED_REPORTING',
+      ],
       limits: [],
       addOnCodes: ['PREMIUM_ANALYTICS', 'API_CAPACITY'],
       supportLevel: 'DEDICATED',
-      referencePricing: { customIntegration: 'custom', premiumAnalytics: 'from PKR 100,000 / month' },
+      referencePricing: {
+        customIntegration: 'custom',
+        premiumAnalytics: 'from PKR 100,000 / month',
+      },
     },
   },
   {
@@ -164,16 +271,39 @@ export const PAKISTAN_PLANS: PlanSeed[] = [
       defaultCadence: 'ANNUAL',
       prices: [{ cadence: 'ANNUAL', amountMinor: 5_000_000 * PKR, indicative: true }],
       fees: [
-        { code: 'SETUP_FEE', amountMinor: 1_000_000 * PKR, indicative: true, note: 'initial setup, from' },
-        { code: 'API_FEE', amountMinor: 1_500_000 * PKR, indicative: true, note: 'standard API integration, from' },
+        {
+          code: 'SETUP_FEE',
+          amountMinor: 1_000_000 * PKR,
+          indicative: true,
+          note: 'initial setup, from',
+        },
+        {
+          code: 'API_FEE',
+          amountMinor: 1_500_000 * PKR,
+          indicative: true,
+          note: 'standard API integration, from',
+        },
       ],
-      addOnPrices: { PREMIUM_ANALYTICS: { amountMinor: 250_000 * PKR, cadence: 'MONTHLY', indicative: true } },
-      products: ['LIVE_DEAL', 'MEMBER_BENEFIT', 'EXCLUSIVE', 'VOUCHER', 'WATCH', 'LOYALTY', 'SPONSORED_CAMPAIGNS'],
+      addOnPrices: {
+        PREMIUM_ANALYTICS: { amountMinor: 250_000 * PKR, cadence: 'MONTHLY', indicative: true },
+      },
+      products: [
+        'LIVE_DEAL',
+        'MEMBER_BENEFIT',
+        'EXCLUSIVE',
+        'VOUCHER',
+        'WATCH',
+        'LOYALTY',
+        'SPONSORED_CAMPAIGNS',
+      ],
       features: SCHEME_FEATURES,
       limits: [],
       addOnCodes: ['PREMIUM_ANALYTICS', 'API_CAPACITY', 'ADDITIONAL_MARKET'],
       supportLevel: 'DEDICATED',
-      referencePricing: { licence: 'Pakistan network licence, from PKR 5,000,000 / year', advancedIntegration: 'custom' },
+      referencePricing: {
+        licence: 'Pakistan network licence, from PKR 5,000,000 / year',
+        advancedIntegration: 'custom',
+      },
     },
   },
   {
@@ -187,10 +317,28 @@ export const PAKISTAN_PLANS: PlanSeed[] = [
       defaultCadence: 'ANNUAL',
       prices: [{ cadence: 'ANNUAL', amountMinor: 10_000_000 * PKR, indicative: true }],
       fees: [
-        { code: 'SETUP_FEE', amountMinor: 1_000_000 * PKR, indicative: true, note: 'initial setup, from' },
-        { code: 'API_FEE', amountMinor: 1_500_000 * PKR, indicative: true, note: 'standard API integration, from' },
+        {
+          code: 'SETUP_FEE',
+          amountMinor: 1_000_000 * PKR,
+          indicative: true,
+          note: 'initial setup, from',
+        },
+        {
+          code: 'API_FEE',
+          amountMinor: 1_500_000 * PKR,
+          indicative: true,
+          note: 'standard API integration, from',
+        },
       ],
-      products: ['LIVE_DEAL', 'MEMBER_BENEFIT', 'EXCLUSIVE', 'VOUCHER', 'WATCH', 'LOYALTY', 'SPONSORED_CAMPAIGNS'],
+      products: [
+        'LIVE_DEAL',
+        'MEMBER_BENEFIT',
+        'EXCLUSIVE',
+        'VOUCHER',
+        'WATCH',
+        'LOYALTY',
+        'SPONSORED_CAMPAIGNS',
+      ],
       features: [...SCHEME_FEATURES, 'MULTI_MARKET'],
       limits: [limit('markets.max', 5)],
       addOnCodes: ['PREMIUM_ANALYTICS', 'API_CAPACITY', 'ADDITIONAL_MARKET'],
@@ -209,7 +357,15 @@ export const PAKISTAN_PLANS: PlanSeed[] = [
     version: {
       defaultCadence: 'ANNUAL',
       prices: [],
-      products: ['LIVE_DEAL', 'MEMBER_BENEFIT', 'EXCLUSIVE', 'VOUCHER', 'WATCH', 'LOYALTY', 'SPONSORED_CAMPAIGNS'],
+      products: [
+        'LIVE_DEAL',
+        'MEMBER_BENEFIT',
+        'EXCLUSIVE',
+        'VOUCHER',
+        'WATCH',
+        'LOYALTY',
+        'SPONSORED_CAMPAIGNS',
+      ],
       features: [...SCHEME_FEATURES, 'MULTI_MARKET'],
       limits: [],
       supportLevel: 'DEDICATED',
@@ -227,7 +383,15 @@ export const PAKISTAN_PLANS: PlanSeed[] = [
     version: {
       defaultCadence: 'MULTI_YEAR',
       prices: [],
-      products: ['LIVE_DEAL', 'MEMBER_BENEFIT', 'EXCLUSIVE', 'VOUCHER', 'WATCH', 'LOYALTY', 'SPONSORED_CAMPAIGNS'],
+      products: [
+        'LIVE_DEAL',
+        'MEMBER_BENEFIT',
+        'EXCLUSIVE',
+        'VOUCHER',
+        'WATCH',
+        'LOYALTY',
+        'SPONSORED_CAMPAIGNS',
+      ],
       features: [...SCHEME_FEATURES, 'MULTI_MARKET', 'INTERNATIONAL_OFFERS'],
       limits: [],
       supportLevel: 'DEDICATED',
@@ -248,16 +412,44 @@ export const PAKISTAN_PLANS: PlanSeed[] = [
         { cadence: 'ANNUAL', amountMinor: 1_000_000 * PKR },
       ],
       fees: [
-        { code: 'SETUP_FEE', amountMinor: 250_000 * PKR, indicative: true, note: 'initial setup, from' },
+        {
+          code: 'SETUP_FEE',
+          amountMinor: 250_000 * PKR,
+          indicative: true,
+          note: 'initial setup, from',
+        },
         { code: 'API_FEE', amountMinor: 250_000 * PKR, indicative: true, note: 'basic API, from' },
       ],
-      addOnPrices: { PREMIUM_ANALYTICS: { amountMinor: 50_000 * PKR, cadence: 'MONTHLY', indicative: true } },
-      products: ['LIVE_DEAL', 'MEMBER_BENEFIT', 'EXCLUSIVE', 'VOUCHER', 'WATCH', 'LOYALTY', 'SPONSORED_CAMPAIGNS'],
-      features: ['EMPLOYEE_PROGRAMS', 'CUSTOMER_PROGRAMS', 'CORPORATE_FUNDED_CAMPAIGNS', 'REWARDS', 'ELIGIBILITY_API', 'BULK_ENROLLMENT', 'API_ACCESS', 'BULK_IMPORT', 'ADVANCED_REPORTING'],
+      addOnPrices: {
+        PREMIUM_ANALYTICS: { amountMinor: 50_000 * PKR, cadence: 'MONTHLY', indicative: true },
+      },
+      products: [
+        'LIVE_DEAL',
+        'MEMBER_BENEFIT',
+        'EXCLUSIVE',
+        'VOUCHER',
+        'WATCH',
+        'LOYALTY',
+        'SPONSORED_CAMPAIGNS',
+      ],
+      features: [
+        'EMPLOYEE_PROGRAMS',
+        'CUSTOMER_PROGRAMS',
+        'CORPORATE_FUNDED_CAMPAIGNS',
+        'REWARDS',
+        'ELIGIBILITY_API',
+        'BULK_ENROLLMENT',
+        'API_ACCESS',
+        'BULK_IMPORT',
+        'ADVANCED_REPORTING',
+      ],
       limits: [],
       addOnCodes: ['PREMIUM_ANALYTICS', 'API_CAPACITY'],
       supportLevel: 'DEDICATED',
-      referencePricing: { complexIntegration: 'custom', premiumAnalytics: 'from PKR 50,000 / month' },
+      referencePricing: {
+        complexIntegration: 'custom',
+        premiumAnalytics: 'from PKR 50,000 / month',
+      },
     },
   },
 ];
@@ -271,27 +463,176 @@ export const PAKISTAN_PRICE_ITEMS: Array<{
   unit: string;
   product: string | null;
   status?: 'ACTIVE' | 'INACTIVE';
-  version: { model: string; amountMinor?: number; rateBps?: number; rangeMin?: number; rangeMax?: number; reference: string };
+  version: {
+    model: string;
+    amountMinor?: number;
+    rateBps?: number;
+    rangeMin?: number;
+    rangeMax?: number;
+    reference: string;
+  };
 }> = [
-  { code: 'FEATURED_LIVE_DEAL', nameEn: 'Featured Live Deal placement', nameAr: 'إبراز عرض مباشر', category: 'CAMPAIGN_ADVERTISING', unit: 'PER_CAMPAIGN', product: 'LIVE_DEAL', version: { model: 'FIXED', amountMinor: 5_000 * PKR, reference: 'from PKR 5,000' } },
-  { code: 'EXCLUSIVE_SETUP', nameEn: 'Exclusive Deal setup', nameAr: 'إعداد عرض حصري', category: 'CAMPAIGN_ADVERTISING', unit: 'PER_CAMPAIGN', product: 'EXCLUSIVE', version: { model: 'FIXED', amountMinor: 5_000 * PKR, reference: 'from PKR 5,000' } },
-  { code: 'VOUCHER_COMMISSION', nameEn: 'Voucher transaction commission', nameAr: 'عمولة معاملة القسيمة', category: 'TRANSACTION_COMMISSION', unit: 'PERCENT', product: 'VOUCHER', version: { model: 'PERCENT_BPS', rangeMin: 800, rangeMax: 1_200, reference: '8% to 12%' } },
-  { code: 'WATCH_QUALIFIED_VIEW', nameEn: 'Watch & Earn qualified view', nameAr: 'مشاهدة مؤهلة في شاهد واربح', category: 'PRODUCT_USAGE', unit: 'PER_VIEW', product: 'WATCH', version: { model: 'PER_UNIT', rangeMin: 3 * PKR, rangeMax: 7 * PKR, reference: 'PKR 3 to 7 and above per qualified view' } },
-  { code: 'PLAY_AND_WIN', nameEn: 'Play & Win campaign', nameAr: 'حملة العب واربح', category: 'CAMPAIGN_ADVERTISING', unit: 'PER_CAMPAIGN', product: null, status: 'INACTIVE', version: { model: 'FIXED', amountMinor: 50_000 * PKR, reference: 'from PKR 50,000 per campaign, when activated (Phase 2 product)' } },
-  { code: 'PUSH_CAMPAIGN', nameEn: 'Push campaign', nameAr: 'حملة إشعارات', category: 'CAMPAIGN_ADVERTISING', unit: 'PER_CAMPAIGN', product: 'PUSH_CAMPAIGNS', version: { model: 'FIXED', amountMinor: 10_000 * PKR, reference: 'from PKR 10,000' } },
-  { code: 'HOMEPAGE_PLACEMENT', nameEn: 'Homepage placement', nameAr: 'إبراز في الصفحة الرئيسية', category: 'CAMPAIGN_ADVERTISING', unit: 'PER_CAMPAIGN', product: 'HOMEPAGE_PLACEMENT', version: { model: 'FIXED', amountMinor: 25_000 * PKR, reference: 'from PKR 25,000' } },
+  {
+    code: 'FEATURED_LIVE_DEAL',
+    nameEn: 'Featured Live Deal placement',
+    nameAr: 'إبراز عرض مباشر',
+    category: 'CAMPAIGN_ADVERTISING',
+    unit: 'PER_CAMPAIGN',
+    product: 'LIVE_DEAL',
+    version: { model: 'FIXED', amountMinor: 5_000 * PKR, reference: 'from PKR 5,000' },
+  },
+  {
+    code: 'EXCLUSIVE_SETUP',
+    nameEn: 'Exclusive Deal setup',
+    nameAr: 'إعداد عرض حصري',
+    category: 'CAMPAIGN_ADVERTISING',
+    unit: 'PER_CAMPAIGN',
+    product: 'EXCLUSIVE',
+    version: { model: 'FIXED', amountMinor: 5_000 * PKR, reference: 'from PKR 5,000' },
+  },
+  {
+    code: 'VOUCHER_COMMISSION',
+    nameEn: 'Voucher transaction commission',
+    nameAr: 'عمولة معاملة القسيمة',
+    category: 'TRANSACTION_COMMISSION',
+    unit: 'PERCENT',
+    product: 'VOUCHER',
+    version: { model: 'PERCENT_BPS', rangeMin: 800, rangeMax: 1_200, reference: '8% to 12%' },
+  },
+  {
+    code: 'WATCH_QUALIFIED_VIEW',
+    nameEn: 'Watch & Earn qualified view',
+    nameAr: 'مشاهدة مؤهلة في شاهد واربح',
+    category: 'PRODUCT_USAGE',
+    unit: 'PER_VIEW',
+    product: 'WATCH',
+    version: {
+      model: 'PER_UNIT',
+      rangeMin: 3 * PKR,
+      rangeMax: 7 * PKR,
+      reference: 'PKR 3 to 7 and above per qualified view',
+    },
+  },
+  {
+    code: 'PLAY_AND_WIN',
+    nameEn: 'Play & Win campaign',
+    nameAr: 'حملة العب واربح',
+    category: 'CAMPAIGN_ADVERTISING',
+    unit: 'PER_CAMPAIGN',
+    product: null,
+    status: 'INACTIVE',
+    version: {
+      model: 'FIXED',
+      amountMinor: 50_000 * PKR,
+      reference: 'from PKR 50,000 per campaign, when activated (Phase 2 product)',
+    },
+  },
+  {
+    code: 'PUSH_CAMPAIGN',
+    nameEn: 'Push campaign',
+    nameAr: 'حملة إشعارات',
+    category: 'CAMPAIGN_ADVERTISING',
+    unit: 'PER_CAMPAIGN',
+    product: 'PUSH_CAMPAIGNS',
+    version: { model: 'FIXED', amountMinor: 10_000 * PKR, reference: 'from PKR 10,000' },
+  },
+  {
+    code: 'HOMEPAGE_PLACEMENT',
+    nameEn: 'Homepage placement',
+    nameAr: 'إبراز في الصفحة الرئيسية',
+    category: 'CAMPAIGN_ADVERTISING',
+    unit: 'PER_CAMPAIGN',
+    product: 'HOMEPAGE_PLACEMENT',
+    version: { model: 'FIXED', amountMinor: 25_000 * PKR, reference: 'from PKR 25,000' },
+  },
 ];
 
-const ADD_ONS: Array<{ code: string; nameEn: string; nameAr: string; effect: Array<{ kind: string; key: string; perUnit: number }>; eligiblePlanCodes: string[] }> = [
-  { code: 'EXTRA_BRANCH', nameEn: 'Additional branch', nameAr: 'فرع إضافي', effect: [{ kind: 'LIMIT', key: 'branches.max', perUnit: 1 }], eligiblePlanCodes: ['STARTER', 'GROWTH', 'BUSINESS'] },
-  { code: 'EXTRA_USER', nameEn: 'Additional user', nameAr: 'مستخدم إضافي', effect: [{ kind: 'LIMIT', key: 'users.max', perUnit: 1 }], eligiblePlanCodes: ['STARTER', 'GROWTH', 'BUSINESS'] },
-  { code: 'PREMIUM_ANALYTICS', nameEn: 'Premium analytics', nameAr: 'تحليلات متقدمة', effect: [{ kind: 'FEATURE', key: 'PREMIUM_ANALYTICS', perUnit: 1 }], eligiblePlanCodes: ['GROWTH', 'BANK_ENTERPRISE', 'SCHEME_COUNTRY_NETWORK', 'SCHEME_REGIONAL', 'CORPORATE_PARTNER'] },
-  { code: 'API_ACCESS', nameEn: 'API access', nameAr: 'الوصول عبر واجهة البرمجة', effect: [{ kind: 'FEATURE', key: 'API_ACCESS', perUnit: 1 }], eligiblePlanCodes: ['GROWTH'] },
-  { code: 'API_CAPACITY', nameEn: 'Additional API capacity (10,000 requests)', nameAr: 'سعة إضافية لواجهة البرمجة (10,000 طلب)', effect: [{ kind: 'LIMIT', key: 'api.requests', perUnit: 10_000 }], eligiblePlanCodes: ['GROWTH', 'BUSINESS', 'BANK_ENTERPRISE', 'SCHEME_COUNTRY_NETWORK', 'SCHEME_REGIONAL', 'CORPORATE_PARTNER'] },
-  { code: 'ADDITIONAL_MARKET', nameEn: 'Additional market', nameAr: 'سوق إضافي', effect: [{ kind: 'LIMIT', key: 'markets.max', perUnit: 1 }, { kind: 'FEATURE', key: 'MULTI_MARKET', perUnit: 1 }], eligiblePlanCodes: ['BUSINESS', 'SCHEME_COUNTRY_NETWORK', 'SCHEME_REGIONAL'] },
-  { code: 'ADVANCED_REPORTING', nameEn: 'Advanced reporting', nameAr: 'تقارير متقدمة', effect: [{ kind: 'FEATURE', key: 'ADVANCED_REPORTING', perUnit: 1 }], eligiblePlanCodes: ['STARTER'] },
-  { code: 'DEDICATED_SUPPORT', nameEn: 'Dedicated support', nameAr: 'دعم مخصص', effect: [{ kind: 'FEATURE', key: 'DEDICATED_SUPPORT', perUnit: 1 }], eligiblePlanCodes: ['BUSINESS'] },
-  { code: 'CAMPAIGN_PACKAGE', nameEn: 'Campaign package (10 campaigns per period)', nameAr: 'حزمة حملات (10 حملات لكل فترة)', effect: [{ kind: 'LIMIT', key: 'campaigns.per_period', perUnit: 10 }], eligiblePlanCodes: ['GROWTH', 'BUSINESS'] },
+const ADD_ONS: Array<{
+  code: string;
+  nameEn: string;
+  nameAr: string;
+  effect: Array<{ kind: string; key: string; perUnit: number }>;
+  eligiblePlanCodes: string[];
+}> = [
+  {
+    code: 'EXTRA_BRANCH',
+    nameEn: 'Additional branch',
+    nameAr: 'فرع إضافي',
+    effect: [{ kind: 'LIMIT', key: 'branches.max', perUnit: 1 }],
+    eligiblePlanCodes: ['STARTER', 'GROWTH', 'BUSINESS'],
+  },
+  {
+    code: 'EXTRA_USER',
+    nameEn: 'Additional user',
+    nameAr: 'مستخدم إضافي',
+    effect: [{ kind: 'LIMIT', key: 'users.max', perUnit: 1 }],
+    eligiblePlanCodes: ['STARTER', 'GROWTH', 'BUSINESS'],
+  },
+  {
+    code: 'PREMIUM_ANALYTICS',
+    nameEn: 'Premium analytics',
+    nameAr: 'تحليلات متقدمة',
+    effect: [{ kind: 'FEATURE', key: 'PREMIUM_ANALYTICS', perUnit: 1 }],
+    eligiblePlanCodes: [
+      'GROWTH',
+      'BANK_ENTERPRISE',
+      'SCHEME_COUNTRY_NETWORK',
+      'SCHEME_REGIONAL',
+      'CORPORATE_PARTNER',
+    ],
+  },
+  {
+    code: 'API_ACCESS',
+    nameEn: 'API access',
+    nameAr: 'الوصول عبر واجهة البرمجة',
+    effect: [{ kind: 'FEATURE', key: 'API_ACCESS', perUnit: 1 }],
+    eligiblePlanCodes: ['GROWTH'],
+  },
+  {
+    code: 'API_CAPACITY',
+    nameEn: 'Additional API capacity (10,000 requests)',
+    nameAr: 'سعة إضافية لواجهة البرمجة (10,000 طلب)',
+    effect: [{ kind: 'LIMIT', key: 'api.requests', perUnit: 10_000 }],
+    eligiblePlanCodes: [
+      'GROWTH',
+      'BUSINESS',
+      'BANK_ENTERPRISE',
+      'SCHEME_COUNTRY_NETWORK',
+      'SCHEME_REGIONAL',
+      'CORPORATE_PARTNER',
+    ],
+  },
+  {
+    code: 'ADDITIONAL_MARKET',
+    nameEn: 'Additional market',
+    nameAr: 'سوق إضافي',
+    effect: [
+      { kind: 'LIMIT', key: 'markets.max', perUnit: 1 },
+      { kind: 'FEATURE', key: 'MULTI_MARKET', perUnit: 1 },
+    ],
+    eligiblePlanCodes: ['BUSINESS', 'SCHEME_COUNTRY_NETWORK', 'SCHEME_REGIONAL'],
+  },
+  {
+    code: 'ADVANCED_REPORTING',
+    nameEn: 'Advanced reporting',
+    nameAr: 'تقارير متقدمة',
+    effect: [{ kind: 'FEATURE', key: 'ADVANCED_REPORTING', perUnit: 1 }],
+    eligiblePlanCodes: ['STARTER'],
+  },
+  {
+    code: 'DEDICATED_SUPPORT',
+    nameEn: 'Dedicated support',
+    nameAr: 'دعم مخصص',
+    effect: [{ kind: 'FEATURE', key: 'DEDICATED_SUPPORT', perUnit: 1 }],
+    eligiblePlanCodes: ['BUSINESS'],
+  },
+  {
+    code: 'CAMPAIGN_PACKAGE',
+    nameEn: 'Campaign package (10 campaigns per period)',
+    nameAr: 'حزمة حملات (10 حملات لكل فترة)',
+    effect: [{ kind: 'LIMIT', key: 'campaigns.per_period', perUnit: 10 }],
+    eligiblePlanCodes: ['GROWTH', 'BUSINESS'],
+  },
 ];
 
 /**
@@ -309,21 +650,44 @@ export async function seedSubscriptionCatalog(db: Db) {
       currency: CURRENCY,
       enabled: false,
       languages: ['en', 'ar'],
-      taxProfile: { status: 'NOT_CONFIGURED_VALIDATE', note: 'Pakistan sales tax treatment is market configuration (VALIDATE)' },
+      taxProfile: {
+        status: 'NOT_CONFIGURED_VALIDATE',
+        note: 'Pakistan sales tax treatment is market configuration (VALIDATE)',
+      },
       paymentProvider: null,
       settlement: { status: 'NOT_CONFIGURED_VALIDATE' },
       residency: { status: 'NOT_CONFIGURED_VALIDATE' },
     },
   });
   for (const a of ADD_ONS)
-    await db.addOnDefinition.upsert({ where: { code: a.code }, update: {}, create: { code: a.code, nameEn: a.nameEn, nameAr: a.nameAr, effect: a.effect as Prisma.InputJsonValue, eligiblePlanCodes: a.eligiblePlanCodes } });
+    await db.addOnDefinition.upsert({
+      where: { code: a.code },
+      update: {},
+      create: {
+        code: a.code,
+        nameEn: a.nameEn,
+        nameAr: a.nameAr,
+        effect: a.effect as Prisma.InputJsonValue,
+        eligiblePlanCodes: a.eligiblePlanCodes,
+      },
+    });
   for (const p of PAKISTAN_PLANS) {
     const plan = await db.commercialPlan.upsert({
       where: { code: p.code },
       update: {},
-      create: { code: p.code, nameEn: p.nameEn, nameAr: p.nameAr, entityType: p.entityType, contractKind: p.contractKind, isFree: !!p.isFree, negotiated: !!p.negotiated, sortOrder: p.sortOrder },
+      create: {
+        code: p.code,
+        nameEn: p.nameEn,
+        nameAr: p.nameAr,
+        entityType: p.entityType,
+        contractKind: p.contractKind,
+        isFree: !!p.isFree,
+        negotiated: !!p.negotiated,
+        sortOrder: p.sortOrder,
+      },
     });
-    if (await db.commercialPlanVersion.findFirst({ where: { planId: plan.id, market: MARKET } })) continue;
+    if (await db.commercialPlanVersion.findFirst({ where: { planId: plan.id, market: MARKET } }))
+      continue;
     const v = p.version;
     await db.commercialPlanVersion.create({
       data: {
@@ -336,7 +700,11 @@ export async function seedSubscriptionCatalog(db: Db) {
         prices: v.prices as Prisma.InputJsonValue,
         fees: (v.fees ?? []) as Prisma.InputJsonValue,
         addOnPrices: (v.addOnPrices ?? {}) as Prisma.InputJsonValue,
-        entitlements: { products: v.products, features: v.features, limits: v.limits.map((l) => ({ overageRateMinor: null, ...l })) } as unknown as Prisma.InputJsonValue,
+        entitlements: {
+          products: v.products,
+          features: v.features,
+          limits: v.limits.map((l) => ({ overageRateMinor: null, ...l })),
+        } as unknown as Prisma.InputJsonValue,
         addOnCodes: v.addOnCodes ?? [],
         supportLevel: v.supportLevel,
         trialDays: v.trialDays ?? null,
@@ -346,8 +714,21 @@ export async function seedSubscriptionCatalog(db: Db) {
     });
   }
   for (const i of PAKISTAN_PRICE_ITEMS) {
-    const item = await db.priceItem.upsert({ where: { code: i.code }, update: {}, create: { code: i.code, nameEn: i.nameEn, nameAr: i.nameAr, category: i.category, unit: i.unit, product: i.product, status: i.status ?? 'ACTIVE' } });
-    if (await db.priceItemVersion.findFirst({ where: { itemId: item.id, market: MARKET } })) continue;
+    const item = await db.priceItem.upsert({
+      where: { code: i.code },
+      update: {},
+      create: {
+        code: i.code,
+        nameEn: i.nameEn,
+        nameAr: i.nameAr,
+        category: i.category,
+        unit: i.unit,
+        product: i.product,
+        status: i.status ?? 'ACTIVE',
+      },
+    });
+    if (await db.priceItemVersion.findFirst({ where: { itemId: item.id, market: MARKET } }))
+      continue;
     await db.priceItemVersion.create({
       data: {
         itemId: item.id,
@@ -373,11 +754,15 @@ export async function seedSubscriptionCatalog(db: Db) {
  * the whole product can be exercised under a plan. Flagged developmentFixture; never a commercial price. Real pilot merchants must
  * receive an explicit plan / contract assignment from DealDash Admin before commercial launch (see the launch-readiness list).
  */
-export async function seedSubscriptionFixtures(db: PrismaClient, opts: { skipOrganizations?: string[] } = {}) {
+export async function seedSubscriptionFixtures(
+  db: PrismaClient,
+  opts: { skipOrganizations?: string[] } = {},
+) {
   const dev = PAKISTAN_PLANS.filter((p) => ['STARTER', 'GROWTH', 'BUSINESS'].includes(p.code));
   for (const p of dev) {
     const plan = await db.commercialPlan.findUniqueOrThrow({ where: { code: p.code } });
-    if (await db.commercialPlanVersion.findFirst({ where: { planId: plan.id, market: 'SA' } })) continue;
+    if (await db.commercialPlanVersion.findFirst({ where: { planId: plan.id, market: 'SA' } }))
+      continue;
     await db.commercialPlanVersion.create({
       data: {
         planId: plan.id,
@@ -387,7 +772,11 @@ export async function seedSubscriptionFixtures(db: PrismaClient, opts: { skipOrg
         status: 'PUBLISHED',
         defaultCadence: 'NONE',
         prices: [],
-        entitlements: { products: p.version.products, features: p.version.features, limits: p.version.limits } as unknown as Prisma.InputJsonValue,
+        entitlements: {
+          products: p.version.products,
+          features: p.version.features,
+          limits: p.version.limits,
+        } as unknown as Prisma.InputJsonValue,
         addOnCodes: p.version.addOnCodes ?? [],
         supportLevel: p.version.supportLevel,
         developmentFixture: true,
@@ -395,13 +784,29 @@ export async function seedSubscriptionFixtures(db: PrismaClient, opts: { skipOrg
       },
     });
   }
-  const orgs = await db.organization.findMany({ where: { type: 'MERCHANT', status: 'ACTIVE' }, select: { id: true, nameEn: true } });
-  const business = await db.commercialPlanVersion.findFirstOrThrow({ where: { plan: { code: 'BUSINESS' }, market: 'SA' }, include: { plan: true } });
-  const author = (await db.user.findFirst({ where: { userType: 'ADMIN_USER' }, select: { id: true } }))?.id;
+  const orgs = await db.organization.findMany({
+    where: { type: 'MERCHANT', status: 'ACTIVE' },
+    select: { id: true, nameEn: true },
+  });
+  const business = await db.commercialPlanVersion.findFirstOrThrow({
+    where: { plan: { code: 'BUSINESS' }, market: 'SA' },
+    include: { plan: true },
+  });
+  const author = (
+    await db.user.findFirst({ where: { userType: 'ADMIN_USER' }, select: { id: true } })
+  )?.id;
   if (!author) return;
   for (const o of orgs) {
     if (opts.skipOrganizations?.includes(o.nameEn)) continue;
-    if (await db.contract.findFirst({ where: { organizationId: o.id, status: { in: ['TRIAL', 'ACTIVE', 'PAST_DUE', 'SUSPENDED', 'PENDING_ACTIVATION'] } } })) continue;
+    if (
+      await db.contract.findFirst({
+        where: {
+          organizationId: o.id,
+          status: { in: ['TRIAL', 'ACTIVE', 'PAST_DUE', 'SUSPENDED', 'PENDING_ACTIVATION'] },
+        },
+      })
+    )
+      continue;
     const from = new Date();
     const c = await db.contract.create({
       data: {
@@ -425,9 +830,28 @@ export async function seedSubscriptionFixtures(db: PrismaClient, opts: { skipOrg
     const e = business.entitlements as { products: string[]; features: string[]; limits: Limit[] };
     await db.contractEntitlement.createMany({
       data: [
-        ...e.products.map((key) => ({ contractId: c.id, kind: 'PRODUCT', key, effectiveFrom: from, source: 'PLAN' })),
-        ...e.features.map((key) => ({ contractId: c.id, kind: 'FEATURE', key, effectiveFrom: from, source: 'PLAN' })),
-        ...e.limits.map((l) => ({ contractId: c.id, kind: 'LIMIT', key: l.key, limitValue: l.value, effectiveFrom: from, source: 'PLAN' })),
+        ...e.products.map((key) => ({
+          contractId: c.id,
+          kind: 'PRODUCT',
+          key,
+          effectiveFrom: from,
+          source: 'PLAN',
+        })),
+        ...e.features.map((key) => ({
+          contractId: c.id,
+          kind: 'FEATURE',
+          key,
+          effectiveFrom: from,
+          source: 'PLAN',
+        })),
+        ...e.limits.map((l) => ({
+          contractId: c.id,
+          kind: 'LIMIT',
+          key: l.key,
+          limitValue: l.value,
+          effectiveFrom: from,
+          source: 'PLAN',
+        })),
       ],
     });
   }
@@ -439,10 +863,26 @@ export async function seedSubscriptionFixtures(db: PrismaClient, opts: { skipOrg
  * (non-fixture) agreement.
  */
 export async function seedAiFixtures(db: PrismaClient) {
-  const contracts = await db.contract.findMany({ where: { developmentFixture: true, status: { in: ['TRIAL', 'ACTIVE'] } }, select: { id: true, effectiveFrom: true } });
+  const contracts = await db.contract.findMany({
+    where: { developmentFixture: true, status: { in: ['TRIAL', 'ACTIVE'] } },
+    select: { id: true, effectiveFrom: true },
+  });
   for (const c of contracts) {
-    if (await db.contractEntitlement.count({ where: { contractId: c.id, kind: 'FEATURE', key: 'AI_COPILOT' } })) continue;
-    await db.contractEntitlement.create({ data: { contractId: c.id, kind: 'FEATURE', key: 'AI_COPILOT', effectiveFrom: c.effectiveFrom, source: 'OVERRIDE' } });
+    if (
+      await db.contractEntitlement.count({
+        where: { contractId: c.id, kind: 'FEATURE', key: 'AI_COPILOT' },
+      })
+    )
+      continue;
+    await db.contractEntitlement.create({
+      data: {
+        contractId: c.id,
+        kind: 'FEATURE',
+        key: 'AI_COPILOT',
+        effectiveFrom: c.effectiveFrom,
+        source: 'OVERRIDE',
+      },
+    });
   }
   return contracts.length;
 }

@@ -3,7 +3,11 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client';
 import { seedDev } from '../src/seed/dev-seed';
 import { seedCommercialFixtures } from '../src/seed/commercial-fixtures';
-import { seedAiFixtures, seedSubscriptionCatalog, seedSubscriptionFixtures } from '../src/seed/subscription-catalog';
+import {
+  seedAiFixtures,
+  seedSubscriptionCatalog,
+  seedSubscriptionFixtures,
+} from '../src/seed/subscription-catalog';
 
 async function main() {
   loadDotEnv();

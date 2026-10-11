@@ -1,0 +1,396 @@
+{
+  "measuredAt": "2026-10-11T07:07:01.305Z",
+  "pages": [
+    {
+      "page": "customer en start / sign-in",
+      "lang": "en",
+      "dir": "ltr",
+      "h1": 1,
+      "controls": 1,
+      "unlabeled": [],
+      "unnamed": [],
+      "images": [],
+      "dupIds": [],
+      "contrast": 14.9,
+      "focus": {
+        "moved": true,
+        "styled": true,
+        "tag": "A"
+      }
+    },
+    {
+      "page": "customer ar start / sign-in",
+      "lang": "ar",
+      "dir": "rtl",
+      "h1": 1,
+      "controls": 1,
+      "unlabeled": [],
+      "unnamed": [],
+      "images": [],
+      "dupIds": [],
+      "contrast": 14.9,
+      "focus": {
+        "moved": true,
+        "styled": true,
+        "tag": "A"
+      }
+    },
+    {
+      "page": "merchant en start / sign-in",
+      "lang": "en",
+      "dir": "ltr",
+      "h1": 1,
+      "controls": 2,
+      "unlabeled": [],
+      "unnamed": [],
+      "images": [],
+      "dupIds": [],
+      "contrast": 17.3,
+      "focus": {
+        "moved": true,
+        "styled": true,
+        "tag": "A"
+      }
+    },
+    {
+      "page": "merchant ar start / sign-in",
+      "lang": "ar",
+      "dir": "rtl",
+      "h1": 1,
+      "controls": 2,
+      "unlabeled": [],
+      "unnamed": [],
+      "images": [],
+      "dupIds": [],
+      "contrast": 17.3,
+      "focus": {
+        "moved": true,
+        "styled": true,
+        "tag": "A"
+      }
+    },
+    {
+      "page": "staff en start / sign-in",
+      "lang": "en",
+      "dir": "ltr",
+      "h1": 1,
+      "controls": 1,
+      "unlabeled": [],
+      "unnamed": [],
+      "images": [],
+      "dupIds": [],
+      "contrast": 14.9,
+      "focus": {
+        "moved": true,
+        "styled": true,
+        "tag": "A"
+      }
+    },
+    {
+      "page": "staff ar start / sign-in",
+      "lang": "ar",
+      "dir": "rtl",
+      "h1": 1,
+      "controls": 1,
+      "unlabeled": [],
+      "unnamed": [],
+      "images": [],
+      "dupIds": [],
+      "contrast": 14.9,
+      "focus": {
+        "moved": true,
+        "styled": true,
+        "tag": "A"
+      }
+    },
+    {
+      "page": "partner en start / sign-in",
+      "lang": "en",
+      "dir": "ltr",
+      "h1": 1,
+      "controls": 2,
+      "unlabeled": [],
+      "unnamed": [],
+      "images": [],
+      "dupIds": [],
+      "contrast": 17.3,
+      "focus": {
+        "moved": true,
+        "styled": true,
+        "tag": "A"
+      }
+    },
+    {
+      "page": "partner ar start / sign-in",
+      "lang": "ar",
+      "dir": "rtl",
+      "h1": 1,
+      "controls": 2,
+      "unlabeled": [],
+      "unnamed": [],
+      "images": [],
+      "dupIds": [],
+      "contrast": 17.3,
+      "focus": {
+        "moved": true,
+        "styled": true,
+        "tag": "A"
+      }
+    },
+    {
+      "page": "admin en start / sign-in",
+      "lang": "en",
+      "dir": "ltr",
+      "h1": 1,
+      "controls": 2,
+      "unlabeled": [],
+      "unnamed": [],
+      "images": [],
+      "dupIds": [],
+      "contrast": 17.3,
+      "focus": {
+        "moved": true,
+        "styled": true,
+        "tag": "A"
+      }
+    },
+    {
+      "page": "admin ar start / sign-in",
+      "lang": "ar",
+      "dir": "rtl",
+      "h1": 1,
+      "controls": 2,
+      "unlabeled": [],
+      "unnamed": [],
+      "images": [],
+      "dupIds": [],
+      "contrast": 17.3,
+      "focus": {
+        "moved": true,
+        "styled": true,
+        "tag": "A"
+      }
+    },
+    {
+      "page": "customer /en/explore",
+      "lang": "en",
+      "dir": "ltr",
+      "h1": 1,
+      "controls": 2,
+      "unlabeled": [],
+      "unnamed": [],
+      "images": [],
+      "dupIds": [],
+      "contrast": 14.9,
+      "focus": {
+        "moved": true,
+        "styled": true,
+        "tag": "A"
+      }
+    },
+    {
+      "page": "customer /en/profile",
+      "lang": "en",
+      "dir": "ltr",
+      "h1": 1,
+      "controls": 1,
+      "unlabeled": [],
+      "unnamed": [],
+      "images": [],
+      "dupIds": [],
+      "contrast": 14.9,
+      "focus": {
+        "moved": true,
+        "styled": true,
+        "tag": "A"
+      }
+    },
+    {
+      "page": "customer /ar/explore",
+      "lang": "ar",
+      "dir": "rtl",
+      "h1": 1,
+      "controls": 2,
+      "unlabeled": [],
+      "unnamed": [],
+      "images": [],
+      "dupIds": [],
+      "contrast": 14.9,
+      "focus": {
+        "moved": true,
+        "styled": true,
+        "tag": "A"
+      }
+    },
+    {
+      "page": "admin /en/cases",
+      "lang": "en",
+      "dir": "ltr",
+      "h1": 1,
+      "controls": 4,
+      "unlabeled": [],
+      "unnamed": [],
+      "images": [],
+      "dupIds": [],
+      "contrast": 17.3,
+      "focus": {
+        "moved": true,
+        "styled": true,
+        "tag": "A"
+      }
+    },
+    {
+      "page": "admin /en/configuration",
+      "lang": "en",
+      "dir": "ltr",
+      "h1": 1,
+      "controls": 0,
+      "unlabeled": [],
+      "unnamed": [],
+      "images": [],
+      "dupIds": [],
+      "contrast": 17.3,
+      "focus": {
+        "moved": true,
+        "styled": true,
+        "tag": "A"
+      }
+    },
+    {
+      "page": "admin /en/settlements",
+      "lang": "en",
+      "dir": "ltr",
+      "h1": 1,
+      "controls": 4,
+      "unlabeled": [],
+      "unnamed": [],
+      "images": [],
+      "dupIds": [],
+      "contrast": 17.3,
+      "focus": {
+        "moved": true,
+        "styled": true,
+        "tag": "A"
+      }
+    },
+    {
+      "page": "admin /ar/cases",
+      "lang": "ar",
+      "dir": "rtl",
+      "h1": 1,
+      "controls": 4,
+      "unlabeled": [],
+      "unnamed": [],
+      "images": [],
+      "dupIds": [],
+      "contrast": 17.3,
+      "focus": {
+        "moved": true,
+        "styled": true,
+        "tag": "A"
+      }
+    }
+  ],
+  "checks": [
+    {
+      "name": "a11y: customer en start / sign-in",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "a11y: customer ar start / sign-in",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "a11y: merchant en start / sign-in",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "a11y: merchant ar start / sign-in",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "a11y: staff en start / sign-in",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "a11y: staff ar start / sign-in",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "a11y: partner en start / sign-in",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "a11y: partner ar start / sign-in",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "a11y: admin en start / sign-in",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "a11y: admin ar start / sign-in",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "a11y: customer /en/explore",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "a11y: customer /en/profile",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "a11y: customer /ar/explore",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "a11y: admin /en/cases",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "a11y: admin /en/configuration",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "a11y: admin /en/settlements",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "a11y: admin /ar/cases",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "reflow at 320 px: customer home (en)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "reflow at 320 px: customer explore (ar)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "reflow at 320 px: staff sign-in",
+      "ok": true,
+      "detail": ""
+    }
+  ]
+}

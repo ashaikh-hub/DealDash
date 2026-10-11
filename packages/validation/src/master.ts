@@ -75,7 +75,9 @@ export const ingestResultSchema = z.object({
   accepted: z.number().int(),
   rejected: z.number().int(),
   conflicts: z.number().int(),
-  failures: z.array(z.object({ index: z.number().int(), sourceRecordId: z.string().nullable(), error: z.string() })),
+  failures: z.array(
+    z.object({ index: z.number().int(), sourceRecordId: z.string().nullable(), error: z.string() }),
+  ),
   replayed: z.boolean(),
 });
 
@@ -91,7 +93,9 @@ export const importUploadSchema = z.object({
   /** Stage 7: the file's own column names mapped to the template's (for example {"Merchant Name": "name_en"}). */
   mapping: z.record(z.string().trim().min(1).max(80), z.string().trim().min(1).max(40)).optional(),
 });
-export const importDecisionSchema = z.object({ reason: z.string().trim().min(3).max(300).optional() });
+export const importDecisionSchema = z.object({
+  reason: z.string().trim().min(3).max(300).optional(),
+});
 export const importJobViewSchema = z.object({
   id: uuid,
   organizationId: uuid.nullable(),
@@ -121,7 +125,10 @@ export const connectionCreateSchema = z.object({
   name: text(120),
   sourceSystem: text(60),
   kind: z.enum(['API_PUSH', 'FEED_PULL', 'WEBHOOK']).default('API_PUSH'),
-  scopes: z.array(z.enum(['MERCHANT', 'BRANCH', 'OFFER'])).min(1).default(['MERCHANT', 'BRANCH', 'OFFER']),
+  scopes: z
+    .array(z.enum(['MERCHANT', 'BRANCH', 'OFFER']))
+    .min(1)
+    .default(['MERCHANT', 'BRANCH', 'OFFER']),
   rateLimitPerMinute: z.number().int().min(1).max(10000).default(120),
   staleAfterMinutes: z.number().int().min(5).max(525600).default(1440),
   publicationAuthorized: z.boolean().default(false),
@@ -169,7 +176,10 @@ export const failedRecordViewSchema = z.object({
   createdAt: z.string(),
   payload: z.unknown(),
 });
-export const failedDecisionSchema = z.object({ action: z.enum(['RETRY', 'DISCARD']), reason: z.string().trim().max(300).optional() });
+export const failedDecisionSchema = z.object({
+  action: z.enum(['RETRY', 'DISCARD']),
+  reason: z.string().trim().max(300).optional(),
+});
 export const webhookCreateSchema = z.object({
   url: z.string().url().max(500),
   events: z.array(z.string().trim().min(3).max(60)).min(1).max(20),
@@ -217,8 +227,20 @@ export const matchCandidateViewSchema = z.object({
   confidence: z.number().int(),
   reasons: z.array(z.string()),
   status: z.string(),
-  a: z.object({ id: uuid, nameEn: z.string(), country: z.string(), registration: z.string().nullable(), sourceSystems: z.array(z.string()) }),
-  b: z.object({ id: uuid, nameEn: z.string(), country: z.string(), registration: z.string().nullable(), sourceSystems: z.array(z.string()) }),
+  a: z.object({
+    id: uuid,
+    nameEn: z.string(),
+    country: z.string(),
+    registration: z.string().nullable(),
+    sourceSystems: z.array(z.string()),
+  }),
+  b: z.object({
+    id: uuid,
+    nameEn: z.string(),
+    country: z.string(),
+    registration: z.string().nullable(),
+    sourceSystems: z.array(z.string()),
+  }),
   createdAt: z.string(),
 });
 export const matchDecisionSchema = z.object({
@@ -256,7 +278,12 @@ export const conflictDecisionSchema = z.object({
 });
 export const networkOfferViewSchema = z.object({
   id: uuid,
-  merchant: z.object({ id: uuid, nameEn: z.string(), nameAr: z.string().nullable(), registered: z.boolean() }),
+  merchant: z.object({
+    id: uuid,
+    nameEn: z.string(),
+    nameAr: z.string().nullable(),
+    registered: z.boolean(),
+  }),
   titleEn: z.string(),
   titleAr: z.string().nullable(),
   benefitEn: z.string(),
@@ -267,6 +294,14 @@ export const networkOfferViewSchema = z.object({
   validFrom: z.string(),
   validUntil: z.string().nullable(),
   categoryCode: z.string().nullable(),
-  branches: z.array(z.object({ id: uuid, nameEn: z.string(), city: z.string().nullable(), latitude: z.number().nullable(), longitude: z.number().nullable() })),
+  branches: z.array(
+    z.object({
+      id: uuid,
+      nameEn: z.string(),
+      city: z.string().nullable(),
+      latitude: z.number().nullable(),
+      longitude: z.number().nullable(),
+    }),
+  ),
 });
 export type NetworkOfferView = z.infer<typeof networkOfferViewSchema>;

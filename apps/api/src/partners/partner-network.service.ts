@@ -1,6 +1,10 @@
 import { randomBytes } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
-import { looksLikeCardNumber, type NetworkCapability, type NetworkMerchantState } from '@dealdash/types';
+import {
+  looksLikeCardNumber,
+  type NetworkCapability,
+  type NetworkMerchantState,
+} from '@dealdash/types';
 import type { networkMerchantCreateSchema } from '@dealdash/validation';
 import type { z } from 'zod';
 import { AuditService } from '../audit/audit.service';
@@ -514,25 +518,38 @@ export class PartnerNetworkService {
     });
     const offerRefs = refs.filter((r) => r.entityType === 'OFFER');
     const rows = await this.prisma.referencedOffer.findMany({
-      where: { id: { in: offerRefs.map((r) => r.entityId) }, merchant: { country: { in: markets } } },
-      include: { merchant: { select: { nameEn: true, nameAr: true, country: true, registration: true } } },
+      where: {
+        id: { in: offerRefs.map((r) => r.entityId) },
+        merchant: { country: { in: markets } },
+      },
+      include: {
+        merchant: { select: { nameEn: true, nameAr: true, country: true, registration: true } },
+      },
       orderBy: { validFrom: 'desc' },
       take: 300,
     });
-    const connIds = [...new Set(offerRefs.map((r) => r.connectionId).filter((x): x is string => !!x))];
+    const connIds = [
+      ...new Set(offerRefs.map((r) => r.connectionId).filter((x): x is string => !!x)),
+    ];
     const conns = new Map(
-      (await this.prisma.integrationConnection.findMany({ where: { id: { in: connIds } } })).map((c) => [c.id, c]),
+      (await this.prisma.integrationConnection.findMany({ where: { id: { in: connIds } } })).map(
+        (c) => [c.id, c],
+      ),
     );
     return rows.map((o) => {
       const ref = offerRefs.find((r) => r.entityId === o.id)!;
       const conn = ref.connectionId ? conns.get(ref.connectionId) : null;
-      const authorised = conn ? conn.status === 'ACTIVE' && conn.publicationAuthorized : !!ref.publicationRef;
+      const authorised = conn
+        ? conn.status === 'ACTIVE' && conn.publicationAuthorized
+        : !!ref.publicationRef;
       return {
         id: o.id,
         merchant: o.merchant.nameEn,
         merchantAr: o.merchant.nameAr,
         merchantRegistered: o.merchant.registration === 'REGISTERED',
-        merchantSourceId: refs.find((r) => r.entityType === 'MERCHANT' && r.entityId === o.merchantId)?.sourceRecordId ?? null,
+        merchantSourceId:
+          refs.find((r) => r.entityType === 'MERCHANT' && r.entityId === o.merchantId)
+            ?.sourceRecordId ?? null,
         country: o.merchant.country,
         titleEn: o.titleEn,
         titleAr: o.titleAr,
@@ -546,7 +563,12 @@ export class PartnerNetworkService {
         importMethod: ref.importMethod,
         publicationRef: conn ? conn.publicationRef : ref.publicationRef,
         publicationConfirmed: ref.publicationConfirmed,
-        publication: !ref.publicationConfirmed || !authorised ? 'AWAITING_CONFIRMATION' : ref.syncStatus === 'STALE' ? 'STALE' : 'PUBLISHABLE',
+        publication:
+          !ref.publicationConfirmed || !authorised
+            ? 'AWAITING_CONFIRMATION'
+            : ref.syncStatus === 'STALE'
+              ? 'STALE'
+              : 'PUBLISHABLE',
         sourceRecordId: ref.sourceRecordId,
         lastSyncAt: ref.lastSyncAt?.toISOString() ?? null,
       };
@@ -585,17 +607,39 @@ export class PartnerNetworkService {
     this.access.requireOperating(p);
     await this.access.requireModule(p, 'OFFERS');
     await this.access.requireIngestion(p, 'MANUAL');
-    for (const v of [b.titleEn, b.titleAr, b.benefitEn, b.benefitAr, b.termsEn, b.termsAr, JSON.stringify(b.eligibility ?? {})])
-      if (v && looksLikeCardNumber(v)) throw new AppError('CARD_DATA_FORBIDDEN', 'Card numbers are never stored', 422);
+    for (const v of [
+      b.titleEn,
+      b.titleAr,
+      b.benefitEn,
+      b.benefitAr,
+      b.termsEn,
+      b.termsAr,
+      JSON.stringify(b.eligibility ?? {}),
+    ])
+      if (v && looksLikeCardNumber(v))
+        throw new AppError('CARD_DATA_FORBIDDEN', 'Card numbers are never stored', 422);
     const sourceSystem = this.access.sourceSystemOf(organizationId);
     const mref = await this.prisma.externalEntityReference.findUnique({
-      where: { sourceSystem_entityType_sourceRecordId: { sourceSystem, entityType: 'MERCHANT', sourceRecordId: b.merchantSourceId } },
+      where: {
+        sourceSystem_entityType_sourceRecordId: {
+          sourceSystem,
+          entityType: 'MERCHANT',
+          sourceRecordId: b.merchantSourceId,
+        },
+      },
     });
     const merchant = mref
-      ? await this.prisma.masterMerchant.findUnique({ where: { id: mref.entityId }, select: { country: true } })
+      ? await this.prisma.masterMerchant.findUnique({
+          where: { id: mref.entityId },
+          select: { country: true },
+        })
       : null;
     if (!mref || !merchant)
-      throw new AppError('PARTNER_MERCHANT_NOT_IN_NETWORK', 'Choose a merchant of your network', 409);
+      throw new AppError(
+        'PARTNER_MERCHANT_NOT_IN_NETWORK',
+        'Choose a merchant of your network',
+        409,
+      );
     await this.access.requireMarket(actor, p, merchant.country, 'partner.network.manage');
     const res = await this.ingest.applyRaw(
       {
@@ -630,19 +674,35 @@ export class PartnerNetworkService {
       action: 'partner.offer.created',
       entityType: 'ReferencedOffer',
       entityId: res.entityId,
-      newState: { method: 'MANUAL', action: res.action, publicationRef: b.publicationRef, publicationConfirmed: false },
+      newState: {
+        method: 'MANUAL',
+        action: res.action,
+        publicationRef: b.publicationRef,
+        publicationConfirmed: false,
+      },
       actor,
       subjectOrganizationId: organizationId,
       source: 'UI',
       meta,
     });
-    return { id: res.entityId, action: res.action, warnings: res.warnings, publication: 'AWAITING_CONFIRMATION' as const };
+    return {
+      id: res.entityId,
+      action: res.action,
+      warnings: res.warnings,
+      publication: 'AWAITING_CONFIRMATION' as const,
+    };
   }
 
   /** DealDash: network offers from partners waiting for their publication right to be confirmed. */
   async pendingPublication() {
     const refs = await this.prisma.externalEntityReference.findMany({
-      where: { entityType: 'OFFER', publicationConfirmed: false, publicationRef: { not: null }, connectionId: null, sourceOrganizationId: { not: null } },
+      where: {
+        entityType: 'OFFER',
+        publicationConfirmed: false,
+        publicationRef: { not: null },
+        connectionId: null,
+        sourceOrganizationId: { not: null },
+      },
       orderBy: { createdAt: 'desc' },
       take: 200,
     });
@@ -657,41 +717,65 @@ export class PartnerNetworkService {
     return refs.flatMap((r) => {
       const o = offers.find((x) => x.id === r.entityId);
       if (!o) return [];
-      return [{
-        id: o.id,
-        partner: orgs.find((x) => x.id === r.sourceOrganizationId)?.nameEn ?? null,
-        partnerOrganizationId: r.sourceOrganizationId,
-        merchant: o.merchant.nameEn,
-        country: o.merchant.country,
-        titleEn: o.titleEn,
-        benefitEn: o.benefitEn,
-        validFrom: o.validFrom.toISOString(),
-        validUntil: o.validUntil?.toISOString() ?? null,
-        publicationRef: r.publicationRef,
-        sourceSystem: r.sourceSystem,
-        sourceRecordId: r.sourceRecordId,
-        importMethod: r.importMethod,
-      }];
+      return [
+        {
+          id: o.id,
+          partner: orgs.find((x) => x.id === r.sourceOrganizationId)?.nameEn ?? null,
+          partnerOrganizationId: r.sourceOrganizationId,
+          merchant: o.merchant.nameEn,
+          country: o.merchant.country,
+          titleEn: o.titleEn,
+          benefitEn: o.benefitEn,
+          validFrom: o.validFrom.toISOString(),
+          validUntil: o.validUntil?.toISOString() ?? null,
+          publicationRef: r.publicationRef,
+          sourceSystem: r.sourceSystem,
+          sourceRecordId: r.sourceRecordId,
+          importMethod: r.importMethod,
+        },
+      ];
     });
   }
 
   /** DealDash confirms (or withdraws) a partner's right to publish one network offer; every decision is audited. */
-  async decidePublication(actor: Actor, offerId: string, confirm: boolean, reason: string | undefined, meta: RequestMeta) {
+  async decidePublication(
+    actor: Actor,
+    offerId: string,
+    confirm: boolean,
+    reason: string | undefined,
+    meta: RequestMeta,
+  ) {
     const ref = await this.prisma.externalEntityReference.findFirst({
-      where: { entityType: 'OFFER', entityId: offerId, sourceOrganizationId: { not: null }, connectionId: null },
+      where: {
+        entityType: 'OFFER',
+        entityId: offerId,
+        sourceOrganizationId: { not: null },
+        connectionId: null,
+      },
     });
     if (!ref) throw AppError.notFound();
-    const partner = await this.prisma.organization.findFirst({ where: { id: ref.sourceOrganizationId!, type: 'PARTNER' } });
+    const partner = await this.prisma.organization.findFirst({
+      where: { id: ref.sourceOrganizationId!, type: 'PARTNER' },
+    });
     if (!partner) throw AppError.notFound();
     if (confirm && !ref.publicationRef)
       throw AppError.validation('A publication authority reference is required', 'publicationRef');
-    await this.prisma.externalEntityReference.update({ where: { id: ref.id }, data: { publicationConfirmed: confirm } });
+    await this.prisma.externalEntityReference.update({
+      where: { id: ref.id },
+      data: { publicationConfirmed: confirm },
+    });
     await this.audit.record({
-      action: confirm ? 'partner.offer.publication_confirmed' : 'partner.offer.publication_withdrawn',
+      action: confirm
+        ? 'partner.offer.publication_confirmed'
+        : 'partner.offer.publication_withdrawn',
       entityType: 'ReferencedOffer',
       entityId: offerId,
       previousState: { publicationConfirmed: ref.publicationConfirmed },
-      newState: { publicationConfirmed: confirm, publicationRef: ref.publicationRef, reason: reason ?? null },
+      newState: {
+        publicationConfirmed: confirm,
+        publicationRef: ref.publicationRef,
+        reason: reason ?? null,
+      },
       actor,
       subjectOrganizationId: ref.sourceOrganizationId,
       source: 'UI',

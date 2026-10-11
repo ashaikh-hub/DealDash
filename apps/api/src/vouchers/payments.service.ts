@@ -111,7 +111,10 @@ export class PaymentsService {
     if (!v || !voucherDiscoverable(v, now).visible || v.status !== 'ON_SALE')
       throw new AppError('OFFER_UNAVAILABLE', 'This voucher is not on sale', 409);
     await this.requireEligible(userId, v, now);
-    await this.core.commercial.assertCustomerExposureAllowed(v.organizationId, { userId, scope: 'NEW_PURCHASES' });
+    await this.core.commercial.assertCustomerExposureAllowed(v.organizationId, {
+      userId,
+      scope: 'NEW_PURCHASES',
+    });
 
     const holdMinutes = await this.core.checkoutHoldMinutes();
     let orderId: string;

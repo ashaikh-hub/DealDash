@@ -4,8 +4,23 @@ import { dealEligibilitySchema } from './deals';
 const uuid = z.string().uuid();
 const iso = z.string().datetime({ offset: true });
 
-export const LOYALTY_FUNDING_SOURCES = ['DEALDASH', 'MERCHANT', 'BANK', 'SCHEME', 'CORPORATE', 'CAMPAIGN', 'SPONSOR'] as const;
-export const LOYALTY_RULE_STATUSES = ['DRAFT', 'PENDING_APPROVAL', 'ACTIVE', 'PAUSED', 'ENDED', 'REJECTED'] as const;
+export const LOYALTY_FUNDING_SOURCES = [
+  'DEALDASH',
+  'MERCHANT',
+  'BANK',
+  'SCHEME',
+  'CORPORATE',
+  'CAMPAIGN',
+  'SPONSOR',
+] as const;
+export const LOYALTY_RULE_STATUSES = [
+  'DRAFT',
+  'PENDING_APPROVAL',
+  'ACTIVE',
+  'PAUSED',
+  'ENDED',
+  'REJECTED',
+] as const;
 
 /** A loyalty earning rule. Nothing here is a fixed example: every number is the rule author's, inside the caps the platform enforces. */
 export const loyaltyRuleCreateSchema = z
@@ -36,17 +51,36 @@ export const loyaltyRuleCreateSchema = z
   .superRefine((r, ctx) => {
     if (r.basePoints + r.bonusPoints + r.pointsPer100Halalas <= 0)
       ctx.addIssue({ code: 'custom', path: ['basePoints'], message: 'REQUIRED_POINTS' });
-    if (r.fundingSource !== 'DEALDASH' && (!r.fundingOrganizationId || r.fundingHalalasPerPoint === null))
-      ctx.addIssue({ code: 'custom', path: ['fundingOrganizationId'], message: 'FUNDER_AND_RATE_REQUIRED' });
+    if (
+      r.fundingSource !== 'DEALDASH' &&
+      (!r.fundingOrganizationId || r.fundingHalalasPerPoint === null)
+    )
+      ctx.addIssue({
+        code: 'custom',
+        path: ['fundingOrganizationId'],
+        message: 'FUNDER_AND_RATE_REQUIRED',
+      });
     if (r.fundingSource === 'DEALDASH' && r.fundingOrganizationId)
-      ctx.addIssue({ code: 'custom', path: ['fundingOrganizationId'], message: 'DEALDASH_HAS_NO_FUNDER' });
-    if (r.effectiveFrom && r.effectiveUntil && new Date(r.effectiveUntil) <= new Date(r.effectiveFrom))
+      ctx.addIssue({
+        code: 'custom',
+        path: ['fundingOrganizationId'],
+        message: 'DEALDASH_HAS_NO_FUNDER',
+      });
+    if (
+      r.effectiveFrom &&
+      r.effectiveUntil &&
+      new Date(r.effectiveUntil) <= new Date(r.effectiveFrom)
+    )
       ctx.addIssue({ code: 'custom', path: ['effectiveUntil'], message: 'END_BEFORE_START' });
   });
 export type LoyaltyRuleCreate = z.infer<typeof loyaltyRuleCreateSchema>;
 
-export const loyaltyDecisionSchema = z.object({ reason: z.string().trim().min(3).max(300).optional() });
-export const loyaltyAllocationSchema = z.object({ maxAllocationPoints: z.number().int().min(1).max(1_000_000_000) });
+export const loyaltyDecisionSchema = z.object({
+  reason: z.string().trim().min(3).max(300).optional(),
+});
+export const loyaltyAllocationSchema = z.object({
+  maxAllocationPoints: z.number().int().min(1).max(1_000_000_000),
+});
 
 export const loyaltyRuleViewSchema = z.object({
   id: uuid,

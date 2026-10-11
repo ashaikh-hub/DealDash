@@ -51,7 +51,11 @@ export const watchContentSchema = z.object({
   targeting: z
     .object({
       cities: z.array(z.string().trim().min(1).max(40)).max(10).default([]),
-      eligibility: dealEligibilitySchema.default({ kind: 'PUBLIC', valueRefs: [], expression: null }),
+      eligibility: dealEligibilitySchema.default({
+        kind: 'PUBLIC',
+        valueRefs: [],
+        expression: null,
+      }),
       /** Riyadh wall-clock hours (0-24) when the campaign is served; null = all day. */
       timeWindow: z
         .object({

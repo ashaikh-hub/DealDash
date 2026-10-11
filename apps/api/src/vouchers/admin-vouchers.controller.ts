@@ -296,7 +296,11 @@ export class AdminFinanceController {
   @HttpCode(201)
   @RequirePermissions('admin.settlements.manage')
   @ApiOkResponse({ type: JournalCreatedResponse })
-  async adjust(@Body() body: AdjustmentDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async adjust(
+    @Body() body: AdjustmentDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     await assertDirectAdjustmentAllowed(this.config, body.amountHalalas);
     return this.finance.adjust(actor, body, meta);
   }

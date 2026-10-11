@@ -18,7 +18,13 @@ export class ActivityService {
 
   /** `organizationId` = a business's own trail; undefined = DealDash (any organization, optional filters). */
   async list(
-    q: { organizationId?: string; entityType?: string; entityId?: string; before?: string; limit?: number },
+    q: {
+      organizationId?: string;
+      entityType?: string;
+      entityId?: string;
+      before?: string;
+      limit?: number;
+    },
     audience: 'business' | 'admin',
   ) {
     const limit = Math.min(Math.max(q.limit ?? 50, 1), 100);
@@ -28,10 +34,23 @@ export class ActivityService {
       ...(q.entityId ? { entityId: q.entityId } : {}),
       ...(q.before ? { occurredAt: { lt: new Date(q.before) } } : {}),
     };
-    const rows = await this.prisma.auditLog.findMany({ where, orderBy: { occurredAt: 'desc' }, take: limit + 1 });
+    const rows = await this.prisma.auditLog.findMany({
+      where,
+      orderBy: { occurredAt: 'desc' },
+      take: limit + 1,
+    });
     const page = rows.slice(0, limit);
-    const orgIds = [...new Set(page.map((r) => r.actorOrganizationId).filter((x): x is string => !!x))];
-    const orgs = new Map((await this.prisma.organization.findMany({ where: { id: { in: orgIds } }, select: { id: true, type: true } })).map((o) => [o.id, o.type]));
+    const orgIds = [
+      ...new Set(page.map((r) => r.actorOrganizationId).filter((x): x is string => !!x)),
+    ];
+    const orgs = new Map(
+      (
+        await this.prisma.organization.findMany({
+          where: { id: { in: orgIds } },
+          select: { id: true, type: true },
+        })
+      ).map((o) => [o.id, o.type]),
+    );
     return {
       items: page.map((r) => ({
         id: r.id,
@@ -45,7 +64,14 @@ export class ActivityService {
         actor:
           audience === 'admin'
             ? { userId: r.actorUserId, role: r.actorRole, organizationId: r.actorOrganizationId }
-            : { by: r.actorOrganizationId && orgs.get(r.actorOrganizationId) === 'DEALDASH' ? 'DEALDASH' : r.actorUserId ? 'YOUR_TEAM' : 'SYSTEM' },
+            : {
+                by:
+                  r.actorOrganizationId && orgs.get(r.actorOrganizationId) === 'DEALDASH'
+                    ? 'DEALDASH'
+                    : r.actorUserId
+                      ? 'YOUR_TEAM'
+                      : 'SYSTEM',
+              },
         scope: r.scope,
         correlationId: audience === 'admin' ? r.correlationId : null,
       })),

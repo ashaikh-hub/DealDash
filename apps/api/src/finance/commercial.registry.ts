@@ -27,7 +27,9 @@ export interface CommercialAdapter {
   /** Economics from a content object (an unsaved builder draft or the stored campaign). */
   economics(organizationId: string, content: unknown, subjectId: string | null): Promise<Economics>;
   /** Products that hold the funds themselves (Watch & Earn budget) report required / funded here. */
-  managedFunding?(subjectId: string): Promise<{ requiredHalalas: number; fundedHalalas: number; spentHalalas: number }>;
+  managedFunding?(
+    subjectId: string,
+  ): Promise<{ requiredHalalas: number; fundedHalalas: number; spentHalalas: number }>;
   /** Inventory figures for closure reconciliation. */
   inventory(subjectId: string): Promise<{
     configured: number;

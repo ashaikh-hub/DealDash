@@ -13,12 +13,24 @@ import { seedCatalog } from '../src/seed/catalog';
 async function main() {
   loadDotEnv();
   const env = loadEnv();
-  const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: env.DATABASE_URL }) });
+  const prisma = new PrismaClient({
+    adapter: new PrismaPg({ connectionString: env.DATABASE_URL }),
+  });
   try {
-    const before = { permissions: await prisma.permission.count(), grants: await prisma.rolePermission.count(), users: await prisma.user.count() };
+    const before = {
+      permissions: await prisma.permission.count(),
+      grants: await prisma.rolePermission.count(),
+      users: await prisma.user.count(),
+    };
     await seedCatalog(prisma);
-    const after = { permissions: await prisma.permission.count(), grants: await prisma.rolePermission.count(), users: await prisma.user.count() };
-    console.log(`catalog synced: permissions ${before.permissions} -> ${after.permissions}, role grants ${before.grants} -> ${after.grants}, users unchanged (${before.users} -> ${after.users})`);
+    const after = {
+      permissions: await prisma.permission.count(),
+      grants: await prisma.rolePermission.count(),
+      users: await prisma.user.count(),
+    };
+    console.log(
+      `catalog synced: permissions ${before.permissions} -> ${after.permissions}, role grants ${before.grants} -> ${after.grants}, users unchanged (${before.users} -> ${after.users})`,
+    );
     if (after.users !== before.users) throw new Error('user count changed: this must never happen');
   } finally {
     await prisma.$disconnect();

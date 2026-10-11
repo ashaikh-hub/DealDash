@@ -14,7 +14,15 @@ export class SignalService {
   constructor(private readonly prisma: PrismaService) {}
 
   async raise(
-    s: { type: CommercialSignalType; dedupeKey: string; organizationId: string; legalEntityId?: string | null; contractId?: string | null; metricKey?: string | null; payload?: Record<string, unknown> },
+    s: {
+      type: CommercialSignalType;
+      dedupeKey: string;
+      organizationId: string;
+      legalEntityId?: string | null;
+      contractId?: string | null;
+      metricKey?: string | null;
+      payload?: Record<string, unknown>;
+    },
     db: Db = this.prisma,
   ): Promise<boolean> {
     try {
@@ -38,7 +46,11 @@ export class SignalService {
 
   list(filter: { organizationId?: string; type?: string; unconsumed?: boolean; limit?: number }) {
     return this.prisma.commercialSignal.findMany({
-      where: { ...(filter.organizationId ? { organizationId: filter.organizationId } : {}), ...(filter.type ? { type: filter.type } : {}), ...(filter.unconsumed ? { consumedAt: null } : {}) },
+      where: {
+        ...(filter.organizationId ? { organizationId: filter.organizationId } : {}),
+        ...(filter.type ? { type: filter.type } : {}),
+        ...(filter.unconsumed ? { consumedAt: null } : {}),
+      },
       orderBy: { createdAt: 'desc' },
       take: Math.min(filter.limit ?? 100, 500),
     });
@@ -46,6 +58,11 @@ export class SignalService {
 
   /** Phase 4 marks the signals it has turned into alerts. */
   async markConsumed(ids: string[]) {
-    return (await this.prisma.commercialSignal.updateMany({ where: { id: { in: ids }, consumedAt: null }, data: { consumedAt: new Date() } })).count;
+    return (
+      await this.prisma.commercialSignal.updateMany({
+        where: { id: { in: ids }, consumedAt: null },
+        data: { consumedAt: new Date() },
+      })
+    ).count;
   }
 }

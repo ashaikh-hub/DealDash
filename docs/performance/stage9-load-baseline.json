@@ -1,0 +1,125 @@
+{
+  "measuredAt": "2026-10-11T06:59:19.390Z",
+  "environment": "local single instance, development mode, fresh test database (NOT production capacity)",
+  "rows": [
+    {
+      "name": "health ready",
+      "requests": 200,
+      "concurrency": 20,
+      "p50ms": 49,
+      "p95ms": 93,
+      "maxMs": 282,
+      "errorRate": 0,
+      "throughputPerSec": 342.5
+    },
+    {
+      "name": "discovery: Live Deals list (Riyadh)",
+      "requests": 300,
+      "concurrency": 20,
+      "p50ms": 115,
+      "p95ms": 146,
+      "maxMs": 163,
+      "errorRate": 0,
+      "throughputPerSec": 175.1
+    },
+    {
+      "name": "discovery: Exclusive Deals list",
+      "requests": 300,
+      "concurrency": 20,
+      "p50ms": 89,
+      "p95ms": 132,
+      "maxMs": 145,
+      "errorRate": 0,
+      "throughputPerSec": 207.9
+    },
+    {
+      "name": "discovery: vouchers list",
+      "requests": 300,
+      "concurrency": 20,
+      "p50ms": 84,
+      "p95ms": 112,
+      "maxMs": 121,
+      "errorRate": 0,
+      "throughputPerSec": 234.7
+    },
+    {
+      "name": "search",
+      "requests": 200,
+      "concurrency": 20,
+      "p50ms": 82,
+      "p95ms": 106,
+      "maxMs": 119,
+      "errorRate": 0,
+      "throughputPerSec": 238.4
+    },
+    {
+      "name": "parallel OTP sign-in (20)",
+      "requests": 20,
+      "concurrency": 20,
+      "totalMs": 285
+    },
+    {
+      "name": "Exclusive Deal reservation race",
+      "requests": 20,
+      "concurrency": 20,
+      "unitsBefore": 29,
+      "demand": 40,
+      "reserved": 28,
+      "unitsAfter": 1
+    },
+    {
+      "name": "parallel voucher checkout (10)",
+      "requests": 10,
+      "concurrency": 10,
+      "totalMs": 205,
+      "ok": 10
+    }
+  ],
+  "checks": [
+    {
+      "name": "latency: health ready p95 under 1500 ms locally with no errors",
+      "ok": true,
+      "detail": "p50 49 ms, p95 93 ms, 342.5/s"
+    },
+    {
+      "name": "latency: discovery: Live Deals list (Riyadh) p95 under 1500 ms locally with no errors",
+      "ok": true,
+      "detail": "p50 115 ms, p95 146 ms, 175.1/s"
+    },
+    {
+      "name": "latency: discovery: Exclusive Deals list p95 under 1500 ms locally with no errors",
+      "ok": true,
+      "detail": "p50 89 ms, p95 132 ms, 207.9/s"
+    },
+    {
+      "name": "latency: discovery: vouchers list p95 under 1500 ms locally with no errors",
+      "ok": true,
+      "detail": "p50 84 ms, p95 112 ms, 234.7/s"
+    },
+    {
+      "name": "latency: search p95 under 1500 ms locally with no errors",
+      "ok": true,
+      "detail": "p50 82 ms, p95 106 ms, 238.4/s"
+    },
+    {
+      "name": "20 customers sign in at the same time (OTP)",
+      "ok": true,
+      "detail": "285 ms"
+    },
+    {
+      "name": "Exclusive Deal stock: 20 customers race for 29 unit(s) (40 asked, oversubscribed); units conserved, never oversold",
+      "ok": true,
+      "detail": "reserved 14x2, before 29, after 1, statuses 409/201"
+    },
+    {
+      "name": "idempotency: the same checkout sent 10 times at once creates ONE order",
+      "ok": true,
+      "detail": "orders 1, statuses 201/409"
+    },
+    {
+      "name": "voucher checkout: 10 buyers at once; holds never exceed the stock",
+      "ok": true,
+      "detail": "10 holds in 205 ms, remaining unlimited"
+    }
+  ]
+}

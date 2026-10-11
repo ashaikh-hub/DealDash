@@ -31,7 +31,9 @@ const riskRule = z.object({
   /** Rule-based MVP: ALLOW (record only), FLAG (human review), BLOCK (stop the action now; a person reviews). */
   decision: z.enum(['ALLOW', 'FLAG', 'BLOCK']),
 });
-const reasonList = z.array(z.object({ code: z.string().min(2).max(60), en: z.string(), ar: z.string() }));
+const reasonList = z.array(
+  z.object({ code: z.string().min(2).max(60), en: z.string(), ar: z.string() }),
+);
 
 export const operationsConfigSchema = z.object({
   /** Allowed case status moves (the case lifecycle). Terminal statuses have no moves. */
@@ -72,7 +74,16 @@ export const operationsConfigSchema = z.object({
     /** Minutes before each retry. */
     retryMinutes: z.array(z.number().int().min(1)),
     /** Template registry: notification type -> version and channels (the text lives in the bilingual dictionaries). */
-    templates: z.record(z.string(), z.object({ version: z.number().int().min(1), channels: z.array(z.string()) })),
+    templates: z.record(
+      z.string(),
+      z.object({ version: z.number().int().min(1), channels: z.array(z.string()) }),
+    ),
+    /** Stage 9 (B3): at most this many SMS / e-mail / push messages per person per channel per hour (in-app is never limited). */
+    throttlePerUserPerHour: z.number().int().min(1).max(500).optional(),
+    /** Stage 9 (B3): channel to try when a channel finally fails (only where approved; none by default). */
+    fallback: z
+      .record(z.enum(['PUSH', 'SMS', 'EMAIL']), z.enum(['PUSH', 'SMS', 'EMAIL']))
+      .optional(),
   }),
   reviews: z.object({
     /** PUBLISH_THEN_MODERATE: a review shows at once and can be reported; PRE_MODERATION: DealDash approves first. */
@@ -84,12 +95,23 @@ export const operationsConfigSchema = z.object({
     hideAfterReports: z.number().int().min(1),
   }),
   supportQueues: z.array(
-    z.object({ code: z.string(), en: z.string(), ar: z.string(), team: z.string(), caseTypes: z.array(z.string()) }),
+    z.object({
+      code: z.string(),
+      en: z.string(),
+      ar: z.string(),
+      team: z.string(),
+      caseTypes: z.array(z.string()),
+    }),
   ),
 });
 export type OperationsConfig = z.infer<typeof operationsConfigSchema>;
 
-const sla = (hours: [number, number, number, number], warnPct = 75, finalRole = 'DEALDASH_SUPER_ADMIN', firstRole = 'DEALDASH_OPERATIONS') => ({
+const sla = (
+  hours: [number, number, number, number],
+  warnPct = 75,
+  finalRole = 'DEALDASH_SUPER_ADMIN',
+  firstRole = 'DEALDASH_OPERATIONS',
+) => ({
   targetHours: { LOW: hours[0], NORMAL: hours[1], HIGH: hours[2], CRITICAL: hours[3] },
   warnPct,
   escalation: [
@@ -101,9 +123,37 @@ const r = (code: string, en: string, ar: string) => ({ code, en, ar });
 
 export const DEFAULT_OPERATIONS_CONFIG: OperationsConfig = {
   caseLifecycle: {
-    OPEN: ['INVESTIGATING', 'AWAITING_CUSTOMER', 'AWAITING_MERCHANT', 'AWAITING_PARTNER', 'AWAITING_FINANCE', 'RESOLVED', 'CLOSED', 'REJECTED'],
-    INVESTIGATING: ['AWAITING_CUSTOMER', 'AWAITING_MERCHANT', 'AWAITING_PARTNER', 'AWAITING_FINANCE', 'AWAITING_APPROVAL', 'RESOLVED', 'CLOSED', 'REJECTED'],
-    IN_REVIEW: ['INVESTIGATING', 'AWAITING_CUSTOMER', 'AWAITING_MERCHANT', 'AWAITING_PARTNER', 'AWAITING_FINANCE', 'AWAITING_APPROVAL', 'RESOLVED', 'CLOSED', 'REJECTED'],
+    OPEN: [
+      'INVESTIGATING',
+      'AWAITING_CUSTOMER',
+      'AWAITING_MERCHANT',
+      'AWAITING_PARTNER',
+      'AWAITING_FINANCE',
+      'RESOLVED',
+      'CLOSED',
+      'REJECTED',
+    ],
+    INVESTIGATING: [
+      'AWAITING_CUSTOMER',
+      'AWAITING_MERCHANT',
+      'AWAITING_PARTNER',
+      'AWAITING_FINANCE',
+      'AWAITING_APPROVAL',
+      'RESOLVED',
+      'CLOSED',
+      'REJECTED',
+    ],
+    IN_REVIEW: [
+      'INVESTIGATING',
+      'AWAITING_CUSTOMER',
+      'AWAITING_MERCHANT',
+      'AWAITING_PARTNER',
+      'AWAITING_FINANCE',
+      'AWAITING_APPROVAL',
+      'RESOLVED',
+      'CLOSED',
+      'REJECTED',
+    ],
     WAITING: ['INVESTIGATING', 'RESOLVED', 'CLOSED', 'REJECTED'],
     AWAITING_CUSTOMER: ['INVESTIGATING', 'RESOLVED', 'CLOSED'],
     AWAITING_MERCHANT: ['INVESTIGATING', 'AWAITING_FINANCE', 'RESOLVED', 'CLOSED'],
@@ -176,7 +226,11 @@ export const DEFAULT_OPERATIONS_CONFIG: OperationsConfig = {
   reasons: {
     refund: [
       r('CUSTOMER_REQUEST', 'Customer request', 'طلب العميل'),
-      r('MERCHANT_UNABLE_TO_HONOUR', 'Merchant could not honour the voucher', 'تعذّر على التاجر الوفاء بالقسيمة'),
+      r(
+        'MERCHANT_UNABLE_TO_HONOUR',
+        'Merchant could not honour the voucher',
+        'تعذّر على التاجر الوفاء بالقسيمة',
+      ),
       r('DUPLICATE_PAYMENT', 'Duplicate payment', 'دفع مكرر'),
       r('FAILED_ISSUANCE', 'Voucher could not be issued', 'تعذّر إصدار القسيمة'),
       r('PAYMENT_REVERSAL', 'Payment reversed by the provider', 'عكس مزوّد الدفع العملية'),
@@ -218,12 +272,37 @@ export const DEFAULT_OPERATIONS_CONFIG: OperationsConfig = {
     rules: {
       REPEATED_CODE_ATTEMPTS: { enabled: true, threshold: 5, windowMinutes: 60, decision: 'FLAG' },
       SUSPICIOUS_REDEMPTION: { enabled: true, threshold: 3, windowMinutes: 1440, decision: 'FLAG' },
-      REPEATED_REFUND_ATTEMPTS: { enabled: true, threshold: 3, windowMinutes: 10_080, decision: 'FLAG' },
-      SUSPICIOUS_BRANCH_ACTIVITY: { enabled: true, threshold: 10, windowMinutes: 1440, decision: 'FLAG' },
+      REPEATED_REFUND_ATTEMPTS: {
+        enabled: true,
+        threshold: 3,
+        windowMinutes: 10_080,
+        decision: 'FLAG',
+      },
+      SUSPICIOUS_BRANCH_ACTIVITY: {
+        enabled: true,
+        threshold: 10,
+        windowMinutes: 1440,
+        decision: 'FLAG',
+      },
       LOYALTY_ABUSE: { enabled: true, threshold: 20, windowMinutes: 1440, decision: 'FLAG' },
-      UNUSUAL_CUSTOMER_ACTIVITY: { enabled: true, threshold: 10, windowMinutes: 1440, decision: 'FLAG' },
-      MERCHANT_REFUND_ANOMALY: { enabled: true, threshold: 10, windowMinutes: 10_080, decision: 'FLAG' },
-      DUPLICATE_QUALIFIED_VIEWS: { enabled: true, threshold: 3, windowMinutes: 60, decision: 'FLAG' },
+      UNUSUAL_CUSTOMER_ACTIVITY: {
+        enabled: true,
+        threshold: 10,
+        windowMinutes: 1440,
+        decision: 'FLAG',
+      },
+      MERCHANT_REFUND_ANOMALY: {
+        enabled: true,
+        threshold: 10,
+        windowMinutes: 10_080,
+        decision: 'FLAG',
+      },
+      DUPLICATE_QUALIFIED_VIEWS: {
+        enabled: true,
+        threshold: 3,
+        windowMinutes: 60,
+        decision: 'FLAG',
+      },
     },
   },
   restrictions: {
@@ -277,11 +356,47 @@ export const DEFAULT_OPERATIONS_CONFIG: OperationsConfig = {
     hideAfterReports: 3,
   },
   supportQueues: [
-    { code: 'CUSTOMER_CARE', en: 'Customer care', ar: 'رعاية العملاء', team: 'SUPPORT', caseTypes: ['CUSTOMER_COMPLAINT', 'VOUCHER_EXCEPTION', 'EXCLUSIVE_REDEMPTION_EXCEPTION'] },
-    { code: 'PAYMENTS', en: 'Payments and refunds', ar: 'المدفوعات والاسترداد', team: 'FINANCE', caseTypes: ['PAYMENT_EXCEPTION', 'REFUND_EXCEPTION', 'BILLING_EXCEPTION'] },
-    { code: 'SETTLEMENT', en: 'Settlement and reconciliation', ar: 'التسوية والمطابقة', team: 'FINANCE', caseTypes: ['SETTLEMENT_EXCEPTION', 'RECONCILIATION_EXCEPTION'] },
-    { code: 'ENGAGEMENT', en: 'Watch & Earn and loyalty', ar: 'شاهد واكسب والولاء', team: 'OPERATIONS', caseTypes: ['WATCH_EARN_EXCEPTION', 'LOYALTY_EXCEPTION', 'LIVE_BENEFIT_EXCEPTION'] },
-    { code: 'DATA', en: 'Merchant, partner and integration data', ar: 'بيانات التجار والشركاء والتكامل', team: 'OPERATIONS', caseTypes: ['MERCHANT_DATA_EXCEPTION', 'PARTNER_DATA_EXCEPTION', 'INTEGRATION_EXCEPTION'] },
-    { code: 'RISK', en: 'Fraud review', ar: 'مراجعة الاحتيال', team: 'RISK', caseTypes: ['FRAUD_REVIEW'] },
+    {
+      code: 'CUSTOMER_CARE',
+      en: 'Customer care',
+      ar: 'رعاية العملاء',
+      team: 'SUPPORT',
+      caseTypes: ['CUSTOMER_COMPLAINT', 'VOUCHER_EXCEPTION', 'EXCLUSIVE_REDEMPTION_EXCEPTION'],
+    },
+    {
+      code: 'PAYMENTS',
+      en: 'Payments and refunds',
+      ar: 'المدفوعات والاسترداد',
+      team: 'FINANCE',
+      caseTypes: ['PAYMENT_EXCEPTION', 'REFUND_EXCEPTION', 'BILLING_EXCEPTION'],
+    },
+    {
+      code: 'SETTLEMENT',
+      en: 'Settlement and reconciliation',
+      ar: 'التسوية والمطابقة',
+      team: 'FINANCE',
+      caseTypes: ['SETTLEMENT_EXCEPTION', 'RECONCILIATION_EXCEPTION'],
+    },
+    {
+      code: 'ENGAGEMENT',
+      en: 'Watch & Earn and loyalty',
+      ar: 'شاهد واكسب والولاء',
+      team: 'OPERATIONS',
+      caseTypes: ['WATCH_EARN_EXCEPTION', 'LOYALTY_EXCEPTION', 'LIVE_BENEFIT_EXCEPTION'],
+    },
+    {
+      code: 'DATA',
+      en: 'Merchant, partner and integration data',
+      ar: 'بيانات التجار والشركاء والتكامل',
+      team: 'OPERATIONS',
+      caseTypes: ['MERCHANT_DATA_EXCEPTION', 'PARTNER_DATA_EXCEPTION', 'INTEGRATION_EXCEPTION'],
+    },
+    {
+      code: 'RISK',
+      en: 'Fraud review',
+      ar: 'مراجعة الاحتيال',
+      team: 'RISK',
+      caseTypes: ['FRAUD_REVIEW'],
+    },
   ],
 };

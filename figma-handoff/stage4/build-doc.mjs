@@ -6,11 +6,21 @@ import { fileURLToPath } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 const m = JSON.parse(readFileSync(join(here, 'manifest.json'), 'utf8'));
 const fileOf = (id, lang = 'en') => m.files.find((f) => f.id === id && f.lang === lang)?.file;
-const surfaces = [['customer', 'Customer app (390 x 844 mobile)', '01 Customer App'], ['merchant', 'Merchant Portal (1440 x 900 desktop)', '02 Merchant Portal'], ['staff', 'Merchant Staff (390 x 844 mobile-first)', '03 Merchant Staff'], ['admin', 'Admin Portal (1440 x 900 desktop)', '04 Admin Portal']];
-const count = (s, lang) => m.files.filter((f) => f.surface === s && (!lang || f.lang === lang)).length;
+const surfaces = [
+  ['customer', 'Customer app (390 x 844 mobile)', '01 Customer App'],
+  ['merchant', 'Merchant Portal (1440 x 900 desktop)', '02 Merchant Portal'],
+  ['staff', 'Merchant Staff (390 x 844 mobile-first)', '03 Merchant Staff'],
+  ['admin', 'Admin Portal (1440 x 900 desktop)', '04 Admin Portal'],
+];
+const count = (s, lang) =>
+  m.files.filter((f) => f.surface === s && (!lang || f.lang === lang)).length;
 
-const existingAsset = (figma) => (/^\d{2}\s/.test(figma) ? 'Yes: ' + figma : figma.startsWith('none') ? 'No' : 'Partial: ' + figma);
-const existingSvg = (figma) => { const mm = figma.match(/^(\d{2})\s/); return mm ? `Figma Files/dealdash-figma/svg/${mm[1]}-*.svg` : 'No'; };
+const existingAsset = (figma) =>
+  /^\d{2}\s/.test(figma) ? 'Yes: ' + figma : figma.startsWith('none') ? 'No' : 'Partial: ' + figma;
+const existingSvg = (figma) => {
+  const mm = figma.match(/^(\d{2})\s/);
+  return mm ? `Figma Files/dealdash-figma/svg/${mm[1]}-*.svg` : 'No';
+};
 
 let out = `# Stage 4 Figma-ready visual handoff
 

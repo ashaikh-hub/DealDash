@@ -352,7 +352,9 @@ describe('Exclusive Deal detail', () => {
       },
     });
     mount(<HotDealPage id={DEAL} />);
-    expect(await screen.findByText('This Exclusive Deal is not available any more')).toBeInTheDocument();
+    expect(
+      await screen.findByText('This Exclusive Deal is not available any more'),
+    ).toBeInTheDocument();
   });
 
   it('a temporarily restricted customer sees a neutral explanation and a disabled button', async () => {

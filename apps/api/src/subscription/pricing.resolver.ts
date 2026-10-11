@@ -15,7 +15,12 @@ export interface ResolvedPrice {
   source: 'CONTRACT_RATE' | 'PROMOTION' | 'PLAN_VERSION' | 'PRICE_BOOK';
   indicative: boolean;
   waived: boolean;
-  adjustments: Array<{ kind: 'DISCOUNT' | 'WAIVER' | 'PROMOTION' | 'NEGOTIATED_RATE'; ref: string; amountMinor?: number; bps?: number }>;
+  adjustments: Array<{
+    kind: 'DISCOUNT' | 'WAIVER' | 'PROMOTION' | 'NEGOTIATED_RATE';
+    ref: string;
+    amountMinor?: number;
+    bps?: number;
+  }>;
 }
 
 interface PriceRow {
@@ -27,15 +32,22 @@ interface PriceRow {
   maxAmountMinor?: number | null;
 }
 
-const inForce = (r: { effectiveFrom: Date; effectiveUntil: Date | null }, at: Date) => r.effectiveFrom <= at && (r.effectiveUntil === null || r.effectiveUntil > at);
+const inForce = (r: { effectiveFrom: Date; effectiveUntil: Date | null }, at: Date) =>
+  r.effectiveFrom <= at && (r.effectiveUntil === null || r.effectiveUntil > at);
 
 /** Applies a price model to a quantity (and, for a percentage model, to the amount it is a percentage of). */
-export function applyModel(row: PriceRow, quantity: number, baseMinor?: number): { total: number | null; unit: number | null } {
+export function applyModel(
+  row: PriceRow,
+  quantity: number,
+  baseMinor?: number,
+): { total: number | null; unit: number | null } {
   switch (row.model) {
     case 'FIXED':
       return { total: row.amountMinor, unit: row.amountMinor };
     case 'PER_UNIT':
-      return row.amountMinor === null ? { total: null, unit: null } : { total: row.amountMinor * quantity, unit: row.amountMinor };
+      return row.amountMinor === null
+        ? { total: null, unit: null }
+        : { total: row.amountMinor * quantity, unit: row.amountMinor };
     case 'PERCENT_BPS': {
       if (row.rateBps === null || baseMinor === undefined) return { total: null, unit: null };
       let amount = Math.round((baseMinor * row.rateBps) / 10_000);
@@ -44,9 +56,14 @@ export function applyModel(row: PriceRow, quantity: number, baseMinor?: number):
       return { total: amount, unit: amount };
     }
     case 'TIERED': {
-      const tiers = (Array.isArray(row.tiers) ? row.tiers : []) as Array<{ upTo: number | null; amountMinor: number }>;
+      const tiers = (Array.isArray(row.tiers) ? row.tiers : []) as Array<{
+        upTo: number | null;
+        amountMinor: number;
+      }>;
       const t = tiers.find((x) => x.upTo === null || quantity <= x.upTo) ?? tiers[tiers.length - 1];
-      return t ? { total: t.amountMinor * quantity, unit: t.amountMinor } : { total: null, unit: null };
+      return t
+        ? { total: t.amountMinor * quantity, unit: t.amountMinor }
+        : { total: null, unit: null };
     }
     default:
       return { total: null, unit: null };
@@ -62,29 +79,61 @@ export function applyModel(row: PriceRow, quantity: number, baseMinor?: number):
 export class PricingResolver {
   constructor(private readonly prisma: PrismaService) {}
 
-  private async contractRate(contractId: string | null | undefined, itemCode: string, at: Date, db: Db = this.prisma) {
+  private async contractRate(
+    contractId: string | null | undefined,
+    itemCode: string,
+    at: Date,
+    db: Db = this.prisma,
+  ) {
     if (!contractId) return null;
-    const rows = await db.contractRate.findMany({ where: { contractId, itemCode, effectiveFrom: { lte: at } }, orderBy: { version: 'desc' } });
+    const rows = await db.contractRate.findMany({
+      where: { contractId, itemCode, effectiveFrom: { lte: at } },
+      orderBy: { version: 'desc' },
+    });
     return rows.find((r) => inForce(r, at)) ?? null;
   }
 
-  private async promotion(contractId: string | null | undefined, itemCode: string, at: Date, db: Db = this.prisma) {
+  private async promotion(
+    contractId: string | null | undefined,
+    itemCode: string,
+    at: Date,
+    db: Db = this.prisma,
+  ) {
     if (!contractId) return null;
-    return db.contractPromotion.findFirst({ where: { contractId, itemCode, status: 'ACTIVE', startAt: { lte: at }, endAt: { gt: at } }, orderBy: { startAt: 'desc' } });
+    return db.contractPromotion.findFirst({
+      where: { contractId, itemCode, status: 'ACTIVE', startAt: { lte: at }, endAt: { gt: at } },
+      orderBy: { startAt: 'desc' },
+    });
   }
 
   /** The base subscription / licence price of a contract for its cadence. */
-  async subscription(contractId: string, at = new Date(), cadence?: string, db: Db = this.prisma): Promise<ResolvedPrice> {
-    const c = await db.contract.findUnique({ where: { id: contractId }, include: { planVersion: { include: { plan: true } } } });
+  async subscription(
+    contractId: string,
+    at = new Date(),
+    cadence?: string,
+    db: Db = this.prisma,
+  ): Promise<ResolvedPrice> {
+    const c = await db.contract.findUnique({
+      where: { id: contractId },
+      include: { planVersion: { include: { plan: true } } },
+    });
     if (!c) throw AppError.notFound();
     const currency = c.currency ?? c.planVersion?.currency ?? 'SAR';
-    const cad = cadence ?? (c.billingCadence !== 'NONE' ? c.billingCadence : (c.planVersion?.defaultCadence ?? 'MONTHLY'));
+    const cad =
+      cadence ??
+      (c.billingCadence !== 'NONE'
+        ? c.billingCadence
+        : (c.planVersion?.defaultCadence ?? 'MONTHLY'));
     const adjustments: ResolvedPrice['adjustments'] = [];
     let key = c.planVersionId ? `PLV:${c.planVersionId}` : (c.pricingVersionKey ?? 'NONE');
     let source: ResolvedPrice['source'] = 'PLAN_VERSION';
     let amount: number | null = null;
     let indicative = false;
-    const points = (Array.isArray(c.planVersion?.prices) ? c.planVersion!.prices : []) as Array<{ cadence: string; amountMinor: number; indicative?: boolean }>;
+    const points = (Array.isArray(c.planVersion?.prices) ? c.planVersion!.prices : []) as Array<{
+      cadence: string;
+      amountMinor: number;
+      indicative?: boolean;
+    }>;
     const point = points.find((p) => p.cadence === cad);
     if (point) {
       amount = point.amountMinor;
@@ -123,31 +172,90 @@ export class PricingResolver {
       amount = Math.round((amount * (10_000 - rate.discountBps)) / 10_000);
       adjustments.push({ kind: 'DISCOUNT', ref: rate.id, bps: rate.discountBps });
     }
-    return { amountMinor: amount, unitRateMinor: amount, currency, pricingVersionKey: key, source, indicative, waived, adjustments };
+    return {
+      amountMinor: amount,
+      unitRateMinor: amount,
+      currency,
+      pricingVersionKey: key,
+      source,
+      indicative,
+      waived,
+      adjustments,
+    };
   }
 
   /** A one-off fee of the contract's plan (setup, integration, API ...), after negotiated rates, waivers and promotions. */
-  async fee(contractId: string, feeCode: string, at = new Date(), db: Db = this.prisma): Promise<ResolvedPrice> {
-    const c = await db.contract.findUnique({ where: { id: contractId }, include: { planVersion: true } });
+  async fee(
+    contractId: string,
+    feeCode: string,
+    at = new Date(),
+    db: Db = this.prisma,
+  ): Promise<ResolvedPrice> {
+    const c = await db.contract.findUnique({
+      where: { id: contractId },
+      include: { planVersion: true },
+    });
     if (!c) throw AppError.notFound();
     const currency = c.currency ?? c.planVersion?.currency ?? 'SAR';
-    const fees = (Array.isArray(c.planVersion?.fees) ? c.planVersion!.fees : []) as Array<{ code: string; amountMinor: number; indicative?: boolean }>;
+    const fees = (Array.isArray(c.planVersion?.fees) ? c.planVersion!.fees : []) as Array<{
+      code: string;
+      amountMinor: number;
+      indicative?: boolean;
+    }>;
     const fee = fees.find((f) => f.code === feeCode);
-    return this.afterAdjustments(contractId, feeCode, at, currency, db, fee ? { amount: fee.amountMinor, key: c.planVersionId ? `PLV:${c.planVersionId}` : 'NONE', indicative: !!fee.indicative, source: 'PLAN_VERSION' } : null);
+    return this.afterAdjustments(
+      contractId,
+      feeCode,
+      at,
+      currency,
+      db,
+      fee
+        ? {
+            amount: fee.amountMinor,
+            key: c.planVersionId ? `PLV:${c.planVersionId}` : 'NONE',
+            indicative: !!fee.indicative,
+            source: 'PLAN_VERSION',
+          }
+        : null,
+    );
   }
 
   /** The price of an add-on unit: the plan version's add-on price, else the add-on's price-book item. */
-  async addOn(contractId: string, code: string, at = new Date(), db: Db = this.prisma): Promise<ResolvedPrice> {
-    const c = await db.contract.findUnique({ where: { id: contractId }, include: { planVersion: true } });
+  async addOn(
+    contractId: string,
+    code: string,
+    at = new Date(),
+    db: Db = this.prisma,
+  ): Promise<ResolvedPrice> {
+    const c = await db.contract.findUnique({
+      where: { id: contractId },
+      include: { planVersion: true },
+    });
     if (!c) throw AppError.notFound();
     const currency = c.currency ?? c.planVersion?.currency ?? 'SAR';
-    const prices = (c.planVersion?.addOnPrices ?? {}) as Record<string, { amountMinor: number; indicative?: boolean }>;
+    const prices = (c.planVersion?.addOnPrices ?? {}) as Record<
+      string,
+      { amountMinor: number; indicative?: boolean }
+    >;
     const own = prices[code];
     const def = await db.addOnDefinition.findUnique({ where: { code } });
-    let base: { amount: number; key: string; indicative: boolean; source: ResolvedPrice['source'] } | null = own ? { amount: own.amountMinor, key: `PLV:${c.planVersionId}`, indicative: !!own.indicative, source: 'PLAN_VERSION' } : null;
+    let base: {
+      amount: number;
+      key: string;
+      indicative: boolean;
+      source: ResolvedPrice['source'];
+    } | null = own
+      ? {
+          amount: own.amountMinor,
+          key: `PLV:${c.planVersionId}`,
+          indicative: !!own.indicative,
+          source: 'PLAN_VERSION',
+        }
+      : null;
     if (!base && def?.priceItemCode && c.market) {
       const pb = await this.priceBook(def.priceItemCode, c.market, at, db);
-      if (pb?.amount != null) base = { amount: pb.amount, key: pb.key, indicative: pb.indicative, source: 'PRICE_BOOK' };
+      if (pb?.amount != null)
+        base = { amount: pb.amount, key: pb.key, indicative: pb.indicative, source: 'PRICE_BOOK' };
     }
     return this.afterAdjustments(contractId, `ADDON:${code}`, at, currency, db, base);
   }
@@ -158,7 +266,12 @@ export class PricingResolver {
     at: Date,
     currency: string,
     db: Db,
-    base: { amount: number; key: string; indicative: boolean; source: ResolvedPrice['source'] } | null,
+    base: {
+      amount: number;
+      key: string;
+      indicative: boolean;
+      source: ResolvedPrice['source'];
+    } | null,
   ): Promise<ResolvedPrice> {
     const adjustments: ResolvedPrice['adjustments'] = [];
     let amount = base?.amount ?? null;
@@ -198,7 +311,16 @@ export class PricingResolver {
       amount = Math.round((amount * (10_000 - rate.discountBps)) / 10_000);
       adjustments.push({ kind: 'DISCOUNT', ref: rate.id, bps: rate.discountBps });
     }
-    return { amountMinor: amount, unitRateMinor: amount, currency, pricingVersionKey: key, source, indicative, waived, adjustments };
+    return {
+      amountMinor: amount,
+      unitRateMinor: amount,
+      currency,
+      pricingVersionKey: key,
+      source,
+      indicative,
+      waived,
+      adjustments,
+    };
   }
 
   /** The published price-book row of an item for a market at a moment. */
@@ -206,25 +328,58 @@ export class PricingResolver {
     const item = await db.priceItem.findUnique({ where: { code: itemCode } });
     if (!item || item.status !== 'ACTIVE') return null;
     const v = await db.priceItemVersion.findFirst({
-      where: { itemId: item.id, market, status: 'PUBLISHED', effectiveFrom: { lte: at }, OR: [{ effectiveUntil: null }, { effectiveUntil: { gt: at } }] },
+      where: {
+        itemId: item.id,
+        market,
+        status: 'PUBLISHED',
+        effectiveFrom: { lte: at },
+        OR: [{ effectiveUntil: null }, { effectiveUntil: { gt: at } }],
+      },
       orderBy: { version: 'desc' },
     });
     if (!v) return null;
-    return { amount: v.amountMinor, row: v, key: `PIV:${v.id}`, indicative: v.indicative, currency: v.currency, item };
+    return {
+      amount: v.amountMinor,
+      row: v,
+      key: `PIV:${v.id}`,
+      indicative: v.indicative,
+      currency: v.currency,
+      item,
+    };
   }
 
   /**
    * Price of a product / usage item (a placement, a view, a commission) for an organization. Resolves contract rate, promotion,
    * then the market price book, and applies the quantity (and the base amount for a percentage item).
    */
-  async item(input: { itemCode: string; market: string; contractId?: string | null; quantity?: number; baseMinor?: number; at?: Date }): Promise<ResolvedPrice> {
+  async item(input: {
+    itemCode: string;
+    market: string;
+    contractId?: string | null;
+    quantity?: number;
+    baseMinor?: number;
+    at?: Date;
+  }): Promise<ResolvedPrice> {
     const at = input.at ?? new Date();
     const qty = input.quantity ?? 1;
     const pb = await this.priceBook(input.itemCode, input.market, at);
     const rate = await this.contractRate(input.contractId, input.itemCode, at);
     const promo = await this.promotion(input.contractId, input.itemCode, at);
-    if (!pb && !rate) throw new AppError('PRICING_NOT_AVAILABLE', `No price is configured for ${input.itemCode} in ${input.market}`, 404);
-    const currency = pb?.currency ?? (await this.prisma.contract.findUnique({ where: { id: input.contractId ?? '' }, select: { currency: true } }))?.currency ?? 'SAR';
+    if (!pb && !rate)
+      throw new AppError(
+        'PRICING_NOT_AVAILABLE',
+        `No price is configured for ${input.itemCode} in ${input.market}`,
+        404,
+      );
+    const currency =
+      pb?.currency ??
+      (
+        await this.prisma.contract.findUnique({
+          where: { id: input.contractId ?? '' },
+          select: { currency: true },
+        })
+      )?.currency ??
+      'SAR';
     const adjustments: ResolvedPrice['adjustments'] = [];
     let key = pb?.key ?? 'NONE';
     let source: ResolvedPrice['source'] = 'PRICE_BOOK';
@@ -272,6 +427,15 @@ export class PricingResolver {
       unit = unit != null ? Math.round((unit * (10_000 - rate.discountBps)) / 10_000) : unit;
       adjustments.push({ kind: 'DISCOUNT', ref: rate.id, bps: rate.discountBps });
     }
-    return { amountMinor: total, unitRateMinor: unit, currency, pricingVersionKey: key, source, indicative, waived, adjustments };
+    return {
+      amountMinor: total,
+      unitRateMinor: unit,
+      currency,
+      pricingVersionKey: key,
+      source,
+      indicative,
+      waived,
+      adjustments,
+    };
   }
 }

@@ -4,7 +4,18 @@ import { useState } from 'react';
 import { LoginPanel, errorMessage, useApi, useAuth, useResource } from '@dealdash/app-shell';
 import { dictionaries, formatDateTime, type DictionaryKey } from '@dealdash/localization';
 import { REPORT_REASONS } from '@dealdash/types';
-import { Alert, Button, Card, EmptyState, Field, LoadingState, Select, StatusChip, Textarea } from '@dealdash/ui';
+import {
+  Alert,
+  Button,
+  Card,
+  EmptyState,
+  Field,
+  Input,
+  LoadingState,
+  Select,
+  StatusChip,
+  Textarea,
+} from '@dealdash/ui';
 import { useT } from './parts';
 
 /**
@@ -27,7 +38,10 @@ export function MerchantReviews({ merchantId }: { merchantId: string }) {
   const { t, locale } = useT();
   const { status } = useAuth();
   const { call } = useApi();
-  const res = useResource<{ summary: { count: number; verified: number; average: number | null }; items: PublicReview[] }>(`/v1/app/merchants/${merchantId}/reviews`);
+  const res = useResource<{
+    summary: { count: number; verified: number; average: number | null };
+    items: PublicReview[];
+  }>(`/v1/app/merchants/${merchantId}/reviews`);
   const [writing, setWriting] = useState(false);
   const [rating, setRating] = useState(5);
   const [text, setText] = useState('');
@@ -36,16 +50,30 @@ export function MerchantReviews({ merchantId }: { merchantId: string }) {
   const [banner, setBanner] = useState<{ tone: 'success' | 'danger'; text: string } | null>(null);
   const code = (p: string, v: string) => (has(`${p}.${v}`) ? t(k(p, v)) : v);
   const submit = async () => {
-    const r = await call<{ verified: boolean; status: string }>('POST', `/v1/app/merchants/${merchantId}/reviews`, { body: { rating, text: text.trim(), locale }, idempotent: true });
+    const r = await call<{ verified: boolean; status: string }>(
+      'POST',
+      `/v1/app/merchants/${merchantId}/reviews`,
+      { body: { rating, text: text.trim(), locale }, idempotent: true },
+    );
     if (!r.ok) return setBanner({ tone: 'danger', text: errorMessage(locale, r.errors) });
-    setBanner({ tone: 'success', text: r.data?.status === 'PENDING_REVIEW' ? t('s8.rev.pending') : t('s8.rev.thanks') });
+    setBanner({
+      tone: 'success',
+      text: r.data?.status === 'PENDING_REVIEW' ? t('s8.rev.pending') : t('s8.rev.thanks'),
+    });
     setWriting(false);
     setText('');
     await res.reload();
   };
   const report = async (id: string) => {
-    const r = await call('POST', `/v1/app/reviews/${id}/report`, { body: { reason }, idempotent: true });
-    setBanner(r.ok ? { tone: 'success', text: t('s8.rev.reported') } : { tone: 'danger', text: errorMessage(locale, r.errors) });
+    const r = await call('POST', `/v1/app/reviews/${id}/report`, {
+      body: { reason },
+      idempotent: true,
+    });
+    setBanner(
+      r.ok
+        ? { tone: 'success', text: t('s8.rev.reported') }
+        : { tone: 'danger', text: errorMessage(locale, r.errors) },
+    );
     setReportFor(null);
   };
   return (
@@ -60,7 +88,11 @@ export function MerchantReviews({ merchantId }: { merchantId: string }) {
         <>
           {res.data && res.data.summary.count ? (
             <p className="dd-caption" style={{ margin: 0 }} data-testid="rev-summary">
-              {t('s8.rev.summary', { count: res.data.summary.count, verified: res.data.summary.verified, average: res.data.summary.average ?? '-' })}
+              {t('s8.rev.summary', {
+                count: res.data.summary.count,
+                verified: res.data.summary.verified,
+                average: res.data.summary.average ?? '-',
+              })}
             </p>
           ) : null}
           {status === 'authenticated' ? (
@@ -68,7 +100,11 @@ export function MerchantReviews({ merchantId }: { merchantId: string }) {
               <Card flat>
                 <div className="dd-stack" style={{ gap: 8 }} data-testid="rev-form">
                   <Field label={t('s8.rev.rating')} htmlFor="rev-rating">
-                    <Select id="rev-rating" value={String(rating)} onChange={(e) => setRating(Number(e.target.value))}>
+                    <Select
+                      id="rev-rating"
+                      value={String(rating)}
+                      onChange={(e) => setRating(Number(e.target.value))}
+                    >
                       {[5, 4, 3, 2, 1].map((n) => (
                         <option key={n} value={n}>
                           {'★'.repeat(n)}
@@ -77,13 +113,23 @@ export function MerchantReviews({ merchantId }: { merchantId: string }) {
                     </Select>
                   </Field>
                   <Field label={t('s8.rev.text')} htmlFor="rev-text" help={t('s8.rev.textHelp')}>
-                    <Textarea id="rev-text" rows={3} maxLength={2000} value={text} onChange={(e) => setText(e.target.value)} />
+                    <Textarea
+                      id="rev-text"
+                      rows={3}
+                      maxLength={2000}
+                      value={text}
+                      onChange={(e) => setText(e.target.value)}
+                    />
                   </Field>
                   <p className="dd-caption" style={{ margin: 0 }}>
                     {t('s8.rev.verifiedNote')}
                   </p>
                   <div className="dd-row">
-                    <Button disabled={text.trim().length < 10} onClick={() => void submit()} data-testid="rev-submit">
+                    <Button
+                      disabled={text.trim().length < 10}
+                      onClick={() => void submit()}
+                      data-testid="rev-submit"
+                    >
                       {t('s8.rev.post')}
                     </Button>
                     <Button variant="ghost" onClick={() => setWriting(false)}>
@@ -108,11 +154,17 @@ export function MerchantReviews({ merchantId }: { merchantId: string }) {
             res.data.items.map((r) => (
               <Card flat key={r.id}>
                 <div className="dd-stack" style={{ gap: 4 }} data-testid="rev-item">
-                  <div className="dd-row" style={{ justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                  <div
+                    className="dd-row"
+                    style={{ justifyContent: 'space-between', flexWrap: 'wrap' }}
+                  >
                     <span>
-                      <span aria-label={t('s8.rev.rating')}>{'★'.repeat(r.rating)}</span> {r.author ?? ''}
+                      <span aria-label={t('s8.rev.rating')}>{'★'.repeat(r.rating)}</span>{' '}
+                      {r.author ?? ''}
                     </span>
-                    {r.verified ? <StatusChip tone="success">{t('s8.rev.verified')}</StatusChip> : null}
+                    {r.verified ? (
+                      <StatusChip tone="success">{t('s8.rev.verified')}</StatusChip>
+                    ) : null}
                   </div>
                   <div>{r.text}</div>
                   <div className="dd-row" style={{ justifyContent: 'space-between' }}>
@@ -120,7 +172,11 @@ export function MerchantReviews({ merchantId }: { merchantId: string }) {
                     {status === 'authenticated' ? (
                       reportFor === r.id ? (
                         <span className="dd-row" style={{ gap: 6 }}>
-                          <Select aria-label={t('s8.rev.reportReason')} value={reason} onChange={(e) => setReason(e.target.value)}>
+                          <Select
+                            aria-label={t('s8.rev.reportReason')}
+                            value={reason}
+                            onChange={(e) => setReason(e.target.value)}
+                          >
                             {REPORT_REASONS.map((x) => (
                               <option key={x} value={x}>
                                 {code('s8.report', x)}
@@ -159,6 +215,83 @@ interface MyCase {
   createdAt: string;
   resolvedAt: string | null;
   notes: Array<{ body: string; createdAt: string }>;
+  // Stage 9 (B6)
+  canReply?: boolean;
+  messages?: Array<{
+    id?: string;
+    fromYou: boolean;
+    body: string;
+    evidenceRef: string | null;
+    createdAt: string;
+  }>;
+}
+
+/** Stage 9 (B6): the customer answers DealDash inside the app, optionally pointing to evidence (an order or receipt reference). */
+function CaseReply({
+  caseId,
+  reference,
+  onSent,
+}: {
+  caseId: string;
+  reference: string;
+  onSent: () => void;
+}) {
+  const { t, locale } = useT();
+  const { call } = useApi();
+  const [body, setBody] = useState('');
+  const [evidence, setEvidence] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [banner, setBanner] = useState<{ tone: 'success' | 'danger'; text: string } | null>(null);
+  const send = async () => {
+    setBusy(true);
+    const r = await call('POST', `/v1/app/me/cases/${caseId}/replies`, {
+      body: { body: body.trim(), evidenceRef: evidence.trim() || null },
+      idempotent: true,
+    });
+    setBusy(false);
+    if (!r.ok) return setBanner({ tone: 'danger', text: errorMessage(locale, r.errors) });
+    setBody('');
+    setEvidence('');
+    setBanner({ tone: 'success', text: t('s9.case.sent') });
+    onSent();
+  };
+  return (
+    <div className="dd-stack" style={{ gap: 8 }} data-testid={`my-case-reply-${reference}`}>
+      {banner ? <Alert tone={banner.tone}>{banner.text}</Alert> : null}
+      <Field label={t('s9.case.reply')} htmlFor={`reply-${caseId}`}>
+        <Textarea
+          id={`reply-${caseId}`}
+          rows={3}
+          maxLength={2000}
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+        />
+      </Field>
+      <Field
+        label={t('s9.case.evidenceLabel')}
+        htmlFor={`evidence-${caseId}`}
+        help={t('s9.case.evidenceHelp')}
+      >
+        <Input
+          id={`evidence-${caseId}`}
+          className="dd-ltr"
+          maxLength={120}
+          value={evidence}
+          onChange={(e) => setEvidence(e.target.value)}
+        />
+      </Field>
+      <div>
+        <Button
+          disabled={body.trim().length < 2 || busy}
+          loading={busy}
+          onClick={() => void send()}
+          data-testid="my-case-send"
+        >
+          {t('s9.case.send')}
+        </Button>
+      </div>
+    </div>
+  );
 }
 
 export function MyCasesPage() {
@@ -186,20 +319,52 @@ export function MyCasesPage() {
             <div className="dd-stack" style={{ gap: 6 }} data-testid={`my-case-${c.reference}`}>
               <div className="dd-row" style={{ justifyContent: 'space-between', flexWrap: 'wrap' }}>
                 <strong>{c.title}</strong>
-                <StatusChip tone={c.open ? (c.status === 'AWAITING_CUSTOMER' ? 'warning' : 'info') : c.status === 'REJECTED' ? 'neutral' : 'success'}>
-                  {c.open ? (c.status === 'AWAITING_CUSTOMER' ? t('s8.cust.needsYou') : t('s8.cust.inProgress')) : t('s8.cust.closed')}
+                <StatusChip
+                  tone={
+                    c.open
+                      ? c.status === 'AWAITING_CUSTOMER'
+                        ? 'warning'
+                        : 'info'
+                      : c.status === 'REJECTED'
+                        ? 'neutral'
+                        : 'success'
+                  }
+                >
+                  {c.open
+                    ? c.status === 'AWAITING_CUSTOMER'
+                      ? t('s8.cust.needsYou')
+                      : t('s8.cust.inProgress')
+                    : t('s8.cust.closed')}
                 </StatusChip>
               </div>
               <div className="dd-caption">
-                <span className="dd-ltr">{c.reference}</span> · {formatDateTime(locale, c.createdAt)}
+                <span className="dd-ltr">{c.reference}</span> ·{' '}
+                {formatDateTime(locale, c.createdAt)}
               </div>
-              {c.notes.map((n, i) => (
-                <div key={i} className="dd-note">
-                  <div className="dd-caption">{formatDateTime(locale, n.createdAt)}</div>
+              {(
+                c.messages ?? c.notes.map((n) => ({ ...n, fromYou: false, evidenceRef: null }))
+              ).map((n, i) => (
+                <div
+                  key={i}
+                  className="dd-note"
+                  data-testid={n.fromYou ? 'my-case-message-mine' : 'my-case-message'}
+                >
+                  <div className="dd-caption">
+                    {n.fromYou ? t('s9.case.you') : t('s9.case.dealdash')} ·{' '}
+                    {formatDateTime(locale, n.createdAt)}
+                  </div>
                   <div>{n.body}</div>
+                  {n.evidenceRef ? (
+                    <div className="dd-caption">
+                      {t('s9.case.evidence')}: <span className="dd-ltr">{n.evidenceRef}</span>
+                    </div>
+                  ) : null}
                 </div>
               ))}
               {c.resolution ? <Alert tone="info">{c.resolution}</Alert> : null}
+              {c.canReply ? (
+                <CaseReply caseId={c.id} reference={c.reference} onSent={() => void res.reload()} />
+              ) : null}
             </div>
           </Card>
         ))
@@ -224,18 +389,26 @@ export function MyDataPage() {
   const { t, locale } = useT();
   const { status } = useAuth();
   const { call } = useApi();
-  const res = useResource<MyDataRequest[]>(status === 'authenticated' ? '/v1/app/me/data-requests' : null);
+  const res = useResource<MyDataRequest[]>(
+    status === 'authenticated' ? '/v1/app/me/data-requests' : null,
+  );
   const [banner, setBanner] = useState<{ tone: 'success' | 'danger'; text: string } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const code = (p: string, v: string) => (has(`${p}.${v}`) ? t(k(p, v)) : v);
   const ask = async (type: 'EXPORT' | 'DELETION') => {
     const r = await call('POST', '/v1/app/me/data-requests', { body: { type }, idempotent: true });
-    setBanner(r.ok ? { tone: 'success', text: t('s8.cust.dataRequested') } : { tone: 'danger', text: errorMessage(locale, r.errors) });
+    setBanner(
+      r.ok
+        ? { tone: 'success', text: t('s8.cust.dataRequested') }
+        : { tone: 'danger', text: errorMessage(locale, r.errors) },
+    );
     setConfirmDelete(false);
     if (r.ok) await res.reload();
   };
   const download = (d: MyDataRequest) => {
-    const url = URL.createObjectURL(new Blob([JSON.stringify(d.result, null, 2)], { type: 'application/json' }));
+    const url = URL.createObjectURL(
+      new Blob([JSON.stringify(d.result, null, 2)], { type: 'application/json' }),
+    );
     const a = document.createElement('a');
     a.href = url;
     a.download = `dealdash-my-data-${d.reference}.json`;
@@ -258,14 +431,22 @@ export function MyDataPage() {
             <Button variant="outline" onClick={() => void ask('EXPORT')} data-testid="data-export">
               {t('s8.cust.export')}
             </Button>
-            <Button variant="ghost" onClick={() => setConfirmDelete(true)} data-testid="data-delete">
+            <Button
+              variant="ghost"
+              onClick={() => setConfirmDelete(true)}
+              data-testid="data-delete"
+            >
               {t('s8.cust.delete')}
             </Button>
           </div>
           {confirmDelete ? (
             <Alert tone="warning">
               {t('s8.cust.deleteNote')}{' '}
-              <Button size="sm" onClick={() => void ask('DELETION')} data-testid="data-delete-confirm">
+              <Button
+                size="sm"
+                onClick={() => void ask('DELETION')}
+                data-testid="data-delete-confirm"
+              >
                 {t('s8.cust.deleteConfirm')}
               </Button>
             </Alert>
@@ -277,12 +458,27 @@ export function MyDataPage() {
           ) : (
             res.data.map((d) => (
               <Card flat key={d.id}>
-                <div className="dd-row" style={{ justifyContent: 'space-between', flexWrap: 'wrap' }} data-testid={`my-dr-${d.reference}`}>
+                <div
+                  className="dd-row"
+                  style={{ justifyContent: 'space-between', flexWrap: 'wrap' }}
+                  data-testid={`my-dr-${d.reference}`}
+                >
                   <span>
-                    {code('s8.drType', d.type)} · <span className="dd-caption">{formatDateTime(locale, d.createdAt)}</span>
+                    {code('s8.drType', d.type)} ·{' '}
+                    <span className="dd-caption">{formatDateTime(locale, d.createdAt)}</span>
                   </span>
                   <span className="dd-row" style={{ gap: 6 }}>
-                    <StatusChip tone={d.status === 'COMPLETED' ? 'success' : d.status === 'REJECTED' ? 'neutral' : 'info'}>{code('s8.drStatus', d.status)}</StatusChip>
+                    <StatusChip
+                      tone={
+                        d.status === 'COMPLETED'
+                          ? 'success'
+                          : d.status === 'REJECTED'
+                            ? 'neutral'
+                            : 'info'
+                      }
+                    >
+                      {code('s8.drStatus', d.status)}
+                    </StatusChip>
                     {d.status === 'COMPLETED' && d.type === 'EXPORT' && d.result ? (
                       <Button size="sm" variant="outline" onClick={() => download(d)}>
                         {t('s8.cust.download')}
@@ -290,7 +486,9 @@ export function MyDataPage() {
                     ) : null}
                   </span>
                 </div>
-                {d.decisionReason && d.status === 'REJECTED' ? <p className="dd-caption">{d.decisionReason}</p> : null}
+                {d.decisionReason && d.status === 'REJECTED' ? (
+                  <p className="dd-caption">{d.decisionReason}</p>
+                ) : null}
               </Card>
             ))
           )}

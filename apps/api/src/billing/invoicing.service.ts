@@ -132,7 +132,13 @@ export class InvoicingService {
   }
 
   /** The kinds of invoice configuration that govern a finance document type. */
-  private static readonly CONFIG_KIND: Record<string, string> = { INVOICE: 'INVOICE', TAX_INVOICE: 'TAX_INVOICE', PROFORMA_INVOICE: 'PROFORMA_INVOICE', CREDIT_NOTE: 'CREDIT_NOTE', DEBIT_NOTE: 'DEBIT_NOTE' };
+  private static readonly CONFIG_KIND: Record<string, string> = {
+    INVOICE: 'INVOICE',
+    TAX_INVOICE: 'TAX_INVOICE',
+    PROFORMA_INVOICE: 'PROFORMA_INVOICE',
+    CREDIT_NOTE: 'CREDIT_NOTE',
+    DEBIT_NOTE: 'DEBIT_NOTE',
+  };
 
   // ---------------------------------------------------------------- billing run
   /**
@@ -254,7 +260,12 @@ export class InvoicingService {
         const name = LINE_NAME[e.eventType] ?? [e.eventType, e.eventType];
         // effective-dated tax rule at the time the charge arose; the line keeps the rule id + version for ever
         const item = TAXABLE_ITEM_OF_EVENT[e.eventType] ?? 'OTHER';
-        const rule = await this.marketConfig.resolveTax(market, item, { legalEntityId: acc.legalEntityId, at: e.occurredAt }, tx);
+        const rule = await this.marketConfig.resolveTax(
+          market,
+          item,
+          { legalEntityId: acc.legalEntityId, at: e.occurredAt },
+          tx,
+        );
         const t = rule ? taxOf(amount, rule) : { netMinor: amount, taxMinor: 0 };
         if (rule) taxed++;
         const tax = rule ? (rule.exempt ? 0 : rule.rateBps) : null;
@@ -286,7 +297,12 @@ export class InvoicingService {
       const subtotal = lines.reduce((s, l) => s + l.amountMinor, 0);
       const taxTotal = lines.reduce((s, l) => s + (l.taxMinor ?? 0), 0);
       const contracts = [...new Set(events.map((e) => e.contractId).filter(Boolean))];
-      const taxStatus = taxed === 0 ? 'TAX_NOT_CONFIGURED_VALIDATE' : taxed < lines.length ? 'TAX_PARTIALLY_CONFIGURED_VALIDATE' : 'TAX_CONFIGURED';
+      const taxStatus =
+        taxed === 0
+          ? 'TAX_NOT_CONFIGURED_VALIDATE'
+          : taxed < lines.length
+            ? 'TAX_PARTIALLY_CONFIGURED_VALIDATE'
+            : 'TAX_CONFIGURED';
       const d = await tx.financeDocument.create({
         data: {
           number: `DRAFT-${crypto.randomUUID()}`,
@@ -312,8 +328,14 @@ export class InvoicingService {
             status: taxStatus,
             market,
             // rule ids + versions are on each line; a later rate change never rewrites this document
-            taxRules: [...new Set(lines.filter((l) => l.taxRuleId).map((l) => `${l.taxRuleId}@${l.taxRuleVersion}`))],
-            ...(taxStatus === 'TAX_CONFIGURED' ? {} : { validationCode: `${validationPrefixOf(market)}-TAX` }),
+            taxRules: [
+              ...new Set(
+                lines.filter((l) => l.taxRuleId).map((l) => `${l.taxRuleId}@${l.taxRuleVersion}`),
+              ),
+            ],
+            ...(taxStatus === 'TAX_CONFIGURED'
+              ? {}
+              : { validationCode: `${validationPrefixOf(market)}-TAX` }),
           } as Prisma.InputJsonValue,
           createdByUserId: actor?.userId ?? null,
           invoiceLines: { createMany: { data: lines } },
@@ -421,20 +443,38 @@ export class InvoicingService {
       // the market / legal entity invoice configuration in force decides numbering and required fields (none: platform defaults)
       const market = d.market ?? acc.country;
       const kind = InvoicingService.CONFIG_KIND[d.type];
-      const ic = kind ? await this.marketConfig.resolveInvoiceConfig(market, kind, { legalEntityId: d.legalEntityId }, tx) : null;
+      const ic = kind
+        ? await this.marketConfig.resolveInvoiceConfig(
+            market,
+            kind,
+            { legalEntityId: d.legalEntityId },
+            tx,
+          )
+        : null;
       if (ic?.requiredFields.length) {
-        const le = d.legalEntityId ? await tx.legalEntity.findUnique({ where: { id: d.legalEntityId } }) : null;
+        const le = d.legalEntityId
+          ? await tx.legalEntity.findUnique({ where: { id: d.legalEntityId } })
+          : null;
         const has: Record<string, boolean> = {
           legalName: !!(acc.name || le?.legalName),
-          registeredAddress: Object.keys((acc.billingAddress as object) ?? {}).length > 0 || Object.keys((le?.address as object) ?? {}).length > 0,
+          registeredAddress:
+            Object.keys((acc.billingAddress as object) ?? {}).length > 0 ||
+            Object.keys((le?.address as object) ?? {}).length > 0,
           taxId: !!(acc.taxId || le?.taxNumber),
           invoiceContactEmail: !!(acc.invoiceContact as { email?: string }).email,
           purchaseOrder: !!poId,
         };
         const missing = ic.requiredFields.filter((f) => !has[f]);
-        if (missing.length) throw new AppError('INVOICE_REQUIRED_FIELDS_MISSING', `This market's invoice requires: ${missing.join(', ')}`, 422);
+        if (missing.length)
+          throw new AppError(
+            'INVOICE_REQUIRED_FIELDS_MISSING',
+            `This market's invoice requires: ${missing.join(', ')}`,
+            422,
+          );
       }
-      const number = ic ? await this.commercial.nextNumber(tx, ic.sequenceKey, ic.prefix) : await this.commercial.nextNumber(tx, d.type.toLowerCase(), this.prefix(d.type));
+      const number = ic
+        ? await this.commercial.nextNumber(tx, ic.sequenceKey, ic.prefix)
+        : await this.commercial.nextNumber(tx, d.type.toLowerCase(), this.prefix(d.type));
       if (ic || !d.market)
         await tx.financeDocument.update({
           where: { id },
@@ -442,7 +482,21 @@ export class InvoicingService {
             market,
             invoiceConfigId: ic?.id ?? null,
             ...(ic
-              ? { statutory: { ...((d.statutory as object) ?? {}), invoiceConfig: { id: ic.id, version: ic.version, prefix: ic.prefix, languages: ic.languages, qrRequired: ic.qrRequired, eInvoiceProvider: ic.eInvoiceProvider, validationStatus: ic.validationStatus, validationCode: ic.validationCode } } as Prisma.InputJsonValue }
+              ? {
+                  statutory: {
+                    ...((d.statutory as object) ?? {}),
+                    invoiceConfig: {
+                      id: ic.id,
+                      version: ic.version,
+                      prefix: ic.prefix,
+                      languages: ic.languages,
+                      qrRequired: ic.qrRequired,
+                      eInvoiceProvider: ic.eInvoiceProvider,
+                      validationStatus: ic.validationStatus,
+                      validationCode: ic.validationCode,
+                    },
+                  } as Prisma.InputJsonValue,
+                }
               : {}),
           },
         });

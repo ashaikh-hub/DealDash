@@ -5,9 +5,13 @@ const STOP = ['the', 'ksa', 'saudi', 'arabia', 'llc', 'co', 'company', 'شركة
 
 describe('merchant name normalisation', () => {
   it('collapses spelling, punctuation, accents and country words to one key', () => {
-    const keys = ["McDonald's", 'McDonalds KSA', "McDonald's Saudi Arabia", 'MCDONALDS, LLC', 'McDónalds'].map((n) =>
-      normalizeName(n, STOP),
-    );
+    const keys = [
+      "McDonald's",
+      'McDonalds KSA',
+      "McDonald's Saudi Arabia",
+      'MCDONALDS, LLC',
+      'McDónalds',
+    ].map((n) => normalizeName(n, STOP));
     expect(new Set(keys)).toEqual(new Set(['mcdonalds']));
   });
 
@@ -50,9 +54,21 @@ describe('similarity', () => {
 
 describe('branch key', () => {
   it('treats the same outlet written two ways as one, and different coordinates as different', () => {
-    const a = branchKey({ name: 'Olaya Branch', city: 'Riyadh', latitude: 24.71361, longitude: 46.67531 });
-    const b = branchKey({ name: 'olaya  branch', city: 'RIYADH', latitude: 24.7136, longitude: 46.6753 });
+    const a = branchKey({
+      name: 'Olaya Branch',
+      city: 'Riyadh',
+      latitude: 24.71361,
+      longitude: 46.67531,
+    });
+    const b = branchKey({
+      name: 'olaya  branch',
+      city: 'RIYADH',
+      latitude: 24.7136,
+      longitude: 46.6753,
+    });
     expect(a).toBe(b);
-    expect(a).not.toBe(branchKey({ name: 'Olaya Branch', city: 'Riyadh', latitude: 24.8, longitude: 46.7 }));
+    expect(a).not.toBe(
+      branchKey({ name: 'Olaya Branch', city: 'Riyadh', latitude: 24.8, longitude: 46.7 }),
+    );
   });
 });

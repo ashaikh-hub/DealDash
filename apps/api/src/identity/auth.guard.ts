@@ -3,7 +3,13 @@ import { Reflector } from '@nestjs/core';
 import { CONFIG_KEYS } from '@dealdash/config';
 import { AUDIENCES, AUDIENCE_DEFINITIONS, type Audience } from '@dealdash/types';
 import { AuditService } from '../audit/audit.service';
-import { ALLOW_PRE_MFA, AUDIENCES_KEY, IS_PUBLIC, PERMISSIONS_KEY, SCOPE_AWARE } from '../common/decorators';
+import {
+  ALLOW_PRE_MFA,
+  AUDIENCES_KEY,
+  IS_PUBLIC,
+  PERMISSIONS_KEY,
+  SCOPE_AWARE,
+} from '../common/decorators';
 import { safeEqual } from '../common/crypto';
 import { ScopeService } from '../platform/scope.service';
 import { AppError } from '../common/errors';
@@ -120,7 +126,8 @@ export class PermissionsGuard implements CanActivate {
       const m = actor.membership;
       if (m?.scoped && !this.reflector.getAllAndOverride<boolean>(SCOPE_AWARE, targets)) {
         for (const p of required) {
-          if (await this.scope.can(actor, p as never, { organizationId: m.organizationId })) continue;
+          if (await this.scope.can(actor, p as never, { organizationId: m.organizationId }))
+            continue;
           await this.audit.record({
             action: 'access.denied',
             entityType: 'Route',
@@ -129,7 +136,11 @@ export class PermissionsGuard implements CanActivate {
             actor,
             meta: metaFromRequest(req),
           });
-          throw new AppError('SCOPE_FORBIDDEN', 'You do not have access to this part of the organization', 403);
+          throw new AppError(
+            'SCOPE_FORBIDDEN',
+            'You do not have access to this part of the organization',
+            403,
+          );
         }
       }
       return true;

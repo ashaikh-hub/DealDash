@@ -36,7 +36,14 @@ import { WalletService } from './wallet.service';
  * merchant payable foundation. Touches no Watch & Earn, Rewards or Partner code.
  */
 @Module({
-  imports: [MerchantsModule, LiveDealsModule, HotDealsModule, JobsModule, AnalyticsModule, FinanceModule],
+  imports: [
+    MerchantsModule,
+    LiveDealsModule,
+    HotDealsModule,
+    JobsModule,
+    AnalyticsModule,
+    FinanceModule,
+  ],
   controllers: [
     MerchantVouchersController,
     AdminVouchersController,
@@ -62,7 +69,14 @@ import { WalletService } from './wallet.service';
     SupportCasesService,
     VoucherLifecycleService,
   ],
-  exports: [VoucherLifecycleService, PaymentsService, RefundsService, LedgerService, MerchantVouchersService, FinanceAdminService],
+  exports: [
+    VoucherLifecycleService,
+    PaymentsService,
+    RefundsService,
+    LedgerService,
+    MerchantVouchersService,
+    FinanceAdminService,
+  ],
 })
 export class VouchersModule implements OnModuleInit {
   constructor(

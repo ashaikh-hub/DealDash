@@ -90,7 +90,8 @@ export function HomePage() {
             <span className="dd-hero__chip">
               <span className="dd-dc__dot" aria-hidden="true" /> {t('cust.liveBadge')}
             </span>
-            <h2>{t('cust.explore.sub', { city: feed.city })}</h2>
+            {/* the page's main heading (one h1 per page: Stage 9 accessibility) */}
+            <h1>{t('cust.explore.sub', { city: feed.city })}</h1>
             <p>
               {total
                 ? t('cust.dealsCount', { count: formatNumber(locale, total) })

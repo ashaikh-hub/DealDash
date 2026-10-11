@@ -64,17 +64,38 @@ function OwnedWatch({ orgId }: { orgId: string }) {
   const res = useResource<OwnedRow[]>(`${pbase(orgId)}/watch/owned`);
   const canManage = perms.includes('partner.campaigns.manage');
   const canFund = perms.includes('partner.commercial.accept');
-  const network = useResource<{ items: Array<{ id: string; nameEn: string; nameAr: string | null; organizationId: string | null; state: string }> }>(
-    canManage ? `${pbase(orgId)}/network` : null,
-    { registration: 'REGISTERED', limit: 200 },
+  const network = useResource<{
+    items: Array<{
+      id: string;
+      nameEn: string;
+      nameAr: string | null;
+      organizationId: string | null;
+      state: string;
+    }>;
+  }>(canManage ? `${pbase(orgId)}/network` : null, { registration: 'REGISTERED', limit: 200 });
+  const registered = (network.data?.items ?? []).filter(
+    (m) => m.organizationId && m.state === 'REGISTERED_ACTIVE',
   );
-  const registered = (network.data?.items ?? []).filter((m) => m.organizationId && m.state === 'REGISTERED_ACTIVE');
-  const [f, setF] = useState({ merchant: '', video: '', titleEn: '', titleAr: '', descEn: '', descAr: '', city: '', views: '100', secs: '15', start: isoIn(1), end: isoIn(30) });
+  const [f, setF] = useState({
+    merchant: '',
+    video: '',
+    titleEn: '',
+    titleAr: '',
+    descEn: '',
+    descAr: '',
+    city: '',
+    views: '100',
+    secs: '15',
+    start: isoIn(1),
+    end: isoIn(30),
+  });
   const merchant = f.merchant || registered[0]?.organizationId || '';
-  const assets = useResource<{ images: Array<{ fileId: string }>; videos: Array<{ fileId: string; name: string }> }>(
-    merchant ? `${pbase(orgId)}/campaigns/merchants/${merchant}/assets` : null,
-  );
-  const set = (key: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [key]: e.target.value });
+  const assets = useResource<{
+    images: Array<{ fileId: string }>;
+    videos: Array<{ fileId: string; name: string }>;
+  }>(merchant ? `${pbase(orgId)}/campaigns/merchants/${merchant}/assets` : null);
+  const set = (key: keyof typeof f) => (e: { target: { value: string } }) =>
+    setF({ ...f, [key]: e.target.value });
   const create = async () => {
     const r = await cmd.run(
       'POST',
@@ -84,14 +105,22 @@ function OwnedWatch({ orgId }: { orgId: string }) {
         content: {
           title: { en: f.titleEn, ar: f.titleAr },
           description: { en: f.descEn, ar: f.descAr },
-          ctaLabel: { en: createTranslator('en')('pt.watch.ownCta'), ar: createTranslator('ar')('pt.watch.ownCta') },
+          ctaLabel: {
+            en: createTranslator('en')('pt.watch.ownCta'),
+            ar: createTranslator('ar')('pt.watch.ownCta'),
+          },
           link: { type: 'MERCHANT', id: null },
           videoFileId: f.video || assets.data?.videos[0]?.fileId,
           thumbnailFileId: assets.data?.images[0]?.fileId,
           durationSec: Number(f.secs),
           startAt: new Date(`${f.start}T00:00:00Z`).toISOString(),
           endAt: new Date(`${f.end}T23:59:59Z`).toISOString(),
-          targeting: { cities: f.city ? [f.city] : [], eligibility: { kind: 'PUBLIC', valueRefs: [] }, timeWindow: null, branchIds: [] },
+          targeting: {
+            cities: f.city ? [f.city] : [],
+            eligibility: { kind: 'PUBLIC', valueRefs: [] },
+            timeWindow: null,
+            branchIds: [],
+          },
           frequency: { repeatWindowHours: null },
           paidViews: Number(f.views),
         },
@@ -132,7 +161,9 @@ function OwnedWatch({ orgId }: { orgId: string }) {
                     <tr key={w.id}>
                       <td>
                         {locale === 'ar' ? w.titleAr : w.titleEn}
-                        <div className="dd-muted">{locale === 'ar' ? w.merchantNameAr : w.merchantNameEn}</div>
+                        <div className="dd-muted">
+                          {locale === 'ar' ? w.merchantNameAr : w.merchantNameEn}
+                        </div>
                       </td>
                       <td>
                         <Chip v={w.status} label={t(k('wstatus', w.status))} />
@@ -144,12 +175,28 @@ function OwnedWatch({ orgId }: { orgId: string }) {
                       <td>
                         <span className="dd-row" style={{ gap: 4 }}>
                           {draft && canFund && due > 0 ? (
-                            <Button size="sm" disabled={cmd.busy} onClick={() => void act(w.id, 'fund', { amountHalalas: due }, t('pt.watch.ownFunded'))}>
+                            <Button
+                              size="sm"
+                              disabled={cmd.busy}
+                              onClick={() =>
+                                void act(
+                                  w.id,
+                                  'fund',
+                                  { amountHalalas: due },
+                                  t('pt.watch.ownFunded'),
+                                )
+                              }
+                            >
                               {t('pt.watch.fund')}
                             </Button>
                           ) : null}
                           {draft && canManage && due <= 0 ? (
-                            <Button size="sm" variant="secondary" disabled={cmd.busy} onClick={() => void act(w.id, 'submit', {}, t('pt.watch.sent'))}>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              disabled={cmd.busy}
+                              onClick={() => void act(w.id, 'submit', {}, t('pt.watch.sent'))}
+                            >
                               {t('pt.watch.submit')}
                             </Button>
                           ) : null}
@@ -164,7 +211,15 @@ function OwnedWatch({ orgId }: { orgId: string }) {
         )}
       </Loaded>
       {canManage ? (
-        <div style={{ display: 'grid', gap: 8, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', marginTop: 12 }} data-testid="pt-watch-own-form">
+        <div
+          style={{
+            display: 'grid',
+            gap: 8,
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            marginTop: 12,
+          }}
+          data-testid="pt-watch-own-form"
+        >
           <Field label={t('pt.merchant')} htmlFor="wo-m">
             <Select id="wo-m" value={merchant} onChange={set('merchant')}>
               {registered.map((m) => (
@@ -177,7 +232,9 @@ function OwnedWatch({ orgId }: { orgId: string }) {
           <Field label={t('pt.watch.video')} htmlFor="wo-v">
             <Select id="wo-v" value={f.video} onChange={set('video')}>
               {(assets.data?.videos ?? []).map((v) => (
-                <option key={v.fileId} value={v.fileId}>{v.name}</option>
+                <option key={v.fileId} value={v.fileId}>
+                  {v.name}
+                </option>
               ))}
             </Select>
           </Field>
@@ -197,10 +254,22 @@ function OwnedWatch({ orgId }: { orgId: string }) {
             <Input id="wo-city" value={f.city} onChange={set('city')} />
           </Field>
           <Field label={t('pt.watch.paidViews')} htmlFor="wo-views">
-            <Input id="wo-views" dir="ltr" inputMode="numeric" value={f.views} onChange={set('views')} />
+            <Input
+              id="wo-views"
+              dir="ltr"
+              inputMode="numeric"
+              value={f.views}
+              onChange={set('views')}
+            />
           </Field>
           <Field label={t('pt.watch.seconds')} htmlFor="wo-secs">
-            <Input id="wo-secs" dir="ltr" inputMode="numeric" value={f.secs} onChange={set('secs')} />
+            <Input
+              id="wo-secs"
+              dir="ltr"
+              inputMode="numeric"
+              value={f.secs}
+              onChange={set('secs')}
+            />
           </Field>
           <Field label={t('pt.offers.from')} htmlFor="wo-start">
             <Input id="wo-start" type="date" value={f.start} onChange={set('start')} />
@@ -211,7 +280,15 @@ function OwnedWatch({ orgId }: { orgId: string }) {
           <div>
             <Button
               onClick={() => void create()}
-              disabled={cmd.busy || !merchant || !assets.data?.videos.length || !f.titleEn || !f.titleAr || !f.descEn || !f.descAr}
+              disabled={
+                cmd.busy ||
+                !merchant ||
+                !assets.data?.videos.length ||
+                !f.titleEn ||
+                !f.titleAr ||
+                !f.descEn ||
+                !f.descAr
+              }
               data-testid="pt-watch-own-create"
             >
               {t('pt.watch.ownCreate')}

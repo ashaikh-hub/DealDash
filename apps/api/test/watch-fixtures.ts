@@ -121,7 +121,10 @@ export async function buildWatchWorld(t: Parameters<typeof buildVoucherWorld>[0]
       .set('Idempotency-Key', key)
       .send({ amountHalalas });
   const commercialReady = (id: string) => t.app.get(CommercialService).devComplete('WATCH', id);
-  const submitWatch = async (org: 'A' | 'B', id: string): Promise<{ status: number; body: any }> => {
+  const submitWatch = async (
+    org: 'A' | 'B',
+    id: string,
+  ): Promise<{ status: number; body: any }> => {
     await commercialReady(id);
     return w
       .api(ownerOf(org))

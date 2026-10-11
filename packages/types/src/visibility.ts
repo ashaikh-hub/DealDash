@@ -369,10 +369,18 @@ export const ALERT_CODES = {
   // Stage 8: operations (SLA escalation, delivery failures, fraud flags, settlement / reconciliation exceptions)
   SLA_WARNING: { category: 'OPERATIONS', severity: 'WARNING', action: 'VIEW_CASES' },
   SLA_BREACHED: { category: 'OPERATIONS', severity: 'CRITICAL', action: 'VIEW_CASES' },
-  NOTIFICATION_FAILURE: { category: 'OPERATIONS', severity: 'WARNING', action: 'VIEW_NOTIFICATIONS' },
+  NOTIFICATION_FAILURE: {
+    category: 'OPERATIONS',
+    severity: 'WARNING',
+    action: 'VIEW_NOTIFICATIONS',
+  },
   FRAUD_FLAG_RAISED: { category: 'RISK', severity: 'WARNING', action: 'VIEW_RISK' },
   SETTLEMENT_EXCEPTION: { category: 'FINANCE', severity: 'WARNING', action: 'VIEW_SETTLEMENT' },
-  RECONCILIATION_EXCEPTION: { category: 'FINANCE', severity: 'WARNING', action: 'VIEW_RECONCILIATION' },
+  RECONCILIATION_EXCEPTION: {
+    category: 'FINANCE',
+    severity: 'WARNING',
+    action: 'VIEW_RECONCILIATION',
+  },
   RESTRICTION_PLACED: { category: 'OPERATIONS', severity: 'CRITICAL', action: 'VIEW_CASES' },
   RESTRICTION_LIFTED: { category: 'OPERATIONS', severity: 'INFO', action: 'VIEW_CASES' },
 } as const satisfies Record<

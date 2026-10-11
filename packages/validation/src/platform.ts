@@ -1,5 +1,14 @@
 import { z } from 'zod';
-import { BILLING_CADENCES, CONTRACT_ENTITLEMENT_KINDS, CONTRACT_KINDS, LIMIT_MODES, LIMIT_PERIODS, RENEWAL_STATES, SCOPE_KINDS, SOFT_ACTIONS } from '@dealdash/types';
+import {
+  BILLING_CADENCES,
+  CONTRACT_ENTITLEMENT_KINDS,
+  CONTRACT_KINDS,
+  LIMIT_MODES,
+  LIMIT_PERIODS,
+  RENEWAL_STATES,
+  SCOPE_KINDS,
+  SOFT_ACTIONS,
+} from '@dealdash/types';
 
 const uuid = z.string().uuid();
 const iso = z.string().datetime({ offset: true });
@@ -73,7 +82,10 @@ export const scopeInputSchema = z
     ref: z.string().trim().min(1).max(80).nullable().default(null),
     product: z.string().trim().max(30).nullable().default(null),
     envelope: z
-      .object({ kind: z.enum(SCOPE_KINDS), ref: z.string().trim().min(1).max(80).nullable().default(null) })
+      .object({
+        kind: z.enum(SCOPE_KINDS),
+        ref: z.string().trim().min(1).max(80).nullable().default(null),
+      })
       .nullable()
       .default(null),
   })
@@ -136,7 +148,11 @@ export const accessMeSchema = z.object({
     z.object({
       roleCode: z.string(),
       permissions: z.array(z.string()),
-      scope: z.object({ kind: z.enum(SCOPE_KINDS), ref: z.string().nullable(), product: z.string().nullable() }),
+      scope: z.object({
+        kind: z.enum(SCOPE_KINDS),
+        ref: z.string().nullable(),
+        product: z.string().nullable(),
+      }),
       origin: z.enum(['MEMBERSHIP', 'ASSIGNMENT']),
     }),
   ),
@@ -174,7 +190,10 @@ export const contractCreateSchema = z.object({
     .max(60)
     .default([]),
 });
-export const contractEndSchema = z.object({ effectiveUntil: iso.optional(), reason: z.string().trim().min(3).max(300) });
+export const contractEndSchema = z.object({
+  effectiveUntil: iso.optional(),
+  reason: z.string().trim().min(3).max(300),
+});
 export const entitlementViewSchema = z.object({
   source: z.enum(['CONTRACT', 'DEFAULT_PLAN']),
   contractId: uuid.nullable(),

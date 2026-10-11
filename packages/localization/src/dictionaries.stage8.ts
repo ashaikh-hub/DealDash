@@ -20,29 +20,74 @@ const S8 = {
 
   // ---------------------------------------------------------------- B8 (Stage 7 compatibility fix): partner "Add a merchant"
   'pt.net.marketsLoading': ['Loading your markets…', 'جارٍ تحميل أسواقك…'],
-  'pt.net.noMarket': ['No market is available to you yet, so a merchant cannot be added.', 'لا يتوفر لك أي سوق بعد، لذا لا يمكن إضافة تاجر.'],
+  'pt.net.noMarket': [
+    'No market is available to you yet, so a merchant cannot be added.',
+    'لا يتوفر لك أي سوق بعد، لذا لا يمكن إضافة تاجر.',
+  ],
 
   // ---------------------------------------------------------------- errors
-  'error.CASE_TRANSITION_INVALID': ['This case cannot move to that status from where it is now.', 'لا يمكن نقل هذه القضية إلى تلك المرحلة من وضعها الحالي.'],
-  'error.CASE_APPROVAL_PENDING': ['This case is waiting for an approval decision.', 'هذه القضية بانتظار قرار الاعتماد.'],
-  'error.SETTLEMENT_RULE_MISSING': ['There is no approved settlement rule for this market yet.', 'لا توجد قاعدة تسوية معتمدة لهذا السوق بعد.'],
+  'error.CASE_TRANSITION_INVALID': [
+    'This case cannot move to that status from where it is now.',
+    'لا يمكن نقل هذه القضية إلى تلك المرحلة من وضعها الحالي.',
+  ],
+  'error.CASE_APPROVAL_PENDING': [
+    'This case is waiting for an approval decision.',
+    'هذه القضية بانتظار قرار الاعتماد.',
+  ],
+  'error.SETTLEMENT_RULE_MISSING': [
+    'There is no approved settlement rule for this market yet.',
+    'لا توجد قاعدة تسوية معتمدة لهذا السوق بعد.',
+  ],
   'error.SETTLEMENT_ON_HOLD': ['This settlement is on hold.', 'هذه التسوية موقوفة.'],
-  'error.RESTRICTION_ACTIVE': ['This action is restricted on the account for now. Existing vouchers and reservations are not affected.', 'هذا الإجراء مقيّد على الحساب حالياً. لا تتأثر القسائم والحجوزات الحالية.'],
-  'error.BRANCH_REDEMPTION_HELD': ['Redemptions are paused at this branch for now.', 'الاستخدام متوقف مؤقتاً في هذا الفرع.'],
-  'error.REVIEW_NOT_ALLOWED': ['You cannot review this business.', 'لا يمكنك تقييم هذا النشاط التجاري.'],
-  'error.REVIEW_LIMIT_REACHED': ['You have already reviewed this business recently.', 'لقد قيّمت هذا النشاط التجاري مؤخراً.'],
-  'error.RECON_INVALID': ['This reconciliation item cannot be changed that way.', 'لا يمكن تعديل عنصر المطابقة بهذه الطريقة.'],
-  'error.ADJUSTMENT_NOT_APPLICABLE': ['This adjustment cannot be applied to that record.', 'لا يمكن تطبيق هذه التسوية على ذلك السجل.'],
+  'error.RESTRICTION_ACTIVE': [
+    'This action is restricted on the account for now. Existing vouchers and reservations are not affected.',
+    'هذا الإجراء مقيّد على الحساب حالياً. لا تتأثر القسائم والحجوزات الحالية.',
+  ],
+  'error.BRANCH_REDEMPTION_HELD': [
+    'Redemptions are paused at this branch for now.',
+    'الاستخدام متوقف مؤقتاً في هذا الفرع.',
+  ],
+  'error.REVIEW_NOT_ALLOWED': [
+    'You cannot review this business.',
+    'لا يمكنك تقييم هذا النشاط التجاري.',
+  ],
+  'error.REVIEW_LIMIT_REACHED': [
+    'You have already reviewed this business recently.',
+    'لقد قيّمت هذا النشاط التجاري مؤخراً.',
+  ],
+  'error.RECON_INVALID': [
+    'This reconciliation item cannot be changed that way.',
+    'لا يمكن تعديل عنصر المطابقة بهذه الطريقة.',
+  ],
+  'error.ADJUSTMENT_NOT_APPLICABLE': [
+    'This adjustment cannot be applied to that record.',
+    'لا يمكن تطبيق هذه التسوية على ذلك السجل.',
+  ],
   // earlier codes that had no copy until Stage 8 (gap audit)
-  'error.MFA_REQUIRED': ['Confirm it is you with your second sign-in step.', 'أكّد هويتك بخطوة تسجيل الدخول الثانية.'],
-  'error.SESSION_EXPIRED': ['Your session ended. Please sign in again.', 'انتهت جلستك. يرجى تسجيل الدخول مرة أخرى.'],
-  'error.INTEGRATION_AUTH_FAILED': ['The integration could not sign in. Check its credentials.', 'تعذّر على التكامل تسجيل الدخول. تحقق من بيانات الاعتماد.'],
+  'error.MFA_REQUIRED': [
+    'Confirm it is you with your second sign-in step.',
+    'أكّد هويتك بخطوة تسجيل الدخول الثانية.',
+  ],
+  'error.SESSION_EXPIRED': [
+    'Your session ended. Please sign in again.',
+    'انتهت جلستك. يرجى تسجيل الدخول مرة أخرى.',
+  ],
+  'error.INTEGRATION_AUTH_FAILED': [
+    'The integration could not sign in. Check its credentials.',
+    'تعذّر على التكامل تسجيل الدخول. تحقق من بيانات الاعتماد.',
+  ],
   'error.IMPORT_NOT_READY': ['This import is not ready yet.', 'هذا الاستيراد غير جاهز بعد.'],
-  'error.INTERNAL': ['Something went wrong on our side. Please try again.', 'حدث خطأ من جهتنا. يرجى المحاولة مرة أخرى.'],
+  'error.INTERNAL': [
+    'Something went wrong on our side. Please try again.',
+    'حدث خطأ من جهتنا. يرجى المحاولة مرة أخرى.',
+  ],
 
   // ---------------------------------------------------------------- notifications (customer)
   'notif.CASE_UPDATED': ['Update on your case', 'تحديث على طلبك'],
-  'notif.ACCOUNT_RESTRICTION': ['A change to what your account can do', 'تغيير على ما يمكن لحسابك القيام به'],
+  'notif.ACCOUNT_RESTRICTION': [
+    'A change to what your account can do',
+    'تغيير على ما يمكن لحسابك القيام به',
+  ],
   // earlier notification types that showed a raw key in the customer list until Stage 8 (gap audit)
   'notif.REWARD_EARNED': ['You earned points', 'حصلت على نقاط'],
   'notif.REWARD_HELD': ['Your points are being checked', 'نقاطك قيد التحقق'],
@@ -63,7 +108,10 @@ const S8 = {
   'op.dtype.PAYMENT_EXCEPTION': ['Payment exception', 'استثناء دفع'],
   'op.dtype.REFUND_EXCEPTION': ['Refund exception', 'استثناء استرداد'],
   'op.dtype.VOUCHER_EXCEPTION': ['Voucher exception', 'استثناء قسيمة'],
-  'op.dtype.EXCLUSIVE_REDEMPTION_EXCEPTION': ['Exclusive Deal redemption exception', 'استثناء استخدام عرض حصري'],
+  'op.dtype.EXCLUSIVE_REDEMPTION_EXCEPTION': [
+    'Exclusive Deal redemption exception',
+    'استثناء استخدام عرض حصري',
+  ],
   'op.dtype.LIVE_BENEFIT_EXCEPTION': ['Live Deal benefit exception', 'استثناء ميزة عرض مباشر'],
   'op.dtype.WATCH_EARN_EXCEPTION': ['Watch & Earn exception', 'استثناء شاهد واكسب'],
   'op.dtype.LOYALTY_EXCEPTION': ['Loyalty exception', 'استثناء ولاء'],
@@ -111,8 +159,14 @@ const S8 = {
   'op.case.impact': ['Financial impact', 'الأثر المالي'],
   'op.case.escalation': ['Escalation level', 'مستوى التصعيد'],
   'op.case.awaitingYou': ['Waiting for you', 'بانتظارك'],
-  'op.case.awaitingYouNote': ['DealDash is waiting for your reply on this case. Add a note below.', 'تنتظر ديل داش ردك على هذه القضية. أضف ملاحظة أدناه.'],
-  'op.case.awaitingApprovalNote': ['A second person must approve the proposed resolution:', 'يجب أن يعتمد شخص آخر الحل المقترح:'],
+  'op.case.awaitingYouNote': [
+    'DealDash is waiting for your reply on this case. Add a note below.',
+    'تنتظر ديل داش ردك على هذه القضية. أضف ملاحظة أدناه.',
+  ],
+  'op.case.awaitingApprovalNote': [
+    'A second person must approve the proposed resolution:',
+    'يجب أن يعتمد شخص آخر الحل المقترح:',
+  ],
   'op.case.work': ['Work on this case', 'العمل على القضية'],
   'op.case.saveRouting': ['Save severity and team', 'حفظ الخطورة والفريق'],
   'op.case.updated': ['Case updated.', 'تم تحديث القضية.'],
@@ -128,11 +182,20 @@ const S8 = {
   'op.case.logContact': ['Log contact', 'تسجيل التواصل'],
   'op.case.contactLogged': ['Contact logged.', 'تم تسجيل التواصل.'],
   'op.case.proposal': ['Proposed resolution', 'الحل المقترح'],
-  'op.case.proposalHelp': ['A second person approves it; a finance approver when money is involved.', 'يعتمده شخص آخر؛ ومعتمد مالي عند وجود مبالغ.'],
-  'op.case.impactInput': ['Financial impact (optional, in the case currency)', 'الأثر المالي (اختياري، بعملة القضية)'],
+  'op.case.proposalHelp': [
+    'A second person approves it; a finance approver when money is involved.',
+    'يعتمده شخص آخر؛ ومعتمد مالي عند وجود مبالغ.',
+  ],
+  'op.case.impactInput': [
+    'Financial impact (optional, in the case currency)',
+    'الأثر المالي (اختياري، بعملة القضية)',
+  ],
   'op.case.requestApproval': ['Request approval', 'طلب الاعتماد'],
   'op.case.approvalRequested': ['Approval requested.', 'تم طلب الاعتماد.'],
-  'op.case.ownRequest': ['You requested this approval: a different person must decide.', 'أنت من طلب هذا الاعتماد: يجب أن يقرر شخص آخر.'],
+  'op.case.ownRequest': [
+    'You requested this approval: a different person must decide.',
+    'أنت من طلب هذا الاعتماد: يجب أن يقرر شخص آخر.',
+  ],
   'op.case.decisionReason': ['Reason for your decision', 'سبب قرارك'],
   'op.case.approve': ['Approve resolution', 'اعتماد الحل'],
   'op.case.approved': ['Resolution approved.', 'تم اعتماد الحل.'],
@@ -143,38 +206,77 @@ const S8 = {
 
   // ---------------------------------------------------------------- shared inbox kinds
   'op.kind.CASE_APPROVAL': ['Case approval', 'اعتماد قضية'],
-  'op.task.CASE_APPROVAL': ['Case resolution waiting for approval: {name}', 'حل قضية بانتظار الاعتماد: {name}'],
+  'op.task.CASE_APPROVAL': [
+    'Case resolution waiting for approval: {name}',
+    'حل قضية بانتظار الاعتماد: {name}',
+  ],
   'op.kind.ADJUSTMENT_APPROVAL': ['Adjustment approval', 'اعتماد تسوية مالية'],
-  'op.task.ADJUSTMENT_APPROVAL': ['Financial adjustment waiting for approval: {name}', 'تسوية مالية بانتظار الاعتماد: {name}'],
+  'op.task.ADJUSTMENT_APPROVAL': [
+    'Financial adjustment waiting for approval: {name}',
+    'تسوية مالية بانتظار الاعتماد: {name}',
+  ],
   'op.kind.RESTRICTION_APPROVAL': ['Restriction approval', 'اعتماد قيد'],
-  'op.task.RESTRICTION_APPROVAL': ['Restriction or hold waiting for approval: {name}', 'قيد أو إيقاف بانتظار الاعتماد: {name}'],
+  'op.task.RESTRICTION_APPROVAL': [
+    'Restriction or hold waiting for approval: {name}',
+    'قيد أو إيقاف بانتظار الاعتماد: {name}',
+  ],
   'op.kind.REFUND_REVIEW': ['Refund review', 'مراجعة استرداد'],
-  'op.task.REFUND_REVIEW': ['Refund waiting for review: {name}', 'استرداد بانتظار المراجعة: {name}'],
+  'op.task.REFUND_REVIEW': [
+    'Refund waiting for review: {name}',
+    'استرداد بانتظار المراجعة: {name}',
+  ],
   'op.kind.SETTLEMENT_EXCEPTION': ['Settlement exception', 'استثناء تسوية'],
-  'op.task.SETTLEMENT_EXCEPTION': ['Settlement needs attention: {name}', 'تسوية تحتاج إلى متابعة: {name}'],
+  'op.task.SETTLEMENT_EXCEPTION': [
+    'Settlement needs attention: {name}',
+    'تسوية تحتاج إلى متابعة: {name}',
+  ],
   'op.kind.RECONCILIATION_EXCEPTION': ['Reconciliation exception', 'استثناء مطابقة'],
-  'op.task.RECONCILIATION_EXCEPTION': ['Reconciliation item to review: {name}', 'عنصر مطابقة للمراجعة: {name}'],
+  'op.task.RECONCILIATION_EXCEPTION': [
+    'Reconciliation item to review: {name}',
+    'عنصر مطابقة للمراجعة: {name}',
+  ],
   'op.kind.FRAUD_REVIEW': ['Fraud review', 'مراجعة احتيال'],
   'op.task.FRAUD_REVIEW': ['Risk flag to review: {name}', 'مؤشر مخاطر للمراجعة: {name}'],
   'op.kind.MODERATION_REVIEW': ['Moderation', 'إشراف على المحتوى'],
-  'op.task.MODERATION_REVIEW': ['Content waiting for moderation: {name}', 'محتوى بانتظار الإشراف: {name}'],
+  'op.task.MODERATION_REVIEW': [
+    'Content waiting for moderation: {name}',
+    'محتوى بانتظار الإشراف: {name}',
+  ],
   'op.kind.DATA_REQUEST': ['Data request', 'طلب بيانات'],
-  'op.task.DATA_REQUEST': ['Privacy data request to decide: {name}', 'طلب بيانات خصوصية للبت فيه: {name}'],
+  'op.task.DATA_REQUEST': [
+    'Privacy data request to decide: {name}',
+    'طلب بيانات خصوصية للبت فيه: {name}',
+  ],
   'op.kind.NOTIFICATION_FAILURE': ['Notification failure', 'إخفاق إشعار'],
-  'op.task.NOTIFICATION_FAILURE': ['Notifications could not be delivered: {name}', 'تعذّر توصيل إشعارات: {name}'],
+  'op.task.NOTIFICATION_FAILURE': [
+    'Notifications could not be delivered: {name}',
+    'تعذّر توصيل إشعارات: {name}',
+  ],
   'op.kind.CASE_RESPONSE_REQUIRED': ['Reply needed', 'مطلوب رد'],
-  'op.task.CASE_RESPONSE_REQUIRED': ['DealDash is waiting for your reply: {name}', 'تنتظر ديل داش ردك: {name}'],
+  'op.task.CASE_RESPONSE_REQUIRED': [
+    'DealDash is waiting for your reply: {name}',
+    'تنتظر ديل داش ردك: {name}',
+  ],
   'op.kind.SLA_ESCALATION': ['Escalation', 'تصعيد'],
-  'op.task.SLA_ESCALATION': ['Escalated after the SLA was missed: {name}', 'تم التصعيد بعد تجاوز حد الخدمة: {name}'],
+  'op.task.SLA_ESCALATION': [
+    'Escalated after the SLA was missed: {name}',
+    'تم التصعيد بعد تجاوز حد الخدمة: {name}',
+  ],
   'op.kind.HOLD_REVIEW_DUE': ['Hold review due', 'مراجعة إيقاف مستحقة'],
-  'op.task.HOLD_REVIEW_DUE': ['Financial hold reached its end date and needs a decision: {name}', 'وصل الإيقاف المالي إلى نهايته ويحتاج إلى قرار: {name}'],
+  'op.task.HOLD_REVIEW_DUE': [
+    'Financial hold reached its end date and needs a decision: {name}',
+    'وصل الإيقاف المالي إلى نهايته ويحتاج إلى قرار: {name}',
+  ],
 
   // ---------------------------------------------------------------- shared states and words
   's8.state.loading': ['Loading…', 'جارٍ التحميل…'],
   's8.state.empty': ['Nothing here right now.', 'لا يوجد شيء هنا حالياً.'],
   's8.state.error': ['This could not be loaded.', 'تعذّر التحميل.'],
   's8.state.retry': ['Try again', 'حاول مرة أخرى'],
-  's8.state.denied': ['You do not have access to this. Ask an administrator if you need it.', 'ليس لديك صلاحية الوصول إلى هذا. اطلبها من المسؤول إذا احتجتها.'],
+  's8.state.denied': [
+    'You do not have access to this. Ask an administrator if you need it.',
+    'ليس لديك صلاحية الوصول إلى هذا. اطلبها من المسؤول إذا احتجتها.',
+  ],
   's8.all': ['All', 'الكل'],
   's8.status': ['Status', 'الحالة'],
   's8.reference': ['Reference', 'المرجع'],
@@ -190,7 +292,10 @@ const S8 = {
   's8.reject': ['Reject', 'رفض'],
   's8.reason': ['Reason', 'السبب'],
   's8.reasonCode': ['Reason code', 'رمز السبب'],
-  's8.reasonHelp': ['Recorded in the audit trail with your name and role.', 'يُسجل في سجل التدقيق مع اسمك ودورك.'],
+  's8.reasonHelp': [
+    'Recorded in the audit trail with your name and role.',
+    'يُسجل في سجل التدقيق مع اسمك ودورك.',
+  ],
   's8.awaitingOther': ['Waiting for a second person to decide.', 'بانتظار قرار شخص آخر.'],
   's8.openCase': ['Open a case', 'فتح قضية'],
   's8.caseOpened': ['Case opened.', 'تم فتح القضية.'],
@@ -206,13 +311,19 @@ const S8 = {
   // ---------------------------------------------------------------- command centre exceptions
   's8.exc.tab': ['Exceptions', 'الاستثناءات'],
   's8.exc.title': ['Operational exceptions', 'الاستثناءات التشغيلية'],
-  's8.exc.intro': ['Narrow from global to a market, legal entity, business, brand, city, branch, product or campaign. Each area opens the screen that resolves it.', 'ضيّق النطاق من الكل إلى سوق أو كيان قانوني أو نشاط تجاري أو علامة أو مدينة أو فرع أو منتج أو حملة. كل مجال يفتح الشاشة التي تعالجه.'],
+  's8.exc.intro': [
+    'Narrow from global to a market, legal entity, business, brand, city, branch, product or campaign. Each area opens the screen that resolves it.',
+    'ضيّق النطاق من الكل إلى سوق أو كيان قانوني أو نشاط تجاري أو علامة أو مدينة أو فرع أو منتج أو حملة. كل مجال يفتح الشاشة التي تعالجه.',
+  ],
   's8.exc.apply': ['Apply', 'تطبيق'],
   's8.exc.global': ['Back to global', 'العودة إلى الكل'],
   's8.exc.level': ['Level', 'المستوى'],
   's8.exc.work': ['Work these', 'معالجتها'],
   's8.exc.byMarket': ['Open cases by market', 'القضايا المفتوحة حسب السوق'],
-  's8.exc.byBusiness': ['Businesses with the most open cases', 'الأنشطة التجارية الأكثر قضايا مفتوحة'],
+  's8.exc.byBusiness': [
+    'Businesses with the most open cases',
+    'الأنشطة التجارية الأكثر قضايا مفتوحة',
+  ],
   's8.exc.breached': ['breached', 'متجاوزة'],
   's8.exc.generated': ['Updated', 'آخر تحديث'],
   's8.exc.area.PAYMENT_ISSUES': ['Payment issues', 'مشكلات الدفع'],
@@ -243,7 +354,10 @@ const S8 = {
 
   // ---------------------------------------------------------------- support workspace
   's8.sup.title': ['Customer support', 'دعم العملاء'],
-  's8.sup.intro': ['Support requests, the customer summary and timeline, refunds and privacy requests. You see only what your role allows.', 'طلبات الدعم وملخص العميل وسجله والاسترداد وطلبات الخصوصية. ترى فقط ما يسمح به دورك.'],
+  's8.sup.intro': [
+    'Support requests, the customer summary and timeline, refunds and privacy requests. You see only what your role allows.',
+    'طلبات الدعم وملخص العميل وسجله والاسترداد وطلبات الخصوصية. ترى فقط ما يسمح به دورك.',
+  ],
   's8.sup.tab.requests': ['Support requests', 'طلبات الدعم'],
   's8.sup.tab.customer': ['Customer', 'العميل'],
   's8.sup.tab.timeline': ['Timeline', 'السجل الزمني'],
@@ -297,7 +411,10 @@ const S8 = {
   's8.ref.outside': ['outside', 'خارج المهلة'],
   's8.ref.marketPolicy': ['Market refund policy', 'سياسة الاسترداد في السوق'],
   's8.ref.noMarketPolicy': ['None approved (VALIDATE)', 'لا توجد سياسة معتمدة (للتحقق)'],
-  's8.ref.validationNote': ['Open market validation items affect refunds here:', 'عناصر تحقق مفتوحة للسوق تؤثر على الاسترداد هنا:'],
+  's8.ref.validationNote': [
+    'Open market validation items affect refunds here:',
+    'عناصر تحقق مفتوحة للسوق تؤثر على الاسترداد هنا:',
+  ],
   's8.ref.decisionNote': [
     'DealDash does not decide refund law: the window and outside-window handling are configuration, market rules stay with the validation items, and a person decides.',
     'ديل داش لا تقرر أحكام الاسترداد القانونية: المهلة والتعامل خارجها إعدادات، وقواعد السوق تبقى ضمن عناصر التحقق، والقرار لشخص.',
@@ -307,7 +424,10 @@ const S8 = {
   's8.ref.reason': ['Reason', 'السبب'],
   's8.ref.payment': ['Payment to return', 'الدفعة المراد إرجاعها'],
   's8.ref.requestOrder': ['Request order refund', 'طلب استرداد الطلب'],
-  's8.ref.requested': ['Refund requested. A second person approves it.', 'تم طلب الاسترداد. يعتمده شخص آخر.'],
+  's8.ref.requested': [
+    'Refund requested. A second person approves it.',
+    'تم طلب الاسترداد. يعتمده شخص آخر.',
+  ],
   's8.ref.queue': ['Refund queue', 'قائمة الاسترداد'],
   's8.ref.unfinished': ['Not finished', 'غير مكتملة'],
   's8.ref.empty': ['No refunds waiting.', 'لا توجد استردادات بانتظار المعالجة.'],
@@ -318,7 +438,10 @@ const S8 = {
   's8.refStatus.SUCCEEDED': ['Refunded', 'تم الاسترداد'],
   's8.refStatus.FAILED': ['Failed', 'أخفق'],
   's8.refStatus.REJECTED': ['Rejected', 'مرفوض'],
-  's8.refBlocker.REDEEMED_REVERSAL_REQUIRED': ['Already used: the redemption must be reversed first', 'تم استخدامها: يجب عكس الاستخدام أولاً'],
+  's8.refBlocker.REDEEMED_REVERSAL_REQUIRED': [
+    'Already used: the redemption must be reversed first',
+    'تم استخدامها: يجب عكس الاستخدام أولاً',
+  ],
   's8.refBlocker.WINDOW_PASSED': ['The refund window has passed', 'انتهت مهلة الاسترداد'],
   's8.refBlocker.REFUND_ALREADY_OPEN': ['A refund is already open', 'يوجد استرداد مفتوح بالفعل'],
   's8.refBlocker.NO_CONFIRMED_PAYMENT': ['No confirmed payment', 'لا توجد دفعة مؤكدة'],
@@ -336,7 +459,10 @@ const S8 = {
   ],
   's8.dr.type': ['Request', 'الطلب'],
   's8.dr.create': ['Create request', 'إنشاء الطلب'],
-  's8.dr.created': ['Request created. A second person decides it.', 'تم إنشاء الطلب. يبت فيه شخص آخر.'],
+  's8.dr.created': [
+    'Request created. A second person decides it.',
+    'تم إنشاء الطلب. يبت فيه شخص آخر.',
+  ],
   's8.dr.empty': ['No data requests.', 'لا توجد طلبات بيانات.'],
   's8.dr.approved': ['Approved and carried out.', 'تم الاعتماد والتنفيذ.'],
   's8.dr.rejected': ['Request rejected.', 'تم رفض الطلب.'],
@@ -363,7 +489,10 @@ const S8 = {
   's8.adj.business': ['Business account ID', 'معرّف الحساب التجاري'],
   's8.adj.customer': ['Customer ID', 'معرّف العميل'],
   's8.adj.case': ['Case ID (optional)', 'معرّف القضية (اختياري)'],
-  's8.adj.note': ['Who may approve depends on the kind and amount (Rules and controls). You can never approve your own request.', 'من يعتمد يعتمد على النوع والمبلغ (القواعد والضوابط). لا يمكنك اعتماد طلبك أبداً.'],
+  's8.adj.note': [
+    'Who may approve depends on the kind and amount (Rules and controls). You can never approve your own request.',
+    'من يعتمد يعتمد على النوع والمبلغ (القواعد والضوابط). لا يمكنك اعتماد طلبك أبداً.',
+  ],
   's8.adj.submit': ['Submit for approval', 'إرسال للاعتماد'],
   's8.adj.requested': ['Adjustment requested.', 'تم طلب التسوية.'],
   's8.adj.empty': ['No adjustments here.', 'لا توجد تسويات هنا.'],
@@ -379,7 +508,10 @@ const S8 = {
   's8.adjKind.POINTS_ADJUSTMENT': ['Points adjustment', 'تعديل نقاط'],
   's8.adjKind.REWARD_REVERSAL': ['Reward reversal', 'عكس مكافأة'],
   's8.adjKind.FUNDING_ADJUSTMENT': ['Funding adjustment', 'تسوية تمويل'],
-  's8.adjKind.CAMPAIGN_UTILIZATION_CORRECTION': ['Campaign utilisation correction', 'تصحيح استخدام الحملة'],
+  's8.adjKind.CAMPAIGN_UTILIZATION_CORRECTION': [
+    'Campaign utilisation correction',
+    'تصحيح استخدام الحملة',
+  ],
   's8.adjKind.ADMIN_ADJUSTMENT': ['Administrative adjustment', 'تسوية إدارية'],
   's8.adjStatus.PENDING_APPROVAL': ['Waiting for approval', 'بانتظار الاعتماد'],
   's8.adjStatus.APPROVED': ['Approved', 'معتمدة'],
@@ -398,7 +530,10 @@ const S8 = {
   's8.set.run': ['Prepare statements', 'إعداد الكشوف'],
   's8.set.ran': ['Statements prepared.', 'تم إعداد الكشوف.'],
   's8.set.merchantOptional': ['Merchant ID (optional)', 'معرّف التاجر (اختياري)'],
-  's8.set.ruleNote': ['Statements need an APPROVED settlement rule for the market. Without one nothing is prepared: DealDash never invents a cycle.', 'تحتاج الكشوف إلى قاعدة تسوية معتمدة للسوق. بدونها لا يُعد شيء: ديل داش لا تخترع دورة أبداً.'],
+  's8.set.ruleNote': [
+    'Statements need an APPROVED settlement rule for the market. Without one nothing is prepared: DealDash never invents a cycle.',
+    'تحتاج الكشوف إلى قاعدة تسوية معتمدة للسوق. بدونها لا يُعد شيء: ديل داش لا تخترع دورة أبداً.',
+  ],
   's8.set.exceptionsOnly': ['Exceptions only', 'الاستثناءات فقط'],
   's8.set.empty': ['No settlements here.', 'لا توجد تسويات هنا.'],
   's8.set.merchant': ['Merchant', 'التاجر'],
@@ -415,10 +550,16 @@ const S8 = {
   's8.set.items': ['Items', 'البنود'],
   's8.set.payouts': ['Payouts', 'الدفعات'],
   's8.set.heldNote': ['On hold:', 'موقوفة:'],
-  's8.set.taxNote': ['Tax shown here is informational until the market tax rule is validated.', 'الضريبة المعروضة هنا للعلم حتى يتم التحقق من قاعدة الضريبة في السوق.'],
+  's8.set.taxNote': [
+    'Tax shown here is informational until the market tax rule is validated.',
+    'الضريبة المعروضة هنا للعلم حتى يتم التحقق من قاعدة الضريبة في السوق.',
+  ],
   's8.set.payoutRef': ['Bank / payout reference', 'مرجع التحويل البنكي'],
   's8.set.partialAmount': ['Partial amount (optional)', 'مبلغ جزئي (اختياري)'],
-  's8.set.partialNeedsApprover': ['A partial payout needs a finance approver.', 'الدفعة الجزئية تحتاج إلى معتمد مالي.'],
+  's8.set.partialNeedsApprover': [
+    'A partial payout needs a finance approver.',
+    'الدفعة الجزئية تحتاج إلى معتمد مالي.',
+  ],
   's8.set.recordPayout': ['Record payout', 'تسجيل الدفعة'],
   's8.set.paidOk': ['Payout recorded.', 'تم تسجيل الدفعة.'],
   's8.set.hold': ['Place on hold', 'إيقاف'],
@@ -429,7 +570,10 @@ const S8 = {
   's8.set.failedOk': ['Payout marked failed.', 'تم تسجيل إخفاق الدفعة.'],
   's8.set.reverse': ['Reverse settlement', 'عكس التسوية'],
   's8.set.reversedOk': ['Settlement reversed.', 'تم عكس التسوية.'],
-  's8.set.releaseNote': ['A different finance person releases a hold, and only once its cause is gone. Reversals need a finance approver.', 'يرفع الإيقاف شخص مالي آخر، وفقط بعد زوال سببه. العكس يحتاج إلى معتمد مالي.'],
+  's8.set.releaseNote': [
+    'A different finance person releases a hold, and only once its cause is gone. Reversals need a finance approver.',
+    'يرفع الإيقاف شخص مالي آخر، وفقط بعد زوال سببه. العكس يحتاج إلى معتمد مالي.',
+  ],
   's8.setStatus.PENDING': ['Pending', 'قيد الانتظار'],
   's8.setStatus.ELIGIBLE': ['Ready to pay', 'جاهزة للدفع'],
   's8.setStatus.HELD': ['On hold', 'موقوفة'],
@@ -459,8 +603,14 @@ const S8 = {
   's8.rec.import': ['Import a statement', 'استيراد كشف'],
   's8.rec.source': ['Source', 'المصدر'],
   's8.rec.lines': ['Lines', 'الأسطر'],
-  's8.rec.linesHelp': ['One line per entry: reference, amount, date and time (ISO). For example: PSP-123, 150.00, 2026-10-01T10:00:00Z', 'سطر لكل قيد: المرجع، المبلغ، التاريخ والوقت (ISO). مثال: PSP-123, 150.00, 2026-10-01T10:00:00Z'],
-  's8.rec.linesInvalid': ['Some lines could not be read. Check the reference, amount and date.', 'تعذّرت قراءة بعض الأسطر. تحقق من المرجع والمبلغ والتاريخ.'],
+  's8.rec.linesHelp': [
+    'One line per entry: reference, amount, date and time (ISO). For example: PSP-123, 150.00, 2026-10-01T10:00:00Z',
+    'سطر لكل قيد: المرجع، المبلغ، التاريخ والوقت (ISO). مثال: PSP-123, 150.00, 2026-10-01T10:00:00Z',
+  ],
+  's8.rec.linesInvalid': [
+    'Some lines could not be read. Check the reference, amount and date.',
+    'تعذّرت قراءة بعض الأسطر. تحقق من المرجع والمبلغ والتاريخ.',
+  ],
   's8.rec.importBtn': ['Import and match', 'استيراد ومطابقة'],
   's8.rec.imported': ['Statement imported and matched.', 'تم استيراد الكشف ومطابقته.'],
   's8.rec.allExceptions': ['All exceptions', 'كل الاستثناءات'],
@@ -470,7 +620,10 @@ const S8 = {
   's8.rec.variance': ['Difference', 'الفرق'],
   's8.rec.resolve': ['Resolve', 'معالجة'],
   's8.rec.resolution': ['How it was resolved', 'كيف تمت المعالجة'],
-  's8.rec.resolveNote': ['If money must move, request a reconciliation adjustment first and mention it here.', 'إذا لزم تحريك مبالغ، اطلب تسوية مطابقة أولاً واذكرها هنا.'],
+  's8.rec.resolveNote': [
+    'If money must move, request a reconciliation adjustment first and mention it here.',
+    'إذا لزم تحريك مبالغ، اطلب تسوية مطابقة أولاً واذكرها هنا.',
+  ],
   's8.rec.resolved': ['Item resolved.', 'تمت معالجة العنصر.'],
   's8.rec.runs': ['Recent runs', 'آخر عمليات التشغيل'],
   's8.rec.noRuns': ['No reconciliation runs yet.', 'لا توجد عمليات مطابقة بعد.'],
@@ -508,7 +661,10 @@ const S8 = {
   's8.risk.allDomains': ['All areas', 'كل المجالات'],
   's8.risk.empty': ['No flags here.', 'لا توجد مؤشرات هنا.'],
   's8.risk.review': ['Review', 'مراجعة'],
-  's8.risk.humanNote': ['Your decision is recorded with your reason. Confirming does not restrict anyone unless you also request a restriction, which follows its own approval.', 'يُسجل قرارك مع سببه. التأكيد لا يقيّد أحداً إلا إذا طلبت قيداً أيضاً، وله اعتماده الخاص.'],
+  's8.risk.humanNote': [
+    'Your decision is recorded with your reason. Confirming does not restrict anyone unless you also request a restriction, which follows its own approval.',
+    'يُسجل قرارك مع سببه. التأكيد لا يقيّد أحداً إلا إذا طلبت قيداً أيضاً، وله اعتماده الخاص.',
+  ],
   's8.risk.alsoRestrict': ['Also request a restriction or hold', 'طلب قيد أو إيقاف أيضاً'],
   's8.risk.clear': ['Clear (no issue)', 'إسقاط (لا توجد مشكلة)'],
   's8.risk.confirm': ['Confirm', 'تأكيد'],
@@ -542,8 +698,14 @@ const S8 = {
 
   // ---------------------------------------------------------------- restrictions and holds
   's8.rst.title': ['Restrictions and holds', 'القيود والإيقافات'],
-  's8.rst.intro': ['Customer restrictions, merchant campaign holds, branch redemption holds, user and integration suspensions and financial holds, each with a reason, an end date and the configured approval.', 'قيود العملاء وإيقاف حملات التجار وإيقاف الاستخدام في الفروع وتعليق المستخدمين والتكاملات والإيقافات المالية، ولكل منها سبب وتاريخ انتهاء والاعتماد المضبوط.'],
-  's8.rst.rightsNote': ['Restrictions stop new actions only. Vouchers, reservations and points a customer already holds stay valid.', 'القيود توقف الإجراءات الجديدة فقط. القسائم والحجوزات والنقاط التي يملكها العميل تبقى صالحة.'],
+  's8.rst.intro': [
+    'Customer restrictions, merchant campaign holds, branch redemption holds, user and integration suspensions and financial holds, each with a reason, an end date and the configured approval.',
+    'قيود العملاء وإيقاف حملات التجار وإيقاف الاستخدام في الفروع وتعليق المستخدمين والتكاملات والإيقافات المالية، ولكل منها سبب وتاريخ انتهاء والاعتماد المضبوط.',
+  ],
+  's8.rst.rightsNote': [
+    'Restrictions stop new actions only. Vouchers, reservations and points a customer already holds stay valid.',
+    'القيود توقف الإجراءات الجديدة فقط. القسائم والحجوزات والنقاط التي يملكها العميل تبقى صالحة.',
+  ],
   's8.rst.new': ['Request a restriction or hold', 'طلب قيد أو إيقاف'],
   's8.rst.kind': ['Kind', 'النوع'],
   's8.rst.subject': ['Applies to (ID)', 'ينطبق على (المعرّف)'],
@@ -556,7 +718,10 @@ const S8 = {
   's8.rst.rejected': ['Restriction rejected.', 'تم رفض القيد.'],
   's8.rst.lift': ['Lift', 'رفع'],
   's8.rst.lifted': ['Restriction lifted.', 'تم رفع القيد.'],
-  's8.rst.financialHoldNote': ['A financial hold never releases on its own: when it reaches its end date a person reviews it.', 'الإيقاف المالي لا يُرفع تلقائياً: عند وصوله لتاريخ نهايته يراجعه شخص.'],
+  's8.rst.financialHoldNote': [
+    'A financial hold never releases on its own: when it reaches its end date a person reviews it.',
+    'الإيقاف المالي لا يُرفع تلقائياً: عند وصوله لتاريخ نهايته يراجعه شخص.',
+  ],
   's8.rstKind.CUSTOMER_RESTRICTION': ['Customer restriction', 'قيد على عميل'],
   's8.rstKind.MERCHANT_CAMPAIGN_HOLD': ['Merchant campaign hold', 'إيقاف حملات تاجر'],
   's8.rstKind.BRANCH_REDEMPTION_HOLD': ['Branch redemption hold', 'إيقاف الاستخدام في فرع'],
@@ -568,7 +733,10 @@ const S8 = {
   's8.rstStatus.LIFTED': ['Lifted', 'مرفوع'],
   's8.rstStatus.EXPIRED': ['Expired', 'منتهٍ'],
   's8.rstStatus.REJECTED': ['Rejected', 'مرفوض'],
-  's8.rstScope.NEW_RESERVATIONS': ['New Exclusive Deal reservations', 'حجوزات جديدة للعروض الحصرية'],
+  's8.rstScope.NEW_RESERVATIONS': [
+    'New Exclusive Deal reservations',
+    'حجوزات جديدة للعروض الحصرية',
+  ],
   's8.rstScope.NEW_PURCHASES': ['New voucher purchases', 'شراء قسائم جديدة'],
   's8.rstScope.NEW_VIEWS': ['New Watch & Earn views', 'مشاهدات جديدة في شاهد واكسب'],
   's8.rstScope.NEW_EXPOSURE': ['New campaigns and exposure', 'حملات وظهور جديد'],
@@ -582,15 +750,24 @@ const S8 = {
   's8.rstSubjectType.BRANCH': ['Branch', 'الفرع'],
   's8.rstSubjectType.CONNECTION': ['Integration', 'التكامل'],
   's8.rstSubjectHelp.CUSTOMER_RESTRICTION': ['The customer’s user ID', 'معرّف المستخدم للعميل'],
-  's8.rstSubjectHelp.MERCHANT_CAMPAIGN_HOLD': ['The merchant’s business account ID', 'معرّف الحساب التجاري للتاجر'],
+  's8.rstSubjectHelp.MERCHANT_CAMPAIGN_HOLD': [
+    'The merchant’s business account ID',
+    'معرّف الحساب التجاري للتاجر',
+  ],
   's8.rstSubjectHelp.BRANCH_REDEMPTION_HOLD': ['The branch ID', 'معرّف الفرع'],
   's8.rstSubjectHelp.USER_SUSPENSION': ['The user ID', 'معرّف المستخدم'],
-  's8.rstSubjectHelp.INTEGRATION_SUSPENSION': ['The integration connection ID', 'معرّف اتصال التكامل'],
+  's8.rstSubjectHelp.INTEGRATION_SUSPENSION': [
+    'The integration connection ID',
+    'معرّف اتصال التكامل',
+  ],
   's8.rstSubjectHelp.FINANCIAL_HOLD': ['The business account ID', 'معرّف الحساب التجاري'],
 
   // ---------------------------------------------------------------- moderation and reviews
   's8.mod.title': ['Moderation', 'الإشراف على المحتوى'],
-  's8.mod.intro': ['Reviews and reported campaigns, merchant profiles and media. Hiding a campaign uses its own suspension; every decision needs a configured reason.', 'التقييمات والحملات وملفات التجار والوسائط المُبلغ عنها. إخفاء الحملة يستخدم إيقافها الخاص؛ وكل قرار يحتاج إلى سبب مضبوط.'],
+  's8.mod.intro': [
+    'Reviews and reported campaigns, merchant profiles and media. Hiding a campaign uses its own suspension; every decision needs a configured reason.',
+    'التقييمات والحملات وملفات التجار والوسائط المُبلغ عنها. إخفاء الحملة يستخدم إيقافها الخاص؛ وكل قرار يحتاج إلى سبب مضبوط.',
+  ],
   's8.mod.waiting': ['Waiting for a decision', 'بانتظار القرار'],
   's8.mod.subject': ['Content', 'المحتوى'],
   's8.mod.empty': ['Nothing waiting for moderation.', 'لا يوجد ما ينتظر الإشراف.'],
@@ -625,21 +802,36 @@ const S8 = {
   's8.report.ILLEGAL': ['Illegal content', 'محتوى مخالف للقانون'],
   's8.report.OTHER': ['Other', 'أخرى'],
   's8.rev.title': ['Reviews', 'التقييمات'],
-  's8.rev.summary': ['{count} reviews · {verified} verified · average {average}', '{count} تقييم · {verified} موثّق · المتوسط {average}'],
+  's8.rev.summary': [
+    '{count} reviews · {verified} verified · average {average}',
+    '{count} تقييم · {verified} موثّق · المتوسط {average}',
+  ],
   's8.rev.verified': ['Verified visit', 'زيارة موثّقة'],
-  's8.rev.verifiedNote': ['A review shows “Verified visit” only when you redeemed a voucher or an Exclusive Deal here. Watching videos does not count.', 'يظهر التقييم بعلامة «زيارة موثّقة» فقط إذا استخدمت قسيمة أو عرضاً حصرياً هنا. مشاهدة الفيديوهات لا تُحتسب.'],
+  's8.rev.verifiedNote': [
+    'A review shows “Verified visit” only when you redeemed a voucher or an Exclusive Deal here. Watching videos does not count.',
+    'يظهر التقييم بعلامة «زيارة موثّقة» فقط إذا استخدمت قسيمة أو عرضاً حصرياً هنا. مشاهدة الفيديوهات لا تُحتسب.',
+  ],
   's8.rev.write': ['Write a review', 'اكتب تقييماً'],
   's8.rev.rating': ['Rating', 'التقييم'],
   's8.rev.text': ['Your review', 'تقييمك'],
-  's8.rev.textHelp': ['At least 10 characters. Do not include card numbers or personal details.', '10 أحرف على الأقل. لا تُدرج أرقام بطاقات أو بيانات شخصية.'],
+  's8.rev.textHelp': [
+    'At least 10 characters. Do not include card numbers or personal details.',
+    '10 أحرف على الأقل. لا تُدرج أرقام بطاقات أو بيانات شخصية.',
+  ],
   's8.rev.post': ['Post review', 'نشر التقييم'],
   's8.rev.thanks': ['Thank you. Your review is published.', 'شكراً لك. تم نشر تقييمك.'],
-  's8.rev.pending': ['Thank you. Your review will appear after a check.', 'شكراً لك. سيظهر تقييمك بعد المراجعة.'],
+  's8.rev.pending': [
+    'Thank you. Your review will appear after a check.',
+    'شكراً لك. سيظهر تقييمك بعد المراجعة.',
+  ],
   's8.rev.signIn': ['Sign in to write a review.', 'سجّل الدخول لكتابة تقييم.'],
   's8.rev.empty': ['No reviews yet.', 'لا توجد تقييمات بعد.'],
   's8.rev.report': ['Report', 'إبلاغ'],
   's8.rev.reportReason': ['Why are you reporting it?', 'لماذا تبلغ عنه؟'],
-  's8.rev.reportNote': ['Anything DealDash should know (optional)', 'أي شيء يجب أن تعرفه ديل داش (اختياري)'],
+  's8.rev.reportNote': [
+    'Anything DealDash should know (optional)',
+    'أي شيء يجب أن تعرفه ديل داش (اختياري)',
+  ],
   's8.rev.send': ['Send report', 'إرسال البلاغ'],
   's8.rev.reported': ['Thank you. DealDash will review it.', 'شكراً لك. ستراجعه ديل داش.'],
   's8.revStatus.PENDING_REVIEW': ['Waiting for review', 'بانتظار المراجعة'],
@@ -648,16 +840,28 @@ const S8 = {
   's8.revStatus.HIDDEN': ['Hidden', 'مخفي'],
   's8.revStatus.REMOVED': ['Removed', 'محذوف'],
   's8.mrev.title': ['Reviews', 'التقييمات'],
-  's8.mrev.intro': ['What customers said about your business. “Verified visit” means DealDash recorded a redemption.', 'ما قاله العملاء عن نشاطك التجاري. «زيارة موثّقة» تعني أن ديل داش سجلت استخداماً.'],
-  's8.mrev.note': ['You can report a review to DealDash, but you cannot edit or remove it. DealDash moderators decide with a reason.', 'يمكنك الإبلاغ عن تقييم لديل داش، لكن لا يمكنك تعديله أو حذفه. يقرر مشرفو ديل داش مع ذكر السبب.'],
+  's8.mrev.intro': [
+    'What customers said about your business. “Verified visit” means DealDash recorded a redemption.',
+    'ما قاله العملاء عن نشاطك التجاري. «زيارة موثّقة» تعني أن ديل داش سجلت استخداماً.',
+  ],
+  's8.mrev.note': [
+    'You can report a review to DealDash, but you cannot edit or remove it. DealDash moderators decide with a reason.',
+    'يمكنك الإبلاغ عن تقييم لديل داش، لكن لا يمكنك تعديله أو حذفه. يقرر مشرفو ديل داش مع ذكر السبب.',
+  ],
   's8.mset.title': ['Settlement statements', 'كشوف التسوية'],
-  's8.mset.intro': ['What DealDash owes your business for each period, after fees, and what was paid.', 'ما تستحقه جهتك التجارية لدى ديل داش عن كل فترة بعد الرسوم، وما تم دفعه.'],
+  's8.mset.intro': [
+    'What DealDash owes your business for each period, after fees, and what was paid.',
+    'ما تستحقه جهتك التجارية لدى ديل داش عن كل فترة بعد الرسوم، وما تم دفعه.',
+  ],
   's8.mset.empty': ['No settlement statements yet.', 'لا توجد كشوف تسوية بعد.'],
   's8.mset.held': ['This statement is on hold:', 'هذا الكشف موقوف:'],
 
   // ---------------------------------------------------------------- notification delivery
   's8.ntf.title': ['Notification delivery', 'توصيل الإشعارات'],
-  's8.ntf.intro': ['Every notification is tracked per channel: queued, sent, delivered, failed, retrying or suppressed (no consent or preference off). Failures retry on the configured schedule.', 'يُتتبع كل إشعار لكل قناة: في الانتظار أو مُرسل أو مُسلّم أو أخفق أو يُعاد أو محجوب (لا موافقة أو التفضيل مغلق). الإخفاقات تُعاد وفق الجدول المضبوط.'],
+  's8.ntf.intro': [
+    'Every notification is tracked per channel: queued, sent, delivered, failed, retrying or suppressed (no consent or preference off). Failures retry on the configured schedule.',
+    'يُتتبع كل إشعار لكل قناة: في الانتظار أو مُرسل أو مُسلّم أو أخفق أو يُعاد أو محجوب (لا موافقة أو التفضيل مغلق). الإخفاقات تُعاد وفق الجدول المضبوط.',
+  ],
   's8.ntf.sweep': ['Process retries now', 'معالجة إعادة المحاولات الآن'],
   's8.ntf.swept': ['Retries processed.', 'تمت معالجة إعادة المحاولات.'],
   's8.ntf.channel': ['Channel', 'القناة'],
@@ -678,11 +882,17 @@ const S8 = {
   's8.channel.SMS': ['SMS', 'رسالة نصية'],
   's8.suppressed.PREFERENCE': ['The person turned this off', 'أوقفه الشخص'],
   's8.suppressed.ACCOUNT_NOT_ACTIVE': ['The account is not active', 'الحساب غير نشط'],
-  's8.suppressed.CHANNEL_NOT_CONFIGURED': ['No provider for this channel yet', 'لا يوجد مزود لهذه القناة بعد'],
+  's8.suppressed.CHANNEL_NOT_CONFIGURED': [
+    'No provider for this channel yet',
+    'لا يوجد مزود لهذه القناة بعد',
+  ],
 
   // ---------------------------------------------------------------- SLA
   's8.sla.title': ['SLA and escalation', 'مستوى الخدمة والتصعيد'],
-  's8.sla.intro': ['Work that is close to or past its target time, by area. Targets, warnings and escalation steps are configuration.', 'الأعمال القريبة من وقتها المستهدف أو التي تجاوزته، حسب المجال. الأهداف والتنبيهات وخطوات التصعيد إعدادات.'],
+  's8.sla.intro': [
+    'Work that is close to or past its target time, by area. Targets, warnings and escalation steps are configuration.',
+    'الأعمال القريبة من وقتها المستهدف أو التي تجاوزته، حسب المجال. الأهداف والتنبيهات وخطوات التصعيد إعدادات.',
+  ],
   's8.sla.sweep': ['Check SLAs now', 'فحص مستويات الخدمة الآن'],
   's8.sla.swept': ['SLAs checked.', 'تم فحص مستويات الخدمة.'],
   's8.sla.open': ['Open', 'مفتوح'],
@@ -705,7 +915,10 @@ const S8 = {
 
   // ---------------------------------------------------------------- reports
   's8.rep.title': ['Operational reports', 'التقارير التشغيلية'],
-  's8.rep.intro': ['Cases, refunds, adjustments, settlements, reconciliation, fraud, redemption and payment failures, notification delivery and integrations for a period.', 'القضايا والاسترداد والتسويات المالية والتسويات مع التجار والمطابقة والاحتيال وإخفاقات الاستخدام والدفع وتوصيل الإشعارات والتكاملات لفترة.'],
+  's8.rep.intro': [
+    'Cases, refunds, adjustments, settlements, reconciliation, fraud, redemption and payment failures, notification delivery and integrations for a period.',
+    'القضايا والاسترداد والتسويات المالية والتسويات مع التجار والمطابقة والاحتيال وإخفاقات الاستخدام والدفع وتوصيل الإشعارات والتكاملات لفترة.',
+  ],
   's8.rep.period': ['Period', 'الفترة'],
   's8.rep.days': ['Last {n} days', 'آخر {n} يوماً'],
   's8.rep.csv': ['Download CSV', 'تنزيل CSV'],
@@ -728,7 +941,10 @@ const S8 = {
   's8.rep.failedSyncs': ['Failed syncs', 'مزامنات أخفقت'],
   's8.rep.dataConflicts': ['Open data conflicts', 'تعارضات بيانات مفتوحة'],
   's8.rep.duplicates': ['Duplicate suggestions', 'اقتراحات تكرار'],
-  's8.rep.privacyNote': ['Reports are aggregates: they never list individual customers.', 'التقارير مجمّعة: لا تعرض أبداً عملاء أفراداً.'],
+  's8.rep.privacyNote': [
+    'Reports are aggregates: they never list individual customers.',
+    'التقارير مجمّعة: لا تعرض أبداً عملاء أفراداً.',
+  ],
 
   // ---------------------------------------------------------------- rules and controls
   's8.cfg.title': ['Rules and controls', 'القواعد والضوابط'],
@@ -736,29 +952,47 @@ const S8 = {
     'Case lifecycle and routing, SLA targets and escalation, maker-checker thresholds, reason lists, risk rules, restriction limits, notification retries and templates, and the review policy. Every change is validated, versioned and audited with a reason.',
     'دورة حياة القضايا وتوجيهها وأهداف مستوى الخدمة والتصعيد وحدود المراجعة المزدوجة وقوائم الأسباب وقواعد المخاطر وحدود القيود وإعادة محاولات الإشعارات وقوالبها وسياسة التقييمات. كل تغيير يُتحقق منه ويُرقّم ويُدقق مع سببه.',
   ],
-  's8.cfg.marketNote': ['Country rules (refund law, tax, retention, payout cycles) are not set here: they are market configuration and VALIDATE items.', 'قواعد الدول (أحكام الاسترداد والضريبة والاحتفاظ ودورات الدفع) لا تُضبط هنا: إنها إعدادات السوق وعناصر للتحقق.'],
+  's8.cfg.marketNote': [
+    'Country rules (refund law, tax, retention, payout cycles) are not set here: they are market configuration and VALIDATE items.',
+    'قواعد الدول (أحكام الاسترداد والضريبة والاحتفاظ ودورات الدفع) لا تُضبط هنا: إنها إعدادات السوق وعناصر للتحقق.',
+  ],
   's8.cfg.version': ['Version', 'الإصدار'],
   's8.cfg.value': ['Operations configuration (JSON)', 'إعدادات العمليات (JSON)'],
-  's8.cfg.valueHelp': ['The server checks the whole configuration before saving and refuses anything invalid.', 'يتحقق الخادم من الإعدادات كاملة قبل الحفظ ويرفض أي قيمة غير صالحة.'],
+  's8.cfg.valueHelp': [
+    'The server checks the whole configuration before saving and refuses anything invalid.',
+    'يتحقق الخادم من الإعدادات كاملة قبل الحفظ ويرفض أي قيمة غير صالحة.',
+  ],
   's8.cfg.save': ['Save new version', 'حفظ إصدار جديد'],
   's8.cfg.saved': ['Saved as a new version.', 'تم الحفظ كإصدار جديد.'],
   's8.cfg.discard': ['Discard changes', 'تجاهل التغييرات'],
-  's8.cfg.readOnly': ['You can read these rules but not change them.', 'يمكنك قراءة هذه القواعد دون تعديلها.'],
+  's8.cfg.readOnly': [
+    'You can read these rules but not change them.',
+    'يمكنك قراءة هذه القواعد دون تعديلها.',
+  ],
   's8.cfg.history': ['Change history', 'سجل التغييرات'],
   's8.cfg.noHistory': ['No changes yet.', 'لا توجد تغييرات بعد.'],
 
   // ---------------------------------------------------------------- customer care
   's8.cust.cases': ['My requests', 'طلباتي'],
-  's8.cust.casesIntro': ['Requests DealDash is handling for you, and what we told you.', 'الطلبات التي تعالجها ديل داش لك، وما أبلغناك به.'],
+  's8.cust.casesIntro': [
+    'Requests DealDash is handling for you, and what we told you.',
+    'الطلبات التي تعالجها ديل داش لك، وما أبلغناك به.',
+  ],
   's8.cust.noCases': ['You have no requests.', 'ليس لديك طلبات.'],
   's8.cust.inProgress': ['In progress', 'قيد المعالجة'],
   's8.cust.needsYou': ['We need your reply', 'نحتاج إلى ردك'],
   's8.cust.closed': ['Closed', 'مغلق'],
   's8.cust.data': ['My data', 'بياناتي'],
-  's8.cust.dataIntro': ['Ask for a copy of your data, or ask us to delete your account. A DealDash team member reviews each request.', 'اطلب نسخة من بياناتك، أو اطلب حذف حسابك. يراجع فريق ديل داش كل طلب.'],
+  's8.cust.dataIntro': [
+    'Ask for a copy of your data, or ask us to delete your account. A DealDash team member reviews each request.',
+    'اطلب نسخة من بياناتك، أو اطلب حذف حسابك. يراجع فريق ديل داش كل طلب.',
+  ],
   's8.cust.export': ['Get a copy of my data', 'الحصول على نسخة من بياناتي'],
   's8.cust.delete': ['Delete my account', 'حذف حسابي'],
-  's8.cust.deleteNote': ['Deleting removes your personal details. Records the law requires us to keep (payments, invoices) are kept without your name. Active vouchers and open requests must be finished first.', 'الحذف يزيل بياناتك الشخصية. السجلات التي يلزمنا القانون بحفظها (المدفوعات والفواتير) تُحفظ دون اسمك. يجب إنهاء القسائم النشطة والطلبات المفتوحة أولاً.'],
+  's8.cust.deleteNote': [
+    'Deleting removes your personal details. Records the law requires us to keep (payments, invoices) are kept without your name. Active vouchers and open requests must be finished first.',
+    'الحذف يزيل بياناتك الشخصية. السجلات التي يلزمنا القانون بحفظها (المدفوعات والفواتير) تُحفظ دون اسمك. يجب إنهاء القسائم النشطة والطلبات المفتوحة أولاً.',
+  ],
   's8.cust.deleteConfirm': ['Request deletion', 'طلب الحذف'],
   's8.cust.dataRequested': ['Request received. We will let you know.', 'تم استلام الطلب. سنبلغك.'],
   's8.cust.noData': ['No requests yet.', 'لا توجد طلبات بعد.'],
@@ -767,7 +1001,11 @@ const S8 = {
 
 type Stage8Pairs = typeof S8;
 export type Stage8Key = keyof Stage8Pairs;
-const pick = (index: 0 | 1) => Object.fromEntries(Object.entries(S8).map(([k, v]) => [k, v[index]])) as Record<Stage8Key, string>;
+const pick = (index: 0 | 1) =>
+  Object.fromEntries(Object.entries(S8).map(([k, v]) => [k, v[index]])) as Record<
+    Stage8Key,
+    string
+  >;
 
 export const enStage8 = pick(0);
 export const arStage8 = pick(1);

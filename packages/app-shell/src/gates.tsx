@@ -19,7 +19,8 @@ export function RequireAuth({ children, footer }: { children: ReactNode; footer?
   if (status === 'anonymous' || needsMfa) {
     return (
       <div className="dd-stack">
-        <LoginPanel />
+        {/* signed out, the sign-in panel is the page: its title is the page's one h1 */}
+        <LoginPanel heading="h1" />
         {footer}
       </div>
     );

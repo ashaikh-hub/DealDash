@@ -11,6 +11,8 @@ import { arPhase45, enPhase45 } from './dictionaries.phase45';
 import { arMarkets, enMarkets } from './dictionaries.markets';
 import { arPartners, enPartners } from './dictionaries.partners';
 import { arStage8, enStage8 } from './dictionaries.stage8';
+import { arStage9, enStage9 } from './dictionaries.stage9';
+import { arReviewStatus } from './dictionaries.ar-reviewed';
 import {
   ADJUSTMENT_DIRECTIONS,
   ADJUSTMENT_KINDS,
@@ -301,16 +303,55 @@ describe('dictionary layering', () => {
       expect(e, key).not.toMatch(/\bVAT\b|ZATCA|15 ?%/i);
     }
     // the vocabularies the screens iterate over are complete
-    for (const s of ['PRICING_DRAFT', 'AWAITING_ACCEPTANCE', 'ACCEPTED', 'AWAITING_FUNDING', 'PARTIALLY_FUNDED', 'FULLY_FUNDED', 'CREDIT_APPROVED', 'FINANCIAL_HOLD', 'RECONCILED', 'CLOSED'])
+    for (const s of [
+      'PRICING_DRAFT',
+      'AWAITING_ACCEPTANCE',
+      'ACCEPTED',
+      'AWAITING_FUNDING',
+      'PARTIALLY_FUNDED',
+      'FULLY_FUNDED',
+      'CREDIT_APPROVED',
+      'FINANCIAL_HOLD',
+      'RECONCILED',
+      'CLOSED',
+    ])
       expect(enCommercial, s).toHaveProperty(`cm.status.${s}`);
-    for (const c of ['REVIEWED_TERMS', 'UNDERSTAND_CHARGES', 'CONFIRM_FUNDING', 'CONFIRM_BENEFIT', 'CONFIRM_INVENTORY', 'HONOUR_REDEMPTIONS', 'ACCEPT_TERMS'])
+    for (const c of [
+      'REVIEWED_TERMS',
+      'UNDERSTAND_CHARGES',
+      'CONFIRM_FUNDING',
+      'CONFIRM_BENEFIT',
+      'CONFIRM_INVENTORY',
+      'HONOUR_REDEMPTIONS',
+      'ACCEPT_TERMS',
+    ])
       expect(enCommercial, c).toHaveProperty(`cm.check.${c}`);
-    for (const b of ['NO_COMMERCIAL_CASE', 'NO_QUOTATION', 'UNBOUNDED_LIABILITY', 'ACCEPTANCE_MISSING', 'AMENDMENT_NOT_ACCEPTED', 'FULFILMENT_NOT_ONBOARDED', 'APPROVAL_PENDING', 'APPROVAL_REJECTED', 'UNUSED_FUNDING_TREATMENT_NOT_CONFIGURED', 'FUNDING_MISSING', 'CREDIT_NOT_ACTIVE', 'CREDIT_LIMIT_EXCEEDED', 'FINANCIAL_HOLD'])
+    for (const b of [
+      'NO_COMMERCIAL_CASE',
+      'NO_QUOTATION',
+      'UNBOUNDED_LIABILITY',
+      'ACCEPTANCE_MISSING',
+      'AMENDMENT_NOT_ACCEPTED',
+      'FULFILMENT_NOT_ONBOARDED',
+      'APPROVAL_PENDING',
+      'APPROVAL_REJECTED',
+      'UNUSED_FUNDING_TREATMENT_NOT_CONFIGURED',
+      'FUNDING_MISSING',
+      'CREDIT_NOT_ACTIVE',
+      'CREDIT_LIMIT_EXCEEDED',
+      'FINANCIAL_HOLD',
+    ])
       expect(enCommercial, b).toHaveProperty(`cm.blocker.${b}`);
   });
   it('Phase 3 platform copy never overrides an earlier key, matches in both languages, keeps placeholders and states no cash value for points', () => {
     const overlap = Object.keys(enPlatform).filter(
-      (k) => k in enStage2 || k in enStage3 || k in enStage4 || k in enStage5 || k in enStage6 || k in enCommercial,
+      (k) =>
+        k in enStage2 ||
+        k in enStage3 ||
+        k in enStage4 ||
+        k in enStage5 ||
+        k in enStage6 ||
+        k in enCommercial,
     );
     expect(overlap).toEqual([]);
     expect(Object.keys(arPlatform).sort()).toEqual(Object.keys(enPlatform).sort());
@@ -327,20 +368,57 @@ describe('dictionary layering', () => {
       expect(e, key).not.toMatch(/1 point (is|=|equals)|points? (are|is) worth|per point = /i);
     }
     // the vocabularies the screens iterate over are complete
-    for (const s of ['DRAFT', 'PENDING_APPROVAL', 'ACTIVE', 'PAUSED', 'ENDED', 'REJECTED']) expect(enPlatform, s).toHaveProperty(`lo.status.${s}`);
-    for (const s of ['DEALDASH', 'MERCHANT', 'BANK', 'SCHEME', 'CORPORATE', 'CAMPAIGN', 'SPONSOR']) expect(enPlatform, s).toHaveProperty(`lo.fund.${s}`);
-    for (const s of ['QUALIFIED_VIEW', 'EXCLUSIVE_REDEMPTION', 'VOUCHER_PURCHASE', 'VOUCHER_REDEMPTION']) expect(enPlatform, s).toHaveProperty(`lo.event.${s}`);
-    for (const s of ['REWARD_REFUSED', 'REDEMPTION_DISPUTE', 'SPONSOR_CHARGE_DISPUTE', 'DUPLICATE_FUNDING', 'SETTLEMENT_MISMATCH', 'INVALID_VOUCHER_REDEMPTION', 'IMPORT_CONFLICT', 'FEED_DISCREPANCY', 'RECONCILIATION_BREAK', 'OTHER'])
+    for (const s of ['DRAFT', 'PENDING_APPROVAL', 'ACTIVE', 'PAUSED', 'ENDED', 'REJECTED'])
+      expect(enPlatform, s).toHaveProperty(`lo.status.${s}`);
+    for (const s of ['DEALDASH', 'MERCHANT', 'BANK', 'SCHEME', 'CORPORATE', 'CAMPAIGN', 'SPONSOR'])
+      expect(enPlatform, s).toHaveProperty(`lo.fund.${s}`);
+    for (const s of [
+      'QUALIFIED_VIEW',
+      'EXCLUSIVE_REDEMPTION',
+      'VOUCHER_PURCHASE',
+      'VOUCHER_REDEMPTION',
+    ])
+      expect(enPlatform, s).toHaveProperty(`lo.event.${s}`);
+    for (const s of [
+      'REWARD_REFUSED',
+      'REDEMPTION_DISPUTE',
+      'SPONSOR_CHARGE_DISPUTE',
+      'DUPLICATE_FUNDING',
+      'SETTLEMENT_MISMATCH',
+      'INVALID_VOUCHER_REDEMPTION',
+      'IMPORT_CONFLICT',
+      'FEED_DISCREPANCY',
+      'RECONCILIATION_BREAK',
+      'OTHER',
+    ])
       expect(enPlatform, s).toHaveProperty(`op.dtype.${s}`);
-    for (const s of ['OPEN', 'IN_REVIEW', 'WAITING', 'RESOLVED', 'CLOSED']) expect(enPlatform, s).toHaveProperty(`op.dstatus.${s}`);
-    for (const s of ['CAMPAIGN_REVIEW', 'LOYALTY_APPROVAL', 'IMPORT_APPROVAL', 'DATA_CONFLICT', 'DUPLICATE_SUGGESTION', 'OFFER_CONFLICT', 'DISPUTE', 'CHANGES_REQUESTED', 'LOYALTY_RULE']) {
+    for (const s of ['OPEN', 'IN_REVIEW', 'WAITING', 'RESOLVED', 'CLOSED'])
+      expect(enPlatform, s).toHaveProperty(`op.dstatus.${s}`);
+    for (const s of [
+      'CAMPAIGN_REVIEW',
+      'LOYALTY_APPROVAL',
+      'IMPORT_APPROVAL',
+      'DATA_CONFLICT',
+      'DUPLICATE_SUGGESTION',
+      'OFFER_CONFLICT',
+      'DISPUTE',
+      'CHANGES_REQUESTED',
+      'LOYALTY_RULE',
+    ]) {
       expect(enPlatform, s).toHaveProperty(`op.kind.${s}`);
       if (s !== 'DISPUTE') expect(enPlatform, s).toHaveProperty(`op.task.${s}`);
     }
   });
   it('Subscription copy never overrides an earlier key, matches in both languages, keeps placeholders, states no price and covers every vocabulary', () => {
     const overlap = Object.keys(enSubscription).filter(
-      (k) => k in enStage2 || k in enStage3 || k in enStage4 || k in enStage5 || k in enStage6 || k in enCommercial || k in enPlatform,
+      (k) =>
+        k in enStage2 ||
+        k in enStage3 ||
+        k in enStage4 ||
+        k in enStage5 ||
+        k in enStage6 ||
+        k in enCommercial ||
+        k in enPlatform,
     );
     expect(overlap).toEqual([]);
     expect(Object.keys(arSubscription).sort()).toEqual(Object.keys(enSubscription).sort());
@@ -361,24 +439,45 @@ describe('dictionary layering', () => {
     for (const s of BILLING_CADENCES) expect(enSubscription, s).toHaveProperty(`sb.cadence.${s}`);
     for (const s of CONTRACT_KINDS) expect(enSubscription, s).toHaveProperty(`sb.kind.${s}`);
     for (const s of FINANCIAL_STATUSES) expect(enSubscription, s).toHaveProperty(`sb.fin.${s}`);
-    for (const s of SUBSCRIPTION_PRODUCTS) expect(enSubscription, s).toHaveProperty([`sb.product.${s}`]);
-    for (const s of SUBSCRIPTION_FEATURES) expect(enSubscription, s).toHaveProperty([`sb.feature.${s}`]);
+    for (const s of SUBSCRIPTION_PRODUCTS)
+      expect(enSubscription, s).toHaveProperty([`sb.product.${s}`]);
+    for (const s of SUBSCRIPTION_FEATURES)
+      expect(enSubscription, s).toHaveProperty([`sb.feature.${s}`]);
     for (const s of ALL_LIMIT_KEYS) expect(enSubscription, s).toHaveProperty([`sb.limit.${s}`]);
     for (const s of AMENDMENT_TYPES) expect(enSubscription, s).toHaveProperty(`sb.amend.${s}`);
     for (const s of AMENDMENT_STATUSES) expect(enSubscription, s).toHaveProperty(`sb.astatus.${s}`);
     for (const s of EFFECTIVE_MODES) expect(enSubscription, s).toHaveProperty(`sb.when.${s}`);
-    for (const s of Object.keys(BILLING_EVENT_TYPES)) expect(enSubscription, s).toHaveProperty(`sb.event.${s}`);
-    for (const s of BILLING_CATEGORIES) expect(enSubscription, s).toHaveProperty(`sb.category.${s}`);
+    for (const s of Object.keys(BILLING_EVENT_TYPES))
+      expect(enSubscription, s).toHaveProperty(`sb.event.${s}`);
+    for (const s of BILLING_CATEGORIES)
+      expect(enSubscription, s).toHaveProperty(`sb.category.${s}`);
     for (const s of COMMERCIAL_SIGNALS) expect(enSubscription, s).toHaveProperty(`sb.signal.${s}`);
     for (const s of PROMOTION_KINDS) expect(enSubscription, s).toHaveProperty(`sb.pkind.${s}`);
     for (const s of POST_PROMOTION) expect(enSubscription, s).toHaveProperty(`sb.post.${s}`);
-    for (const s of NEW_EXPOSURE_ACTIONS) expect(enSubscription, s).toHaveProperty(`sb.action.${s}`);
-    for (const s of ['COMMERCIAL_SUSPENDED', 'CONTRACT_ENDED', 'DOWNGRADE_BLOCKED', 'PLAN_NOT_AVAILABLE', 'PRICING_NOT_AVAILABLE', 'AMENDMENT_INVALID'])
+    for (const s of NEW_EXPOSURE_ACTIONS)
+      expect(enSubscription, s).toHaveProperty(`sb.action.${s}`);
+    for (const s of [
+      'COMMERCIAL_SUSPENDED',
+      'CONTRACT_ENDED',
+      'DOWNGRADE_BLOCKED',
+      'PLAN_NOT_AVAILABLE',
+      'PRICING_NOT_AVAILABLE',
+      'AMENDMENT_INVALID',
+    ])
       expect(enSubscription, s).toHaveProperty(`error.${s}`);
   });
 
   it('Phase 4 / 5 copy never overrides an earlier key, matches in both languages, keeps placeholders and covers every vocabulary', () => {
-    const earlier = { ...enStage2, ...enStage3, ...enStage4, ...enStage5, ...enStage6, ...enCommercial, ...enPlatform, ...enSubscription };
+    const earlier = {
+      ...enStage2,
+      ...enStage3,
+      ...enStage4,
+      ...enStage5,
+      ...enStage6,
+      ...enCommercial,
+      ...enPlatform,
+      ...enSubscription,
+    };
     expect(Object.keys(enPhase45).filter((k) => k in earlier)).toEqual([]);
     expect(Object.keys(arPhase45).sort()).toEqual(Object.keys(enPhase45).sort());
     const vars = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
@@ -390,11 +489,14 @@ describe('dictionary layering', () => {
       expect(containsArabic(a), key).toBe(true);
       expect(vars(a), key).toEqual(vars(e));
       // no "Hot Deal" wording, no promised savings or results, no vendor names, points never have a cash value
-      expect(`${e} ${a}`, key).not.toMatch(/hot deal|guaranteed (saving|return)|stripe|moyasar|hyperpay|openai|chatgpt/i);
+      expect(`${e} ${a}`, key).not.toMatch(
+        /hot deal|guaranteed (saving|return)|stripe|moyasar|hyperpay|openai|chatgpt/i,
+      );
       expect(e, key).not.toMatch(/(PKR|SAR|Rs\.?)\s?\d/);
     }
     const need = (prefix: string, values: readonly string[]) => {
-      for (const v of values) expect(enPhase45, `${prefix}.${v}`).toHaveProperty([`${prefix}.${v}`]);
+      for (const v of values)
+        expect(enPhase45, `${prefix}.${v}`).toHaveProperty([`${prefix}.${v}`]);
     };
     need('vis.metric', METRIC_KEYS);
     need('vis.alert', ALERT_CODE_KEYS);
@@ -425,7 +527,17 @@ describe('dictionary layering', () => {
   });
 
   it('Market configuration copy never overrides an earlier key, matches in both languages and covers every market vocabulary', () => {
-    const earlier = { ...enStage2, ...enStage3, ...enStage4, ...enStage5, ...enStage6, ...enCommercial, ...enPlatform, ...enSubscription, ...enPhase45 };
+    const earlier = {
+      ...enStage2,
+      ...enStage3,
+      ...enStage4,
+      ...enStage5,
+      ...enStage6,
+      ...enCommercial,
+      ...enPlatform,
+      ...enSubscription,
+      ...enPhase45,
+    };
     expect(Object.keys(enMarkets).filter((k) => k in earlier)).toEqual([]);
     expect(Object.keys(arMarkets).sort()).toEqual(Object.keys(enMarkets).sort());
     const vars = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
@@ -439,7 +551,8 @@ describe('dictionary layering', () => {
       expect(`${e} ${a}`, key).not.toMatch(/hot deal|\d+\s?%|guaranteed/i);
     }
     const need = (prefix: string, values: readonly string[]) => {
-      for (const v of values) expect(enMarkets, `${prefix}.${v}`).toHaveProperty([`${prefix}.${v}`]);
+      for (const v of values)
+        expect(enMarkets, `${prefix}.${v}`).toHaveProperty([`${prefix}.${v}`]);
     };
     need('mkt.state', MARKET_STATUSES);
     need('mkt.pstate', MARKET_PRODUCT_STATUSES);
@@ -456,7 +569,18 @@ describe('dictionary layering', () => {
   });
 
   it('Stage 7 partner portal copy never overrides an earlier key, matches in both languages and covers every partner vocabulary', () => {
-    const earlier = { ...enStage2, ...enStage3, ...enStage4, ...enStage5, ...enStage6, ...enCommercial, ...enPlatform, ...enSubscription, ...enPhase45, ...enMarkets };
+    const earlier = {
+      ...enStage2,
+      ...enStage3,
+      ...enStage4,
+      ...enStage5,
+      ...enStage6,
+      ...enCommercial,
+      ...enPlatform,
+      ...enSubscription,
+      ...enPhase45,
+      ...enMarkets,
+    };
     expect(Object.keys(enPartners).filter((k) => k in earlier)).toEqual([]);
     expect(Object.keys(arPartners).sort()).toEqual(Object.keys(enPartners).sort());
     const vars = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
@@ -470,7 +594,8 @@ describe('dictionary layering', () => {
       expect(`${e} ${a}`, key).not.toMatch(/hot deal|guaranteed|\d{12,}/i);
     }
     const need = (prefix: string, values: readonly string[]) => {
-      for (const v of values) expect(enPartners, `${prefix}.${v}`).toHaveProperty([`${prefix}.${v}`]);
+      for (const v of values)
+        expect(enPartners, `${prefix}.${v}`).toHaveProperty([`${prefix}.${v}`]);
     };
     need('pt.type', PARTNER_TYPES);
     need('pt.life', PARTNER_LIFECYCLE);
@@ -487,14 +612,36 @@ describe('dictionary layering', () => {
     need('pt.by', PARTNER_DRILL_LEVELS);
     need('pt.role', PARTNER_CAMPAIGN_ROLES);
     need('pt.elig.attr', ELIGIBILITY_ATTRIBUTE_TYPES);
-    need('role', ROLE_CODES.filter((r) => r.startsWith('PARTNER_')));
+    need(
+      'role',
+      ROLE_CODES.filter((r) => r.startsWith('PARTNER_')),
+    );
     // the new partner errors are translated
-    for (const c of ['PARTNER_NOT_READY', 'PARTNER_NOT_ACTIVE', 'PARTNER_MARKET_NOT_AUTHORIZED', 'PARTNER_MERCHANT_NOT_IN_NETWORK', 'DELEGATION_EXCEEDED', 'CARD_DATA_FORBIDDEN'])
+    for (const c of [
+      'PARTNER_NOT_READY',
+      'PARTNER_NOT_ACTIVE',
+      'PARTNER_MARKET_NOT_AUTHORIZED',
+      'PARTNER_MERCHANT_NOT_IN_NETWORK',
+      'DELEGATION_EXCEEDED',
+      'CARD_DATA_FORBIDDEN',
+    ])
       expect(enPartners).toHaveProperty([`error.${c}`]);
   });
 
   it('Stage 8 operations copy never overrides an earlier key, matches in both languages and covers every operations vocabulary', () => {
-    const earlier = { ...enStage2, ...enStage3, ...enStage4, ...enStage5, ...enStage6, ...enCommercial, ...enPlatform, ...enSubscription, ...enPhase45, ...enMarkets, ...enPartners };
+    const earlier = {
+      ...enStage2,
+      ...enStage3,
+      ...enStage4,
+      ...enStage5,
+      ...enStage6,
+      ...enCommercial,
+      ...enPlatform,
+      ...enSubscription,
+      ...enPhase45,
+      ...enMarkets,
+      ...enPartners,
+    };
     expect(Object.keys(enStage8).filter((k) => k in earlier)).toEqual([]);
     expect(Object.keys(arStage8).sort()).toEqual(Object.keys(enStage8).sort());
     const vars = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
@@ -546,6 +693,46 @@ describe('dictionary layering', () => {
     need('error', Object.values(ERROR_CODES));
     need('notif', NOTIFICATION_TYPES);
   });
+  it('Stage 9 copy never overrides an earlier key, matches in both languages and covers the new vocabulary', () => {
+    const earlier = {
+      ...enStage2,
+      ...enStage3,
+      ...enStage4,
+      ...enStage5,
+      ...enStage6,
+      ...enCommercial,
+      ...enPlatform,
+      ...enSubscription,
+      ...enPhase45,
+      ...enMarkets,
+      ...enPartners,
+      ...enStage8,
+    };
+    expect(Object.keys(enStage9).filter((k) => k in earlier)).toEqual([]);
+    expect(Object.keys(arStage9).sort()).toEqual(Object.keys(enStage9).sort());
+    const vars = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
+    for (const key of Object.keys(enStage9)) {
+      const e = enStage9[key as keyof typeof enStage9];
+      const a = arStage9[key as keyof typeof arStage9];
+      expect(e.trim(), key).not.toBe('');
+      expect(containsArabic(a), key).toBe(true);
+      expect(vars(a), key).toEqual(vars(e));
+    }
+    const all = { ...en };
+    for (const s of SETTLEMENT_STATUSES)
+      expect(all, `s8.setStatus.${s}`).toHaveProperty([`s8.setStatus.${s}`]);
+    for (const c of [
+      'PILOT_NOT_ENABLED',
+      'LAUNCH_PAUSED',
+      'CONFIG_CHANGE_STALE',
+      'PROVIDER_NOT_CONFIGURED',
+      'LEGAL_HOLD_ACTIVE',
+    ])
+      expect(all).toHaveProperty([`error.${c}`]);
+    // B5: nothing is marked natively reviewed until the review has happened (the overrides file starts empty)
+    expect(Object.keys(arReviewStatus)).toEqual([]);
+  });
+
   it('formats an amount in any configured currency with Western digits', () => {
     expect(formatAmount('en', 499_900, 'PKR')).toBe('PKR 4,999.00');
     expect(formatAmount('ar', 499_900, 'PKR')).toBe('4,999.00 PKR');

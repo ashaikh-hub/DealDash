@@ -1288,7 +1288,13 @@ export class AiService {
     // ---- Stage 8: case work, reconciliation variance and queue priority (explain / recommend / draft only)
     if (input.context?.caseId) return this.caseWork(ctx, input.context.caseId);
     if (intent === 'CASE_SUMMARY') {
-      this.say(ctx, 'RECOMMENDATION', 'Open the case first; I then summarise it, list missing evidence and draft replies.', 'افتح الحالة أولًا ثم ألخصها وأحدد الأدلة الناقصة وأصيغ الردود.', []);
+      this.say(
+        ctx,
+        'RECOMMENDATION',
+        'Open the case first; I then summarise it, list missing evidence and draft replies.',
+        'افتح الحالة أولًا ثم ألخصها وأحدد الأدلة الناقصة وأصيغ الردود.',
+        [],
+      );
       return;
     }
     if (intent === 'RECON_VARIANCE') return this.reconVariance(ctx);
@@ -1398,41 +1404,133 @@ export class AiService {
   /** One case: summary, likely issue, missing evidence, next step; drafts a customer reply / business request (sent after approval). */
   private async caseWork(ctx: Ctx, caseId: string) {
     const disputes = this.svc(DisputeService);
-    const c = await this.tool(ctx, 'ops.case', 'READ', 'admin.disputes.read', { caseId }, () => disputes.get(caseId, undefined, ctx.actor), (r) => ({ status: r.status }));
+    const c = await this.tool(
+      ctx,
+      'ops.case',
+      'READ',
+      'admin.disputes.read',
+      { caseId },
+      () => disputes.get(caseId, undefined, ctx.actor),
+      (r) => ({ status: r.status }),
+    );
     this.src(ctx, c.reference);
     this.src(ctx, c.title);
-    this.say(ctx, 'OBSERVED_FACT', `${c.reference} is a ${c.type.toLowerCase().replace(/_/g, ' ')} case, ${c.status.toLowerCase().replace(/_/g, ' ')}, severity ${c.severity.toLowerCase()}, SLA ${c.slaState.toLowerCase().replace(/_/g, ' ')} (due ${this.date(ctx, c.slaDueAt)}).`, `${c.reference} حالة من نوع ${c.type}، الحالة ${c.status}، الخطورة ${c.severity}، اتفاقية الخدمة ${c.slaState} (الاستحقاق ${this.date(ctx, c.slaDueAt)}).`, ['ops.case']);
-    if (c.financialImpactMinor) this.say(ctx, 'OBSERVED_FACT', `Recorded financial impact: ${this.money(ctx, c.financialImpactMinor, c.currency ?? 'SAR')}.`, `الأثر المالي المسجل: ${this.money(ctx, c.financialImpactMinor, c.currency ?? 'SAR')}.`, ['ops.case']);
+    this.say(
+      ctx,
+      'OBSERVED_FACT',
+      `${c.reference} is a ${c.type.toLowerCase().replace(/_/g, ' ')} case, ${c.status.toLowerCase().replace(/_/g, ' ')}, severity ${c.severity.toLowerCase()}, SLA ${c.slaState.toLowerCase().replace(/_/g, ' ')} (due ${this.date(ctx, c.slaDueAt)}).`,
+      `${c.reference} حالة من نوع ${c.type}، الحالة ${c.status}، الخطورة ${c.severity}، اتفاقية الخدمة ${c.slaState} (الاستحقاق ${this.date(ctx, c.slaDueAt)}).`,
+      ['ops.case'],
+    );
+    if (c.financialImpactMinor)
+      this.say(
+        ctx,
+        'OBSERVED_FACT',
+        `Recorded financial impact: ${this.money(ctx, c.financialImpactMinor, c.currency ?? 'SAR')}.`,
+        `الأثر المالي المسجل: ${this.money(ctx, c.financialImpactMinor, c.currency ?? 'SAR')}.`,
+        ['ops.case'],
+      );
     const missing: Array<[string, string]> = [];
     if (!c.attachments.length) missing.push(['no evidence is attached', 'لا يوجد دليل مرفق']);
-    if (!c.transactionRef && !c.relatedId) missing.push(['no transaction or record reference', 'لا يوجد مرجع معاملة أو سجل']);
-    if (c.financialImpactMinor && !c.financialAdjustmentId) missing.push(['a financial impact without a linked adjustment', 'أثر مالي دون تسوية مرتبطة']);
-    if (!c.notes.some((n: { kind: string }) => n.kind === 'CONTACT') && c.customerUserId) missing.push(['no logged contact with the customer', 'لا يوجد تواصل مسجل مع العميل']);
-    if (missing.length) this.say(ctx, 'HYPOTHESIS', `Possibly missing: ${missing.map((m) => m[0]).join('; ')}.`, `قد يكون ناقصًا: ${missing.map((m) => m[1]).join('؛ ')}.`, ['ops.case']);
+    if (!c.transactionRef && !c.relatedId)
+      missing.push(['no transaction or record reference', 'لا يوجد مرجع معاملة أو سجل']);
+    if (c.financialImpactMinor && !c.financialAdjustmentId)
+      missing.push(['a financial impact without a linked adjustment', 'أثر مالي دون تسوية مرتبطة']);
+    if (!c.notes.some((n: { kind: string }) => n.kind === 'CONTACT') && c.customerUserId)
+      missing.push(['no logged contact with the customer', 'لا يوجد تواصل مسجل مع العميل']);
+    if (missing.length)
+      this.say(
+        ctx,
+        'HYPOTHESIS',
+        `Possibly missing: ${missing.map((m) => m[0]).join('; ')}.`,
+        `قد يكون ناقصًا: ${missing.map((m) => m[1]).join('؛ ')}.`,
+        ['ops.case'],
+      );
     const next: [string, string] =
       c.status === 'AWAITING_MERCHANT' || c.status === 'AWAITING_PARTNER'
-        ? ['Follow up with the business; the case returns to you when it replies.', 'تابع مع الجهة التجارية؛ تعود الحالة إليك عند ردها.']
+        ? [
+            'Follow up with the business; the case returns to you when it replies.',
+            'تابع مع الجهة التجارية؛ تعود الحالة إليك عند ردها.',
+          ]
         : c.status === 'AWAITING_APPROVAL'
-          ? ['A different person should approve or send back the proposed resolution.', 'يجب أن يوافق شخص آخر على الحل المقترح أو يعيده.']
+          ? [
+              'A different person should approve or send back the proposed resolution.',
+              'يجب أن يوافق شخص آخر على الحل المقترح أو يعيده.',
+            ]
           : c.financialImpactMinor
-            ? ['Prepare the governed adjustment or refund, then request approval of the resolution (a second person decides).', 'جهّز التسوية أو الاسترداد ثم اطلب اعتماد الحل (يقرره شخص آخر).']
+            ? [
+                'Prepare the governed adjustment or refund, then request approval of the resolution (a second person decides).',
+                'جهّز التسوية أو الاسترداد ثم اطلب اعتماد الحل (يقرره شخص آخر).',
+              ]
             : c.organizationId
-              ? ['Ask the business for its side (status: awaiting merchant / partner).', 'اطلب رأي الجهة التجارية (الحالة: بانتظار التاجر أو الشريك).']
-              : ['Confirm the facts with the customer, then resolve with a recorded outcome.', 'تحقق من الوقائع مع العميل ثم أغلق الحالة بنتيجة مسجلة.'];
+              ? [
+                  'Ask the business for its side (status: awaiting merchant / partner).',
+                  'اطلب رأي الجهة التجارية (الحالة: بانتظار التاجر أو الشريك).',
+                ]
+              : [
+                  'Confirm the facts with the customer, then resolve with a recorded outcome.',
+                  'تحقق من الوقائع مع العميل ثم أغلق الحالة بنتيجة مسجلة.',
+                ];
     this.say(ctx, 'RECOMMENDATION', next[0], next[1], []);
-    this.say(ctx, 'RECOMMENDATION', 'I never refund, adjust, restrict or close anything: those steps are decided by people in the normal tools.', 'لا أقوم بأي استرداد أو تسوية أو تقييد أو إغلاق: هذه الخطوات يقررها الموظفون عبر الأدوات المعتادة.', []);
+    this.say(
+      ctx,
+      'RECOMMENDATION',
+      'I never refund, adjust, restrict or close anything: those steps are decided by people in the normal tools.',
+      'لا أقوم بأي استرداد أو تسوية أو تقييد أو إغلاق: هذه الخطوات يقررها الموظفون عبر الأدوات المعتادة.',
+      [],
+    );
     if (ctx.autonomy >= 2) {
       if (c.customerUserId)
-        await this.createDraft(ctx, 'CUSTOMER_RESPONSE', this.t(ctx, 'Reply to the customer', 'رد على العميل'), { caseId, body: this.t(ctx, `We are looking into your request ${c.reference}. We will update you as soon as we have an answer.`, `نعمل على طلبك ${c.reference} وسنبلغك فور وجود رد.`) }, 'admin.disputes.manage');
+        await this.createDraft(
+          ctx,
+          'CUSTOMER_RESPONSE',
+          this.t(ctx, 'Reply to the customer', 'رد على العميل'),
+          {
+            caseId,
+            body: this.t(
+              ctx,
+              `We are looking into your request ${c.reference}. We will update you as soon as we have an answer.`,
+              `نعمل على طلبك ${c.reference} وسنبلغك فور وجود رد.`,
+            ),
+          },
+          'admin.disputes.manage',
+        );
       if (c.organizationId && c.status !== 'AWAITING_MERCHANT' && c.status !== 'AWAITING_PARTNER')
-        await this.createDraft(ctx, 'MERCHANT_REQUEST', this.t(ctx, 'Ask the business for its side', 'اطلب رأي الجهة التجارية'), { caseId, organizationId: c.organizationId, body: this.t(ctx, `Please share your records and comments for case ${c.reference} (${c.title}).`, `يرجى مشاركة سجلاتكم وملاحظاتكم بشأن الحالة ${c.reference} (${c.title}).`) }, 'admin.disputes.manage');
+        await this.createDraft(
+          ctx,
+          'MERCHANT_REQUEST',
+          this.t(ctx, 'Ask the business for its side', 'اطلب رأي الجهة التجارية'),
+          {
+            caseId,
+            organizationId: c.organizationId,
+            body: this.t(
+              ctx,
+              `Please share your records and comments for case ${c.reference} (${c.title}).`,
+              `يرجى مشاركة سجلاتكم وملاحظاتكم بشأن الحالة ${c.reference} (${c.title}).`,
+            ),
+          },
+          'admin.disputes.manage',
+        );
     }
-    ctx.actions.push({ label: this.t(ctx, 'Open the case', 'افتح الحالة'), href: `/cases?id=${caseId}`, requiresConfirmation: false, permission: 'admin.disputes.read' });
+    ctx.actions.push({
+      label: this.t(ctx, 'Open the case', 'افتح الحالة'),
+      href: `/cases?id=${caseId}`,
+      requiresConfirmation: false,
+      permission: 'admin.disputes.read',
+    });
   }
 
   private async reconVariance(ctx: Ctx) {
     const recon = this.svc(ReconciliationOpsService);
-    const items = await this.tool(ctx, 'ops.reconciliation', 'READ', 'admin.finance.read', { exceptions: true }, () => recon.list({ exceptions: true }), (r) => ({ items: r.length }));
+    const items = await this.tool(
+      ctx,
+      'ops.reconciliation',
+      'READ',
+      'admin.finance.read',
+      { exceptions: true },
+      () => recon.list({ exceptions: true }),
+      (r) => ({ items: r.length }),
+    );
     const by = new Map<string, { n: number; v: number }>();
     for (const i of items) {
       const x = by.get(i.source) ?? { n: 0, v: 0 };
@@ -1441,28 +1539,76 @@ export class AiService {
       by.set(i.source, x);
     }
     if (!items.length) {
-      this.say(ctx, 'OBSERVED_FACT', 'There are no open reconciliation exceptions.', 'لا توجد استثناءات مطابقة مفتوحة.', ['ops.reconciliation']);
+      this.say(
+        ctx,
+        'OBSERVED_FACT',
+        'There are no open reconciliation exceptions.',
+        'لا توجد استثناءات مطابقة مفتوحة.',
+        ['ops.reconciliation'],
+      );
       return;
     }
     for (const [source, x] of [...by].sort((a, b) => b[1].v - a[1].v).slice(0, 5)) {
       this.src(ctx, source);
-      this.say(ctx, 'OBSERVED_FACT', `${source}: ${this.n(ctx, x.n)} open exceptions, absolute variance ${this.money(ctx, x.v)}.`, `${source}: ${this.n(ctx, x.n)} استثناءات مفتوحة، إجمالي الفرق ${this.money(ctx, x.v)}.`, ['ops.reconciliation']);
+      this.say(
+        ctx,
+        'OBSERVED_FACT',
+        `${source}: ${this.n(ctx, x.n)} open exceptions, absolute variance ${this.money(ctx, x.v)}.`,
+        `${source}: ${this.n(ctx, x.n)} استثناءات مفتوحة، إجمالي الفرق ${this.money(ctx, x.v)}.`,
+        ['ops.reconciliation'],
+      );
     }
-    this.say(ctx, 'RECOMMENDATION', 'Start with the largest variance; timing differences usually clear with the next statement, missing or mismatched amounts need an owner and, where money moved, a governed adjustment.', 'ابدأ بأكبر فرق؛ فروق التوقيت تزول غالبًا مع الكشف التالي، أما المبالغ الناقصة أو غير المتطابقة فتحتاج مسؤولًا وتسوية معتمدة عند انتقال الأموال.', []);
-    ctx.actions.push({ label: this.t(ctx, 'Open reconciliation exceptions', 'افتح استثناءات المطابقة'), href: '/reconciliation', requiresConfirmation: false, permission: 'admin.finance.read' });
+    this.say(
+      ctx,
+      'RECOMMENDATION',
+      'Start with the largest variance; timing differences usually clear with the next statement, missing or mismatched amounts need an owner and, where money moved, a governed adjustment.',
+      'ابدأ بأكبر فرق؛ فروق التوقيت تزول غالبًا مع الكشف التالي، أما المبالغ الناقصة أو غير المتطابقة فتحتاج مسؤولًا وتسوية معتمدة عند انتقال الأموال.',
+      [],
+    );
+    ctx.actions.push({
+      label: this.t(ctx, 'Open reconciliation exceptions', 'افتح استثناءات المطابقة'),
+      href: '/reconciliation',
+      requiresConfirmation: false,
+      permission: 'admin.finance.read',
+    });
   }
 
   private async queuePriority(ctx: Ctx) {
     const sla = this.svc(SlaService);
-    const o = await this.tool(ctx, 'ops.sla', 'READ', 'admin.operations.read', {}, () => sla.overview(), (r) => ({ items: r.items.length }));
+    const o = await this.tool(
+      ctx,
+      'ops.sla',
+      'READ',
+      'admin.operations.read',
+      {},
+      () => sla.overview(),
+      (r) => ({ items: r.items.length }),
+    );
     const breached = o.items.filter((i) => i.state === 'BREACHED');
     const warning = o.items.filter((i) => i.state === 'WARNING');
-    this.say(ctx, 'OBSERVED_FACT', `${this.n(ctx, breached.length)} items have breached their SLA and ${this.n(ctx, warning.length)} are close to it.`, `${this.n(ctx, breached.length)} عناصر تجاوزت اتفاقية الخدمة و${this.n(ctx, warning.length)} قريبة من ذلك.`, ['ops.sla']);
+    this.say(
+      ctx,
+      'OBSERVED_FACT',
+      `${this.n(ctx, breached.length)} items have breached their SLA and ${this.n(ctx, warning.length)} are close to it.`,
+      `${this.n(ctx, breached.length)} عناصر تجاوزت اتفاقية الخدمة و${this.n(ctx, warning.length)} قريبة من ذلك.`,
+      ['ops.sla'],
+    );
     for (const i of breached.slice(0, 5)) {
       this.src(ctx, i.reference);
-      this.say(ctx, 'RECOMMENDATION', `First: ${i.area.toLowerCase()} ${i.reference} (due ${this.date(ctx, i.dueAt)}).`, `أولًا: ${i.area} ${i.reference} (الاستحقاق ${this.date(ctx, i.dueAt)}).`, ['ops.sla']);
+      this.say(
+        ctx,
+        'RECOMMENDATION',
+        `First: ${i.area.toLowerCase()} ${i.reference} (due ${this.date(ctx, i.dueAt)}).`,
+        `أولًا: ${i.area} ${i.reference} (الاستحقاق ${this.date(ctx, i.dueAt)}).`,
+        ['ops.sla'],
+      );
     }
-    ctx.actions.push({ label: this.t(ctx, 'Open SLA and escalations', 'افتح اتفاقيات الخدمة والتصعيد'), href: '/sla', requiresConfirmation: false, permission: 'admin.operations.read' });
+    ctx.actions.push({
+      label: this.t(ctx, 'Open SLA and escalations', 'افتح اتفاقيات الخدمة والتصعيد'),
+      href: '/sla',
+      requiresConfirmation: false,
+      permission: 'admin.operations.read',
+    });
   }
 
   // ---------------------------------------------------------------- 5. Admin / Finance copilot
@@ -1801,8 +1947,17 @@ export class AiService {
     }
     if (d.kind === 'MERCHANT_REQUEST') {
       const disputes = this.svc(DisputeService);
-      const org = await this.prisma.organization.findUnique({ where: { id: p.organizationId as string }, select: { type: true } });
-      const r = await disputes.transition(actor, p.caseId as string, org?.type === 'PARTNER' ? 'AWAITING_PARTNER' : 'AWAITING_MERCHANT', p.body as string, meta);
+      const org = await this.prisma.organization.findUnique({
+        where: { id: p.organizationId as string },
+        select: { type: true },
+      });
+      const r = await disputes.transition(
+        actor,
+        p.caseId as string,
+        org?.type === 'PARTNER' ? 'AWAITING_PARTNER' : 'AWAITING_MERCHANT',
+        p.body as string,
+        meta,
+      );
       return { caseId: p.caseId, status: r.status };
     }
     throw new AppError('INVALID_STATE', 'Nothing to execute', 409);

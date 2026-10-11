@@ -1,5 +1,13 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { DB_READY, createBusinessUser, createTestApp, idem, passwordSession, type Session, type TestApp } from './helpers';
+import {
+  DB_READY,
+  createBusinessUser,
+  createTestApp,
+  idem,
+  passwordSession,
+  type Session,
+  type TestApp,
+} from './helpers';
 import { buildHotWorld, type HotWorld } from './hot-fixtures';
 
 /**
@@ -17,7 +25,8 @@ describe.skipIf(!DB_READY)('Scope on legacy endpoints', () => {
   let unitBR: string;
   let unitBJ: string;
   const d: Record<string, string> = {}; // campaign ids
-  type Who = 'mgrR' | 'mgrJ' | 'adminR' | 'adminJ' | 'finCountry' | 'finOrg' | 'narrow' | 'voucherOnly';
+  type Who =
+    'mgrR' | 'mgrJ' | 'adminR' | 'adminJ' | 'finCountry' | 'finOrg' | 'narrow' | 'voucherOnly';
   const s = {} as Record<Who, Session>;
 
   beforeAll(async () => {
@@ -26,28 +35,91 @@ describe.skipIf(!DB_READY)('Scope on legacy endpoints', () => {
     orgA = w.A.orgId;
     bR = w.A.branchIds[0]!;
     bJ = w.A.branchIds[1]!;
-    const post = (sess: Session, path: string, body: unknown = {}) => w.api(sess).post(`/v1/orgs/${orgA}${path}`).set('Idempotency-Key', idem()).send(body as object);
-    cityR = (await post(w.ownerA, '/units', { kind: 'CITY', code: 'RUH', nameEn: 'Riyadh', nameAr: 'الرياض', city: 'Riyadh' })).body.data.id;
-    cityJ = (await post(w.ownerA, '/units', { kind: 'CITY', code: 'JED', nameEn: 'Jeddah', nameAr: 'جدة', city: 'Jeddah' })).body.data.id;
-    unitBR = (await post(w.ownerA, '/units', { kind: 'BRANCH', code: 'B1', nameEn: 'Olaya', nameAr: 'العليا', parentId: cityR, branchId: bR })).body.data.id;
-    unitBJ = (await post(w.ownerA, '/units', { kind: 'BRANCH', code: 'B2', nameEn: 'Tahlia', nameAr: 'التحلية', parentId: cityJ, branchId: bJ })).body.data.id;
+    const post = (sess: Session, path: string, body: unknown = {}) =>
+      w
+        .api(sess)
+        .post(`/v1/orgs/${orgA}${path}`)
+        .set('Idempotency-Key', idem())
+        .send(body as object);
+    cityR = (
+      await post(w.ownerA, '/units', {
+        kind: 'CITY',
+        code: 'RUH',
+        nameEn: 'Riyadh',
+        nameAr: 'الرياض',
+        city: 'Riyadh',
+      })
+    ).body.data.id;
+    cityJ = (
+      await post(w.ownerA, '/units', {
+        kind: 'CITY',
+        code: 'JED',
+        nameEn: 'Jeddah',
+        nameAr: 'جدة',
+        city: 'Jeddah',
+      })
+    ).body.data.id;
+    unitBR = (
+      await post(w.ownerA, '/units', {
+        kind: 'BRANCH',
+        code: 'B1',
+        nameEn: 'Olaya',
+        nameAr: 'العليا',
+        parentId: cityR,
+        branchId: bR,
+      })
+    ).body.data.id;
+    unitBJ = (
+      await post(w.ownerA, '/units', {
+        kind: 'BRANCH',
+        code: 'B2',
+        nameEn: 'Tahlia',
+        nameAr: 'التحلية',
+        parentId: cityJ,
+        branchId: bJ,
+      })
+    ).body.data.id;
 
-    const scoped = async (role: 'MERCHANT_CAMPAIGN_MANAGER' | 'MERCHANT_ADMIN' | 'MERCHANT_FINANCE', label: string, scope: Record<string, unknown>, extra: Record<string, unknown> = {}) => {
-      const u = await createBusinessUser(t.prisma, { role, orgId: orgA, userType: 'MERCHANT_USER', label });
-      const m = await t.prisma.organizationMembership.findFirstOrThrow({ where: { userId: u.id, organizationId: orgA } });
+    const scoped = async (
+      role: 'MERCHANT_CAMPAIGN_MANAGER' | 'MERCHANT_ADMIN' | 'MERCHANT_FINANCE',
+      label: string,
+      scope: Record<string, unknown>,
+      extra: Record<string, unknown> = {},
+    ) => {
+      const u = await createBusinessUser(t.prisma, {
+        role,
+        orgId: orgA,
+        userType: 'MERCHANT_USER',
+        label,
+      });
+      const m = await t.prisma.organizationMembership.findFirstOrThrow({
+        where: { userId: u.id, organizationId: orgA },
+      });
       expect((await post(w.ownerA, `/members/${m.id}/scoped`, { scoped: true })).status).toBe(200);
-      const g = await post(w.ownerA, '/assignments', { membershipId: m.id, roleCode: role, scope, ...extra });
+      const g = await post(w.ownerA, '/assignments', {
+        membershipId: m.id,
+        roleCode: role,
+        scope,
+        ...extra,
+      });
       expect(g.status, JSON.stringify(g.body)).toBe(201);
       const fresh = await t.prisma.user.findUniqueOrThrow({ where: { id: u.id } });
       return passwordSession(t, { id: fresh.id, email: fresh.email! } as never, 'merchant');
     };
 
     // campaigns: Riyadh-only, Jeddah-only and one spanning both
-    const hot = async (branches: string[]) => (await w.createHot('A', { ...w.hotContent('A'), allocations: branches.map((branchId) => ({ branchId, units: 5 })) } as never)).id as string;
+    const hot = async (branches: string[]) =>
+      (
+        await w.createHot('A', {
+          ...w.hotContent('A'),
+          allocations: branches.map((branchId) => ({ branchId, units: 5 })),
+        } as never)
+      ).id as string;
     d.hotR = await hot([bR]);
     d.hotJ = await hot([bJ]);
     d.hotBoth = await hot([bR, bJ]);
-    const live = async (branchIds: string[]) => (await w.createDeal(w.ownerA, orgA, w.content('A', { branchIds }))).id as string;
+    const live = async (branchIds: string[]) =>
+      (await w.createDeal(w.ownerA, orgA, w.content('A', { branchIds }))).id as string;
     d.liveR = await live([bR]);
     d.liveJ = await live([bJ]);
 
@@ -57,15 +129,29 @@ describe.skipIf(!DB_READY)('Scope on legacy endpoints', () => {
     s.adminJ = await scoped('MERCHANT_ADMIN', 'admin-j', { kind: 'UNIT', ref: unitBJ });
     s.finCountry = await scoped('MERCHANT_FINANCE', 'fin-c', { kind: 'COUNTRY', ref: 'SA' });
     s.finOrg = await scoped('MERCHANT_FINANCE', 'fin-o', { kind: 'ORGANIZATION', ref: null });
-    s.narrow = await scoped('MERCHANT_CAMPAIGN_MANAGER', 'narrow', { kind: 'CAMPAIGN', ref: d.hotR, product: 'EXCLUSIVE' });
-    s.voucherOnly = await scoped('MERCHANT_CAMPAIGN_MANAGER', 'v-only', { kind: 'PRODUCT', ref: 'VOUCHER' });
+    s.narrow = await scoped('MERCHANT_CAMPAIGN_MANAGER', 'narrow', {
+      kind: 'CAMPAIGN',
+      ref: d.hotR,
+      product: 'EXCLUSIVE',
+    });
+    s.voucherOnly = await scoped('MERCHANT_CAMPAIGN_MANAGER', 'v-only', {
+      kind: 'PRODUCT',
+      ref: 'VOUCHER',
+    });
   });
   afterAll(() => t?.close());
 
   const base = () => `/v1/merchants/${orgA}`;
   const get = (sess: Session, path: string) => w.api(sess).get(`${base()}${path}`);
-  const post = (sess: Session, path: string, body: unknown = {}) => w.api(sess).post(`${base()}${path}`).set('Idempotency-Key', idem()).send(body as object);
-  const ids = (res: { body: { data: { items?: Array<{ id: string }> } | Array<{ id: string }> } }) => {
+  const post = (sess: Session, path: string, body: unknown = {}) =>
+    w
+      .api(sess)
+      .post(`${base()}${path}`)
+      .set('Idempotency-Key', idem())
+      .send(body as object);
+  const ids = (res: {
+    body: { data: { items?: Array<{ id: string }> } | Array<{ id: string }> };
+  }) => {
     const data = res.body.data;
     return (Array.isArray(data) ? data : (data.items ?? [])).map((x) => x.id);
   };
@@ -91,22 +177,40 @@ describe.skipIf(!DB_READY)('Scope on legacy endpoints', () => {
       expect((await get(s.mgrR, `/hot-deals/${d.hotJ}/monitor`)).status).toBe(404);
       expect((await get(s.mgrR, `/hot-deals/${d.hotBoth}`)).status).toBe(200);
       for (const action of ['pause', 'resume', 'submit', 'cancel']) {
-        const x = await post(s.mgrR, `/hot-deals/${d.hotBoth}/${action}`, action === 'cancel' ? { reason: 'no longer needed here' } : {});
+        const x = await post(
+          s.mgrR,
+          `/hot-deals/${d.hotBoth}/${action}`,
+          action === 'cancel' ? { reason: 'no longer needed here' } : {},
+        );
         expect(x.status, action).toBe(403);
         expect(x.body.errors[0].code).toBe('SCOPE_FORBIDDEN');
       }
-      expect((await post(s.mgrR, `/hot-deals/${d.hotJ}/stock`, { branchId: bJ, delta: 2 })).status).toBe(404);
-      expect((await post(s.mgrR, `/hot-deals/${d.hotBoth}/stock`, { branchId: bR, delta: 2 })).status).toBe(403);
+      expect(
+        (await post(s.mgrR, `/hot-deals/${d.hotJ}/stock`, { branchId: bJ, delta: 2 })).status,
+      ).toBe(404);
+      expect(
+        (await post(s.mgrR, `/hot-deals/${d.hotBoth}/stock`, { branchId: bR, delta: 2 })).status,
+      ).toBe(403);
     });
 
     it('inside the scope the member works normally (edit, then stock after approval is still scope-checked)', async () => {
       const cur = (await get(s.mgrR, `/hot-deals/${d.hotR}`)).body.data;
-      const put = await w.api(s.mgrR).put(`${base()}/hot-deals/${d.hotR}`).set('Idempotency-Key', idem()).send({ content: cur.content, expectedVersion: cur.version });
+      const put = await w
+        .api(s.mgrR)
+        .put(`${base()}/hot-deals/${d.hotR}`)
+        .set('Idempotency-Key', idem())
+        .send({ content: cur.content, expectedVersion: cur.version });
       expect(put.status, JSON.stringify(put.body)).toBe(200);
     });
 
     it('creating a campaign needs EVERY branch in scope: adding a branch cannot escape the scope', async () => {
-      const mk = (branches: string[]) => post(s.mgrR, '/hot-deals', { content: { ...w.hotContent('A'), allocations: branches.map((branchId) => ({ branchId, units: 3 })) } });
+      const mk = (branches: string[]) =>
+        post(s.mgrR, '/hot-deals', {
+          content: {
+            ...w.hotContent('A'),
+            allocations: branches.map((branchId) => ({ branchId, units: 3 })),
+          },
+        });
       expect((await mk([bR])).status).toBe(201);
       const bad = await mk([bR, bJ]);
       expect(bad.status).toBe(403);
@@ -136,7 +240,8 @@ describe.skipIf(!DB_READY)('Scope on legacy endpoints', () => {
       const wr = await post(s.mgrR, `/live-deals/${d.liveJ}/submit`);
       expect(wr.status).toBe(404);
       expect((await get(s.mgrR, '/live-deals/summary')).body.data.total).toBe(1);
-      const create = (branchIds: string[]) => post(s.mgrR, '/live-deals', { content: w.content('A', { branchIds }) });
+      const create = (branchIds: string[]) =>
+        post(s.mgrR, '/live-deals', { content: w.content('A', { branchIds }) });
       expect((await create([bR])).status).toBe(201);
       expect((await create([bJ])).status).toBe(403);
       expect((await create([bR, bJ])).status).toBe(403);
@@ -153,8 +258,20 @@ describe.skipIf(!DB_READY)('Scope on legacy endpoints', () => {
       expect(mine.length).toBe(1);
       expect(ids(await get(s.adminJ, '/redemptions'))).toEqual([]);
       const redemptionId = mine[0]!;
-      expect((await post(s.adminJ, `/redemptions/${redemptionId}/reverse`, { reason: 'wrong branch tries' })).status).toBe(404);
-      expect((await post(s.adminR, `/redemptions/${redemptionId}/reverse`, { reason: 'customer left before use' })).status).toBe(200);
+      expect(
+        (
+          await post(s.adminJ, `/redemptions/${redemptionId}/reverse`, {
+            reason: 'wrong branch tries',
+          })
+        ).status,
+      ).toBe(404);
+      expect(
+        (
+          await post(s.adminR, `/redemptions/${redemptionId}/reverse`, {
+            reason: 'customer left before use',
+          })
+        ).status,
+      ).toBe(200);
     });
   });
 
@@ -164,9 +281,20 @@ describe.skipIf(!DB_READY)('Scope on legacy endpoints', () => {
       expect(list.map((b) => b.id)).toEqual([bR]);
       expect((await get(s.adminR, `/branches/${bJ}`)).status).toBe(404);
       expect((await get(s.adminR, `/branches/${bR}`)).status).toBe(200);
-      const body = { nameEn: 'New', nameAr: 'جديد', addressEn: 'x street', addressAr: 'شارع', city: 'Riyadh', latitude: 24.7, longitude: 46.7 };
+      const body = {
+        nameEn: 'New',
+        nameAr: 'جديد',
+        addressEn: 'x street',
+        addressAr: 'شارع',
+        city: 'Riyadh',
+        latitude: 24.7,
+        longitude: 46.7,
+      };
       expect((await post(s.adminR, '/branches', body)).status).toBe(403);
-      expect((await post(s.adminR, `/branches/${bJ}/status`, { status: 'CLOSED', reason: 'not mine' })).status).toBe(404);
+      expect(
+        (await post(s.adminR, `/branches/${bJ}/status`, { status: 'CLOSED', reason: 'not mine' }))
+          .status,
+      ).toBe(404);
     });
   });
 
@@ -186,7 +314,11 @@ describe.skipIf(!DB_READY)('Scope on legacy endpoints', () => {
     });
 
     it('loyalty, disputes, inbox and activity are organization-level too', async () => {
-      for (const path of ['/loyalty/rules', '/disputes', '/activity']) expect((await w.api(s.adminR).get(`/v1/orgs/${orgA}${path}`)).status, path).toBeGreaterThanOrEqual(403);
+      for (const path of ['/loyalty/rules', '/disputes', '/activity'])
+        expect(
+          (await w.api(s.adminR).get(`/v1/orgs/${orgA}${path}`)).status,
+          path,
+        ).toBeGreaterThanOrEqual(403);
       // the inbox is scope-aware: it answers, but shows a branch-scoped member nothing that is organization-level
       const inbox = await w.api(s.adminR).get(`/v1/orgs/${orgA}/inbox`);
       expect(inbox.status).toBe(200);
@@ -198,14 +330,18 @@ describe.skipIf(!DB_READY)('Scope on legacy endpoints', () => {
     it('another business can neither see nor reach these records, with or without a scope', async () => {
       expect((await w.api(w.ownerB).get(`/v1/merchants/${orgA}/hot-deals`)).status).toBe(404);
       expect((await w.api(s.mgrR).get(`/v1/merchants/${w.B.orgId}/hot-deals`)).status).toBe(404);
-      expect((await w.api(w.ownerB).get(`/v1/merchants/${w.B.orgId}/hot-deals/${d.hotR}`)).status).toBe(404);
+      expect(
+        (await w.api(w.ownerB).get(`/v1/merchants/${w.B.orgId}/hot-deals/${d.hotR}`)).status,
+      ).toBe(404);
       expect((await w.api(s.mgrR).get(`/v1/merchants/${w.B.orgId}/branches`)).status).toBe(404);
     });
   });
 
   describe('every decision is recorded', () => {
     it('denied scoped attempts reach the audit log', async () => {
-      const n = await t.prisma.auditLog.count({ where: { action: 'access.denied', actorOrganizationId: orgA } });
+      const n = await t.prisma.auditLog.count({
+        where: { action: 'access.denied', actorOrganizationId: orgA },
+      });
       expect(n).toBeGreaterThan(0);
     });
   });

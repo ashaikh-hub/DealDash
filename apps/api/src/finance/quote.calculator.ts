@@ -14,7 +14,12 @@ export interface Economics {
   maxUnits: number;
   unitLabel: 'REDEMPTION' | 'VOUCHER' | 'VIEW';
   /** Per unit, the figures a percentage charge can be based on. MEDIA_SPEND is the campaign total (Watch & Earn). */
-  base: { SELLING_PRICE: number; FACE_VALUE: number; BENEFIT_VALUE: number; MEDIA_SPEND_TOTAL: number };
+  base: {
+    SELLING_PRICE: number;
+    FACE_VALUE: number;
+    BENEFIT_VALUE: number;
+    MEDIA_SPEND_TOTAL: number;
+  };
   /** What the customer saves per unit (normal price minus deal price, face value minus price, ...). */
   customerBenefitPerUnit: number;
   /** Sponsors (banks, schemes, corporates) and what each funds per unit. */
@@ -88,7 +93,10 @@ const round = (n: number) => Math.round(n);
  * version or the Admin default), every volume from the campaign. Sponsor funding and merchant benefit are NEVER treated as
  * DealDash revenue, and cash is kept apart from non-cash commitments.
  */
-export function calculateQuote(e: Economics, pricing: PricingContext): { lines: QuoteLine[]; totals: QuoteTotals } {
+export function calculateQuote(
+  e: Economics,
+  pricing: PricingContext,
+): { lines: QuoteLine[]; totals: QuoteTotals } {
   const lines: QuoteLine[] = [];
   const issues: string[] = [];
   const units = e.maxUnits;
@@ -134,7 +142,8 @@ export function calculateQuote(e: Economics, pricing: PricingContext): { lines: 
       amount = round((baseTotal * bps) / 10_000);
       unitHalalas = units > 0 ? round(amount / units) : 0;
       lineUnits = units;
-      if (units === 0 && c.base !== 'MEDIA_SPEND' && bps > 0) issues.push(`UNBOUNDED_${c.code.toUpperCase()}`);
+      if (units === 0 && c.base !== 'MEDIA_SPEND' && bps > 0)
+        issues.push(`UNBOUNDED_${c.code.toUpperCase()}`);
     }
     if (c.minimumHalalas && amount < c.minimumHalalas) amount = c.minimumHalalas;
     lines.push({
@@ -155,7 +164,9 @@ export function calculateQuote(e: Economics, pricing: PricingContext): { lines: 
   }
 
   // ---- tax (configured only; never an invented rate)
-  const taxable = lines.filter((l) => l.kind === 'DEALDASH_CHARGE' && l.taxable && l.collection === 'CASH');
+  const taxable = lines.filter(
+    (l) => l.kind === 'DEALDASH_CHARGE' && l.taxable && l.collection === 'CASH',
+  );
   const taxBase = taxable.reduce((n, l) => n + l.amountHalalas, 0);
   const taxHalalas = pricing.taxBps === null ? 0 : round((taxBase * pricing.taxBps) / 10_000);
   const taxStatus: QuoteTotals['taxStatus'] =
@@ -206,7 +217,8 @@ export function calculateQuote(e: Economics, pricing: PricingContext): { lines: 
       code: 'merchant_cash',
       label: { en: 'Merchant cash contribution', ar: 'مساهمة التاجر النقدية' },
       partyOrganizationId: e.fulfilmentOrganizationId,
-      partyRole: e.fulfilmentOrganizationId === e.ownerOrganizationId ? 'OWNER' : 'FULFILMENT_MERCHANT',
+      partyRole:
+        e.fulfilmentOrganizationId === e.ownerOrganizationId ? 'OWNER' : 'FULFILMENT_MERCHANT',
       basis: 'PER_UNIT',
       units,
       unitHalalas: e.merchantCashPerUnit,
@@ -216,16 +228,26 @@ export function calculateQuote(e: Economics, pricing: PricingContext): { lines: 
       trigger: 'VERIFIED_REDEMPTION',
       taxable: false,
     });
-  const merchantBenefitPerUnit = Math.max(0, e.customerBenefitPerUnit - sponsorPerUnit - e.merchantCashPerUnit);
-  if (sponsorPerUnit + e.merchantCashPerUnit > e.customerBenefitPerUnit && e.customerBenefitPerUnit > 0)
+  const merchantBenefitPerUnit = Math.max(
+    0,
+    e.customerBenefitPerUnit - sponsorPerUnit - e.merchantCashPerUnit,
+  );
+  if (
+    sponsorPerUnit + e.merchantCashPerUnit > e.customerBenefitPerUnit &&
+    e.customerBenefitPerUnit > 0
+  )
     issues.push('FUNDING_EXCEEDS_BENEFIT');
   if (merchantBenefitPerUnit > 0)
     lines.push({
       kind: 'MERCHANT_BENEFIT',
       code: 'merchant_benefit',
-      label: { en: 'Merchant benefit / fulfilment commitment (non-cash)', ar: 'التزام التاجر بالمنفعة (غير نقدي)' },
+      label: {
+        en: 'Merchant benefit / fulfilment commitment (non-cash)',
+        ar: 'التزام التاجر بالمنفعة (غير نقدي)',
+      },
       partyOrganizationId: e.fulfilmentOrganizationId,
-      partyRole: e.fulfilmentOrganizationId === e.ownerOrganizationId ? 'OWNER' : 'FULFILMENT_MERCHANT',
+      partyRole:
+        e.fulfilmentOrganizationId === e.ownerOrganizationId ? 'OWNER' : 'FULFILMENT_MERCHANT',
       basis: 'PER_UNIT',
       units,
       unitHalalas: merchantBenefitPerUnit,
@@ -254,7 +276,8 @@ export function calculateQuote(e: Economics, pricing: PricingContext): { lines: 
     });
 
   // ---- totals
-  const sum = (f: (l: QuoteLine) => boolean) => lines.filter(f).reduce((n, l) => n + l.amountHalalas, 0);
+  const sum = (f: (l: QuoteLine) => boolean) =>
+    lines.filter(f).reduce((n, l) => n + l.amountHalalas, 0);
   const charges = sum((l) => l.kind === 'DEALDASH_CHARGE' && l.collection === 'CASH');
   const netted = sum((l) => l.kind === 'DEALDASH_CHARGE' && l.collection === 'NETTED');
   const sponsorTotal = sum((l) => l.kind === 'SPONSOR_FUNDING');
@@ -262,7 +285,10 @@ export function calculateQuote(e: Economics, pricing: PricingContext): { lines: 
   const merchantCash = sum((l) => l.kind === 'MERCHANT_CASH_CONTRIBUTION');
   const perSponsor = new Map<string, number>();
   for (const l of lines.filter((x) => x.kind === 'SPONSOR_FUNDING'))
-    perSponsor.set(l.partyOrganizationId!, (perSponsor.get(l.partyOrganizationId!) ?? 0) + l.amountHalalas);
+    perSponsor.set(
+      l.partyOrganizationId!,
+      (perSponsor.get(l.partyOrganizationId!) ?? 0) + l.amountHalalas,
+    );
   const totals: QuoteTotals = {
     currency: e.currency,
     maxUnits: units,
@@ -272,11 +298,15 @@ export function calculateQuote(e: Economics, pricing: PricingContext): { lines: 
     maxCashPayableToDealDashHalalas: charges + taxHalalas,
     nettedChargesHalalas: netted,
     maxSponsorLiabilityHalalas: sponsorTotal,
-    sponsorLiability: [...perSponsor].map(([organizationId, amountHalalas]) => ({ organizationId, amountHalalas })),
+    sponsorLiability: [...perSponsor].map(([organizationId, amountHalalas]) => ({
+      organizationId,
+      amountHalalas,
+    })),
     merchantCashContributionHalalas: merchantCash,
     maxMerchantBenefitCommitmentHalalas: merchantBenefit,
     customerBenefitTotalHalalas: sum((l) => l.kind === 'CUSTOMER_FUNDING'),
-    totalEconomicCommitmentHalalas: charges + taxHalalas + netted + sponsorTotal + merchantCash + merchantBenefit,
+    totalEconomicCommitmentHalalas:
+      charges + taxHalalas + netted + sponsorTotal + merchantCash + merchantBenefit,
     issues: [...new Set(issues)],
   };
   return { lines, totals };
@@ -305,13 +335,19 @@ export function economicsHash(e: Economics, pricingVersionKey: string): string {
 export function amendmentDelta(original: QuoteTotals, revised: QuoteTotals) {
   const d = (a: number, b: number) => ({ original: a, additional: b - a, revised: b });
   return {
-    maxCashPayableToDealDash: d(original.maxCashPayableToDealDashHalalas, revised.maxCashPayableToDealDashHalalas),
+    maxCashPayableToDealDash: d(
+      original.maxCashPayableToDealDashHalalas,
+      revised.maxCashPayableToDealDashHalalas,
+    ),
     maxSponsorLiability: d(original.maxSponsorLiabilityHalalas, revised.maxSponsorLiabilityHalalas),
     maxMerchantBenefitCommitment: d(
       original.maxMerchantBenefitCommitmentHalalas,
       revised.maxMerchantBenefitCommitmentHalalas,
     ),
-    totalEconomicCommitment: d(original.totalEconomicCommitmentHalalas, revised.totalEconomicCommitmentHalalas),
+    totalEconomicCommitment: d(
+      original.totalEconomicCommitmentHalalas,
+      revised.totalEconomicCommitmentHalalas,
+    ),
     maxUnits: d(original.maxUnits, revised.maxUnits),
     increasesExposure:
       revised.maxCashPayableToDealDashHalalas > original.maxCashPayableToDealDashHalalas ||

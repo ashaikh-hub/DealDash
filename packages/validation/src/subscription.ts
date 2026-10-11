@@ -19,7 +19,12 @@ const uuid = z.string().uuid();
 const iso = z.string().datetime({ offset: true });
 const country = z.string().trim().length(2).toUpperCase();
 const currency = z.string().trim().length(3).toUpperCase();
-const code = z.string().trim().min(2).max(60).regex(/^[A-Z][A-Z0-9_]*$/, 'UPPER_SNAKE_CASE');
+const code = z
+  .string()
+  .trim()
+  .min(2)
+  .max(60)
+  .regex(/^[A-Z][A-Z0-9_]*$/, 'UPPER_SNAKE_CASE');
 /** Money is an integer in the minor unit of an explicit currency. Larger custom amounts are split into billing events. */
 export const minor = z.number().int().min(0).max(MAX_MINOR_AMOUNT);
 
@@ -48,7 +53,12 @@ export const pricePointSchema = z.object({
   /** A reference ("indicative from") figure, not a mandatory list price. */
   indicative: z.boolean().default(false),
 });
-export const feeSchema = z.object({ code, amountMinor: minor, indicative: z.boolean().default(false), note: z.string().trim().max(200).optional() });
+export const feeSchema = z.object({
+  code,
+  amountMinor: minor,
+  indicative: z.boolean().default(false),
+  note: z.string().trim().max(200).optional(),
+});
 
 export const planCreateSchema = z.object({
   code,
@@ -69,7 +79,16 @@ export const planVersionDraftSchema = z.object({
   defaultCadence: z.enum(BILLING_CADENCES).default('MONTHLY'),
   prices: z.array(pricePointSchema).max(6).default([]),
   fees: z.array(feeSchema).max(20).default([]),
-  addOnPrices: z.record(z.string(), z.object({ amountMinor: minor, cadence: z.enum(BILLING_CADENCES).default('MONTHLY'), indicative: z.boolean().default(false) })).default({}),
+  addOnPrices: z
+    .record(
+      z.string(),
+      z.object({
+        amountMinor: minor,
+        cadence: z.enum(BILLING_CADENCES).default('MONTHLY'),
+        indicative: z.boolean().default(false),
+      }),
+    )
+    .default({}),
   entitlements: planEntitlementsSchema.default({ products: [], features: [], limits: [] }),
   addOnCodes: z.array(z.string().trim().max(60)).max(30).default([]),
   supportLevel: z.string().trim().max(40).nullable().default(null),
@@ -87,7 +106,18 @@ export const priceItemCreateSchema = z.object({
   nameEn: z.string().trim().min(2).max(80),
   nameAr: z.string().trim().min(2).max(80),
   category: z.enum(BILLING_CATEGORIES),
-  unit: z.enum(['EACH', 'PER_VIEW', 'PER_REDEMPTION', 'PERCENT', 'PER_CAMPAIGN', 'PER_MONTH', 'PER_YEAR', 'PER_REQUEST']).default('EACH'),
+  unit: z
+    .enum([
+      'EACH',
+      'PER_VIEW',
+      'PER_REDEMPTION',
+      'PERCENT',
+      'PER_CAMPAIGN',
+      'PER_MONTH',
+      'PER_YEAR',
+      'PER_REQUEST',
+    ])
+    .default('EACH'),
   product: z.string().trim().max(40).nullable().default(null),
   status: z.enum(['ACTIVE', 'INACTIVE']).default('ACTIVE'),
 });
@@ -98,7 +128,11 @@ export const priceItemVersionSchema = z
     model: z.enum(['FIXED', 'PER_UNIT', 'PERCENT_BPS', 'TIERED']),
     amountMinor: minor.nullable().default(null),
     rateBps: z.number().int().min(0).max(10000).nullable().default(null),
-    tiers: z.array(z.object({ upTo: z.number().int().min(1).nullable(), amountMinor: minor })).max(12).nullable().default(null),
+    tiers: z
+      .array(z.object({ upTo: z.number().int().min(1).nullable(), amountMinor: minor }))
+      .max(12)
+      .nullable()
+      .default(null),
     minAmountMinor: minor.nullable().default(null),
     maxAmountMinor: minor.nullable().default(null),
     indicative: z.boolean().default(false),
@@ -108,16 +142,29 @@ export const priceItemVersionSchema = z
     reference: z.string().trim().max(120).nullable().default(null),
   })
   .superRefine((v, ctx) => {
-    if (v.model === 'FIXED' || v.model === 'PER_UNIT') if (v.amountMinor === null && !v.indicative) ctx.addIssue({ code: 'custom', path: ['amountMinor'], message: 'AMOUNT_REQUIRED' });
-    if (v.model === 'PERCENT_BPS' && v.rateBps === null && !v.indicative) ctx.addIssue({ code: 'custom', path: ['rateBps'], message: 'RATE_REQUIRED' });
-    if (v.model === 'TIERED' && !v.tiers?.length) ctx.addIssue({ code: 'custom', path: ['tiers'], message: 'TIERS_REQUIRED' });
+    if (v.model === 'FIXED' || v.model === 'PER_UNIT')
+      if (v.amountMinor === null && !v.indicative)
+        ctx.addIssue({ code: 'custom', path: ['amountMinor'], message: 'AMOUNT_REQUIRED' });
+    if (v.model === 'PERCENT_BPS' && v.rateBps === null && !v.indicative)
+      ctx.addIssue({ code: 'custom', path: ['rateBps'], message: 'RATE_REQUIRED' });
+    if (v.model === 'TIERED' && !v.tiers?.length)
+      ctx.addIssue({ code: 'custom', path: ['tiers'], message: 'TIERS_REQUIRED' });
   });
 
 export const addOnDefinitionSchema = z.object({
   code,
   nameEn: z.string().trim().min(2).max(80),
   nameAr: z.string().trim().min(2).max(80),
-  effect: z.array(z.object({ kind: z.enum(['PRODUCT', 'FEATURE', 'LIMIT']), key: z.string().trim().min(2).max(60), perUnit: z.number().int().min(0).max(1_000_000).default(1) })).min(1).max(10),
+  effect: z
+    .array(
+      z.object({
+        kind: z.enum(['PRODUCT', 'FEATURE', 'LIMIT']),
+        key: z.string().trim().min(2).max(60),
+        perUnit: z.number().int().min(0).max(1_000_000).default(1),
+      }),
+    )
+    .min(1)
+    .max(10),
   priceItemCode: z.string().trim().max(60).nullable().default(null),
   eligiblePlanCodes: z.array(z.string().trim().max(60)).max(30).default([]),
 });
@@ -137,7 +184,14 @@ export const assignPlanSchema = z.object({
   renewalState: z.enum(RENEWAL_STATES).default('AUTO_RENEW'),
   accountManager: z.string().trim().max(120).optional(),
   /** Start as a TRIAL of this plan for N days; the post-trial plan is applied when the trial ends. */
-  trial: z.object({ days: z.number().int().min(1).max(365).optional(), postTrialPlanCode: z.string().trim().max(60).nullable().default(null), approvalRef: z.string().trim().max(80).optional() }).nullable().default(null),
+  trial: z
+    .object({
+      days: z.number().int().min(1).max(365).optional(),
+      postTrialPlanCode: z.string().trim().max(60).nullable().default(null),
+      approvalRef: z.string().trim().max(80).optional(),
+    })
+    .nullable()
+    .default(null),
   /** Record DealDash's approval reference when assigning a plan on the customer's behalf. */
   approvalRef: z.string().trim().max(80).optional(),
   /** Activate immediately (the plan needs no acceptance, for example a free plan) or wait for the customer's acceptance. */
@@ -171,17 +225,35 @@ export const amendmentProposeSchema = z.object({
   targetPlanCode: z.string().trim().max(60).optional(),
   effectiveMode: z.enum(EFFECTIVE_MODES).default('IMMEDIATE'),
   effectiveAt: iso.optional(),
-  addOn: z.object({ code: z.string().trim().max(60), quantity: z.number().int().min(1).max(10000).default(1), endAt: iso.nullable().default(null), autoRenew: z.boolean().default(false) }).optional(),
+  addOn: z
+    .object({
+      code: z.string().trim().max(60),
+      quantity: z.number().int().min(1).max(10000).default(1),
+      endAt: iso.nullable().default(null),
+      autoRenew: z.boolean().default(false),
+    })
+    .optional(),
   market: country.optional(),
   newEndAt: iso.optional(),
-  pricing: z.object({ itemCode: z.string().trim().max(60), amountMinor: minor.nullable().default(null), rateBps: z.number().int().min(0).max(10000).nullable().default(null), discountBps: z.number().int().min(0).max(10000).nullable().default(null), waived: z.boolean().default(false) }).optional(),
+  pricing: z
+    .object({
+      itemCode: z.string().trim().max(60),
+      amountMinor: minor.nullable().default(null),
+      rateBps: z.number().int().min(0).max(10000).nullable().default(null),
+      discountBps: z.number().int().min(0).max(10000).nullable().default(null),
+      waived: z.boolean().default(false),
+    })
+    .optional(),
   entitlements: overrideSchema.shape.entitlements.optional(),
   reason: z.string().trim().max(300).optional(),
   /** DealDash only: apply a downgrade although usage exceeds the new limits (the excess is restricted, never deleted). */
   forced: z.boolean().default(false),
 });
 
-export const acceptSchema = z.object({ language: z.enum(['en', 'ar']).default('en'), confirm: z.literal(true) });
+export const acceptSchema = z.object({
+  language: z.enum(['en', 'ar']).default('en'),
+  confirm: z.literal(true),
+});
 
 export const promotionSchema = z.object({
   kind: z.enum(PROMOTION_KINDS),
@@ -210,8 +282,14 @@ export const contractRateSchema = z.object({
   approvalRef: z.string().trim().max(80).optional(),
 });
 
-export const lifecycleActionSchema = z.object({ reason: z.string().trim().min(3).max(300), effectiveAt: iso.optional() });
-export const renewalStateSchema = z.object({ renewalState: z.enum(RENEWAL_STATES), reason: z.string().trim().max(300).optional() });
+export const lifecycleActionSchema = z.object({
+  reason: z.string().trim().min(3).max(300),
+  effectiveAt: iso.optional(),
+});
+export const renewalStateSchema = z.object({
+  renewalState: z.enum(RENEWAL_STATES),
+  reason: z.string().trim().max(300).optional(),
+});
 
 export const usageRecordSchema = z.object({
   idempotencyKey: z.string().trim().min(8).max(160),

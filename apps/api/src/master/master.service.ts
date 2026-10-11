@@ -51,7 +51,9 @@ export class MasterService {
     db: Tx | PrismaService = this.prisma,
   ): Promise<Array<{ id: string; confidence: number; reasons: string[] }>> {
     const cfg = await this.matching();
-    const names = [nameEn, nameAr].filter((n): n is string => !!n).map((n) => normalizeName(n, cfg.stopWords));
+    const names = [nameEn, nameAr]
+      .filter((n): n is string => !!n)
+      .map((n) => normalizeName(n, cfg.stopWords));
     const keys = names.filter(Boolean);
     if (!keys.length) return [];
     const heads = [...new Set(keys.map((k) => k.slice(0, 3)))];
@@ -66,7 +68,10 @@ export class MasterService {
       take: 400,
     });
     const aliasRows = await db.entityAlias.findMany({
-      where: { entityType: 'MERCHANT', OR: heads.map((h) => ({ normalizedAlias: { contains: h } })) },
+      where: {
+        entityType: 'MERCHANT',
+        OR: heads.map((h) => ({ normalizedAlias: { contains: h } })),
+      },
       select: { entityId: true, normalizedAlias: true },
       take: 400,
     });
@@ -103,7 +108,13 @@ export class MasterService {
       await tx.matchCandidate.upsert({
         where: { entityType_aId_bId: { entityType, aId, bId } },
         update: {},
-        create: { entityType, aId, bId, confidence: f.confidence, reasons: f.reasons as Prisma.InputJsonValue },
+        create: {
+          entityType,
+          aId,
+          bId,
+          confidence: f.confidence,
+          reasons: f.reasons as Prisma.InputJsonValue,
+        },
       });
     }
   }
@@ -112,9 +123,13 @@ export class MasterService {
     if (!name?.trim()) return null;
     const normalized = await this.normalize(name);
     if (!normalized) return null;
-    const found = await tx.masterBrand.findFirst({ where: { normalizedName: normalized, status: 'ACTIVE' } });
+    const found = await tx.masterBrand.findFirst({
+      where: { normalizedName: normalized, status: 'ACTIVE' },
+    });
     if (found) return found.id;
-    return (await tx.masterBrand.create({ data: { nameEn: name.trim(), normalizedName: normalized } })).id;
+    return (
+      await tx.masterBrand.create({ data: { nameEn: name.trim(), normalizedName: normalized } })
+    ).id;
   }
 
   async addAlias(tx: Tx, entityType: string, entityId: string, alias: string) {
@@ -138,7 +153,10 @@ export class MasterService {
       where: { id: organizationId },
       include: { merchant: { select: { legalName: true } } },
     });
-    const le = await this.prisma.legalEntity.findFirst({ where: { organizationId }, orderBy: { createdAt: 'asc' } });
+    const le = await this.prisma.legalEntity.findFirst({
+      where: { organizationId },
+      orderBy: { createdAt: 'asc' },
+    });
     const country = le?.country ?? 'SA';
     let id = existing?.id;
     if (!id) {
@@ -155,7 +173,8 @@ export class MasterService {
             country,
           },
         });
-        if (org.merchant?.legalName && org.merchant.legalName !== org.nameEn) await this.addAlias(tx, 'MERCHANT', row.id, org.merchant.legalName);
+        if (org.merchant?.legalName && org.merchant.legalName !== org.nameEn)
+          await this.addAlias(tx, 'MERCHANT', row.id, org.merchant.legalName);
         await this.recordCandidates(tx, 'MERCHANT', row.id, candidates);
         return row.id;
       });
@@ -187,7 +206,9 @@ export class MasterService {
   async syncRegisteredBranches(organizationId: string, masterMerchantId: string) {
     const branches = await this.prisma.merchantBranch.findMany({ where: { organizationId } });
     for (const b of branches) {
-      const exists = await this.prisma.masterBranch.findUnique({ where: { merchantBranchId: b.id } });
+      const exists = await this.prisma.masterBranch.findUnique({
+        where: { merchantBranchId: b.id },
+      });
       if (exists) continue;
       await this.prisma.masterBranch.create({
         data: {
@@ -222,15 +243,20 @@ export class MasterService {
     if (m.registration !== 'REFERENCED' || m.status !== 'ACTIVE')
       throw new AppError('INVALID_STATE', 'Only an active referenced merchant can be linked', 409);
     const org = await this.prisma.organization.findUnique({ where: { id: organizationId } });
-    if (!org || org.type !== 'MERCHANT') throw AppError.validation('The organization must be a merchant', 'organizationId');
-    if (org.status !== 'ACTIVE') throw new AppError('ORG_NOT_ACTIVE', 'The merchant must be approved and active first', 409);
+    if (!org || org.type !== 'MERCHANT')
+      throw AppError.validation('The organization must be a merchant', 'organizationId');
+    if (org.status !== 'ACTIVE')
+      throw new AppError('ORG_NOT_ACTIVE', 'The merchant must be approved and active first', 409);
     const own = await this.prisma.masterMerchant.findUnique({ where: { organizationId } });
     if (own) {
       await this.merge(actor, masterId, own.id, 'Linked to the registered merchant', meta);
       return own.id;
     }
     await this.prisma.$transaction(async (tx) => {
-      await tx.masterMerchant.update({ where: { id: masterId }, data: { registration: 'REGISTERED', organizationId } });
+      await tx.masterMerchant.update({
+        where: { id: masterId },
+        data: { registration: 'REGISTERED', organizationId },
+      });
       await this.audit.record(
         {
           action: 'MASTER_MERCHANT_REGISTERED',
@@ -253,7 +279,13 @@ export class MasterService {
 
   // ---------------------------------------------------------------- merge
   /** Merges `fromId` into `intoId`: every source reference, alias, outlet and offer follows; the history stays. */
-  async merge(actor: Actor, fromId: string, intoId: string, note: string | undefined, meta: RequestMeta) {
+  async merge(
+    actor: Actor,
+    fromId: string,
+    intoId: string,
+    note: string | undefined,
+    meta: RequestMeta,
+  ) {
     if (fromId === intoId) throw AppError.validation('Choose two different records', 'keepId');
     const [from, into] = await Promise.all([
       this.prisma.masterMerchant.findUnique({ where: { id: fromId } }),
@@ -263,7 +295,11 @@ export class MasterService {
     if (from.status !== 'ACTIVE' || into.status !== 'ACTIVE')
       throw new AppError('INVALID_STATE', 'Both records must be active', 409);
     if (from.registration === 'REGISTERED')
-      throw new AppError('INVALID_STATE', 'A registered merchant cannot be merged into another record', 409);
+      throw new AppError(
+        'INVALID_STATE',
+        'A registered merchant cannot be merged into another record',
+        409,
+      );
     await this.prisma.$transaction(async (tx) => {
       await tx.externalEntityReference.updateMany({
         where: { entityType: 'MERCHANT', entityId: fromId },
@@ -278,7 +314,10 @@ export class MasterService {
         const same = byKey.get(b.normalizedKey);
         if (same) {
           remap.set(b.id, same);
-          await tx.externalEntityReference.updateMany({ where: { entityType: 'BRANCH', entityId: b.id }, data: { entityId: same } });
+          await tx.externalEntityReference.updateMany({
+            where: { entityType: 'BRANCH', entityId: b.id },
+            data: { entityId: same },
+          });
           await tx.masterBranch.delete({ where: { id: b.id } });
         } else await tx.masterBranch.update({ where: { id: b.id }, data: { merchantId: intoId } });
       }
@@ -288,21 +327,47 @@ export class MasterService {
           where: { id: o.id },
           data: { merchantId: intoId, branchIds: o.branchIds.map((id) => remap.get(id) ?? id) },
         });
-      for (const a of await tx.entityAlias.findMany({ where: { entityType: 'MERCHANT', entityId: fromId } }))
+      for (const a of await tx.entityAlias.findMany({
+        where: { entityType: 'MERCHANT', entityId: fromId },
+      }))
         await tx.entityAlias.upsert({
-          where: { entityType_entityId_normalizedAlias: { entityType: 'MERCHANT', entityId: intoId, normalizedAlias: a.normalizedAlias } },
+          where: {
+            entityType_entityId_normalizedAlias: {
+              entityType: 'MERCHANT',
+              entityId: intoId,
+              normalizedAlias: a.normalizedAlias,
+            },
+          },
           update: {},
-          create: { entityType: 'MERCHANT', entityId: intoId, alias: a.alias, normalizedAlias: a.normalizedAlias },
+          create: {
+            entityType: 'MERCHANT',
+            entityId: intoId,
+            alias: a.alias,
+            normalizedAlias: a.normalizedAlias,
+          },
         });
       await tx.entityAlias.deleteMany({ where: { entityType: 'MERCHANT', entityId: fromId } });
       await this.addAlias(tx, 'MERCHANT', intoId, from.nameEn);
       if (from.nameAr) await this.addAlias(tx, 'MERCHANT', intoId, from.nameAr);
-      if (!into.brandId && from.brandId) await tx.masterMerchant.update({ where: { id: intoId }, data: { brandId: from.brandId } });
-      await tx.masterMerchant.update({ where: { id: fromId }, data: { status: 'MERGED', mergedIntoId: intoId } });
+      if (!into.brandId && from.brandId)
+        await tx.masterMerchant.update({ where: { id: intoId }, data: { brandId: from.brandId } });
+      await tx.masterMerchant.update({
+        where: { id: fromId },
+        data: { status: 'MERGED', mergedIntoId: intoId },
+      });
       // every other suggestion about the merged record is closed: it is re-evaluated against the surviving record on demand
       await tx.matchCandidate.updateMany({
-        where: { entityType: 'MERCHANT', status: 'PENDING', OR: [{ aId: fromId }, { bId: fromId }] },
-        data: { status: 'MERGED', decidedByUserId: actor.userId, decidedAt: new Date(), decisionNote: note ?? 'Record merged' },
+        where: {
+          entityType: 'MERCHANT',
+          status: 'PENDING',
+          OR: [{ aId: fromId }, { bId: fromId }],
+        },
+        data: {
+          status: 'MERGED',
+          decidedByUserId: actor.userId,
+          decidedAt: new Date(),
+          decisionNote: note ?? 'Record merged',
+        },
       });
       await this.audit.record(
         {
@@ -330,12 +395,34 @@ export class MasterService {
   ) {
     const c = await this.prisma.matchCandidate.findUnique({ where: { id } });
     if (!c) throw AppError.notFound();
-    if (c.status !== 'PENDING') throw new AppError('INVALID_STATE', 'This suggestion was already decided', 409);
-    if (c.entityType !== 'MERCHANT') throw AppError.validation('Only merchant suggestions can be decided here');
+    if (c.status !== 'PENDING')
+      throw new AppError('INVALID_STATE', 'This suggestion was already decided', 409);
+    if (c.entityType !== 'MERCHANT')
+      throw AppError.validation('Only merchant suggestions can be decided here');
     if (b.decision === 'REJECT') {
       await this.prisma.$transaction(async (tx) => {
-        await tx.matchCandidate.update({ where: { id }, data: { status: 'REJECTED', decidedByUserId: actor.userId, decidedAt: new Date(), decisionNote: b.note ?? null } });
-        await this.audit.record({ action: 'MATCH_REJECTED', entityType: 'MatchCandidate', entityId: id, actor, reason: b.note ?? null, scope: 'PLATFORM', source: 'ADMIN', meta }, tx);
+        await tx.matchCandidate.update({
+          where: { id },
+          data: {
+            status: 'REJECTED',
+            decidedByUserId: actor.userId,
+            decidedAt: new Date(),
+            decisionNote: b.note ?? null,
+          },
+        });
+        await this.audit.record(
+          {
+            action: 'MATCH_REJECTED',
+            entityType: 'MatchCandidate',
+            entityId: id,
+            actor,
+            reason: b.note ?? null,
+            scope: 'PLATFORM',
+            source: 'ADMIN',
+            meta,
+          },
+          tx,
+        );
       });
       return;
     }
@@ -345,43 +432,108 @@ export class MasterService {
     ]);
     // the registered record always survives; otherwise the caller chooses, defaulting to the older one
     const keep =
-      a.registration === 'REGISTERED' ? a : bb.registration === 'REGISTERED' ? bb : b.keepId === bb.id ? bb : b.keepId === a.id ? a : a.createdAt <= bb.createdAt ? a : bb;
+      a.registration === 'REGISTERED'
+        ? a
+        : bb.registration === 'REGISTERED'
+          ? bb
+          : b.keepId === bb.id
+            ? bb
+            : b.keepId === a.id
+              ? a
+              : a.createdAt <= bb.createdAt
+                ? a
+                : bb;
     const drop = keep.id === a.id ? bb : a;
     if (b.decision === 'ALIAS') {
       await this.prisma.$transaction(async (tx) => {
         await this.addAlias(tx, 'MERCHANT', keep.id, drop.nameEn);
-        await tx.matchCandidate.update({ where: { id }, data: { status: 'ALIAS', decidedByUserId: actor.userId, decidedAt: new Date(), decisionNote: b.note ?? null } });
-        await this.audit.record({ action: 'MATCH_ALIASED', entityType: 'MatchCandidate', entityId: id, actor, reason: b.note ?? null, scope: 'PLATFORM', source: 'ADMIN', meta }, tx);
+        await tx.matchCandidate.update({
+          where: { id },
+          data: {
+            status: 'ALIAS',
+            decidedByUserId: actor.userId,
+            decidedAt: new Date(),
+            decisionNote: b.note ?? null,
+          },
+        });
+        await this.audit.record(
+          {
+            action: 'MATCH_ALIASED',
+            entityType: 'MatchCandidate',
+            entityId: id,
+            actor,
+            reason: b.note ?? null,
+            scope: 'PLATFORM',
+            source: 'ADMIN',
+            meta,
+          },
+          tx,
+        );
       });
       return;
     }
     await this.merge(actor, drop.id, keep.id, b.note, meta);
-    await this.prisma.matchCandidate.update({ where: { id }, data: { status: 'MERGED', decidedByUserId: actor.userId, decidedAt: new Date(), decisionNote: b.note ?? null } });
+    await this.prisma.matchCandidate.update({
+      where: { id },
+      data: {
+        status: 'MERGED',
+        decidedByUserId: actor.userId,
+        decidedAt: new Date(),
+        decisionNote: b.note ?? null,
+      },
+    });
   }
 
   // ---------------------------------------------------------------- overrides and conflicts
   async createOverride(
     actor: Actor,
-    b: { entityType: 'MERCHANT' | 'BRANCH' | 'OFFER'; entityId: string; field: string; value: unknown; kind: 'LOCAL' | 'TEMPORARY' | 'PERMANENT'; validUntil?: string; reason: string },
+    b: {
+      entityType: 'MERCHANT' | 'BRANCH' | 'OFFER';
+      entityId: string;
+      field: string;
+      value: unknown;
+      kind: 'LOCAL' | 'TEMPORARY' | 'PERMANENT';
+      validUntil?: string;
+      reason: string;
+    },
     meta: RequestMeta,
   ) {
-    if (b.kind === 'TEMPORARY' && !b.validUntil) throw AppError.validation('A temporary override needs an end date', 'validUntil');
+    if (b.kind === 'TEMPORARY' && !b.validUntil)
+      throw AppError.validation('A temporary override needs an end date', 'validUntil');
     const until = b.validUntil ? new Date(b.validUntil) : null;
-    if (until && until <= new Date()) throw AppError.validation('The end date must be in the future', 'validUntil');
+    if (until && until <= new Date())
+      throw AppError.validation('The end date must be in the future', 'validUntil');
     const exists =
       b.entityType === 'MERCHANT'
-        ? await this.prisma.masterMerchant.findUnique({ where: { id: b.entityId }, select: { id: true } })
+        ? await this.prisma.masterMerchant.findUnique({
+            where: { id: b.entityId },
+            select: { id: true },
+          })
         : b.entityType === 'BRANCH'
-          ? await this.prisma.masterBranch.findUnique({ where: { id: b.entityId }, select: { id: true } })
-          : await this.prisma.referencedOffer.findUnique({ where: { id: b.entityId }, select: { id: true } });
+          ? await this.prisma.masterBranch.findUnique({
+              where: { id: b.entityId },
+              select: { id: true },
+            })
+          : await this.prisma.referencedOffer.findUnique({
+              where: { id: b.entityId },
+              select: { id: true },
+            });
     if (!exists) throw AppError.notFound();
     const row = await this.prisma.$transaction(async (tx) => {
       const r = await tx.entityOverride.create({
-        data: { ...b, value: b.value as Prisma.InputJsonValue, validUntil: until, createdByUserId: actor.userId },
+        data: {
+          ...b,
+          value: b.value as Prisma.InputJsonValue,
+          validUntil: until,
+          createdByUserId: actor.userId,
+        },
       });
       await tx.externalEntityReference.updateMany({
         where: { entityType: b.entityType, entityId: b.entityId },
-        data: { overrideStatus: b.kind === 'TEMPORARY' ? 'TEMPORARY' : b.kind === 'PERMANENT' ? 'PERMANENT' : 'LOCAL' },
+        data: {
+          overrideStatus:
+            b.kind === 'TEMPORARY' ? 'TEMPORARY' : b.kind === 'PERMANENT' ? 'PERMANENT' : 'LOCAL',
+        },
       });
       await this.applyLocal(tx, b.entityType, b.entityId, b.field, b.value);
       await this.audit.record(
@@ -407,21 +559,40 @@ export class MasterService {
   async applyLocal(tx: Tx, entityType: string, entityId: string, field: string, value: unknown) {
     const data = { [field]: value } as never;
     if (entityType === 'MERCHANT') {
-      if (!['nameEn', 'nameAr', 'country', 'categoryCode'].includes(field)) throw AppError.validation('This field cannot be overridden', 'field');
+      if (!['nameEn', 'nameAr', 'country', 'categoryCode'].includes(field))
+        throw AppError.validation('This field cannot be overridden', 'field');
       await tx.masterMerchant.update({ where: { id: entityId }, data });
-      if (field === 'nameEn') await tx.masterMerchant.update({ where: { id: entityId }, data: { normalizedName: await this.normalize(String(value)) } });
+      if (field === 'nameEn')
+        await tx.masterMerchant.update({
+          where: { id: entityId },
+          data: { normalizedName: await this.normalize(String(value)) },
+        });
     } else if (entityType === 'BRANCH') {
-      if (!['nameEn', 'nameAr', 'addressEn', 'addressAr', 'city'].includes(field)) throw AppError.validation('This field cannot be overridden', 'field');
+      if (!['nameEn', 'nameAr', 'addressEn', 'addressAr', 'city'].includes(field))
+        throw AppError.validation('This field cannot be overridden', 'field');
       await tx.masterBranch.update({ where: { id: entityId }, data });
     } else {
-      if (!['titleEn', 'titleAr', 'benefitEn', 'benefitAr', 'termsEn', 'termsAr'].includes(field)) throw AppError.validation('This field cannot be overridden', 'field');
+      if (!['titleEn', 'titleAr', 'benefitEn', 'benefitAr', 'termsEn', 'termsAr'].includes(field))
+        throw AppError.validation('This field cannot be overridden', 'field');
       await tx.referencedOffer.update({ where: { id: entityId }, data });
     }
   }
 
-  async activeOverride(tx: Tx | PrismaService, entityType: string, entityId: string, field: string, now = new Date()) {
+  async activeOverride(
+    tx: Tx | PrismaService,
+    entityType: string,
+    entityId: string,
+    field: string,
+    now = new Date(),
+  ) {
     return tx.entityOverride.findFirst({
-      where: { entityType, entityId, field, endedAt: null, OR: [{ validUntil: null }, { validUntil: { gt: now } }] },
+      where: {
+        entityType,
+        entityId,
+        field,
+        endedAt: null,
+        OR: [{ validUntil: null }, { validUntil: { gt: now } }],
+      },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -434,7 +605,8 @@ export class MasterService {
   ) {
     const c = await this.prisma.dataConflict.findUnique({ where: { id } });
     if (!c) throw AppError.notFound();
-    if (c.status !== 'OPEN') throw new AppError('INVALID_STATE', 'This conflict was already resolved', 409);
+    if (c.status !== 'OPEN')
+      throw new AppError('INVALID_STATE', 'This conflict was already resolved', 409);
     await this.prisma.$transaction(async (tx) => {
       if (b.resolution === 'SOURCE_WINS') {
         await this.applyLocal(tx, c.entityType, c.entityId, c.field, c.sourceValue);
@@ -446,12 +618,23 @@ export class MasterService {
       }
       await tx.dataConflict.update({
         where: { id },
-        data: { status: 'RESOLVED', resolution: b.resolution, resolvedByUserId: actor.userId, resolvedAt: new Date() },
+        data: {
+          status: 'RESOLVED',
+          resolution: b.resolution,
+          resolvedByUserId: actor.userId,
+          resolvedAt: new Date(),
+        },
       });
-      const open = await tx.dataConflict.count({ where: { entityType: c.entityType, entityId: c.entityId, status: 'OPEN', id: { not: id } } });
+      const open = await tx.dataConflict.count({
+        where: { entityType: c.entityType, entityId: c.entityId, status: 'OPEN', id: { not: id } },
+      });
       if (!open)
         await tx.externalEntityReference.updateMany({
-          where: { entityType: c.entityType, entityId: c.entityId, overrideStatus: 'PENDING_RECONCILIATION' },
+          where: {
+            entityType: c.entityType,
+            entityId: c.entityId,
+            overrideStatus: 'PENDING_RECONCILIATION',
+          },
           data: { overrideStatus: 'LOCAL' },
         });
       await this.audit.record(
@@ -473,9 +656,13 @@ export class MasterService {
   }
 
   // ---------------------------------------------------------------- views
-  private async toView(m: Prisma.MasterMerchantGetPayload<{ include: { brand: true } }>): Promise<MasterMerchantView> {
+  private async toView(
+    m: Prisma.MasterMerchantGetPayload<{ include: { brand: true } }>,
+  ): Promise<MasterMerchantView> {
     const [refs, aliases, branches, offers] = await Promise.all([
-      this.prisma.externalEntityReference.findMany({ where: { entityType: 'MERCHANT', entityId: m.id } }),
+      this.prisma.externalEntityReference.findMany({
+        where: { entityType: 'MERCHANT', entityId: m.id },
+      }),
       this.prisma.entityAlias.findMany({ where: { entityType: 'MERCHANT', entityId: m.id } }),
       this.prisma.masterBranch.count({ where: { merchantId: m.id } }),
       this.prisma.referencedOffer.count({ where: { merchantId: m.id } }),
@@ -508,14 +695,27 @@ export class MasterService {
     };
   }
 
-  async list(q: { q?: string; registration?: 'REFERENCED' | 'REGISTERED'; limit: number; cursor?: string }) {
+  async list(q: {
+    q?: string;
+    registration?: 'REFERENCED' | 'REGISTERED';
+    limit: number;
+    cursor?: string;
+  }) {
     await this.ensureAllRegistered();
     const norm = q.q ? await this.normalize(q.q) : '';
     const rows = await this.prisma.masterMerchant.findMany({
       where: {
         status: 'ACTIVE',
         ...(q.registration ? { registration: q.registration } : {}),
-        ...(norm ? { OR: [{ normalizedName: { contains: norm } }, { nameEn: { contains: q.q!, mode: 'insensitive' } }, { nameAr: { contains: q.q! } }] } : {}),
+        ...(norm
+          ? {
+              OR: [
+                { normalizedName: { contains: norm } },
+                { nameEn: { contains: q.q!, mode: 'insensitive' } },
+                { nameAr: { contains: q.q! } },
+              ],
+            }
+          : {}),
         ...(q.cursor ? { id: { gt: q.cursor } } : {}),
       },
       include: { brand: true },
@@ -528,7 +728,10 @@ export class MasterService {
   }
 
   async get(id: string) {
-    const m = await this.prisma.masterMerchant.findUnique({ where: { id }, include: { brand: true } });
+    const m = await this.prisma.masterMerchant.findUnique({
+      where: { id },
+      include: { brand: true },
+    });
     if (!m) throw AppError.notFound();
     return this.toView(m);
   }
@@ -542,7 +745,10 @@ export class MasterService {
     });
     const ids = [...new Set(rows.flatMap((r) => [r.aId, r.bId]))];
     const masters = await this.prisma.masterMerchant.findMany({ where: { id: { in: ids } } });
-    const refs = await this.prisma.externalEntityReference.findMany({ where: { entityType: 'MERCHANT', entityId: { in: ids } }, select: { entityId: true, sourceSystem: true } });
+    const refs = await this.prisma.externalEntityReference.findMany({
+      where: { entityType: 'MERCHANT', entityId: { in: ids } },
+      select: { entityId: true, sourceSystem: true },
+    });
     const mk = (id: string) => {
       const m = masters.find((x) => x.id === id);
       return {
@@ -550,7 +756,9 @@ export class MasterService {
         nameEn: m?.nameEn ?? '',
         country: m?.country ?? '',
         registration: m?.registration ?? null,
-        sourceSystems: [...new Set(refs.filter((r) => r.entityId === id).map((r) => r.sourceSystem))],
+        sourceSystems: [
+          ...new Set(refs.filter((r) => r.entityId === id).map((r) => r.sourceSystem)),
+        ],
       };
     };
     return rows.map((r) => ({
@@ -566,7 +774,11 @@ export class MasterService {
   }
 
   async conflicts(status = 'OPEN') {
-    const rows = await this.prisma.dataConflict.findMany({ where: { status }, orderBy: { createdAt: 'desc' }, take: 100 });
+    const rows = await this.prisma.dataConflict.findMany({
+      where: { status },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
     return rows.map((c) => ({
       id: c.id,
       entityType: c.entityType,

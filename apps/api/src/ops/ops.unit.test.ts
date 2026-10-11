@@ -6,7 +6,9 @@ describe('Stage 8 unit rules', () => {
   it('a UUID is never mistaken for a card number; a real card number always is', () => {
     // digit groups of a UUID joined by hyphens used to match the PAN pattern at random (Stage 7 defect, fixed in Stage 8)
     expect(looksLikeCardNumber('01934567-8901-7234-8567-890123456789')).toBe(false);
-    expect(looksLikeCardNumber('Scheme 01934567-8901-7234-8567-890123456789 and tier gold')).toBe(false);
+    expect(looksLikeCardNumber('Scheme 01934567-8901-7234-8567-890123456789 and tier gold')).toBe(
+      false,
+    );
     expect(looksLikeCardNumber('4111 1111 1111 1111')).toBe(true);
     expect(looksLikeCardNumber('4111-1111-1111-1111')).toBe(true);
     expect(looksLikeCardNumber('Use card 4111111111111111 at the till')).toBe(true);

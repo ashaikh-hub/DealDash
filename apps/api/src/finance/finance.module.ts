@@ -12,8 +12,20 @@ import { PricingService } from './pricing.service';
  */
 @Module({
   controllers: [MerchantCommercialController, AdminFinanceController],
-  providers: [LedgerService, CommercialRegistry, PricingService, CommercialService, FinanceAdminService],
-  exports: [LedgerService, CommercialRegistry, PricingService, CommercialService, FinanceAdminService],
+  providers: [
+    LedgerService,
+    CommercialRegistry,
+    PricingService,
+    CommercialService,
+    FinanceAdminService,
+  ],
+  exports: [
+    LedgerService,
+    CommercialRegistry,
+    PricingService,
+    CommercialService,
+    FinanceAdminService,
+  ],
 })
 export class FinanceModule implements OnModuleInit {
   onModuleInit() {

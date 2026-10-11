@@ -177,7 +177,8 @@ const UUID_IN_TEXT = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{1
  * organization reference in an eligibility rule) are removed first: their digit groups joined by hyphens could otherwise match the
  * PAN pattern at random and refuse a valid value.
  */
-export const looksLikeCardNumber = (text: string) => PAN_LIKE_PATTERN.test(text.replace(UUID_IN_TEXT, ' '));
+export const looksLikeCardNumber = (text: string) =>
+  PAN_LIKE_PATTERN.test(text.replace(UUID_IN_TEXT, ' '));
 export const CARD_PROGRAM_STATUSES = ['DRAFT', 'ACTIVE', 'RETIRED'] as const;
 export type CardProgramStatus = (typeof CARD_PROGRAM_STATUSES)[number];
 /** How a customer's link to a programme / employer is established. VERIFIED states need evidence from the named method. */

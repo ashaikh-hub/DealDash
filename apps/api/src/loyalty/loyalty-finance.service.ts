@@ -26,7 +26,10 @@ export class LoyaltyFinanceService {
   constructor(private readonly prisma: PrismaService) {}
 
   async summary(organizationId: string | null | undefined): Promise<LoyaltyFinanceSummary> {
-    const scope = organizationId === undefined ? Prisma.empty : Prisma.sql`AND (r."organizationId" = ${organizationId}::uuid OR r."fundingOrganizationId" = ${organizationId}::uuid)`;
+    const scope =
+      organizationId === undefined
+        ? Prisma.empty
+        : Prisma.sql`AND (r."organizationId" = ${organizationId}::uuid OR r."fundingOrganizationId" = ${organizationId}::uuid)`;
     const rows = await this.prisma.$queryRaw<Row[]>(Prisma.sql`
       SELECT r."id" AS "ruleId", r."name" AS "ruleName", r."fundingSource", r."fundingOrganizationId", r."maxAllocationPoints",
              r."fundingHalalasPerPoint" AS "rate",
@@ -42,7 +45,9 @@ export class LoyaltyFinanceService {
     const out: LoyaltyFinanceSummary['rows'] = [];
     for (const r of rows) {
       if (!r.ruleId) continue;
-      const lots = await this.prisma.$queryRaw<Array<{ remaining: bigint; total: bigint }>>(Prisma.sql`
+      const lots = await this.prisma.$queryRaw<
+        Array<{ remaining: bigint; total: bigint }>
+      >(Prisma.sql`
         SELECT COALESCE(SUM(l."remaining") FILTER (WHERE l."expiresAt" IS NULL OR l."expiresAt" > now()), 0)::bigint AS "remaining",
                COALESCE(SUM(l."points"), 0)::bigint AS "total"
         FROM "RewardLot" l JOIN "RewardEntry" e ON e."id" = l."entryId" WHERE e."ruleId" = ${r.ruleId}::uuid`);
@@ -57,7 +62,10 @@ export class LoyaltyFinanceService {
       let util: number | null = null;
       let received: number | null = null;
       if (r.rate !== null && r.fundingSource !== 'DEALDASH') {
-        const c = await this.prisma.commercialCase.findUnique({ where: { product_subjectId: { product: 'LOYALTY', subjectId: r.ruleId } }, include: { commitments: true } });
+        const c = await this.prisma.commercialCase.findUnique({
+          where: { product_subjectId: { product: 'LOYALTY', subjectId: r.ruleId } },
+          include: { commitments: true },
+        });
         util = c ? c.commitments.reduce((n, m) => n + m.utilizedHalalas, 0) : 0;
         received = c ? c.commitments.reduce((n, m) => n + m.receivedHalalas, 0) : 0;
       }
@@ -76,7 +84,8 @@ export class LoyaltyFinanceService {
         fundingHalalasPerPoint: r.rate,
         fundingUtilizedHalalas: util,
         fundingReceivedHalalas: received,
-        outstandingLiabilityHalalas: r.rate !== null && r.fundingSource !== 'DEALDASH' ? outstanding * r.rate : null,
+        outstandingLiabilityHalalas:
+          r.rate !== null && r.fundingSource !== 'DEALDASH' ? outstanding * r.rate : null,
       });
     }
     const held = await this.prisma.rewardAccount.aggregate({ _sum: { heldBalance: true } });

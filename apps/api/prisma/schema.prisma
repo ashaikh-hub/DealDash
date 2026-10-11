@@ -3346,6 +3346,17 @@ model SettlementRule {
   reconciliationMethod String    @default("STATEMENT_MATCH")
   holdDays             Int       @default(0)
   disputeTreatment     String    @default("HOLD_DISPUTED_AMOUNT")
+  /// Stage 9 (B1): settlement cut-off as HH:MM in the market's time zone (null: the run time is the cut-off).
+  cutoffTime           String?
+  /// Stage 9 (B1): rolling reserve withheld from each statement (basis points of the payable) and released after N days.
+  reserveBps           Int       @default(0)
+  reserveReleaseDays   Int       @default(0)
+  /// Stage 9 (B1): BANK_TRANSFER | PAYOUT_PROVIDER | MANUAL
+  payoutMethod         String    @default("BANK_TRANSFER")
+  /// Stage 9 (B1): how many times a failed payout may be instructed again before it needs a case.
+  failedRetryMaxAttempts Int     @default(3)
+  /// Stage 9 (B1): INFORMATIONAL (shown, not withheld) | WITHHELD (deducted) - the market decides (VALIDATE-<market>).
+  taxTreatment         String    @default("INFORMATIONAL")
   effectiveFrom        DateTime
   effectiveTo          DateTime?
   status               String    @default("DRAFT")
@@ -3977,6 +3988,10 @@ model CaseNote {
   /// For CONTACT: PHONE | EMAIL | CHAT | IN_APP | IN_PERSON, and INBOUND | OUTBOUND
   channel              String?
   direction            String?
+  /// Stage 9 (B6): who wrote it. DEALDASH | BUSINESS | CUSTOMER | SYSTEM. Customer messages are never shown to the business.
+  authorKind           String   @default("DEALDASH")
+  /// Stage 9 (B6): what the customer points to as evidence (an order / voucher reference, a receipt number). Never card data.
+  evidenceRef          String?
 
   case DisputeCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
 
@@ -4897,6 +4912,14 @@ model Settlement {
   failureReason        String?
   createdByUserId      String?   @db.Uuid
   approvedByUserId     String?   @db.Uuid
+  /// Stage 9 (B1): rolling reserve withheld from this statement, when it becomes releasable and the statement that released it.
+  reserveMinor         Int       @default(0)
+  reserveReleaseAt     DateTime?
+  reserveReleasedIntoId String?  @db.Uuid
+  /// Stage 9 (B1): reserves of earlier statements released into this one.
+  reserveReleasedMinor Int       @default(0)
+  /// Stage 9 (B2): payout instructions sent for this statement (retries are bounded by the rule).
+  payoutAttempts       Int       @default(0)
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 
@@ -4929,10 +4952,12 @@ model SettlementItem {
 model SettlementPayout {
   id              String     @id @default(uuid(7)) @db.Uuid
   settlementId    String     @db.Uuid
-  /// PAID | FAILED | REVERSED
+  /// INSTRUCTED (sent to the payout provider) | PAID | FAILED | REVERSED - each a new row (append-only)
   status          String
   amountMinor     Int
   externalRef     String?
+  /// Stage 9 (B2): payout adapter that carried the instruction (null: recorded by hand from a bank reference)
+  provider        String?
   journalId       String?    @db.Uuid
   reason          String?
   recordedByUserId String?   @db.Uuid
@@ -5156,6 +5181,56 @@ model NotificationDelivery {
   @@index([status, nextRetryAt])
   @@index([userId, createdAt])
   @@index([channel, status, createdAt])
+}
+
+/// Stage 9 (B7): a proposed change to a governed configuration (rules and controls). Applied only after a different person approves
+/// it, on or after its effective time; the configuration row then gets a new version and the audit keeps both values (rollback =
+/// a new request restoring an earlier version's value).
+model ConfigChangeRequest {
+  id               String    @id @default(uuid(7)) @db.Uuid
+  reference        String    @unique
+  key              String
+  /// The part of the configuration the change is about (for display and per-section rules), e.g. reasons.refund, sla.CASE
+  section          String
+  value            Json
+  /// Version of the configuration the request was made against (a stale request cannot be applied)
+  baseVersion      Int
+  reason           String
+  effectiveFrom    DateTime?
+  /// PENDING_APPROVAL | SCHEDULED | APPLIED | REJECTED | CANCELLED | SUPERSEDED
+  status           String    @default("PENDING_APPROVAL")
+  /// The version this request restores (rollback), if any
+  restoresVersion  Int?
+  requestedByUserId String   @db.Uuid
+  decidedByUserId  String?   @db.Uuid
+  decidedAt        DateTime?
+  decisionReason   String?
+  appliedVersion   Int?
+  appliedAt        DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([key, status])
+  @@index([status, effectiveFrom])
+}
+
+/// Stage 9: a legal hold stops deletion / anonymisation of a subject's data while it is in force (the reason is recorded, never
+/// assumed; when a hold is required is VALIDATE-<market>).
+model LegalHold {
+  id               String    @id @default(uuid(7)) @db.Uuid
+  reference        String    @unique
+  /// USER | ORGANIZATION
+  subjectType      String
+  subjectId        String    @db.Uuid
+  reason           String
+  caseId           String?   @db.Uuid
+  placedByUserId   String    @db.Uuid
+  liftedByUserId   String?   @db.Uuid
+  liftReason       String?
+  liftedAt         DateTime?
+  createdAt        DateTime  @default(now())
+
+  @@index([subjectType, subjectId])
 }
 
 /// A customer data request (export or deletion). Deletion anonymises personal data and keeps the records the law requires

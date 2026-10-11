@@ -54,10 +54,16 @@ export class LoyaltyRulesService {
     let commercialStatus: string | null = null;
     if (r.fundingSource !== 'DEALDASH') {
       const id = await this.commercial.caseIdOf('LOYALTY', r.id);
-      if (id) commercialStatus = (await this.prisma.commercialCase.findUnique({ where: { id }, select: { status: true } }))?.status ?? null;
+      if (id)
+        commercialStatus =
+          (await this.prisma.commercialCase.findUnique({ where: { id }, select: { status: true } }))
+            ?.status ?? null;
     }
     const set = r.eligibilityRuleSetId
-      ? await this.prisma.eligibilityRuleSet.findUnique({ where: { id: r.eligibilityRuleSetId }, select: { kind: true } })
+      ? await this.prisma.eligibilityRuleSet.findUnique({
+          where: { id: r.eligibilityRuleSetId },
+          select: { kind: true },
+        })
       : null;
     return {
       id: r.id,
@@ -83,7 +89,8 @@ export class LoyaltyRulesService {
       maxAllocationPoints: r.maxAllocationPoints,
       allocatedPoints: r.allocatedPoints,
       reversedPoints: r.reversedPoints,
-      remainingAllocation: r.maxAllocationPoints === null ? null : r.maxAllocationPoints - r.allocatedPoints,
+      remainingAllocation:
+        r.maxAllocationPoints === null ? null : r.maxAllocationPoints - r.allocatedPoints,
       effectiveFrom: r.effectiveFrom.toISOString(),
       effectiveUntil: r.effectiveUntil?.toISOString() ?? null,
       commercialStatus,
@@ -93,22 +100,44 @@ export class LoyaltyRulesService {
 
   // ---------------------------------------------------------------- create / read
   /** `orgId` = the business creating it (business routes); null = DealDash Admin. */
-  async create(actor: Actor, orgId: string | null, b: LoyaltyRuleCreate, meta: RequestMeta): Promise<LoyaltyRuleView> {
+  async create(
+    actor: Actor,
+    orgId: string | null,
+    b: LoyaltyRuleCreate,
+    meta: RequestMeta,
+  ): Promise<LoyaltyRuleView> {
     const cfg = await this.cfg();
-    if (!cfg.eventTypes.includes(b.eventType)) throw this.bad('This kind of event does not earn points', 'eventType');
+    if (!cfg.eventTypes.includes(b.eventType))
+      throw this.bad('This kind of event does not earn points', 'eventType');
     if (cfg.maxAllocationPerRule !== null && b.maxAllocationPoints > cfg.maxAllocationPerRule)
-      throw this.bad(`A rule may allocate at most ${cfg.maxAllocationPerRule} points`, 'maxAllocationPoints');
+      throw this.bad(
+        `A rule may allocate at most ${cfg.maxAllocationPerRule} points`,
+        'maxAllocationPoints',
+      );
     let ownerOrg = b.organizationId;
     if (orgId) {
       ownerOrg = orgId;
       const org = await this.prisma.organization.findUniqueOrThrow({ where: { id: orgId } });
       await this.entitlements.requireProduct(orgId, 'LOYALTY');
-      if (b.fundingSource === 'DEALDASH') throw this.bad('A business cannot create a DealDash-funded rule', 'fundingSource');
-      if (!(SOURCES_BY_ORG[org.type] ?? []).includes(b.fundingSource)) throw this.bad('This funding source is not available to your business', 'fundingSource');
-      if (b.fundingOrganizationId !== orgId) throw this.bad('A business funds its own rules', 'fundingOrganizationId');
+      if (b.fundingSource === 'DEALDASH')
+        throw this.bad('A business cannot create a DealDash-funded rule', 'fundingSource');
+      if (!(SOURCES_BY_ORG[org.type] ?? []).includes(b.fundingSource))
+        throw this.bad('This funding source is not available to your business', 'fundingSource');
+      if (b.fundingOrganizationId !== orgId)
+        throw this.bad('A business funds its own rules', 'fundingOrganizationId');
     } else if (b.fundingOrganizationId) {
-      const f = await this.prisma.organization.findFirst({ where: { id: b.fundingOrganizationId, status: 'ACTIVE', type: { in: ['MERCHANT', 'PARTNER'] } } });
-      if (!f) throw this.bad('The funding organization was not found or is not active', 'fundingOrganizationId');
+      const f = await this.prisma.organization.findFirst({
+        where: {
+          id: b.fundingOrganizationId,
+          status: 'ACTIVE',
+          type: { in: ['MERCHANT', 'PARTNER'] },
+        },
+      });
+      if (!f)
+        throw this.bad(
+          'The funding organization was not found or is not active',
+          'fundingOrganizationId',
+        );
     }
     let ownerType: string | null = null;
     if (ownerOrg) {
@@ -121,7 +150,10 @@ export class LoyaltyRulesService {
       // Stage 7: a partner sponsors points on an active merchant's campaign (for example Watch & Earn); a merchant only its own
       const where =
         ownerType === 'PARTNER'
-          ? { id: b.campaignId, organization: { status: 'ACTIVE' as const, type: 'MERCHANT' as const } }
+          ? {
+              id: b.campaignId,
+              organization: { status: 'ACTIVE' as const, type: 'MERCHANT' as const },
+            }
           : { id: b.campaignId, ...(ownerOrg ? { organizationId: ownerOrg } : {}) };
       const found =
         b.productScope === 'EXCLUSIVE'
@@ -140,7 +172,15 @@ export class LoyaltyRulesService {
       await this.eligibility.validateReferences(b.eligibility, cities);
     }
     const row = await this.prisma.$transaction(async (tx) => {
-      const ruleSetId = b.eligibility && b.eligibility.kind !== 'PUBLIC' ? await this.eligibility.syncRuleSet(tx, null, ownerOrg ?? actor.membership!.organizationId, b.eligibility) : null;
+      const ruleSetId =
+        b.eligibility && b.eligibility.kind !== 'PUBLIC'
+          ? await this.eligibility.syncRuleSet(
+              tx,
+              null,
+              ownerOrg ?? actor.membership!.organizationId,
+              b.eligibility,
+            )
+          : null;
       const r = await tx.loyaltyRule.create({
         data: {
           name: b.name,
@@ -168,7 +208,21 @@ export class LoyaltyRulesService {
         },
       });
       await this.audit.record(
-        { action: 'LOYALTY_RULE_CREATED', entityType: 'LoyaltyRule', entityId: r.id, actor, subjectOrganizationId: ownerOrg, newState: { name: b.name, eventType: b.eventType, funding: b.fundingSource, max: b.maxAllocationPoints }, scope: ownerOrg ? 'ORGANIZATION' : 'PLATFORM', meta },
+        {
+          action: 'LOYALTY_RULE_CREATED',
+          entityType: 'LoyaltyRule',
+          entityId: r.id,
+          actor,
+          subjectOrganizationId: ownerOrg,
+          newState: {
+            name: b.name,
+            eventType: b.eventType,
+            funding: b.fundingSource,
+            max: b.maxAllocationPoints,
+          },
+          scope: ownerOrg ? 'ORGANIZATION' : 'PLATFORM',
+          meta,
+        },
         tx,
       );
       return r;
@@ -177,12 +231,18 @@ export class LoyaltyRulesService {
   }
 
   async list(where: Prisma.LoyaltyRuleWhereInput) {
-    const rows = await this.prisma.loyaltyRule.findMany({ where, orderBy: { createdAt: 'desc' }, take: 200 });
+    const rows = await this.prisma.loyaltyRule.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+    });
     return Promise.all(rows.map((r) => this.view(r)));
   }
 
   async load(id: string, organizationId?: string | null) {
-    const r = await this.prisma.loyaltyRule.findFirst({ where: { id, ...(organizationId !== undefined ? { organizationId } : {}) } });
+    const r = await this.prisma.loyaltyRule.findFirst({
+      where: { id, ...(organizationId !== undefined ? { organizationId } : {}) },
+    });
     if (!r) throw AppError.notFound();
     return r;
   }
@@ -198,26 +258,72 @@ export class LoyaltyRulesService {
     reason?: string,
   ) {
     await this.prisma.$transaction(async (tx) => {
-      const res = await tx.loyaltyRule.updateMany({ where: { id: r.id, status: r.status }, data: { status: to, ...extra } });
-      if (res.count !== 1) throw new AppError('VERSION_CONFLICT', 'The rule changed. Reload and try again.', 409);
+      const res = await tx.loyaltyRule.updateMany({
+        where: { id: r.id, status: r.status },
+        data: { status: to, ...extra },
+      });
+      if (res.count !== 1)
+        throw new AppError('VERSION_CONFLICT', 'The rule changed. Reload and try again.', 409);
       await this.audit.record(
-        { action, entityType: 'LoyaltyRule', entityId: r.id, actor, subjectOrganizationId: r.organizationId, previousState: { status: r.status }, newState: { status: to }, reason: reason ?? null, scope: r.organizationId ? 'ORGANIZATION' : 'PLATFORM', meta },
+        {
+          action,
+          entityType: 'LoyaltyRule',
+          entityId: r.id,
+          actor,
+          subjectOrganizationId: r.organizationId,
+          previousState: { status: r.status },
+          newState: { status: to },
+          reason: reason ?? null,
+          scope: r.organizationId ? 'ORGANIZATION' : 'PLATFORM',
+          meta,
+        },
         tx,
       );
       if (to === 'ACTIVE')
-        await this.versions.recordLive(tx, { product: 'LOYALTY', subjectId: r.id, organizationId: r.organizationId ?? r.fundingOrganizationId ?? actor.membership!.organizationId, content: this.snapshot(r), reason: 'APPROVED', userId: actor.userId });
+        await this.versions.recordLive(tx, {
+          product: 'LOYALTY',
+          subjectId: r.id,
+          organizationId:
+            r.organizationId ?? r.fundingOrganizationId ?? actor.membership!.organizationId,
+          content: this.snapshot(r),
+          reason: 'APPROVED',
+          userId: actor.userId,
+        });
     });
   }
 
   private snapshot(r: Row) {
-    const { id, createdAt, updatedAt, allocatedPoints, reversedPoints, status, approvedAt, approvedByUserId, ...rest } = r;
-    void id; void createdAt; void updatedAt; void allocatedPoints; void reversedPoints; void status; void approvedAt; void approvedByUserId;
+    const {
+      id,
+      createdAt,
+      updatedAt,
+      allocatedPoints,
+      reversedPoints,
+      status,
+      approvedAt,
+      approvedByUserId,
+      ...rest
+    } = r;
+    void id;
+    void createdAt;
+    void updatedAt;
+    void allocatedPoints;
+    void reversedPoints;
+    void status;
+    void approvedAt;
+    void approvedByUserId;
     return rest;
   }
 
-  async submit(actor: Actor, id: string, organizationId: string | null | undefined, meta: RequestMeta) {
+  async submit(
+    actor: Actor,
+    id: string,
+    organizationId: string | null | undefined,
+    meta: RequestMeta,
+  ) {
     const r = await this.load(id, organizationId);
-    if (r.status !== 'DRAFT') throw new AppError('INVALID_STATE', `A ${r.status} rule cannot be submitted`, 409);
+    if (r.status !== 'DRAFT')
+      throw new AppError('INVALID_STATE', `A ${r.status} rule cannot be submitted`, 409);
     if (r.fundingSource !== 'DEALDASH') await this.commercial.assertCanSubmit('LOYALTY', id, actor);
     await this.move(actor, r, 'PENDING_APPROVAL', 'LOYALTY_RULE_SUBMITTED', meta);
     return this.view(await this.load(id));
@@ -226,39 +332,78 @@ export class LoyaltyRulesService {
   /** DealDash approval. A different person than the author approves; a funded rule must also clear the commercial gate. */
   async approve(actor: Actor, id: string, meta: RequestMeta, reason?: string) {
     const r = await this.load(id);
-    if (r.status !== 'PENDING_APPROVAL') throw new AppError('INVALID_STATE', 'This rule is not waiting for approval', 409);
-    if (r.createdByUserId === actor.userId) throw new AppError('APPROVAL_REQUIRED', 'A different person must approve this rule', 403);
+    if (r.status !== 'PENDING_APPROVAL')
+      throw new AppError('INVALID_STATE', 'This rule is not waiting for approval', 409);
+    if (r.createdByUserId === actor.userId)
+      throw new AppError('APPROVAL_REQUIRED', 'A different person must approve this rule', 403);
     if (r.fundingSource !== 'DEALDASH') await this.commercial.assertCanActivate('LOYALTY', id);
-    await this.move(actor, r, 'ACTIVE', 'LOYALTY_RULE_APPROVED', meta, { approvedByUserId: actor.userId, approvedAt: new Date() }, reason);
+    await this.move(
+      actor,
+      r,
+      'ACTIVE',
+      'LOYALTY_RULE_APPROVED',
+      meta,
+      { approvedByUserId: actor.userId, approvedAt: new Date() },
+      reason,
+    );
     return this.view(await this.load(id));
   }
 
   async reject(actor: Actor, id: string, reason: string, meta: RequestMeta) {
     const r = await this.load(id);
-    if (r.status !== 'PENDING_APPROVAL') throw new AppError('INVALID_STATE', 'This rule is not waiting for approval', 409);
+    if (r.status !== 'PENDING_APPROVAL')
+      throw new AppError('INVALID_STATE', 'This rule is not waiting for approval', 409);
     await this.move(actor, r, 'REJECTED', 'LOYALTY_RULE_REJECTED', meta, {}, reason);
     return this.view(await this.load(id));
   }
 
-  async pause(actor: Actor, id: string, organizationId: string | null | undefined, reason: string | undefined, meta: RequestMeta) {
+  async pause(
+    actor: Actor,
+    id: string,
+    organizationId: string | null | undefined,
+    reason: string | undefined,
+    meta: RequestMeta,
+  ) {
     const r = await this.load(id, organizationId);
-    if (r.status !== 'ACTIVE') throw new AppError('INVALID_STATE', 'Only an active rule can be paused', 409);
+    if (r.status !== 'ACTIVE')
+      throw new AppError('INVALID_STATE', 'Only an active rule can be paused', 409);
     await this.move(actor, r, 'PAUSED', 'LOYALTY_RULE_PAUSED', meta, {}, reason);
     return this.view(await this.load(id));
   }
 
-  async resume(actor: Actor, id: string, organizationId: string | null | undefined, meta: RequestMeta) {
+  async resume(
+    actor: Actor,
+    id: string,
+    organizationId: string | null | undefined,
+    meta: RequestMeta,
+  ) {
     const r = await this.load(id, organizationId);
-    if (r.status !== 'PAUSED') throw new AppError('INVALID_STATE', 'Only a paused rule can be resumed', 409);
+    if (r.status !== 'PAUSED')
+      throw new AppError('INVALID_STATE', 'Only a paused rule can be resumed', 409);
     if (r.fundingSource !== 'DEALDASH') await this.commercial.assertCanActivate('LOYALTY', id);
     await this.move(actor, r, 'ACTIVE', 'LOYALTY_RULE_RESUMED', meta);
     return this.view(await this.load(id));
   }
 
-  async end(actor: Actor, id: string, organizationId: string | null | undefined, reason: string | undefined, meta: RequestMeta) {
+  async end(
+    actor: Actor,
+    id: string,
+    organizationId: string | null | undefined,
+    reason: string | undefined,
+    meta: RequestMeta,
+  ) {
     const r = await this.load(id, organizationId);
-    if (!['ACTIVE', 'PAUSED', 'DRAFT'].includes(r.status)) throw new AppError('INVALID_STATE', `A ${r.status} rule cannot be ended`, 409);
-    await this.move(actor, r, 'ENDED', 'LOYALTY_RULE_ENDED', meta, { effectiveUntil: new Date() }, reason);
+    if (!['ACTIVE', 'PAUSED', 'DRAFT'].includes(r.status))
+      throw new AppError('INVALID_STATE', `A ${r.status} rule cannot be ended`, 409);
+    await this.move(
+      actor,
+      r,
+      'ENDED',
+      'LOYALTY_RULE_ENDED',
+      meta,
+      { effectiveUntil: new Date() },
+      reason,
+    );
     return this.view(await this.load(id));
   }
 
@@ -266,24 +411,60 @@ export class LoyaltyRulesService {
    * Raising the ceiling raises the liability. A funded rule goes through the commercial amendment (the funder re-accepts and funds
    * the difference); a DealDash-funded rule needs the approval permission and a different person than the author.
    */
-  async increaseAllocation(actor: Actor, id: string, organizationId: string | null | undefined, newMax: number, meta: RequestMeta) {
+  async increaseAllocation(
+    actor: Actor,
+    id: string,
+    organizationId: string | null | undefined,
+    newMax: number,
+    meta: RequestMeta,
+  ) {
     const r = await this.load(id, organizationId);
-    if (!['ACTIVE', 'PAUSED', 'DRAFT'].includes(r.status)) throw new AppError('INVALID_STATE', `A ${r.status} rule cannot be changed`, 409);
-    if (r.maxAllocationPoints !== null && newMax <= r.maxAllocationPoints) throw this.bad('Only an increase needs this step', 'maxAllocationPoints');
+    if (!['ACTIVE', 'PAUSED', 'DRAFT'].includes(r.status))
+      throw new AppError('INVALID_STATE', `A ${r.status} rule cannot be changed`, 409);
+    if (r.maxAllocationPoints !== null && newMax <= r.maxAllocationPoints)
+      throw this.bad('Only an increase needs this step', 'maxAllocationPoints');
     const cfg = await this.cfg();
-    if (cfg.maxAllocationPerRule !== null && newMax > cfg.maxAllocationPerRule) throw this.bad(`A rule may allocate at most ${cfg.maxAllocationPerRule} points`, 'maxAllocationPoints');
+    if (cfg.maxAllocationPerRule !== null && newMax > cfg.maxAllocationPerRule)
+      throw this.bad(
+        `A rule may allocate at most ${cfg.maxAllocationPerRule} points`,
+        'maxAllocationPoints',
+      );
     if (r.status !== 'DRAFT') {
-      if (r.fundingSource !== 'DEALDASH') await this.commercial.requireCoverage('LOYALTY', id, newMax, actor);
-      else if (r.createdByUserId === actor.userId) throw new AppError('APPROVAL_REQUIRED', 'A different person must approve a higher DealDash allocation', 403);
+      if (r.fundingSource !== 'DEALDASH')
+        await this.commercial.requireCoverage('LOYALTY', id, newMax, actor);
+      else if (r.createdByUserId === actor.userId)
+        throw new AppError(
+          'APPROVAL_REQUIRED',
+          'A different person must approve a higher DealDash allocation',
+          403,
+        );
     }
     await this.prisma.$transaction(async (tx) => {
       await tx.loyaltyRule.update({ where: { id }, data: { maxAllocationPoints: newMax } });
       if (r.status !== 'DRAFT') {
         const fresh = await tx.loyaltyRule.findUniqueOrThrow({ where: { id } });
-        await this.versions.recordLive(tx, { product: 'LOYALTY', subjectId: id, organizationId: r.organizationId ?? r.fundingOrganizationId ?? actor.membership!.organizationId, content: this.snapshot(fresh), reason: 'AMENDMENT', userId: actor.userId });
+        await this.versions.recordLive(tx, {
+          product: 'LOYALTY',
+          subjectId: id,
+          organizationId:
+            r.organizationId ?? r.fundingOrganizationId ?? actor.membership!.organizationId,
+          content: this.snapshot(fresh),
+          reason: 'AMENDMENT',
+          userId: actor.userId,
+        });
       }
       await this.audit.record(
-        { action: 'LOYALTY_ALLOCATION_INCREASED', entityType: 'LoyaltyRule', entityId: id, actor, subjectOrganizationId: r.organizationId, previousState: { max: r.maxAllocationPoints }, newState: { max: newMax }, scope: r.organizationId ? 'ORGANIZATION' : 'PLATFORM', meta },
+        {
+          action: 'LOYALTY_ALLOCATION_INCREASED',
+          entityType: 'LoyaltyRule',
+          entityId: id,
+          actor,
+          subjectOrganizationId: r.organizationId,
+          previousState: { max: r.maxAllocationPoints },
+          newState: { max: newMax },
+          scope: r.organizationId ? 'ORGANIZATION' : 'PLATFORM',
+          meta,
+        },
         tx,
       );
     });

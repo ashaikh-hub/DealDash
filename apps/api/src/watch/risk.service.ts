@@ -409,7 +409,12 @@ export class RiskService {
         if (!view) return;
         await this.rewards.reverse(tx, view.id, 'FRAUD_REVIEW', rolePair);
         // loyalty points earned from this view follow the same verdict
-        await this.loyalty?.reverseForSource(tx, { sourceType: 'EVENT', sourceId: `view:${view.id}`, reason: 'FRAUD_REVIEW', actor: { userId: actor.userId, role: info.role } });
+        await this.loyalty?.reverseForSource(tx, {
+          sourceType: 'EVENT',
+          sourceId: `view:${view.id}`,
+          reason: 'FRAUD_REVIEW',
+          actor: { userId: actor.userId, role: info.role },
+        });
         if (view.status === 'QUALIFIED') {
           const c = await tx.watchCampaign.findUniqueOrThrow({ where: { id: view.campaignId } });
           await this.funding.creditBack(tx, c, view, 'fraud review');

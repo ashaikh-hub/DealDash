@@ -398,7 +398,12 @@ function AddMerchant({ orgId }: { orgId: string }) {
           </Field>
         </div>
         {!marketsReady ? (
-          <p className="dd-caption" role="status" data-testid="pt-net-markets-state" style={{ marginBlockStart: 8 }}>
+          <p
+            className="dd-caption"
+            role="status"
+            data-testid="pt-net-markets-state"
+            style={{ marginBlockStart: 8 }}
+          >
             {markets.loading || !markets.data ? t('pt.net.marketsLoading') : t('pt.net.noMarket')}
           </p>
         ) : null}
@@ -793,7 +798,13 @@ function OffersInner({ orgId }: { orgId: string }) {
                       </td>
                       <td>
                         <Chip
-                          v={o.publication === 'PUBLISHABLE' ? 'OK' : o.publication === 'STALE' ? 'MISSING' : 'PENDING_REVIEW'}
+                          v={
+                            o.publication === 'PUBLISHABLE'
+                              ? 'OK'
+                              : o.publication === 'STALE'
+                                ? 'MISSING'
+                                : 'PENDING_REVIEW'
+                          }
                           label={t(k('pt.offers.pub', o.publication))}
                           testId={`pt-offer-pub-${o.sourceRecordId}`}
                         />
@@ -860,7 +871,11 @@ function CreateOffer({ orgId, onDone }: { orgId: string; onDone: () => void }) {
       <p className="dd-muted">{t('pt.offers.createIntro')}</p>
       {cmd.banner}
       <div
-        style={{ display: 'grid', gap: 8, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}
+        style={{
+          display: 'grid',
+          gap: 8,
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        }}
         data-testid="pt-offer-create"
       >
         <Field label={t('pt.merchant')} htmlFor="of-m" error={cmd.fields.merchantSourceId}>
@@ -872,7 +887,11 @@ function CreateOffer({ orgId, onDone }: { orgId: string; onDone: () => void }) {
             ))}
           </Select>
         </Field>
-        <Field label={t('pt.offers.publicationRef')} htmlFor="of-ref" error={cmd.fields.publicationRef}>
+        <Field
+          label={t('pt.offers.publicationRef')}
+          htmlFor="of-ref"
+          error={cmd.fields.publicationRef}
+        >
           <Input id="of-ref" dir="ltr" value={f.publicationRef} onChange={set('publicationRef')} />
         </Field>
         <Field label={t('pt.offers.externalId')} htmlFor="of-ext">

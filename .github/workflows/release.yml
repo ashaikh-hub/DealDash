@@ -1,0 +1,117 @@
+name: Release (build, staging, production approval gate)
+
+# Stage 9 release flow: Development -> Staging -> UAT -> Production (docs/PRODUCTION_RUNBOOK.md).
+#  - A release is a version tag (vX.Y.Z). Building it produces versioned container images (one API image, one image per web app),
+#    the release notes, the migration list and an SBOM, kept as the release record.
+#  - Staging is deployed from the tag after CI is green. Production is deployed ONLY by a manual run of this workflow for an
+#    existing tag, through the protected `production` environment (required reviewers configured in GitHub; see the runbook).
+#    Nothing reaches production because code reached main.
+#  - Hosting is not selected yet (EXTERNAL DEPENDENCY): the deploy steps call tooling/deploy/deploy.mjs, which refuses to run
+#    until the target's secrets are configured. No secret is stored in this file.
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Existing release tag to deploy (e.g. v1.0.0)'
+        required: true
+      target:
+        description: 'staging or production'
+        required: true
+        default: staging
+        type: choice
+        options: [staging, production]
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: release-${{ github.event.inputs.target || 'staging' }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      matrix:
+        app: [api, customer, merchant, staff, partner, admin]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the ${{ matrix.app }} image
+        run: |
+          docker build \
+            -f infra/docker/${{ matrix.app == 'api' && 'api' || 'web' }}.Dockerfile \
+            ${{ matrix.app != 'api' && format('--build-arg APP={0}', matrix.app) || '' }} \
+            -t ghcr.io/${{ github.repository }}/${{ matrix.app }}:${{ github.ref_name }} .
+      - name: Push the image to the registry
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker push ghcr.io/${{ github.repository }}/${{ matrix.app }}:${{ github.ref_name }}
+
+  release-record:
+    if: github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Release notes, migration set and SBOM
+        run: |
+          mkdir -p release
+          PREV=$(git describe --tags --abbrev=0 "${{ github.ref_name }}^" 2>/dev/null || echo "")
+          echo "# DealDash ${{ github.ref_name }}" > release/RELEASE_NOTES.md
+          echo "Commit: ${{ github.sha }}" >> release/RELEASE_NOTES.md
+          echo "Previous release (rollback reference): ${PREV:-none}" >> release/RELEASE_NOTES.md
+          echo "## Changes" >> release/RELEASE_NOTES.md
+          git log --pretty='- %s (%h)' ${PREV:+$PREV..}${{ github.ref_name }} >> release/RELEASE_NOTES.md
+          echo "## Database migrations in this release" >> release/RELEASE_NOTES.md
+          git diff --name-only ${PREV:+$PREV} ${{ github.ref_name }} -- apps/api/prisma/migrations | sed 's/^/- /' >> release/RELEASE_NOTES.md
+          npx --yes @cyclonedx/cyclonedx-npm@1 --output-file release/sbom.json --ignore-npm-errors || echo "SBOM generation needs review" > release/sbom.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ github.ref_name }}
+          path: release/
+
+  deploy-staging:
+    # after a tag build (needs succeeded), or a manual redeploy of an existing tag to staging (needs skipped)
+    if: ${{ !failure() && !cancelled() && (github.event_name == 'push' || github.event.inputs.target == 'staging') }}
+    needs: [release-record]
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Deploy to staging (migrations first, forward-only)
+        env:
+          DEPLOY_TARGET: staging
+          RELEASE_VERSION: ${{ github.event.inputs.version || github.ref_name }}
+          DEPLOY_HOOK_URL: ${{ secrets.DEPLOY_HOOK_URL }}
+          DEPLOY_HOOK_TOKEN: ${{ secrets.DEPLOY_HOOK_TOKEN }}
+        run: node tooling/deploy/deploy.mjs
+
+  deploy-production:
+    # manual only, for an existing tag, through the protected environment (required reviewers)
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'production'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.version }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Deploy to production (migrations first, forward-only)
+        env:
+          DEPLOY_TARGET: production
+          RELEASE_VERSION: ${{ github.event.inputs.version }}
+          DEPLOY_HOOK_URL: ${{ secrets.DEPLOY_HOOK_URL }}
+          DEPLOY_HOOK_TOKEN: ${{ secrets.DEPLOY_HOOK_TOKEN }}
+        run: node tooling/deploy/deploy.mjs

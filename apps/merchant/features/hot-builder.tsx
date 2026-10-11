@@ -1156,7 +1156,13 @@ function BuilderInner({ dealId }: { dealId?: string }) {
           </div>
         </dl>
       </Card>
-      {!live ? <CommercialInputsEditor value={content.commercial} onChange={(commercial) => edit({ commercial })} product="EXCLUSIVE" /> : null}
+      {!live ? (
+        <CommercialInputsEditor
+          value={content.commercial}
+          onChange={(commercial) => edit({ commercial })}
+          product="EXCLUSIVE"
+        />
+      ) : null}
       {orgId ? (
         <CommercialPanel
           orgId={orgId}
@@ -1270,7 +1276,12 @@ function BuilderInner({ dealId }: { dealId?: string }) {
                   {live ? t('builder.saveChanges') : t('mhb.save')}
                 </Button>
                 {last ? (
-                  <Button onClick={() => void submit()} loading={saving} disabled={!live && !cmReady} data-testid="hot-submit">
+                  <Button
+                    onClick={() => void submit()}
+                    loading={saving}
+                    disabled={!live && !cmReady}
+                    data-testid="hot-submit"
+                  >
                     {live ? t('builder.saveChanges') : t('mhb.submit')}
                   </Button>
                 ) : (

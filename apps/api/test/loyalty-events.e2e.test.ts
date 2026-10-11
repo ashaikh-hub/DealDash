@@ -18,7 +18,12 @@ describe.skipIf(!DB_READY)('Loyalty events through the real product flows', () =
   });
   afterAll(() => t?.close());
 
-  const rule = (eventType: string, productScope: string, campaignId: string, extra: Record<string, unknown> = {}) =>
+  const rule = (
+    eventType: string,
+    productScope: string,
+    campaignId: string,
+    extra: Record<string, unknown> = {},
+  ) =>
     t.prisma.loyaltyRule.create({
       data: {
         name: `${eventType} test ${campaignId.slice(0, 6)}`,
@@ -35,8 +40,12 @@ describe.skipIf(!DB_READY)('Loyalty events through the real product flows', () =
       },
     });
   const entries = (ruleId: string, userId: string) =>
-    t.prisma.rewardEntry.findMany({ where: { ruleId, account: { userId } }, orderBy: { createdAt: 'asc' } });
-  const balance = async (userId: string) => (await t.prisma.rewardAccount.findUnique({ where: { userId } }))?.availableBalance ?? 0;
+    t.prisma.rewardEntry.findMany({
+      where: { ruleId, account: { userId } },
+      orderBy: { createdAt: 'asc' },
+    });
+  const balance = async (userId: string) =>
+    (await t.prisma.rewardAccount.findUnique({ where: { userId } }))?.availableBalance ?? 0;
 
   it('Exclusive Deal: a verified redemption earns points; reversing the redemption takes them back', async () => {
     const deal = await w.publishHot('A', 5, {});
@@ -48,15 +57,30 @@ describe.skipIf(!DB_READY)('Loyalty events through the real product flows', () =
     expect((await w.redeem(w.staffA, held.code.qr as string)).body.data.result).toBe('REDEEMED');
     const earned = await entries(r.id, uid);
     expect(earned).toHaveLength(1);
-    expect(earned[0]).toMatchObject({ type: 'EARN', points: 7, sourceProduct: 'EXCLUSIVE', sourceCampaignId: deal.id, fundingSource: 'DEALDASH', sourceType: 'REDEMPTION' });
+    expect(earned[0]).toMatchObject({
+      type: 'EARN',
+      points: 7,
+      sourceProduct: 'EXCLUSIVE',
+      sourceCampaignId: deal.id,
+      fundingSource: 'DEALDASH',
+      sourceType: 'REDEMPTION',
+    });
     expect(await balance(uid)).toBe(7);
     const red = await t.prisma.redemption.findFirstOrThrow({ where: { dealId: deal.id } });
-    const rev = await w.api(w.ownerA).post(`/v1/merchants/${w.A.orgId}/redemptions/${red.id}/reverse`).send({ reason: 'Customer left before use' });
+    const rev = await w
+      .api(w.ownerA)
+      .post(`/v1/merchants/${w.A.orgId}/redemptions/${red.id}/reverse`)
+      .send({ reason: 'Customer left before use' });
     expect(rev.status, JSON.stringify(rev.body)).toBe(200);
     const after = await entries(r.id, uid);
-    expect(after.map((e) => [e.type, e.points])).toEqual([['EARN', 7], ['REVERSE', -7]]);
+    expect(after.map((e) => [e.type, e.points])).toEqual([
+      ['EARN', 7],
+      ['REVERSE', -7],
+    ]);
     expect(await balance(uid)).toBe(0);
-    expect((await t.prisma.loyaltyRule.findUniqueOrThrow({ where: { id: r.id } })).reversedPoints).toBe(7);
+    expect(
+      (await t.prisma.loyaltyRule.findUniqueOrThrow({ where: { id: r.id } })).reversedPoints,
+    ).toBe(7);
   });
 
   it('Voucher: a settled purchase earns on the amount paid; a refund takes the points back exactly once', async () => {
@@ -70,12 +94,20 @@ describe.skipIf(!DB_READY)('Loyalty events through the real product flows', () =
     const b = await w.buy(c, v.id);
     const earned = await entries(r.id, uid);
     expect(earned).toHaveLength(1);
-    expect(earned[0]).toMatchObject({ type: 'EARN', points: 80, sourceProduct: 'VOUCHER', sourceType: 'EVENT' }); // SAR 80 = 8000 halalas, 1 point per SAR 1
+    expect(earned[0]).toMatchObject({
+      type: 'EARN',
+      points: 80,
+      sourceProduct: 'VOUCHER',
+      sourceType: 'EVENT',
+    }); // SAR 80 = 8000 halalas, 1 point per SAR 1
     expect(await balance(uid)).toBe(80);
     const refund = await w.requestRefund(c, b.instanceId!);
     expect(refund.status, JSON.stringify(refund.body)).toBe(201);
     const after = await entries(r.id, uid);
-    expect(after.map((e) => [e.type, e.points])).toEqual([['EARN', 80], ['REVERSE', -80]]);
+    expect(after.map((e) => [e.type, e.points])).toEqual([
+      ['EARN', 80],
+      ['REVERSE', -80],
+    ]);
     expect(after[1]).toMatchObject({ reasonCode: 'PURCHASE_REFUNDED' });
     expect(await balance(uid)).toBe(0);
   });
@@ -90,7 +122,11 @@ describe.skipIf(!DB_READY)('Loyalty events through the real product flows', () =
     expect((await w.redeem(w.staffA, o.qr)).body.data.result).toBe('REDEEMED');
     const earned = await entries(r.id, uid);
     expect(earned).toHaveLength(1);
-    expect(earned[0]).toMatchObject({ points: 5, sourceProduct: 'VOUCHER', sourceCampaignId: v.id });
+    expect(earned[0]).toMatchObject({
+      points: 5,
+      sourceProduct: 'VOUCHER',
+      sourceCampaignId: v.id,
+    });
     expect(await balance(uid)).toBe(5);
     // the same redemption never pays twice
     expect((await w.redeem(w.staffA, o.qr)).body.data.result).not.toBe('REDEEMED');
@@ -106,17 +142,36 @@ describe.skipIf(!DB_READY)('Loyalty events through the real product flows', () =
     expect(outcome.outcome).toBe('QUALIFIED');
     const earned = await entries(r.id, uid);
     expect(earned).toHaveLength(1);
-    expect(earned[0]).toMatchObject({ type: 'EARN', points: 3, sourceProduct: 'WATCH', sourceCampaignId: live.id, sourceType: 'EVENT' });
-    const view = await t.prisma.watchView.findFirstOrThrow({ where: { userId: uid, campaignId: live.id } });
+    expect(earned[0]).toMatchObject({
+      type: 'EARN',
+      points: 3,
+      sourceProduct: 'WATCH',
+      sourceCampaignId: live.id,
+      sourceType: 'EVENT',
+    });
+    const view = await t.prisma.watchView.findFirstOrThrow({
+      where: { userId: uid, campaignId: live.id },
+    });
     // not recorded as the view's own reward source: the Watch & Earn credit keeps that, one per view\n    expect(earned[0]!.sourceId).toBe(`view:${view.id}`);\n    expect(await t.prisma.rewardEntry.count({ where: { sourceType: 'VIEW', sourceId: view.id, type: 'EARN' } })).toBeLessThanOrEqual(1);
     // the view reward itself is untouched and separate
-    expect(await t.prisma.rewardEntry.count({ where: { account: { userId: uid }, ruleId: null } })).toBeGreaterThan(0);
+    expect(
+      await t.prisma.rewardEntry.count({ where: { account: { userId: uid }, ruleId: null } }),
+    ).toBeGreaterThan(0);
     // a fraud verdict on the view takes the loyalty points back with the view reward (same key the risk review uses)
-    const back = await t.prisma.$transaction((tx) => t.app.get(LoyaltyIssuanceService).reverseForSource(tx, { sourceType: 'EVENT', sourceId: `view:${view.id}`, reason: 'FRAUD_REVIEW' }));
+    const back = await t.prisma.$transaction((tx) =>
+      t.app.get(LoyaltyIssuanceService).reverseForSource(tx, {
+        sourceType: 'EVENT',
+        sourceId: `view:${view.id}`,
+        reason: 'FRAUD_REVIEW',
+      }),
+    );
     expect(back).toBeGreaterThanOrEqual(3); // other test files may have active platform-wide rules on the same shared database
     expect((await entries(r.id, uid)).map((e) => e.type)).toEqual(['EARN', 'REVERSE']);
     // ledger consistency: cached balance equals the sum of available entries
-    const sum = await t.prisma.rewardEntry.aggregate({ _sum: { points: true }, where: { account: { userId: uid }, bucket: 'AVAILABLE' } });
+    const sum = await t.prisma.rewardEntry.aggregate({
+      _sum: { points: true },
+      where: { account: { userId: uid }, bucket: 'AVAILABLE' },
+    });
     expect(await balance(uid)).toBe(sum._sum.points ?? 0);
   });
 

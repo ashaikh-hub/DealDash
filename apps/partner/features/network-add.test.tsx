@@ -22,12 +22,21 @@ const me = {
   mfaVerified: true,
   mfaRequired: false,
   csrfToken: 'csrf',
-  activeMembership: { organizationId: ORG, organizationType: 'PARTNER', organizationName: { en: 'Gulf Bank', ar: 'بنك الخليج' }, organizationStatus: 'ACTIVE', roleCode: 'PARTNER_ADMIN', branchId: null },
+  activeMembership: {
+    organizationId: ORG,
+    organizationType: 'PARTNER',
+    organizationName: { en: 'Gulf Bank', ar: 'بنك الخليج' },
+    organizationStatus: 'ACTIVE',
+    roleCode: 'PARTNER_ADMIN',
+    branchId: null,
+  },
   memberships: [],
   permissions: [...ROLE_PERMISSIONS.PARTNER_ADMIN],
 };
 const ok = (data: unknown) => ({ data, meta: {} });
-const MODULES = ok(['MERCHANT_NETWORK', 'OFFERS'].map((m) => ({ module: m, offered: true, entitled: true })));
+const MODULES = ok(
+  ['MERCHANT_NETWORK', 'OFFERS'].map((m) => ({ module: m, offered: true, entitled: true })),
+);
 const MARKETS = ok([{ code: 'SA', nameEn: 'Saudi Arabia', nameAr: 'المملكة العربية السعودية' }]);
 
 /**
@@ -41,8 +50,13 @@ function stub(marketsBody: unknown = MARKETS) {
   vi.stubGlobal(
     'fetch',
     vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
-      const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
+      const url =
+        typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+      const json = (status: number, body: unknown) =>
+        new Response(JSON.stringify(body), {
+          status,
+          headers: { 'content-type': 'application/json' },
+        });
       const path = url.split('?')[0]!;
       if (url.includes('/v1/auth/me')) return json(200, ok(me));
       if (path.endsWith(`/partners/${ORG}/modules`)) return json(200, MODULES);
@@ -53,9 +67,12 @@ function stub(marketsBody: unknown = MARKETS) {
       if (path.endsWith(`/partners/${ORG}/network/merchants`) && init?.method === 'POST') {
         const body = JSON.parse(String(init.body)) as Record<string, unknown>;
         posts.push(body);
-        return body.country ? json(201, ok({ id: 'm9', action: 'CREATE', warnings: [] })) : json(400, { errors: [{ code: 'VALIDATION_FAILED', message: 'country' }], meta: {} });
+        return body.country
+          ? json(201, ok({ id: 'm9', action: 'CREATE', warnings: [] }))
+          : json(400, { errors: [{ code: 'VALIDATION_FAILED', message: 'country' }], meta: {} });
       }
-      if (path.endsWith(`/partners/${ORG}/network`)) return json(200, ok({ total: 0, markets: ['SA'], items: [] }));
+      if (path.endsWith(`/partners/${ORG}/network`))
+        return json(200, ok({ total: 0, markets: ['SA'], items: [] }));
       return json(200, ok([]));
     }),
   );
@@ -89,7 +106,9 @@ describe('Partner "Add a merchant" waits for the market list (B8)', () => {
     expect(screen.queryByTestId('pt-net-markets-state')).toBeNull();
     await userEvent.click(add);
     expect(await screen.findByText('Merchant added to your network.')).toBeInTheDocument();
-    expect(s.posts).toEqual([{ nameEn: 'QA Juice Bar', country: 'SA', branches: [{ nameEn: 'QA Juice Bar Olaya' }] }]);
+    expect(s.posts).toEqual([
+      { nameEn: 'QA Juice Bar', country: 'SA', branches: [{ nameEn: 'QA Juice Bar Olaya' }] },
+    ]);
   });
 
   it('with no market available it explains why and never submits', async () => {
@@ -102,7 +121,9 @@ describe('Partner "Add a merchant" waits for the market list (B8)', () => {
     s.release();
     await openAddTab('Add a merchant');
     await userEvent.type(screen.getByLabelText('Name (English)'), 'QA Juice Bar');
-    expect(await screen.findByText('No market is available to you yet, so a merchant cannot be added.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('No market is available to you yet, so a merchant cannot be added.'),
+    ).toBeInTheDocument();
     expect(screen.getByTestId('pt-net-add-submit')).toBeDisabled();
     expect(s.posts).toHaveLength(0);
   });

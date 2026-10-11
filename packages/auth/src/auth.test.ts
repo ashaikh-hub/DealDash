@@ -32,9 +32,15 @@ describe('permission-aware navigation (UI hint only)', () => {
   });
 
   it('Stage 8: operations screens follow least privilege', () => {
-    expect(keys('admin', 'DEALDASH_OPERATIONS')).toEqual(expect.arrayContaining(['cases', 'restrictions', 'notifications', 'sla', 'ops-reports']));
-    expect(keys('admin', 'DEALDASH_FINANCE')).toEqual(expect.arrayContaining(['adjustments', 'settlements', 'reconciliation']));
-    expect(keys('admin', 'DEALDASH_RISK_COMPLIANCE')).toEqual(expect.arrayContaining(['fraud', 'restrictions', 'cases']));
+    expect(keys('admin', 'DEALDASH_OPERATIONS')).toEqual(
+      expect.arrayContaining(['cases', 'restrictions', 'notifications', 'sla', 'ops-reports']),
+    );
+    expect(keys('admin', 'DEALDASH_FINANCE')).toEqual(
+      expect.arrayContaining(['adjustments', 'settlements', 'reconciliation']),
+    );
+    expect(keys('admin', 'DEALDASH_RISK_COMPLIANCE')).toEqual(
+      expect.arrayContaining(['fraud', 'restrictions', 'cases']),
+    );
     expect(keys('admin', 'DEALDASH_SUPPORT')).toEqual(expect.arrayContaining(['support', 'cases']));
     expect(keys('admin', 'DEALDASH_SUPPORT')).not.toEqual(expect.arrayContaining(['settlements']));
     expect(keys('admin', 'DEALDASH_ANALYST')).not.toEqual(expect.arrayContaining(['cases']));
@@ -60,9 +66,15 @@ describe('permission-aware navigation (UI hint only)', () => {
     );
     expect(keys('admin', 'DEALDASH_ANALYST')).not.toContain('audit');
     // Phase 3 workspaces appear only for roles that can act in them
-    expect(keys('admin', 'DEALDASH_SUPER_ADMIN')).toEqual(expect.arrayContaining(['operations', 'loyalty']));
-    expect(keys('admin', 'DEALDASH_ANALYST')).not.toEqual(expect.arrayContaining(['operations', 'loyalty']));
-    expect(keys('merchant', 'MERCHANT_OWNER')).toEqual(expect.arrayContaining(['operations', 'loyalty']));
+    expect(keys('admin', 'DEALDASH_SUPER_ADMIN')).toEqual(
+      expect.arrayContaining(['operations', 'loyalty']),
+    );
+    expect(keys('admin', 'DEALDASH_ANALYST')).not.toEqual(
+      expect.arrayContaining(['operations', 'loyalty']),
+    );
+    expect(keys('merchant', 'MERCHANT_OWNER')).toEqual(
+      expect.arrayContaining(['operations', 'loyalty']),
+    );
     expect(keys('merchant', 'MERCHANT_FINANCE')).not.toContain('loyalty');
     expect(keys('staff', 'MERCHANT_STAFF')).not.toContain('operations');
     expect(keys('admin', 'DEALDASH_RISK_COMPLIANCE')).toContain('audit');
@@ -80,29 +92,63 @@ describe('permission-aware navigation (UI hint only)', () => {
   });
 
   it('shows Phase 4 / 5 screens by role: performance, billing, assistant, Command Centre, analytics and AI governance', () => {
-    expect(keys('merchant', 'MERCHANT_OWNER')).toEqual(expect.arrayContaining(['performance', 'billing', 'assistant']));
-    expect(keys('merchant', 'MERCHANT_CAMPAIGN_MANAGER')).toEqual(expect.arrayContaining(['performance', 'assistant']));
+    expect(keys('merchant', 'MERCHANT_OWNER')).toEqual(
+      expect.arrayContaining(['performance', 'billing', 'assistant']),
+    );
+    expect(keys('merchant', 'MERCHANT_CAMPAIGN_MANAGER')).toEqual(
+      expect.arrayContaining(['performance', 'assistant']),
+    );
     expect(keys('merchant', 'MERCHANT_CAMPAIGN_MANAGER')).not.toContain('billing');
-    expect(keys('merchant', 'MERCHANT_FINANCE')).toEqual(expect.arrayContaining(['performance', 'billing']));
+    expect(keys('merchant', 'MERCHANT_FINANCE')).toEqual(
+      expect.arrayContaining(['performance', 'billing']),
+    );
     expect(keys('staff', 'MERCHANT_STAFF')).not.toEqual(expect.arrayContaining(['performance']));
-    expect(keys('admin', 'DEALDASH_OPERATIONS')).toEqual(expect.arrayContaining(['command-centre', 'analytics', 'billing', 'ai']));
-    expect(keys('admin', 'DEALDASH_FINANCE')).toEqual(expect.arrayContaining(['billing', 'analytics', 'ai']));
-    expect(keys('admin', 'DEALDASH_SUPPORT')).toEqual(expect.arrayContaining(['command-centre', 'ai']));
+    expect(keys('admin', 'DEALDASH_OPERATIONS')).toEqual(
+      expect.arrayContaining(['command-centre', 'analytics', 'billing', 'ai']),
+    );
+    expect(keys('admin', 'DEALDASH_FINANCE')).toEqual(
+      expect.arrayContaining(['billing', 'analytics', 'ai']),
+    );
+    expect(keys('admin', 'DEALDASH_SUPPORT')).toEqual(
+      expect.arrayContaining(['command-centre', 'ai']),
+    );
     expect(keys('admin', 'DEALDASH_SUPPORT')).not.toContain('billing');
     expect(keys('admin', 'DEALDASH_ANALYST')).toContain('analytics');
-    expect(keys('admin', 'DEALDASH_ANALYST')).not.toEqual(expect.arrayContaining(['command-centre', 'ai']));
+    expect(keys('admin', 'DEALDASH_ANALYST')).not.toEqual(
+      expect.arrayContaining(['command-centre', 'ai']),
+    );
     // Stage 7 (the Partner Portal) superseded the earlier "no partner performance page yet" placeholder check
     expect(keys('partner', 'PARTNER_ADMIN')).toEqual(expect.arrayContaining(['performance']));
   });
 
   it('Stage 7: the partner portal navigation follows the partner roles', () => {
     expect(keys('partner', 'PARTNER_ADMIN')).toEqual(
-      expect.arrayContaining(['dashboard', 'campaigns', 'merchants', 'offers', 'eligibility', 'loyalty', 'watch', 'performance', 'finance', 'integrations', 'alerts', 'tasks', 'reports', 'assistant', 'users', 'organization', 'settings']),
+      expect.arrayContaining([
+        'dashboard',
+        'campaigns',
+        'merchants',
+        'offers',
+        'eligibility',
+        'loyalty',
+        'watch',
+        'performance',
+        'finance',
+        'integrations',
+        'alerts',
+        'tasks',
+        'reports',
+        'assistant',
+        'users',
+        'organization',
+        'settings',
+      ]),
     );
     expect(keys('partner', 'PARTNER_ANALYST')).not.toEqual(expect.arrayContaining(['users']));
     expect(keys('partner', 'PARTNER_ANALYST')).not.toContain('integrations');
     expect(keys('partner', 'PARTNER_FINANCE_MANAGER')).toContain('finance');
-    expect(keys('partner', 'PARTNER_INTEGRATION_MANAGER')).toEqual(expect.arrayContaining(['integrations', 'merchants']));
+    expect(keys('partner', 'PARTNER_INTEGRATION_MANAGER')).toEqual(
+      expect.arrayContaining(['integrations', 'merchants']),
+    );
     expect(keys('partner', 'PARTNER_INTEGRATION_MANAGER')).not.toContain('finance');
     expect(keys('partner', 'PARTNER_READ_ONLY')).not.toContain('assistant');
   });

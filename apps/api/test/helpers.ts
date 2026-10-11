@@ -39,6 +39,14 @@ export function testEnv(): ApiEnv {
     STORAGE_LOCAL_DIR: join(tmpdir(), 'dealdash-test-storage'),
     VIDEO_PROVIDER: 'mock',
     MAPS_PROVIDER: 'mock',
+    // Stage 9
+    APP_ENV: 'test',
+    ALLOW_MOCK_PROVIDERS: false,
+    PAYOUT_PROVIDER: 'manual',
+    RATE_LIMIT_PER_MINUTE: 0,
+    AUTH_RATE_LIMIT_PER_MINUTE: 0,
+    TRUST_PROXY_HOPS: 0,
+    LOG_FORMAT: 'pretty',
   };
 }
 
@@ -50,8 +58,8 @@ export interface TestApp {
   close: () => Promise<void>;
 }
 
-export async function createTestApp(): Promise<TestApp> {
-  const app = await createApp(testEnv(), { logger: false });
+export async function createTestApp(overrides: Partial<ApiEnv> = {}): Promise<TestApp> {
+  const app = await createApp({ ...testEnv(), ...overrides }, { logger: false });
   await app.init();
   const prisma = app.get(PrismaService);
   await seedCatalog(prisma);

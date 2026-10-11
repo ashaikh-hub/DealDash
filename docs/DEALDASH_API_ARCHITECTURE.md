@@ -508,3 +508,23 @@ All writes idempotent; contract regenerated (655 paths).
 Stage 8 Operational Gap Closure is founder approved and frozen (docs/STAGE8_OPERATIONAL_GAP_CLOSURE.md). B8 closed (partner "Add a merchant" Stage 7
 compatibility fix, now part of the frozen Stage 7 baseline); B9 monitored, not a regression. Pre-pilot items B1–B7 remain open for Stage 9 /
 pilot readiness; VALIDATE-market items remain central. Stage 9 not started.
+
+## Addendum (Oct 2026) — Stage 9 API
+- Health: `GET /v1/health/live`, `GET /v1/health/ready` (503 when not ready).
+- Customer cases (B6): `GET /v1/app/me/cases`, `GET /v1/app/me/cases/:id`, `POST /v1/app/me/cases/:id/replies` (idempotent).
+- Rules and controls (B7, `/v1/admin/controls`): overview; `:key/history`; `requests` (propose); `requests/:id/decide | cancel`;
+  `:key/rollback`; `launch/stops` (emergency stop, `admin.launch.control`); `settlements/:id/instruct-payout`; `settlements/poll-payouts`;
+  `legal-holds` (list / place) and `legal-holds/:id/lift`.
+- Provider callbacks: `POST /v1/webhooks/payouts`, `POST /v1/webhooks/notifications` — header
+  `X-DealDash-Signature: t=<unix>,v1=<hex HMAC-SHA256(secret, "t.rawBody")>`, 5-minute window, idempotent handlers.
+- New error codes: PILOT_NOT_ENABLED, LAUNCH_PAUSED, CONFIG_CHANGE_STALE, PROVIDER_NOT_CONFIGURED, LEGAL_HOLD_ACTIVE; `RATE_LIMITED`
+  with `Retry-After` from the per-IP limiter (health and webhooks exempt).
+Contract regenerated (670 paths).
+
+## Stage 9 founder approval (2026-10-11): APPROVED AND FROZEN — technical readiness only
+Stage 9 Production & Public Launch Readiness is founder approved as technically complete and frozen
+(docs/STAGE9_PRODUCTION_LAUNCH_READINESS.md). This does NOT approve public launch: production readiness is pending and public launch is
+not authorized. Still open: hosting / production environment, production database, secrets / configuration, vendor selections, payment
+and payout production setup, SMS / OTP / email / push providers, penetration testing, native Arabic review, physical device testing,
+formal UAT, backup retention, RPO / RTO, manual payout process (if used), GitHub production reviewers, VALIDATE-KSA items, final go-live
+checklist (NOT READY). No Stage 10.

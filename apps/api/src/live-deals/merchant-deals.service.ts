@@ -452,7 +452,9 @@ export class MerchantDealsService {
       await this.core.validateReferences(organizationId, content);
       await this.core.requireActiveBranch(organizationId, content.branchIds);
       // Live Deals must be open in the market of the deal's branches (a deal never spans markets)
-      await this.markets.requireAvailable(organizationId, 'LIVE_DEAL', { market: await this.markets.marketOfCampaign(organizationId, content) });
+      await this.markets.requireAvailable(organizationId, 'LIVE_DEAL', {
+        market: await this.markets.marketOfCampaign(organizationId, content),
+      });
       const g = await this.guardrails.evaluate(content, trust);
       if (g.outcome === 'AUTO_PUBLISH') {
         const to = await this.prisma.$transaction((tx) =>
@@ -487,7 +489,9 @@ export class MerchantDealsService {
       await this.core.validateReferences(organizationId, content);
       await this.core.requireActiveBranch(organizationId, content.branchIds);
       // Live Deals must be open in the market of the deal's branches (a deal never spans markets)
-      await this.markets.requireAvailable(organizationId, 'LIVE_DEAL', { market: await this.markets.marketOfCampaign(organizationId, content) });
+      await this.markets.requireAvailable(organizationId, 'LIVE_DEAL', {
+        market: await this.markets.marketOfCampaign(organizationId, content),
+      });
       const g = await this.guardrails.evaluate(content, trust);
       if (g.outcome === 'AUTO_PUBLISH') {
         await this.prisma.$transaction((tx) =>

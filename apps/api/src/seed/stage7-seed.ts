@@ -39,7 +39,10 @@ export async function seedStage7(args: {
   // the same grandfathering as the migration: sample partners the earlier stage seeds create as active organizations operate
   await prisma.partner.updateMany({
     where: { lifecycle: 'DRAFT', organization: { status: 'ACTIVE' } },
-    data: { lifecycle: 'ACTIVE', lifecycleReason: 'Development sample partner (grandfathered at Stage 7)' },
+    data: {
+      lifecycle: 'ACTIVE',
+      lifecycleReason: 'Development sample partner (grandfathered at Stage 7)',
+    },
   });
 
   const le = async (organizationId: string, legalName: string, country: string, currency: string) =>

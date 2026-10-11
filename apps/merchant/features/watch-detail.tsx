@@ -278,7 +278,13 @@ function DetailInner({ campaignId }: { campaignId: string }) {
         }}
       />
       {orgId ? (
-        <CommercialPanel orgId={orgId} product="WATCH" subjectId={campaign.id} content={{}} refreshKey={campaign.version} />
+        <CommercialPanel
+          orgId={orgId}
+          product="WATCH"
+          subjectId={campaign.id}
+          content={{}}
+          refreshKey={campaign.version}
+        />
       ) : null}
     </div>
   );

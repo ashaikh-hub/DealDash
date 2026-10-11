@@ -8,7 +8,9 @@ type Db = Prisma.TransactionClient | PrismaService;
 const stable = (v: unknown): string =>
   JSON.stringify(v, (_k, x) =>
     x && typeof x === 'object' && !Array.isArray(x)
-      ? Object.fromEntries(Object.entries(x as Record<string, unknown>).sort(([a], [b]) => a.localeCompare(b)))
+      ? Object.fromEntries(
+          Object.entries(x as Record<string, unknown>).sort(([a], [b]) => a.localeCompare(b)),
+        )
       : x,
   );
 
@@ -48,7 +50,10 @@ export class CampaignVersionService {
       select: { version: true },
     });
     if (live)
-      await tx.campaignVersion.update({ where: { id: live.id }, data: { status: 'SUPERSEDED', effectiveUntil: now } });
+      await tx.campaignVersion.update({
+        where: { id: live.id },
+        data: { status: 'SUPERSEDED', effectiveUntil: now },
+      });
     const v = await tx.campaignVersion.create({
       data: {
         product: p.product,

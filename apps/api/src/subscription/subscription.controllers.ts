@@ -1,4 +1,15 @@
-import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, Put, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
@@ -18,7 +29,13 @@ import {
   renewalStateSchema,
   usageRecordSchema,
 } from '@dealdash/validation';
-import { Audiences, CurrentActor, Idempotent, Meta, RequirePermissions } from '../common/decorators';
+import {
+  Audiences,
+  CurrentActor,
+  Idempotent,
+  Meta,
+  RequirePermissions,
+} from '../common/decorators';
 import { AppError } from '../common/errors';
 import type { Actor, RequestMeta } from '../common/request-context';
 import { EntitlementService } from '../platform/entitlement.service';
@@ -46,15 +63,27 @@ class PlanUpdateDto extends createZodDto(
   }),
 ) {}
 class DraftDto extends createZodDto(planVersionDraftSchema) {}
-class ApprovalDto extends createZodDto(z.object({ approvalRef: z.string().trim().max(80).optional(), reason: z.string().trim().min(3).max(300).optional() })) {}
+class ApprovalDto extends createZodDto(
+  z.object({
+    approvalRef: z.string().trim().max(80).optional(),
+    reason: z.string().trim().min(3).max(300).optional(),
+  }),
+) {}
 class ItemDto extends createZodDto(priceItemCreateSchema) {}
 class ItemVersionDto extends createZodDto(priceItemVersionSchema) {}
 class AddOnDto extends createZodDto(addOnDefinitionSchema) {}
-class AssignDto extends createZodDto(assignPlanSchema.extend({ onBehalfAuthorizationId: z.string().uuid().optional() })) {}
+class AssignDto extends createZodDto(
+  assignPlanSchema.extend({ onBehalfAuthorizationId: z.string().uuid().optional() }),
+) {}
 class LifecycleDto extends createZodDto(lifecycleActionSchema) {}
 class RenewalDto extends createZodDto(renewalStateSchema) {}
 class ProposeDto extends createZodDto(amendmentProposeSchema) {}
-class AcceptDto extends createZodDto(acceptSchema.extend({ onBehalfAuthorizationId: z.string().uuid().optional(), approvalRef: z.string().trim().max(80).optional() })) {}
+class AcceptDto extends createZodDto(
+  acceptSchema.extend({
+    onBehalfAuthorizationId: z.string().uuid().optional(),
+    approvalRef: z.string().trim().max(80).optional(),
+  }),
+) {}
 class PromotionDto extends createZodDto(promotionSchema) {}
 class RateDto extends createZodDto(contractRateSchema) {}
 class UsageDto extends createZodDto(usageRecordSchema) {}
@@ -94,7 +123,11 @@ export class AdminSubscriptionController {
   // ------------------------------------------------------------ catalog
   @Get('plans')
   @RequirePermissions('admin.subscriptions.read')
-  listPlans(@Query('entityType') entityType?: string, @Query('market') market?: string, @Query('includeRetired') includeRetired?: string) {
+  listPlans(
+    @Query('entityType') entityType?: string,
+    @Query('market') market?: string,
+    @Query('includeRetired') includeRetired?: string,
+  ) {
     return this.plans.listPlans({ entityType, market, includeRetired: includeRetired === 'true' });
   }
 
@@ -119,20 +152,35 @@ export class AdminSubscriptionController {
 
   @Patch('plans/:code')
   @RequirePermissions('admin.subscriptions.manage')
-  updatePlan(@Param('code') code: string, @Body() b: PlanUpdateDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  updatePlan(
+    @Param('code') code: string,
+    @Body() b: PlanUpdateDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.plans.updatePlan(actor, code, b, meta);
   }
 
   @Post('plans/:code/versions')
   @Idempotent()
   @RequirePermissions('admin.subscriptions.manage')
-  createDraft(@Param('code') code: string, @Body() b: DraftDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  createDraft(
+    @Param('code') code: string,
+    @Body() b: DraftDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.plans.createDraft(actor, code, b, meta);
   }
 
   @Put('plan-versions/:id')
   @RequirePermissions('admin.subscriptions.manage')
-  updateDraft(@Param('id', ParseUUIDPipe) id: string, @Body() b: DraftDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  updateDraft(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: DraftDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.plans.updateDraft(actor, id, b, meta);
   }
 
@@ -140,7 +188,12 @@ export class AdminSubscriptionController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.subscriptions.approve')
-  publish(@Param('id', ParseUUIDPipe) id: string, @Body() b: ApprovalDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  publish(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: ApprovalDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.plans.publish(actor, id, meta, b.approvalRef);
   }
 
@@ -148,7 +201,12 @@ export class AdminSubscriptionController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.subscriptions.approve')
-  retire(@Param('id', ParseUUIDPipe) id: string, @Body() b: ApprovalDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  retire(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: ApprovalDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.plans.retire(actor, id, b.reason ?? 'Retired', meta);
   }
 
@@ -168,7 +226,12 @@ export class AdminSubscriptionController {
   @Post('price-items/:code/versions')
   @Idempotent()
   @RequirePermissions('admin.subscriptions.manage')
-  createItemVersion(@Param('code') code: string, @Body() b: ItemVersionDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  createItemVersion(
+    @Param('code') code: string,
+    @Body() b: ItemVersionDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.plans.createItemVersion(actor, code, b, meta);
   }
 
@@ -176,7 +239,11 @@ export class AdminSubscriptionController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.subscriptions.approve')
-  publishItem(@Param('id', ParseUUIDPipe) id: string, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  publishItem(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.plans.publishItemVersion(actor, id, meta);
   }
 
@@ -196,7 +263,11 @@ export class AdminSubscriptionController {
   // ------------------------------------------------------------ agreements
   @Get('contracts')
   @RequirePermissions('admin.subscriptions.read')
-  listContracts(@Query('organizationId') organizationId?: string, @Query('kind') kind?: string, @Query('status') status?: string) {
+  listContracts(
+    @Query('organizationId') organizationId?: string,
+    @Query('kind') kind?: string,
+    @Query('status') status?: string,
+  ) {
     return this.subs.list({ organizationId, kind, status });
   }
 
@@ -221,8 +292,29 @@ export class AdminSubscriptionController {
   @Get('contracts/:id/acceptances')
   @RequirePermissions('admin.subscriptions.read')
   async acceptances(@Param('id', ParseUUIDPipe) id: string) {
-    const rows = await this.prisma.contractAcceptance.findMany({ where: { contractId: id }, orderBy: { createdAt: 'desc' } });
-    return rows.map((a) => ({ id: a.id, reference: a.reference, amendmentId: a.amendmentId, userRole: a.userRole, userName: a.userName, onBehalf: !!a.onBehalfAuthorizationId, planVersionId: a.planVersionId, pricingVersionKey: a.pricingVersionKey, termsVersion: a.termsVersion, currency: a.currency, acceptedAmountMinor: a.acceptedAmountMinor, maxExposureMinor: a.maxExposureMinor, effectiveFrom: a.effectiveFrom.toISOString(), billingCadence: a.billingCadence, approvalRef: a.approvalRef, createdAt: a.createdAt.toISOString(), terms: a.terms }));
+    const rows = await this.prisma.contractAcceptance.findMany({
+      where: { contractId: id },
+      orderBy: { createdAt: 'desc' },
+    });
+    return rows.map((a) => ({
+      id: a.id,
+      reference: a.reference,
+      amendmentId: a.amendmentId,
+      userRole: a.userRole,
+      userName: a.userName,
+      onBehalf: !!a.onBehalfAuthorizationId,
+      planVersionId: a.planVersionId,
+      pricingVersionKey: a.pricingVersionKey,
+      termsVersion: a.termsVersion,
+      currency: a.currency,
+      acceptedAmountMinor: a.acceptedAmountMinor,
+      maxExposureMinor: a.maxExposureMinor,
+      effectiveFrom: a.effectiveFrom.toISOString(),
+      billingCadence: a.billingCadence,
+      approvalRef: a.approvalRef,
+      createdAt: a.createdAt.toISOString(),
+      terms: a.terms,
+    }));
   }
 
   @Post('contracts/assign')
@@ -236,15 +328,28 @@ export class AdminSubscriptionController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.subscriptions.manage')
-  acceptOnBehalf(@Param('id', ParseUUIDPipe) id: string, @Body() b: AcceptDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
-    return this.subs.acceptContract(actor, id, b.language, meta, { onBehalfAuthorizationId: b.onBehalfAuthorizationId, approvalRef: b.approvalRef });
+  acceptOnBehalf(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: AcceptDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
+    return this.subs.acceptContract(actor, id, b.language, meta, {
+      onBehalfAuthorizationId: b.onBehalfAuthorizationId,
+      approvalRef: b.approvalRef,
+    });
   }
 
   @Post('contracts/:id/past-due')
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.subscriptions.manage')
-  pastDue(@Param('id', ParseUUIDPipe) id: string, @Body() b: LifecycleDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  pastDue(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: LifecycleDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.subs.markPastDue(actor, id, b.reason, meta);
   }
 
@@ -252,7 +357,12 @@ export class AdminSubscriptionController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.subscriptions.manage')
-  suspend(@Param('id', ParseUUIDPipe) id: string, @Body() b: LifecycleDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  suspend(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: LifecycleDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.subs.suspend(actor, id, b.reason, meta);
   }
 
@@ -260,7 +370,12 @@ export class AdminSubscriptionController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.subscriptions.manage')
-  reinstate(@Param('id', ParseUUIDPipe) id: string, @Body() b: LifecycleDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  reinstate(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: LifecycleDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.subs.reinstate(actor, id, b.reason, meta);
   }
 
@@ -268,15 +383,31 @@ export class AdminSubscriptionController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.subscriptions.approve')
-  cancel(@Param('id', ParseUUIDPipe) id: string, @Body() b: LifecycleDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
-    return this.subs.cancel(actor, id, b.reason, meta, b.effectiveAt ? new Date(b.effectiveAt) : new Date());
+  cancel(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: LifecycleDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
+    return this.subs.cancel(
+      actor,
+      id,
+      b.reason,
+      meta,
+      b.effectiveAt ? new Date(b.effectiveAt) : new Date(),
+    );
   }
 
   @Post('contracts/:id/renewal-state')
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.subscriptions.manage')
-  renewalState(@Param('id', ParseUUIDPipe) id: string, @Body() b: RenewalDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  renewalState(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: RenewalDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.subs.setRenewalState(actor, id, b.renewalState, b.reason, meta);
   }
 
@@ -284,21 +415,35 @@ export class AdminSubscriptionController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.subscriptions.manage')
-  renew(@Param('id', ParseUUIDPipe) id: string, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  renew(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.subs.renew(actor, id, meta);
   }
 
   @Post('contracts/:id/promotions')
   @Idempotent()
   @RequirePermissions('admin.subscriptions.approve')
-  promotion(@Param('id', ParseUUIDPipe) id: string, @Body() b: PromotionDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  promotion(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: PromotionDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.amendments.addPromotion(actor, id, b, meta);
   }
 
   @Post('contracts/:id/rates')
   @Idempotent()
   @RequirePermissions('admin.subscriptions.approve')
-  rate(@Param('id', ParseUUIDPipe) id: string, @Body() b: RateDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  rate(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: RateDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.amendments.addRate(actor, id, b, meta);
   }
 
@@ -313,13 +458,22 @@ export class AdminSubscriptionController {
   @Post('contracts/:id/amendments')
   @Idempotent()
   @RequirePermissions('admin.subscriptions.manage')
-  propose(@Param('id', ParseUUIDPipe) id: string, @Body() b: ProposeDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  propose(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: ProposeDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.amendments.propose(actor, id, b, meta, false);
   }
 
   @Get('amendments')
   @RequirePermissions('admin.subscriptions.read')
-  listAmendments(@Query('contractId') contractId?: string, @Query('organizationId') organizationId?: string, @Query('status') status?: string) {
+  listAmendments(
+    @Query('contractId') contractId?: string,
+    @Query('organizationId') organizationId?: string,
+    @Query('status') status?: string,
+  ) {
     return this.amendments.list({ contractId, organizationId, status });
   }
 
@@ -333,15 +487,27 @@ export class AdminSubscriptionController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.subscriptions.manage')
-  acceptAmendment(@Param('id', ParseUUIDPipe) id: string, @Body() b: AcceptDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
-    return this.amendments.accept(actor, id, b.language, meta, { onBehalfAuthorizationId: b.onBehalfAuthorizationId, approvalRef: b.approvalRef });
+  acceptAmendment(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: AcceptDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
+    return this.amendments.accept(actor, id, b.language, meta, {
+      onBehalfAuthorizationId: b.onBehalfAuthorizationId,
+      approvalRef: b.approvalRef,
+    });
   }
 
   @Post('amendments/:id/apply')
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.subscriptions.approve')
-  apply(@Param('id', ParseUUIDPipe) id: string, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  apply(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.amendments.apply(actor, id, meta);
   }
 
@@ -349,7 +515,12 @@ export class AdminSubscriptionController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('admin.subscriptions.manage')
-  reject(@Param('id', ParseUUIDPipe) id: string, @Body() b: RejectDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  reject(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: RejectDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.amendments.reject(actor, id, b.reason, meta);
   }
 
@@ -377,20 +548,42 @@ export class AdminSubscriptionController {
   @HttpCode(200)
   @RequirePermissions('admin.subscriptions.manage')
   async recordUsage(@Param('orgId', ParseUUIDPipe) orgId: string, @Body() b: UsageDto) {
-    const limitKey = Object.entries({ 'api.requests': 'api.requests', 'bulk_import.rows': 'bulk_import.rows' }).find(([k]) => k === b.metricKey)?.[0];
-    if (!limitKey) throw AppError.validation('Only period metrics can be recorded here', 'metricKey');
-    return this.usage.consume({ organizationId: orgId, limitKey, quantity: b.quantity, idempotencyKey: b.idempotencyKey, legalEntityId: b.legalEntityId, sourceType: 'ADMIN', sourceId: b.idempotencyKey, at: b.occurredAt ? new Date(b.occurredAt) : undefined });
+    const limitKey = Object.entries({
+      'api.requests': 'api.requests',
+      'bulk_import.rows': 'bulk_import.rows',
+    }).find(([k]) => k === b.metricKey)?.[0];
+    if (!limitKey)
+      throw AppError.validation('Only period metrics can be recorded here', 'metricKey');
+    return this.usage.consume({
+      organizationId: orgId,
+      limitKey,
+      quantity: b.quantity,
+      idempotencyKey: b.idempotencyKey,
+      legalEntityId: b.legalEntityId,
+      sourceType: 'ADMIN',
+      sourceId: b.idempotencyKey,
+      at: b.occurredAt ? new Date(b.occurredAt) : undefined,
+    });
   }
 
   @Get('billing-events')
   @RequirePermissions('admin.subscriptions.read')
-  billingEvents(@Query('organizationId') organizationId?: string, @Query('eventType') eventType?: string, @Query('status') status?: string, @Query('contractId') contractId?: string) {
+  billingEvents(
+    @Query('organizationId') organizationId?: string,
+    @Query('eventType') eventType?: string,
+    @Query('status') status?: string,
+    @Query('contractId') contractId?: string,
+  ) {
     return this.billing.list({ organizationId, eventType, status, contractId });
   }
 
   @Get('signals')
   @RequirePermissions('admin.subscriptions.read')
-  listSignals(@Query('organizationId') organizationId?: string, @Query('type') type?: string, @Query('unconsumed') unconsumed?: string) {
+  listSignals(
+    @Query('organizationId') organizationId?: string,
+    @Query('type') type?: string,
+    @Query('unconsumed') unconsumed?: string,
+  ) {
     return this.signals.list({ organizationId, type, unconsumed: unconsumed === 'true' });
   }
 
@@ -430,15 +623,40 @@ export class OrgSubscriptionController {
 
   private need(actor: Actor, orgId: string, level: 'read' | 'manage' | 'accept') {
     const m = actor.membership;
-    if (!m || m.organizationId !== orgId || (m.organizationType !== 'MERCHANT' && m.organizationType !== 'PARTNER')) throw AppError.notFound();
+    if (
+      !m ||
+      m.organizationId !== orgId ||
+      (m.organizationType !== 'MERCHANT' && m.organizationType !== 'PARTNER')
+    )
+      throw AppError.notFound();
     const prefix = m.organizationType === 'PARTNER' ? 'partner' : 'merchant';
-    const code = (level === 'accept' ? (prefix === 'merchant' ? 'merchant.commercial.accept' : 'partner.subscription.manage') : `${prefix}.subscription.${level}`) as PermissionCode;
-    if (!actor.permissions.has(code) || m.scoped) throw new AppError('SCOPE_FORBIDDEN', 'You do not have permission to do this', 403);
+    const code = (
+      level === 'accept'
+        ? prefix === 'merchant'
+          ? 'merchant.commercial.accept'
+          : 'partner.subscription.manage'
+        : `${prefix}.subscription.${level}`
+    ) as PermissionCode;
+    if (!actor.permissions.has(code) || m.scoped)
+      throw new AppError('SCOPE_FORBIDDEN', 'You do not have permission to do this', 403);
   }
 
   private async contractOf(orgId: string): Promise<string> {
-    const e = await this.prisma.contract.findFirst({ where: { organizationId: orgId, status: { in: ['TRIAL', 'ACTIVE', 'PAST_DUE', 'SUSPENDED', 'PENDING_ACTIVATION'] }, effectiveFrom: { lte: new Date() } }, orderBy: { effectiveFrom: 'desc' }, select: { id: true } });
-    if (!e) throw new AppError('INVALID_STATE', 'Your business is on the default plan: DealDash assigns your plan', 409);
+    const e = await this.prisma.contract.findFirst({
+      where: {
+        organizationId: orgId,
+        status: { in: ['TRIAL', 'ACTIVE', 'PAST_DUE', 'SUSPENDED', 'PENDING_ACTIVATION'] },
+        effectiveFrom: { lte: new Date() },
+      },
+      orderBy: { effectiveFrom: 'desc' },
+      select: { id: true },
+    });
+    if (!e)
+      throw new AppError(
+        'INVALID_STATE',
+        'Your business is on the default plan: DealDash assigns your plan',
+        409,
+      );
     return e.id;
   }
 
@@ -458,30 +676,65 @@ export class OrgSubscriptionController {
   @Get('plans')
   async available(@Param('orgId', ParseUUIDPipe) orgId: string, @CurrentActor() actor: Actor) {
     this.need(actor, orgId, 'read');
-    const c = await this.prisma.contract.findFirst({ where: { organizationId: orgId, status: { in: ['TRIAL', 'ACTIVE', 'PAST_DUE', 'SUSPENDED'] } }, orderBy: { effectiveFrom: 'desc' } });
-    const org = await this.prisma.organization.findUniqueOrThrow({ where: { id: orgId }, include: { partner: true } });
-    const entity = org.type === 'MERCHANT' ? 'MERCHANT' : org.partner?.partnerType === 'BANK' ? 'BANK' : org.partner?.partnerType === 'SCHEME' ? 'SCHEME' : 'CORPORATE';
+    const c = await this.prisma.contract.findFirst({
+      where: {
+        organizationId: orgId,
+        status: { in: ['TRIAL', 'ACTIVE', 'PAST_DUE', 'SUSPENDED'] },
+      },
+      orderBy: { effectiveFrom: 'desc' },
+    });
+    const org = await this.prisma.organization.findUniqueOrThrow({
+      where: { id: orgId },
+      include: { partner: true },
+    });
+    const entity =
+      org.type === 'MERCHANT'
+        ? 'MERCHANT'
+        : org.partner?.partnerType === 'BANK'
+          ? 'BANK'
+          : org.partner?.partnerType === 'SCHEME'
+            ? 'SCHEME'
+            : 'CORPORATE';
     const all = await this.plans.listPlans({ entityType: entity, market: c?.market ?? undefined });
-    return all.map((p) => ({ ...p, versions: p.versions.filter((v) => v.status === 'PUBLISHED' && !v.developmentFixture === !c?.developmentFixture), current: p.code === c?.planCode }));
+    return all.map((p) => ({
+      ...p,
+      versions: p.versions.filter(
+        (v) => v.status === 'PUBLISHED' && !v.developmentFixture === !c?.developmentFixture,
+      ),
+      current: p.code === c?.planCode,
+    }));
   }
 
   /** Why is this unavailable / what is allowed? Answered from the real contract, entitlements, usage and financial state. */
   @Get('explain')
-  async explain(@Param('orgId', ParseUUIDPipe) orgId: string, @Query() q: ExplainDto, @CurrentActor() actor: Actor) {
+  async explain(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Query() q: ExplainDto,
+    @CurrentActor() actor: Actor,
+  ) {
     this.need(actor, orgId, 'read');
     return this.access.evaluate({ organizationId: orgId, ...q });
   }
 
   @Post('preview')
   @HttpCode(200)
-  async preview(@Param('orgId', ParseUUIDPipe) orgId: string, @Body() b: ProposeDto, @CurrentActor() actor: Actor) {
+  async preview(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Body() b: ProposeDto,
+    @CurrentActor() actor: Actor,
+  ) {
     this.need(actor, orgId, 'read');
     return this.amendments.preview(await this.contractOf(orgId), b);
   }
 
   @Post('amendments')
   @Idempotent()
-  async propose(@Param('orgId', ParseUUIDPipe) orgId: string, @Body() b: ProposeDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async propose(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Body() b: ProposeDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     this.need(actor, orgId, 'manage');
     return this.amendments.propose(actor, await this.contractOf(orgId), b, meta, true);
   }
@@ -495,7 +748,13 @@ export class OrgSubscriptionController {
   @Post('amendments/:id/accept')
   @Idempotent()
   @HttpCode(200)
-  async accept(@Param('orgId', ParseUUIDPipe) orgId: string, @Param('id', ParseUUIDPipe) id: string, @Body() b: AcceptDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async accept(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: AcceptDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     this.need(actor, orgId, 'accept');
     const a = await this.amendments.view(id);
     if (a.organizationId !== orgId) throw AppError.notFound();
@@ -505,7 +764,13 @@ export class OrgSubscriptionController {
   @Post('amendments/:id/cancel')
   @Idempotent()
   @HttpCode(200)
-  async cancelAmendment(@Param('orgId', ParseUUIDPipe) orgId: string, @Param('id', ParseUUIDPipe) id: string, @Body() b: RejectDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async cancelAmendment(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: RejectDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     this.need(actor, orgId, 'manage');
     const a = await this.amendments.view(id);
     if (a.organizationId !== orgId) throw AppError.notFound();
@@ -516,26 +781,51 @@ export class OrgSubscriptionController {
   @Post('accept')
   @Idempotent()
   @HttpCode(200)
-  async acceptAgreement(@Param('orgId', ParseUUIDPipe) orgId: string, @Body() b: AcceptDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async acceptAgreement(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Body() b: AcceptDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     this.need(actor, orgId, 'accept');
-    const pending = await this.prisma.contract.findFirst({ where: { organizationId: orgId, status: 'PENDING_ACTIVATION' }, orderBy: { createdAt: 'desc' } });
-    if (!pending) throw new AppError('INVALID_STATE', 'There is no agreement waiting for your acceptance', 409);
+    const pending = await this.prisma.contract.findFirst({
+      where: { organizationId: orgId, status: 'PENDING_ACTIVATION' },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!pending)
+      throw new AppError('INVALID_STATE', 'There is no agreement waiting for your acceptance', 409);
     return this.subs.acceptContract(actor, pending.id, b.language, meta);
   }
 
   @Get('pending')
   async pending(@Param('orgId', ParseUUIDPipe) orgId: string, @CurrentActor() actor: Actor) {
     this.need(actor, orgId, 'read');
-    const c = await this.prisma.contract.findFirst({ where: { organizationId: orgId, status: 'PENDING_ACTIVATION' }, orderBy: { createdAt: 'desc' } });
-    return c ? { contract: await this.subs.contractView(c.id), terms: await this.subs.terms(c.id) } : null;
+    const c = await this.prisma.contract.findFirst({
+      where: { organizationId: orgId, status: 'PENDING_ACTIVATION' },
+      orderBy: { createdAt: 'desc' },
+    });
+    return c
+      ? { contract: await this.subs.contractView(c.id), terms: await this.subs.terms(c.id) }
+      : null;
   }
 
   /** Ask not to renew: the agreement stays in force to the end of its period, then ends (nothing is deleted). */
   @Post('stop-renewal')
   @Idempotent()
   @HttpCode(200)
-  async stopRenewal(@Param('orgId', ParseUUIDPipe) orgId: string, @Body() b: RejectDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  async stopRenewal(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Body() b: RejectDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     this.need(actor, orgId, 'manage');
-    return this.subs.setRenewalState(actor, await this.contractOf(orgId), 'NON_RENEWING', b.reason, meta);
+    return this.subs.setRenewalState(
+      actor,
+      await this.contractOf(orgId),
+      'NON_RENEWING',
+      b.reason,
+      meta,
+    );
   }
 }

@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { deriveFinancialStatus, type FinancialStatusProvider, type FinancialStatusView } from './policy';
+import {
+  deriveFinancialStatus,
+  type FinancialStatusProvider,
+  type FinancialStatusView,
+} from './policy';
 
 /**
  * Default financial status: derived from the contract lifecycle, the grace window and organization-level financial holds.

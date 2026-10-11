@@ -12,8 +12,10 @@ type Step = 'credentials' | 'code' | 'mfa';
  *  - password      (merchant, partner): work email + password (MFA step if the account has it)
  *  - password_mfa  (admin): password then mandatory two-step code
  * In development a hint shows the code captured by the mock SMS provider / TOTP helper.
+ * `heading="h1"` when the panel is the whole page (sign-in gates); pages that have their own h1 keep the default h2.
  */
-export function LoginPanel() {
+export function LoginPanel({ heading = 'h2' }: { heading?: 'h1' | 'h2' } = {}) {
+  const Heading = heading;
   const { audience, locale, apiUrl, client, setSession, track } = useAuth();
   const t = createTranslator(locale);
   const method = AUDIENCE_DEFINITIONS[audience].loginMethod;
@@ -141,7 +143,9 @@ export function LoginPanel() {
   return (
     <Card aria-label={t('auth.signIn')}>
       <div className="dd-stack">
-        <h2 className="dd-title">{step === 'mfa' ? t('auth.mfaTitle') : t('auth.signIn')}</h2>
+        <Heading className="dd-title">
+          {step === 'mfa' ? t('auth.mfaTitle') : t('auth.signIn')}
+        </Heading>
         {error ? <Alert tone="danger">{error}</Alert> : null}
         {notice && !error ? <Alert tone="success">{notice}</Alert> : null}
 

@@ -87,23 +87,43 @@ export class ScopeService {
     const [units, branches] = await Promise.all([
       this.prisma.organizationUnit.findMany({
         where: { organizationId, status: 'ACTIVE' },
-        select: { id: true, parentId: true, path: true, legalEntityId: true, country: true, branchId: true },
+        select: {
+          id: true,
+          parentId: true,
+          path: true,
+          legalEntityId: true,
+          country: true,
+          branchId: true,
+        },
       }),
-      this.prisma.merchantBranch.findMany({ where: { organizationId }, select: { id: true, country: true } }),
+      this.prisma.merchantBranch.findMany({
+        where: { organizationId },
+        select: { id: true, country: true },
+      }),
     ]);
     const byId = new Map(units.map((u) => [u.id, u]));
     const effLegal = new Map<string, string | null>();
     const effCountry = new Map<string, string | null>();
     const walk = (u: UnitRow, pick: (x: UnitRow) => string | null): string | null => {
-      for (let cur: UnitRow | undefined = u, guard = 0; cur && guard < 64; guard++, cur = cur.parentId ? byId.get(cur.parentId) : undefined) {
+      for (
+        let cur: UnitRow | undefined = u, guard = 0;
+        cur && guard < 64;
+        guard++, cur = cur.parentId ? byId.get(cur.parentId) : undefined
+      ) {
         const v = pick(cur);
         if (v) return v;
       }
       return null;
     };
     for (const u of units) {
-      effLegal.set(u.id, walk(u, (x) => x.legalEntityId));
-      effCountry.set(u.id, walk(u, (x) => x.country));
+      effLegal.set(
+        u.id,
+        walk(u, (x) => x.legalEntityId),
+      );
+      effCountry.set(
+        u.id,
+        walk(u, (x) => x.country),
+      );
     }
     const branchUnit = new Map<string, string>();
     for (const u of units) if (u.branchId) branchUnit.set(u.branchId, u.id);
@@ -267,7 +287,9 @@ export class ScopeService {
         kind: r.scopeKind as ScopeSpec['kind'],
         ref: r.scopeRef,
         product: r.scopeProduct,
-        envelope: r.envelopeKind ? { kind: r.envelopeKind as ScopeSpec['kind'], ref: r.envelopeRef } : null,
+        envelope: r.envelopeKind
+          ? { kind: r.envelopeKind as ScopeSpec['kind'], ref: r.envelopeRef }
+          : null,
       };
       out.push({
         roleCode: r.role.code,
@@ -294,7 +316,11 @@ export class ScopeService {
   }
 
   /** Same answer as can, against grants the caller already loaded (lists evaluate many targets against one set of grants). */
-  async canWith(grants: Grant[], permission: PermissionCode, target: ScopeTarget): Promise<boolean> {
+  async canWith(
+    grants: Grant[],
+    permission: PermissionCode,
+    target: ScopeTarget,
+  ): Promise<boolean> {
     const t = await this.enrich(target);
     return grants.some((g) => g.permissions.has(permission) && this.matches(g.set, t));
   }
@@ -304,12 +330,23 @@ export class ScopeService {
     const m = actor.membership;
     if (!m || m.organizationId !== target.organizationId) throw AppError.notFound();
     if (!(await this.can(actor, permission, target)))
-      throw new AppError('SCOPE_FORBIDDEN', 'You do not have access to this part of the organization', 403);
+      throw new AppError(
+        'SCOPE_FORBIDDEN',
+        'You do not have access to this part of the organization',
+        403,
+      );
   }
 
   /** A campaign touching several branches needs every one of them to be in scope: scope cannot be escaped by adding branches. */
-  async requireAll(actor: Actor, permission: PermissionCode, targets: ScopeTarget[]): Promise<void> {
-    if (!targets.length) return this.require(actor, permission, { organizationId: actor.membership?.organizationId ?? '' });
+  async requireAll(
+    actor: Actor,
+    permission: PermissionCode,
+    targets: ScopeTarget[],
+  ): Promise<void> {
+    if (!targets.length)
+      return this.require(actor, permission, {
+        organizationId: actor.membership?.organizationId ?? '',
+      });
     for (const t of targets) await this.require(actor, permission, t);
   }
 

@@ -597,3 +597,21 @@ AlertRule, AiDraft) plus new CHECKs on every new table.
 Stage 8 Operational Gap Closure is founder approved and frozen (docs/STAGE8_OPERATIONAL_GAP_CLOSURE.md). B8 closed (partner "Add a merchant" Stage 7
 compatibility fix, now part of the frozen Stage 7 baseline); B9 monitored, not a regression. Pre-pilot items B1–B7 remain open for Stage 9 /
 pilot readiness; VALIDATE-market items remain central. Stage 9 not started.
+
+## Addendum (Oct 2026) — Stage 9 data model
+Migration `20270106000000_stage9_production_readiness`: `CaseNote.authorKind` (DEALDASH / BUSINESS / CUSTOMER / SYSTEM, backfilled under
+a statement-scoped lift of the append-only trigger) and `evidenceRef`; `SettlementRule` cutoffTime, reserveBps, reserveReleaseDays,
+payoutMethod, failedRetryMaxAttempts, taxTreatment; `Settlement` reserveMinor, reserveReleaseAt, reserveReleasedIntoId,
+reserveReleasedMinor, payoutAttempts and status PAYOUT_PENDING; `SettlementPayout.provider` and status CHECK; new tables
+`ConfigChangeRequest` (governed configuration requests; the decider must differ from the requester — CHECK) and `LegalHold`. Frozen
+CHECK constraints widened for the new values; CHECKs on every new column / table (customer notes are always shared). New configuration
+key `launch.controls`; `rewards.rules.refundReversalRounding`; `operations.notifications.throttlePerUserPerHour` / `fallback`. New
+permission `admin.launch.control` (Operations, Super admin).
+
+## Stage 9 founder approval (2026-10-11): APPROVED AND FROZEN — technical readiness only
+Stage 9 Production & Public Launch Readiness is founder approved as technically complete and frozen
+(docs/STAGE9_PRODUCTION_LAUNCH_READINESS.md). This does NOT approve public launch: production readiness is pending and public launch is
+not authorized. Still open: hosting / production environment, production database, secrets / configuration, vendor selections, payment
+and payout production setup, SMS / OTP / email / push providers, penetration testing, native Arabic review, physical device testing,
+formal UAT, backup retention, RPO / RTO, manual payout process (if used), GitHub production reviewers, VALIDATE-KSA items, final go-live
+checklist (NOT READY). No Stage 10.

@@ -39,7 +39,11 @@ export class LoyaltyCommercialAdapter implements CommercialAdapter, OnModuleInit
     };
   }
 
-  async economics(organizationId: string, content: unknown, subjectId: string | null): Promise<Economics> {
+  async economics(
+    organizationId: string,
+    content: unknown,
+    subjectId: string | null,
+  ): Promise<Economics> {
     const c = content as { maxAllocationPoints?: number; fundingHalalasPerPoint?: number };
     let units = c.maxAllocationPoints ?? 0;
     let rate = c.fundingHalalasPerPoint ?? 0;

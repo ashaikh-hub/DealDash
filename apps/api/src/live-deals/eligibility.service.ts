@@ -43,8 +43,17 @@ const CARD_ATTRIBUTE_TYPES: readonly string[] = ['CARD', 'CARD_PRODUCT', 'CARD_T
  * FD-S7-3: BIN / IIN metadata, a customer's selection or a self-declaration is never "verified". A card attribute claiming
  * ISSUER_VERIFIED without a trusted source and evidence is treated as declared (the database refuses new rows like that anyway).
  */
-export function trustedLevel(a: { attrType: string; level: EligibilityLevel; verificationSource?: string | null; evidenceRef?: string | null }): EligibilityLevel {
-  if (a.level === 'ISSUER_VERIFIED' && CARD_ATTRIBUTE_TYPES.includes(a.attrType) && (!a.verificationSource || !a.evidenceRef))
+export function trustedLevel(a: {
+  attrType: string;
+  level: EligibilityLevel;
+  verificationSource?: string | null;
+  evidenceRef?: string | null;
+}): EligibilityLevel {
+  if (
+    a.level === 'ISSUER_VERIFIED' &&
+    CARD_ATTRIBUTE_TYPES.includes(a.attrType) &&
+    (!a.verificationSource || !a.evidenceRef)
+  )
     return 'SELF_DECLARED';
   return a.level;
 }
@@ -86,7 +95,10 @@ const REQUIRED_LEVEL: Record<LegacyKind, EligibilityLevel> = {
 const norm = (s: string) => s.trim().toLowerCase();
 
 /** Partner types whose organisation ids a partner attribute may reference (Stage 7 widened CARD and EMPLOYER). */
-const PARTNER_TYPES_OF_ATTR: Record<string, Array<'BANK' | 'FINANCIAL_INSTITUTION' | 'SCHEME' | 'EMPLOYER' | 'CORPORATE'>> = {
+const PARTNER_TYPES_OF_ATTR: Record<
+  string,
+  Array<'BANK' | 'FINANCIAL_INSTITUTION' | 'SCHEME' | 'EMPLOYER' | 'CORPORATE'>
+> = {
   CARD: ['BANK', 'FINANCIAL_INSTITUTION'],
   SCHEME: ['SCHEME'],
   EMPLOYER: ['EMPLOYER', 'CORPORATE'],
@@ -116,7 +128,9 @@ export function evaluateEligibility(
     return { result: 'ELIGIBLE', unlockAction: null, message: null };
 
   const usable = ctx.attributes
-    .filter((a) => a.status === 'VERIFIED' && (!a.expiresAt || a.expiresAt.getTime() > ctx.now.getTime()))
+    .filter(
+      (a) => a.status === 'VERIFIED' && (!a.expiresAt || a.expiresAt.getTime() > ctx.now.getTime()),
+    )
     .map((a) => ({ ...a, level: trustedLevel(a) }));
   const meets = (c: EligibilityCondition) =>
     usable.some(
@@ -156,9 +170,9 @@ export function evaluateEligibility(
   return locked(kind === 'BANK_CARD' ? 'ADD_BANK_BENEFIT' : 'JOIN_SCHEME');
 }
 
-
 // ---------------------------------------------------------------- nested rules (AND / OR / NOT)
-type NodeState = { state: 'MET' } | { state: 'IMPOSSIBLE' } | { state: 'UNLOCKABLE'; action: UnlockAction };
+type NodeState =
+  { state: 'MET' } | { state: 'IMPOSSIBLE' } | { state: 'UNLOCKABLE'; action: UnlockAction };
 
 const UNLOCK_BY_ATTR: Partial<Record<EligibilityAttributeType, UnlockAction>> = {
   EMPLOYER: 'VERIFY_EMPLOYER',
@@ -171,7 +185,9 @@ const UNLOCK_BY_ATTR: Partial<Record<EligibilityAttributeType, UnlockAction>> = 
 
 function usableAttributes(ctx: EligibilityContext) {
   return ctx.attributes
-    .filter((a) => a.status === 'VERIFIED' && (!a.expiresAt || a.expiresAt.getTime() > ctx.now.getTime()))
+    .filter(
+      (a) => a.status === 'VERIFIED' && (!a.expiresAt || a.expiresAt.getTime() > ctx.now.getTime()),
+    )
     .map((a) => ({ ...a, level: trustedLevel(a) }));
 }
 
@@ -182,31 +198,58 @@ function evalAttr(
   usable: ReturnType<typeof usableAttributes>,
 ): NodeState {
   const wanted = node.values.map(norm);
-  if (node.attr === 'GEOGRAPHY') return wanted.includes(norm(ctx.city)) ? { state: 'MET' } : { state: 'IMPOSSIBLE' };
-  if (node.attr === 'COUNTRY') return wanted.includes(norm(ctx.country ?? 'SA')) ? { state: 'MET' } : { state: 'IMPOSSIBLE' };
+  if (node.attr === 'GEOGRAPHY')
+    return wanted.includes(norm(ctx.city)) ? { state: 'MET' } : { state: 'IMPOSSIBLE' };
+  if (node.attr === 'COUNTRY')
+    return wanted.includes(norm(ctx.country ?? 'SA')) ? { state: 'MET' } : { state: 'IMPOSSIBLE' };
   const need = LEVEL_RANK[node.level ?? 'SELF_DECLARED'];
-  const met = usable.some((a) => a.attrType === node.attr && wanted.includes(norm(a.valueRef)) && LEVEL_RANK[a.level] >= need);
+  const met = usable.some(
+    (a) =>
+      a.attrType === node.attr && wanted.includes(norm(a.valueRef)) && LEVEL_RANK[a.level] >= need,
+  );
   if (met) return { state: 'MET' };
   if (!UNLOCKABLE_ATTRIBUTE_TYPES.includes(node.attr)) return { state: 'IMPOSSIBLE' };
   // an employer the customer cannot change to: a verified DIFFERENT employer closes the path
-  if (node.attr === 'EMPLOYER' && usable.some((a) => a.attrType === 'EMPLOYER' && !wanted.includes(norm(a.valueRef)))) return { state: 'IMPOSSIBLE' };
+  if (
+    node.attr === 'EMPLOYER' &&
+    usable.some((a) => a.attrType === 'EMPLOYER' && !wanted.includes(norm(a.valueRef)))
+  )
+    return { state: 'IMPOSSIBLE' };
   return { state: 'UNLOCKABLE', action: UNLOCK_BY_ATTR[node.attr] ?? 'JOIN_SCHEME' };
 }
 
-function evalNode(n: EligibilityExpression, ctx: EligibilityContext, usable: ReturnType<typeof usableAttributes>): NodeState {
+function evalNode(
+  n: EligibilityExpression,
+  ctx: EligibilityContext,
+  usable: ReturnType<typeof usableAttributes>,
+): NodeState {
   if (n.op === 'ATTR') return evalAttr(n, ctx, usable);
-  if (n.op === 'NOT') return evalNode(n.child, ctx, usable).state === 'MET' ? { state: 'IMPOSSIBLE' } : { state: 'MET' };
+  if (n.op === 'NOT')
+    return evalNode(n.child, ctx, usable).state === 'MET'
+      ? { state: 'IMPOSSIBLE' }
+      : { state: 'MET' };
   const kids = n.children.map((c) => evalNode(c, ctx, usable));
   if (n.op === 'AND') {
     if (kids.some((k) => k.state === 'IMPOSSIBLE')) return { state: 'IMPOSSIBLE' };
-    return kids.find((k): k is Extract<NodeState, { state: 'UNLOCKABLE' }> => k.state === 'UNLOCKABLE') ?? { state: 'MET' };
+    return (
+      kids.find(
+        (k): k is Extract<NodeState, { state: 'UNLOCKABLE' }> => k.state === 'UNLOCKABLE',
+      ) ?? { state: 'MET' }
+    );
   }
   if (kids.some((k) => k.state === 'MET')) return { state: 'MET' };
-  return kids.find((k): k is Extract<NodeState, { state: 'UNLOCKABLE' }> => k.state === 'UNLOCKABLE') ?? { state: 'IMPOSSIBLE' };
+  return (
+    kids.find(
+      (k): k is Extract<NodeState, { state: 'UNLOCKABLE' }> => k.state === 'UNLOCKABLE',
+    ) ?? { state: 'IMPOSSIBLE' }
+  );
 }
 
 /** Pure evaluation of a nested rule into the same three outcomes every product already understands. */
-export function evaluateExpressionOutcome(expression: EligibilityExpression, ctx: EligibilityContext): EligibilityOutcome {
+export function evaluateExpressionOutcome(
+  expression: EligibilityExpression,
+  ctx: EligibilityContext,
+): EligibilityOutcome {
   const s = evalNode(expression, ctx, usableAttributes(ctx));
   if (s.state === 'MET') return { result: 'ELIGIBLE', unlockAction: null, message: null };
   if (s.state === 'IMPOSSIBLE') return { result: 'HIDDEN', unlockAction: null, message: null };
@@ -241,7 +284,11 @@ export class EligibilityService {
     if (eligibility.kind === 'PUBLIC') return null;
     if (eligibility.kind === 'COMPOSITE') {
       const set = await tx.eligibilityRuleSet.create({
-        data: { ownerOrganizationId: organizationId, kind: 'COMPOSITE', expression: eligibility.expression as Prisma.InputJsonValue },
+        data: {
+          ownerOrganizationId: organizationId,
+          kind: 'COMPOSITE',
+          expression: eligibility.expression as Prisma.InputJsonValue,
+        },
       });
       return set.id;
     }
@@ -283,8 +330,12 @@ export class EligibilityService {
   ) {
     const { kind, valueRefs } = eligibility;
     if (kind === 'COMPOSITE') {
-      if (!eligibility.expression) throw AppError.validation('A nested rule is required', 'eligibility');
-      return this.validateExpression(eligibility.expression as EligibilityExpression, enabledCities);
+      if (!eligibility.expression)
+        throw AppError.validation('A nested rule is required', 'eligibility');
+      return this.validateExpression(
+        eligibility.expression as EligibilityExpression,
+        enabledCities,
+      );
     }
     if (kind === 'PUBLIC') return;
     if (kind === 'GEOGRAPHY') {
@@ -294,7 +345,10 @@ export class EligibilityService {
       return;
     }
     // Stage 7: card issuers include financial institutions; employer programmes include corporates
-    const partnerTypes = PARTNER_TYPES_OF_ATTR[kind === 'EMPLOYER' ? 'EMPLOYER' : kind === 'BANK_CARD' ? 'CARD' : 'SCHEME']!;
+    const partnerTypes =
+      PARTNER_TYPES_OF_ATTR[
+        kind === 'EMPLOYER' ? 'EMPLOYER' : kind === 'BANK_CARD' ? 'CARD' : 'SCHEME'
+      ]!;
     const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (valueRefs.some((v) => !uuid.test(v)))
       throw AppError.validation('Choose partners from the list', 'eligibility');
@@ -314,15 +368,27 @@ export class EligibilityService {
    * A nested rule must be small enough to read, use only attributes the market allows and, for partner attributes, point at real,
    * active partners. Age and gender stay off until the market validates them (VALIDATE-KSA).
    */
-  async validateExpression(expression: EligibilityExpression, enabledCities: readonly string[]): Promise<void> {
+  async validateExpression(
+    expression: EligibilityExpression,
+    enabledCities: readonly string[],
+  ): Promise<void> {
     const shape = eligibilityExpressionShape(expression);
-    if (shape.depth > ELIGIBILITY_EXPRESSION_LIMITS.maxDepth || shape.nodes > ELIGIBILITY_EXPRESSION_LIMITS.maxNodes)
+    if (
+      shape.depth > ELIGIBILITY_EXPRESSION_LIMITS.maxDepth ||
+      shape.nodes > ELIGIBILITY_EXPRESSION_LIMITS.maxNodes
+    )
       throw AppError.validation('This rule is too deep or too large', 'eligibility');
     const cfg = this.config
-      ? await this.config.get<{ sensitiveAttributesEnabled: boolean }>(CONFIG_KEYS.PLATFORM_ELIGIBILITY)
+      ? await this.config.get<{ sensitiveAttributesEnabled: boolean }>(
+          CONFIG_KEYS.PLATFORM_ELIGIBILITY,
+        )
       : { sensitiveAttributesEnabled: false };
     const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    const partnerIds: Record<string, Set<string>> = { EMPLOYER: new Set(), CARD: new Set(), SCHEME: new Set() };
+    const partnerIds: Record<string, Set<string>> = {
+      EMPLOYER: new Set(),
+      CARD: new Set(),
+      SCHEME: new Set(),
+    };
     const walk = (n: EligibilityExpression) => {
       if (n.op === 'NOT') return walk(n.child);
       if (n.op !== 'ATTR') return n.children.forEach(walk);
@@ -330,10 +396,12 @@ export class EligibilityService {
         throw AppError.validation('This criterion is not enabled in this market', 'eligibility');
       if (n.attr === 'GEOGRAPHY') {
         const bad = n.values.filter((c) => !enabledCities.some((e) => norm(e) === norm(c)));
-        if (bad.length) throw AppError.validation(`City is not enabled: ${bad.join(', ')}`, 'eligibility');
+        if (bad.length)
+          throw AppError.validation(`City is not enabled: ${bad.join(', ')}`, 'eligibility');
       }
       if (n.attr in partnerIds) {
-        if (n.values.some((v) => !uuid.test(v))) throw AppError.validation('Choose partners from the list', 'eligibility');
+        if (n.values.some((v) => !uuid.test(v)))
+          throw AppError.validation('Choose partners from the list', 'eligibility');
         n.values.forEach((v) => partnerIds[n.attr]!.add(v));
       }
     };
@@ -342,9 +410,15 @@ export class EligibilityService {
     for (const [attr, ids] of Object.entries(partnerIds)) {
       if (!ids.size) continue;
       const found = await this.prisma.organization.count({
-        where: { id: { in: [...ids] }, type: 'PARTNER', status: 'ACTIVE', partner: { is: { partnerType: { in: PARTNER_TYPES_OF_ATTR[attr]! } } } },
+        where: {
+          id: { in: [...ids] },
+          type: 'PARTNER',
+          status: 'ACTIVE',
+          partner: { is: { partnerType: { in: PARTNER_TYPES_OF_ATTR[attr]! } } },
+        },
       });
-      if (found !== ids.size) throw AppError.validation('One of the selected partners is not available', 'eligibility');
+      if (found !== ids.size)
+        throw AppError.validation('One of the selected partners is not available', 'eligibility');
     }
   }
 
@@ -378,6 +452,10 @@ export class EligibilityService {
         .filter((r) => r.partner?.partnerType === t)
         .map((r) => ({ id: r.id, nameEn: r.nameEn, nameAr: r.nameAr }));
     const pickAll = (ts: readonly string[]) => ts.flatMap(pick);
-    return { employers: pickAll(PARTNER_TYPES_OF_ATTR.EMPLOYER!), banks: pickAll(PARTNER_TYPES_OF_ATTR.CARD!), schemes: pickAll(PARTNER_TYPES_OF_ATTR.SCHEME!) };
+    return {
+      employers: pickAll(PARTNER_TYPES_OF_ATTR.EMPLOYER!),
+      banks: pickAll(PARTNER_TYPES_OF_ATTR.CARD!),
+      schemes: pickAll(PARTNER_TYPES_OF_ATTR.SCHEME!),
+    };
   }
 }

@@ -24683,6 +24683,62 @@
         ]
       }
     },
+    "/v1/app/me/cases/{id}": {
+      "get": {
+        "operationId": "CustomerOpsController_myCase_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "customer-ops"
+        ]
+      }
+    },
+    "/v1/app/me/cases/{id}/replies": {
+      "post": {
+        "operationId": "CustomerOpsController_reply_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaseReplyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "customer-ops"
+        ]
+      }
+    },
     "/v1/app/me/data-requests": {
       "get": {
         "operationId": "CustomerOpsController_myDataRequests_v1",
@@ -24716,6 +24772,286 @@
         },
         "tags": [
           "customer-ops"
+        ]
+      }
+    },
+    "/v1/admin/controls": {
+      "get": {
+        "operationId": "AdminControlsController_overview_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-controls"
+        ]
+      }
+    },
+    "/v1/admin/controls/{key}/history": {
+      "get": {
+        "operationId": "AdminControlsController_history_v1",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-controls"
+        ]
+      }
+    },
+    "/v1/admin/controls/requests": {
+      "post": {
+        "operationId": "AdminControlsController_request_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-controls"
+        ]
+      }
+    },
+    "/v1/admin/controls/requests/{id}/decide": {
+      "post": {
+        "operationId": "AdminControlsController_decide_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ControlDecisionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-controls"
+        ]
+      }
+    },
+    "/v1/admin/controls/requests/{id}/cancel": {
+      "post": {
+        "operationId": "AdminControlsController_cancel_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-controls"
+        ]
+      }
+    },
+    "/v1/admin/controls/{key}/rollback": {
+      "post": {
+        "operationId": "AdminControlsController_rollback_v1",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RollbackDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-controls"
+        ]
+      }
+    },
+    "/v1/admin/controls/launch/stops": {
+      "post": {
+        "operationId": "AdminControlsController_stop_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StopDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-controls"
+        ]
+      }
+    },
+    "/v1/admin/controls/settlements/{id}/instruct-payout": {
+      "post": {
+        "operationId": "AdminControlsController_instruct_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-controls"
+        ]
+      }
+    },
+    "/v1/admin/controls/legal-holds": {
+      "get": {
+        "operationId": "AdminControlsController_holds_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-controls"
+        ]
+      },
+      "post": {
+        "operationId": "AdminControlsController_placeHold_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LegalHoldDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-controls"
+        ]
+      }
+    },
+    "/v1/admin/controls/legal-holds/{id}/lift": {
+      "post": {
+        "operationId": "AdminControlsController_liftHold_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonOnlyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-controls"
+        ]
+      }
+    },
+    "/v1/admin/controls/settlements/poll-payouts": {
+      "post": {
+        "operationId": "AdminControlsController_poll_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-controls"
         ]
       }
     },
@@ -24867,6 +25203,34 @@
                 }
               }
             }
+          }
+        },
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/v1/health/live": {
+      "get": {
+        "operationId": "HealthController_live_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/v1/health/ready": {
+      "get": {
+        "operationId": "HealthController_ready_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
           }
         },
         "tags": [
@@ -26915,7 +27279,8 @@
                         "admin.notifications.manage",
                         "admin.privacy.manage",
                         "admin.privacy.approve",
-                        "customer.reviews.manage"
+                        "customer.reviews.manage",
+                        "admin.launch.control"
                       ]
                     }
                   }
@@ -27430,7 +27795,8 @@
                     "admin.notifications.manage",
                     "admin.privacy.manage",
                     "admin.privacy.approve",
-                    "customer.reviews.manage"
+                    "customer.reviews.manage",
+                    "admin.launch.control"
                   ]
                 }
               },
@@ -29021,7 +29387,8 @@
                             "admin.notifications.manage",
                             "admin.privacy.manage",
                             "admin.privacy.approve",
-                            "customer.reviews.manage"
+                            "customer.reviews.manage",
+                            "admin.launch.control"
                           ]
                         }
                       }
@@ -86540,6 +86907,24 @@
           "reason"
         ]
       },
+      "CaseReplyDto": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 2000
+          },
+          "evidenceRef": {
+            "type": "string",
+            "maxLength": 120,
+            "nullable": true
+          }
+        },
+        "required": [
+          "body"
+        ]
+      },
       "MyDataRequestDto": {
         "type": "object",
         "properties": {
@@ -86558,6 +86943,164 @@
         },
         "required": [
           "type"
+        ]
+      },
+      "ChangeDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 80
+          },
+          "section": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "value": {},
+          "baseVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 1000
+          },
+          "effectiveFrom": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "nullable": true
+          }
+        },
+        "required": [
+          "key",
+          "section",
+          "value",
+          "baseVersion",
+          "reason"
+        ]
+      },
+      "ControlDecisionDto": {
+        "type": "object",
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "APPROVE",
+              "REJECT"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "decision",
+          "reason"
+        ]
+      },
+      "RollbackDto": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "version",
+          "reason"
+        ]
+      },
+      "StopDto": {
+        "type": "object",
+        "properties": {
+          "market": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 2
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "NEW_PURCHASES",
+              "NEW_RESERVATIONS",
+              "NEW_VIEWS",
+              "NEW_CAMPAIGNS"
+            ]
+          },
+          "stopped": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "market",
+          "action",
+          "stopped",
+          "reason"
+        ]
+      },
+      "LegalHoldDto": {
+        "type": "object",
+        "properties": {
+          "subjectType": {
+            "type": "string",
+            "enum": [
+              "USER",
+              "ORGANIZATION"
+            ]
+          },
+          "subjectId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 1000
+          },
+          "caseId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
+          }
+        },
+        "required": [
+          "subjectType",
+          "subjectId",
+          "reason"
+        ]
+      },
+      "ReasonOnlyDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "reason"
         ]
       },
       "CustomerResponse": {

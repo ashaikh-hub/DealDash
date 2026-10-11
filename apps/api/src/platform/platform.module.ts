@@ -22,7 +22,12 @@ import { AdminMarketsController, OrgMarketsController } from './markets/markets.
  */
 @Global()
 @Module({
-  controllers: [OrgStructureController, AdminPlatformController, AdminMarketsController, OrgMarketsController],
+  controllers: [
+    OrgStructureController,
+    AdminPlatformController,
+    AdminMarketsController,
+    OrgMarketsController,
+  ],
   providers: [
     ScopeService,
     AccessScopeService,

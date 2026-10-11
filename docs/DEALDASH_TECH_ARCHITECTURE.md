@@ -590,3 +590,25 @@ development seed.
 Stage 8 Operational Gap Closure is founder approved and frozen (docs/STAGE8_OPERATIONAL_GAP_CLOSURE.md). B8 closed (partner "Add a merchant" Stage 7
 compatibility fix, now part of the frozen Stage 7 baseline); B9 monitored, not a regression. Pre-pilot items B1–B7 remain open for Stage 9 /
 pilot readiness; VALIDATE-market items remain central. Stage 9 not started.
+
+## Addendum (Oct 2026) — Stage 9 architecture
+- Tiers local / test / staging / production (`APP_ENV`); `productionSafetyProblems` refuses unsafe production configuration at boot.
+- Runtime: JSON logger with redaction and access log (`LOG_FORMAT=json`); per-IP rate limiter (in-memory per instance — the WAF is the
+  shared limit); `TRUST_PROXY_HOPS`; helmet (frame deny, HSTS in production, no-referrer); web apps send security headers from
+  `webSecurityHeaders` (`@dealdash/types`).
+- Providers: `PayoutProvider` (manual default) joins SMS / email / push / payment / storage / scanner / video / maps behind interfaces;
+  vendors not selected (`docs/PROVIDER_READINESS_MATRIX.md`). Signed callbacks (`common/signed-callback.ts`).
+- Jobs: `ops.config` (60 s, applies scheduled configuration changes) and `ops.payouts` (300 s, polls pending payouts); claims use
+  `FOR UPDATE SKIP LOCKED` (safe with several instances).
+- Delivery: `infra/docker/*.Dockerfile`; `ci.yml` (secret scan, drift check, prod-dependency audit), `codeql.yml`, `release.yml`
+  (manual protected production gate); `tooling/deploy/deploy.mjs` refuses without hosting secrets.
+- Operations scripts: `apps/api/scripts/ops/db-backup.mjs`, `db-restore-verify.mjs` (target emptied first; refuses non-test targets).
+- Localization review: `tooling/i18n/export-translations.mjs` / `import-translations.mjs`; reviewed overrides merged last.
+
+## Stage 9 founder approval (2026-10-11): APPROVED AND FROZEN — technical readiness only
+Stage 9 Production & Public Launch Readiness is founder approved as technically complete and frozen
+(docs/STAGE9_PRODUCTION_LAUNCH_READINESS.md). This does NOT approve public launch: production readiness is pending and public launch is
+not authorized. Still open: hosting / production environment, production database, secrets / configuration, vendor selections, payment
+and payout production setup, SMS / OTP / email / push providers, penetration testing, native Arabic review, physical device testing,
+formal UAT, backup retention, RPO / RTO, manual payout process (if used), GitHub production reviewers, VALIDATE-KSA items, final go-live
+checklist (NOT READY). No Stage 10.

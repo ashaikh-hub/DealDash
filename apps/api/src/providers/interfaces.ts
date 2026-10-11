@@ -152,7 +152,31 @@ export interface MapsProvider {
   reverseGeocode(latitude: number, longitude: number): Promise<{ formattedAddress: string } | null>;
 }
 
+// ---- Settlement payouts (Stage 9, B2). Vendor / bank file format is not selected (EXTERNAL DEPENDENCY); never account numbers here.
+export type PayoutStatus = 'PENDING' | 'PAID' | 'FAILED';
+export interface PayoutInstruction {
+  /** DealDash's own settlement reference (the bank / provider reference back to DealDash). */
+  settlementReference: string;
+  amountMinor: number;
+  currency: string;
+  /** Reference to the verified destination in the secure store (masked / tokenised), never an IBAN. */
+  destinationRef: string | null;
+  idempotencyKey: string;
+}
+export interface PayoutProvider {
+  readonly name: string;
+  /** False for the manual adapter: finance records the bank reference instead (no instruction is sent). */
+  readonly sendsInstructions: boolean;
+  instruct(
+    input: PayoutInstruction,
+  ): Promise<{ providerRef: string; status: PayoutStatus; failureReason?: string }>;
+  getStatus(
+    providerRef: string,
+  ): Promise<{ status: PayoutStatus; failureReason?: string; bankRef?: string }>;
+}
+
 // ---- injection tokens
+export const PAYOUT_PROVIDER = Symbol('PAYOUT_PROVIDER');
 export const SMS_PROVIDER = Symbol('SMS_PROVIDER');
 export const EMAIL_PROVIDER = Symbol('EMAIL_PROVIDER');
 export const PUSH_PROVIDER = Symbol('PUSH_PROVIDER');

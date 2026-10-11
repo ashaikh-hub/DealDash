@@ -2,7 +2,12 @@
 
 import { useState } from 'react';
 import { RequirePermission, errorMessage, useApi, useAuth, useResource } from '@dealdash/app-shell';
-import { createTranslator, formatDate, formatDateTime, type DictionaryKey } from '@dealdash/localization';
+import {
+  createTranslator,
+  formatDate,
+  formatDateTime,
+  type DictionaryKey,
+} from '@dealdash/localization';
 import { PARTNER_TRANSITIONS, PARTNER_TYPES, type PartnerLifecycle } from '@dealdash/types';
 import {
   Alert,
@@ -485,7 +490,8 @@ function OffersTab() {
   const cmd = useCall();
   const canApprove = (me?.permissions ?? []).includes('admin.partners.approve');
   const confirm = async (id: string) => {
-    if (await cmd.run(`/v1/admin/partners/offers/${id}/confirm`, {}, t('pt.saved'))) await res.reload();
+    if (await cmd.run(`/v1/admin/partners/offers/${id}/confirm`, {}, t('pt.saved')))
+      await res.reload();
   };
   return (
     <Card>
@@ -494,7 +500,9 @@ function OffersTab() {
       {res.loading && !res.data ? (
         <LoadingState label={t('state.loading')} />
       ) : !res.data?.length ? (
-        <p className="dd-muted" data-testid="ap-offers-empty">{t('pt.state.empty')}</p>
+        <p className="dd-muted" data-testid="ap-offers-empty">
+          {t('pt.state.empty')}
+        </p>
       ) : (
         <div style={{ overflowX: 'auto' }}>
           <table className="dd-table" data-testid="ap-offers">
@@ -507,7 +515,9 @@ function OffersTab() {
                   </td>
                   <td>
                     {o.partner}
-                    <div className="dd-muted">{o.merchant} · {o.country}</div>
+                    <div className="dd-muted">
+                      {o.merchant} · {o.country}
+                    </div>
                   </td>
                   <td className="dd-muted dd-ltr">
                     {o.publicationRef}
@@ -519,7 +529,12 @@ function OffersTab() {
                   </td>
                   <td>
                     {canApprove ? (
-                      <Button size="sm" disabled={cmd.busy} onClick={() => void confirm(o.id)} data-testid={`ap-offer-confirm-${o.id}`}>
+                      <Button
+                        size="sm"
+                        disabled={cmd.busy}
+                        onClick={() => void confirm(o.id)}
+                        data-testid={`ap-offer-confirm-${o.id}`}
+                      >
                         {t('pt.admin.confirmPublication')}
                       </Button>
                     ) : null}

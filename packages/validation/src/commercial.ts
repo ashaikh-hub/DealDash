@@ -137,7 +137,12 @@ export const documentCreateSchema = z.object({
   caseId: uuid.optional(),
   relatedDocumentId: uuid.optional(),
   lines: z
-    .array(z.object({ description: z.string().trim().min(1).max(200), amountHalalas: z.number().int().min(0) }))
+    .array(
+      z.object({
+        description: z.string().trim().min(1).max(200),
+        amountHalalas: z.number().int().min(0),
+      }),
+    )
     .min(1)
     .max(50),
   taxHalalas: z.number().int().min(0).default(0),
@@ -278,7 +283,15 @@ export const commercialCaseViewSchema = z.object({
       id: uuid,
       reference: z.string(),
       version: z.number().int(),
-      status: z.enum(['DRAFT', 'PENDING_ACCEPTANCE', 'ACCEPTED', 'SUPERSEDED', 'REJECTED', 'MODIFICATION_REQUESTED', 'EXPIRED']),
+      status: z.enum([
+        'DRAFT',
+        'PENDING_ACCEPTANCE',
+        'ACCEPTED',
+        'SUPERSEDED',
+        'REJECTED',
+        'MODIFICATION_REQUESTED',
+        'EXPIRED',
+      ]),
       createdAt: z.string(),
       delta: z.unknown().nullable(),
     })

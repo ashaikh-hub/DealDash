@@ -2,7 +2,15 @@
 
 import { LoyaltyWorkspace, RequirePermission, useAuth } from '@dealdash/app-shell';
 
-const FUNDERS = ['DEALDASH', 'MERCHANT', 'BANK', 'SCHEME', 'CORPORATE', 'CAMPAIGN', 'SPONSOR'] as const;
+const FUNDERS = [
+  'DEALDASH',
+  'MERCHANT',
+  'BANK',
+  'SCHEME',
+  'CORPORATE',
+  'CAMPAIGN',
+  'SPONSOR',
+] as const;
 
 /** Every loyalty rule on the platform. A different person than the author approves a rule or a higher limit. */
 export function AdminLoyaltyPage() {

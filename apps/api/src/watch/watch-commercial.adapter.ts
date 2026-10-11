@@ -40,7 +40,11 @@ export class WatchCommercialAdapter implements CommercialAdapter, OnModuleInit {
     };
   }
 
-  async economics(organizationId: string, content: unknown, subjectId: string | null): Promise<Economics> {
+  async economics(
+    organizationId: string,
+    content: unknown,
+    subjectId: string | null,
+  ): Promise<Economics> {
     const c = parseWatchContent(content);
     let perView: number;
     let units = c.paidViews;
@@ -57,7 +61,12 @@ export class WatchCommercialAdapter implements CommercialAdapter, OnModuleInit {
       currency: 'SAR',
       maxUnits: units,
       unitLabel: 'VIEW',
-      base: { SELLING_PRICE: 0, FACE_VALUE: 0, BENEFIT_VALUE: 0, MEDIA_SPEND_TOTAL: units * perView },
+      base: {
+        SELLING_PRICE: 0,
+        FACE_VALUE: 0,
+        BENEFIT_VALUE: 0,
+        MEDIA_SPEND_TOTAL: units * perView,
+      },
       customerBenefitPerUnit: 0,
       sponsors: [],
       merchantCashPerUnit: 0,
@@ -77,7 +86,11 @@ export class WatchCommercialAdapter implements CommercialAdapter, OnModuleInit {
   async managedFunding(subjectId: string) {
     const w = await this.prisma.watchCampaign.findUnique({ where: { id: subjectId } });
     if (!w) throw AppError.notFound();
-    return { requiredHalalas: w.requiredBudgetHalalas, fundedHalalas: w.fundedHalalas, spentHalalas: w.spentHalalas };
+    return {
+      requiredHalalas: w.requiredBudgetHalalas,
+      fundedHalalas: w.fundedHalalas,
+      spentHalalas: w.spentHalalas,
+    };
   }
 
   async inventory(subjectId: string) {

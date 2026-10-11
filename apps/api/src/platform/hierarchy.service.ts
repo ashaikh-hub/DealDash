@@ -26,7 +26,10 @@ export class HierarchyService {
 
   // ---------------------------------------------------------------- legal entities
   async listLegalEntities(organizationId: string): Promise<LegalEntityView[]> {
-    const rows = await this.prisma.legalEntity.findMany({ where: { organizationId }, orderBy: { createdAt: 'asc' } });
+    const rows = await this.prisma.legalEntity.findMany({
+      where: { organizationId },
+      orderBy: { createdAt: 'asc' },
+    });
     return rows.map((r) => ({
       id: r.id,
       legalName: r.legalName,
@@ -41,15 +44,24 @@ export class HierarchyService {
   async createLegalEntity(
     actor: Actor,
     organizationId: string,
-    b: { legalName: string; registrationNumber?: string; taxNumber?: string; country: string; currency: string },
+    b: {
+      legalName: string;
+      registrationNumber?: string;
+      taxNumber?: string;
+      country: string;
+      currency: string;
+    },
     meta: RequestMeta,
   ): Promise<LegalEntityView> {
-    const country = await this.prisma.countryConfiguration.findUnique({ where: { code: b.country } });
+    const country = await this.prisma.countryConfiguration.findUnique({
+      where: { code: b.country },
+    });
     if (!country) throw AppError.validation('This country is not configured', 'country');
     const dup = await this.prisma.legalEntity.findUnique({
       where: { organizationId_legalName: { organizationId, legalName: b.legalName } },
     });
-    if (dup) throw new AppError('INVALID_STATE', 'A legal entity with this name already exists', 409);
+    if (dup)
+      throw new AppError('INVALID_STATE', 'A legal entity with this name already exists', 409);
     const row = await this.prisma.$transaction(async (tx) => {
       const r = await tx.legalEntity.create({
         data: {
@@ -101,7 +113,11 @@ export class HierarchyService {
     });
     const byId = new Map(units.map((u) => [u.id, u]));
     const eff = (u: (typeof units)[number], pick: (x: (typeof units)[number]) => string | null) => {
-      for (let cur: (typeof units)[number] | undefined = u, g = 0; cur && g < 64; g++, cur = cur.parentId ? byId.get(cur.parentId) : undefined) {
+      for (
+        let cur: (typeof units)[number] | undefined = u, g = 0;
+        cur && g < 64;
+        g++, cur = cur.parentId ? byId.get(cur.parentId) : undefined
+      ) {
         const v = pick(cur);
         if (v) return v;
       }
@@ -129,7 +145,11 @@ export class HierarchyService {
   private async assertLegalEntities(organizationId: string, ids: Array<string | null | undefined>) {
     for (const id of ids.filter((x): x is string => !!x)) {
       const le = await this.prisma.legalEntity.findFirst({ where: { id, organizationId } });
-      if (!le) throw AppError.validation('The legal entity was not found in this business account', 'legalEntityId');
+      if (!le)
+        throw AppError.validation(
+          'The legal entity was not found in this business account',
+          'legalEntityId',
+        );
     }
   }
 
@@ -152,23 +172,37 @@ export class HierarchyService {
     meta: RequestMeta,
   ): Promise<UnitView> {
     const kinds = await this.unitKinds();
-    if (!kinds.includes(b.kind)) throw AppError.validation('This kind of unit is not allowed', 'kind');
+    if (!kinds.includes(b.kind))
+      throw AppError.validation('This kind of unit is not allowed', 'kind');
     const parent = b.parentId
       ? await this.prisma.organizationUnit.findFirst({ where: { id: b.parentId, organizationId } })
       : null;
-    if (b.parentId && !parent) throw AppError.validation('The parent unit was not found', 'parentId');
+    if (b.parentId && !parent)
+      throw AppError.validation('The parent unit was not found', 'parentId');
     // creating under a parent needs authority over the parent: nobody adds structure outside their own scope
-    await this.scope.require(actor, actor.membership?.organizationType === 'PARTNER' ? 'partner.structure.manage' : 'merchant.structure.manage', {
-      organizationId,
-      unitId: parent?.id ?? null,
-    });
-    await this.assertLegalEntities(organizationId, [b.legalEntityId, b.operatorLegalEntityId, b.settlementLegalEntityId]);
+    await this.scope.require(
+      actor,
+      actor.membership?.organizationType === 'PARTNER'
+        ? 'partner.structure.manage'
+        : 'merchant.structure.manage',
+      {
+        organizationId,
+        unitId: parent?.id ?? null,
+      },
+    );
+    await this.assertLegalEntities(organizationId, [
+      b.legalEntityId,
+      b.operatorLegalEntityId,
+      b.settlementLegalEntityId,
+    ]);
     if (b.country) {
       const c = await this.prisma.countryConfiguration.findUnique({ where: { code: b.country } });
       if (!c) throw AppError.validation('This country is not configured', 'country');
     }
     if (b.branchId) {
-      const br = await this.prisma.merchantBranch.findFirst({ where: { id: b.branchId, organizationId } });
+      const br = await this.prisma.merchantBranch.findFirst({
+        where: { id: b.branchId, organizationId },
+      });
       if (!br) throw AppError.validation('The branch was not found', 'branchId');
       if (await this.prisma.organizationUnit.findUnique({ where: { branchId: b.branchId } }))
         throw new AppError('INVALID_STATE', 'This branch already has a unit', 409);
@@ -237,11 +271,21 @@ export class HierarchyService {
   ): Promise<UnitView> {
     const u = await this.prisma.organizationUnit.findFirst({ where: { id, organizationId } });
     if (!u) throw AppError.notFound();
-    await this.scope.require(actor, actor.membership?.organizationType === 'PARTNER' ? 'partner.structure.manage' : 'merchant.structure.manage', {
-      organizationId,
-      unitId: u.id,
-    });
-    await this.assertLegalEntities(organizationId, [b.legalEntityId, b.operatorLegalEntityId, b.settlementLegalEntityId]);
+    await this.scope.require(
+      actor,
+      actor.membership?.organizationType === 'PARTNER'
+        ? 'partner.structure.manage'
+        : 'merchant.structure.manage',
+      {
+        organizationId,
+        unitId: u.id,
+      },
+    );
+    await this.assertLegalEntities(organizationId, [
+      b.legalEntityId,
+      b.operatorLegalEntityId,
+      b.settlementLegalEntityId,
+    ]);
     await this.prisma.$transaction(async (tx) => {
       await tx.organizationUnit.update({ where: { id }, data: b });
       await this.audit.record(

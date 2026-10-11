@@ -9,7 +9,7 @@ export function PlaceholderPage({ slug }: { slug: string[] }) {
   const { audience, locale, me, status } = useAuth();
   const t = createTranslator(locale);
   if (status === 'loading') return <LoadingState label={t('state.loading')} />;
-  if (status === 'anonymous') return <LoginPanel />;
+  if (status === 'anonymous') return <LoginPanel heading="h1" />;
 
   const path = '/' + slug.join('/');
   const item = NAV_BY_AUDIENCE[audience].find(

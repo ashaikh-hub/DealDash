@@ -926,29 +926,58 @@ describe.skipIf(!DB_READY)('Stage 7 partner portal', () => {
       });
       const content = validWatchContent({ videoFileId: video.id, thumbnailFileId: w.fileA });
       // the Watch & Earn module and the WATCH product come from the partner's contract; a non-network merchant is refused
-      const outside = await post(bankCampaigns, `${pb(bank)}/watch/owned`, { merchantOrganizationId: w.B.orgId, content });
+      const outside = await post(bankCampaigns, `${pb(bank)}/watch/owned`, {
+        merchantOrganizationId: w.B.orgId,
+        content,
+      });
       expect(outside.status).toBe(409);
-      const created = await post(bankCampaigns, `${pb(bank)}/watch/owned`, { merchantOrganizationId: w.A.orgId, content });
+      const created = await post(bankCampaigns, `${pb(bank)}/watch/owned`, {
+        merchantOrganizationId: w.A.orgId,
+        content,
+      });
       expect(created.status, JSON.stringify(created.body)).toBe(201);
       const id = created.body.data.campaign.id as string;
       const required = created.body.data.campaign.budget.requiredHalalas as number;
       const row = await t.prisma.watchCampaign.findUniqueOrThrow({ where: { id } });
-      expect({ holder: row.organizationId, creator: row.creatorOrganizationId, sponsor: row.sponsorOrganizationId }).toEqual({
+      expect({
+        holder: row.organizationId,
+        creator: row.creatorOrganizationId,
+        sponsor: row.sponsorOrganizationId,
+      }).toEqual({
         holder: w.A.orgId,
         creator: bank,
         sponsor: bank,
       });
       // the commercial case: the partner is OWNER (it accepts the media spend), the merchant is the FULFILMENT party
-      const cv = await w.api(bankFinance).get(`${pb(bank)}/commercial/cases/${await caseFor('WATCH', id)}`);
+      const cv = await w
+        .api(bankFinance)
+        .get(`${pb(bank)}/commercial/cases/${await caseFor('WATCH', id)}`);
       expect(cv.status, JSON.stringify(cv.body)).toBe(200);
       expect(
-        cv.body.data.preview.parties.map((p: { role: string; organizationId: string }) => `${p.role}:${p.organizationId === bank ? 'bank' : 'A'}`).sort(),
+        cv.body.data.preview.parties
+          .map(
+            (p: { role: string; organizationId: string }) =>
+              `${p.role}:${p.organizationId === bank ? 'bank' : 'A'}`,
+          )
+          .sort(),
       ).toEqual(['FULFILMENT_MERCHANT:A', 'OWNER:bank']);
       // only the budget owner funds it: never the merchant, and not a partner role without commercial authority
-      const byMerchant = await w.api(w.ownerA).post(`${w.base('A')}/watch/${id}/fund`).set('Idempotency-Key', idem()).send({ amountHalalas: required });
+      const byMerchant = await w
+        .api(w.ownerA)
+        .post(`${w.base('A')}/watch/${id}/fund`)
+        .set('Idempotency-Key', idem())
+        .send({ amountHalalas: required });
       expect(byMerchant.status).toBe(409);
-      expect((await post(bankCampaigns, `${pb(bank)}/watch/owned/${id}/fund`, { amountHalalas: required })).status).toBe(403);
-      const funded = await post(bankFinance, `${pb(bank)}/watch/owned/${id}/fund`, { amountHalalas: required });
+      expect(
+        (
+          await post(bankCampaigns, `${pb(bank)}/watch/owned/${id}/fund`, {
+            amountHalalas: required,
+          })
+        ).status,
+      ).toBe(403);
+      const funded = await post(bankFinance, `${pb(bank)}/watch/owned/${id}/fund`, {
+        amountHalalas: required,
+      });
       expect(funded.status, JSON.stringify(funded.body)).toBe(200);
       const f = await t.prisma.watchFunding.findFirstOrThrow({ where: { campaignId: id } });
       expect(f.organizationId).toBe(bank);
@@ -967,41 +996,104 @@ describe.skipIf(!DB_READY)('Stage 7 partner portal', () => {
       const otherAdmin = await partnerUser(other, 'PARTNER_ADMIN');
       expect((await w.api(otherAdmin).get(`${pb(other)}/watch/owned/${id}`)).status).toBe(404);
       expect((await w.api(bankAnalyst).get(`${pb(bank)}/watch/owned/${id}`)).status).toBe(200);
-      const list = (await w.api(bankAnalyst).get(`${pb(bank)}/watch/owned`)).body.data as Array<{ id: string; status: string; fundedHalalas: number }>;
-      expect(list.find((x) => x.id === id)).toMatchObject({ status: 'PENDING_REVIEW', fundedHalalas: required });
-      expect(((await w.api(otherAdmin).get(`${pb(other)}/watch/owned`)).body.data ?? []).some((x: { id: string }) => x.id === id)).toBe(false);
+      const list = (await w.api(bankAnalyst).get(`${pb(bank)}/watch/owned`)).body.data as Array<{
+        id: string;
+        status: string;
+        fundedHalalas: number;
+      }>;
+      expect(list.find((x) => x.id === id)).toMatchObject({
+        status: 'PENDING_REVIEW',
+        fundedHalalas: required,
+      });
+      expect(
+        ((await w.api(otherAdmin).get(`${pb(other)}/watch/owned`)).body.data ?? []).some(
+          (x: { id: string }) => x.id === id,
+        ),
+      ).toBe(false);
       // the merchant's own video is offered to the partner for a campaign at that merchant
-      const assets = await w.api(bankCampaigns).get(`${pb(bank)}/campaigns/merchants/${w.A.orgId}/assets`);
+      const assets = await w
+        .api(bankCampaigns)
+        .get(`${pb(bank)}/campaigns/merchants/${w.A.orgId}/assets`);
       expect(assets.body.data.videos.map((v: { fileId: string }) => v.fileId)).toContain(video.id);
     });
 
     it('FD-S7-3: a card attribute is VERIFIED only with trusted evidence; BIN metadata or a declaration is never shown as verified', async () => {
-      const c = await createBusinessUser(t.prisma, { role: 'PARTNER_READ_ONLY', orgId: bank, userType: 'PARTNER_USER' });
+      const c = await createBusinessUser(t.prisma, {
+        role: 'PARTNER_READ_ONLY',
+        orgId: bank,
+        userType: 'PARTNER_USER',
+      });
       // the database refuses an ISSUER_VERIFIED card attribute without a trusted source and evidence
       await expect(
         t.prisma.eligibilityAttribute.create({
-          data: { userId: c.id, attrType: 'CARD_TIER', valueRef: 'BIN-METADATA-ONLY', level: 'ISSUER_VERIFIED', status: 'VERIFIED', source: 'BIN_LOOKUP' },
+          data: {
+            userId: c.id,
+            attrType: 'CARD_TIER',
+            valueRef: 'BIN-METADATA-ONLY',
+            level: 'ISSUER_VERIFIED',
+            status: 'VERIFIED',
+            source: 'BIN_LOOKUP',
+          },
         }),
       ).rejects.toThrow();
       await expect(
         t.prisma.eligibilityAttribute.create({
-          data: { userId: c.id, attrType: 'CARD_PRODUCT', valueRef: 'X', level: 'ISSUER_VERIFIED', status: 'VERIFIED', verificationSource: 'BIN_TABLE', evidenceRef: 'e' },
+          data: {
+            userId: c.id,
+            attrType: 'CARD_PRODUCT',
+            valueRef: 'X',
+            level: 'ISSUER_VERIFIED',
+            status: 'VERIFIED',
+            verificationSource: 'BIN_TABLE',
+            evidenceRef: 'e',
+          },
         }),
       ).rejects.toThrow();
       const ok = await t.prisma.eligibilityAttribute.create({
-        data: { userId: c.id, attrType: 'CARD_TIER', valueRef: 'PLATINUM', level: 'ISSUER_VERIFIED', status: 'VERIFIED', source: 'ISSUER', verificationSource: 'ISSUER_API', evidenceRef: 'iss-tx-1', verifiedAt: new Date() },
+        data: {
+          userId: c.id,
+          attrType: 'CARD_TIER',
+          valueRef: 'PLATINUM',
+          level: 'ISSUER_VERIFIED',
+          status: 'VERIFIED',
+          source: 'ISSUER',
+          verificationSource: 'ISSUER_API',
+          evidenceRef: 'iss-tx-1',
+          verifiedAt: new Date(),
+        },
       });
       expect(ok.verificationSource).toBe('ISSUER_API');
       // the engine tells VERIFIED from DECLARED: a declared tier never satisfies an ISSUER_VERIFIED rule, an evidenced one does
-      const rule = { op: 'ATTR', attr: 'CARD_TIER', values: ['PLATINUM'], level: 'ISSUER_VERIFIED' } as const;
-      const ctx = (attrs: Array<Record<string, unknown>>) => ({ userId: c.id, city: 'Riyadh', attributes: attrs as never, now: new Date() });
-      const declared = { attrType: 'CARD_TIER', valueRef: 'PLATINUM', level: 'SELF_DECLARED', status: 'VERIFIED', expiresAt: null };
+      const rule = {
+        op: 'ATTR',
+        attr: 'CARD_TIER',
+        values: ['PLATINUM'],
+        level: 'ISSUER_VERIFIED',
+      } as const;
+      const ctx = (attrs: Array<Record<string, unknown>>) => ({
+        userId: c.id,
+        city: 'Riyadh',
+        attributes: attrs as never,
+        now: new Date(),
+      });
+      const declared = {
+        attrType: 'CARD_TIER',
+        valueRef: 'PLATINUM',
+        level: 'SELF_DECLARED',
+        status: 'VERIFIED',
+        expiresAt: null,
+      };
       const legacy = { ...declared, level: 'ISSUER_VERIFIED' }; // claims verified, carries no evidence
       const evidenced = { ...legacy, verificationSource: 'SCHEME_API', evidenceRef: 'sch-1' };
-      expect(evaluateEligibility('COMPOSITE', [], ctx([declared]), rule).result).not.toBe('ELIGIBLE');
+      expect(evaluateEligibility('COMPOSITE', [], ctx([declared]), rule).result).not.toBe(
+        'ELIGIBLE',
+      );
       expect(evaluateEligibility('COMPOSITE', [], ctx([legacy]), rule).result).not.toBe('ELIGIBLE');
       expect(evaluateEligibility('COMPOSITE', [], ctx([evidenced]), rule).result).toBe('ELIGIBLE');
-      expect(evaluateEligibility('COMPOSITE', [], ctx([declared]), { ...rule, level: 'SELF_DECLARED' }).result).toBe('ELIGIBLE');
+      expect(
+        evaluateEligibility('COMPOSITE', [], ctx([declared]), { ...rule, level: 'SELF_DECLARED' })
+          .result,
+      ).toBe('ELIGIBLE');
     });
 
     it('FD-S7-4: a partner creates a Live Deal for a network merchant; it is published only after DealDash confirms the right; no capability follows', async () => {
@@ -1024,8 +1116,14 @@ describe.skipIf(!DB_READY)('Stage 7 partner portal', () => {
       };
       // not a network merchant of this partner, or card data in the text: refused
       expect((await post(bankCampaigns, `${pb(bank)}/offers`, offer)).status).toBe(403); // needs partner.network.manage
-      expect((await post(bankAdmin, `${pb(bank)}/offers`, { ...offer, merchantSourceId: 'UNKNOWN-M' })).status).toBe(409);
-      const pan = await post(bankAdmin, `${pb(bank)}/offers`, { ...offer, termsEn: 'Use card 4111 1111 1111 1111' });
+      expect(
+        (await post(bankAdmin, `${pb(bank)}/offers`, { ...offer, merchantSourceId: 'UNKNOWN-M' }))
+          .status,
+      ).toBe(409);
+      const pan = await post(bankAdmin, `${pb(bank)}/offers`, {
+        ...offer,
+        termsEn: 'Use card 4111 1111 1111 1111',
+      });
       expect(pan.status).toBe(422);
       expect(pan.body.errors[0].code).toBe('CARD_DATA_FORBIDDEN');
       const r = await post(bankAdmin, `${pb(bank)}/offers`, offer);
@@ -1033,10 +1131,15 @@ describe.skipIf(!DB_READY)('Stage 7 partner portal', () => {
       expect(r.body.data.publication).toBe('AWAITING_CONFIRMATION');
       const id = r.body.data.id as string;
       const shown = async () =>
-        ((await t.http.get('/v1/app/network-offers').query({ q: 'Gulf Bank cardholders' })).body.data as Array<{ id: string }>).some((o) => o.id === id);
+        (
+          (await t.http.get('/v1/app/network-offers').query({ q: 'Gulf Bank cardholders' })).body
+            .data as Array<{ id: string }>
+        ).some((o) => o.id === id);
       expect(await shown()).toBe(false);
       // the partner keeps every provenance field
-      const mine = (await w.api(bankAnalyst).get(`${pb(bank)}/offers`)).body.data.find((o: { id: string }) => o.id === id);
+      const mine = (await w.api(bankAnalyst).get(`${pb(bank)}/offers`)).body.data.find(
+        (o: { id: string }) => o.id === id,
+      );
       expect(mine).toMatchObject({
         sourceRecordId: 'GB-OFFER-77',
         merchantSourceId: 'GB-FD4-M',
@@ -1048,19 +1151,41 @@ describe.skipIf(!DB_READY)('Stage 7 partner portal', () => {
       });
       expect(mine.lastSyncAt).toBeTruthy();
       // DealDash confirms the publication right (a partner user cannot)
-      expect((await w.api(mgmt).get('/v1/admin/partners/offers')).body.data.map((o: { id: string }) => o.id)).toContain(id);
-      expect([401, 403]).toContain((await post(bankAdmin, `/v1/admin/partners/offers/${id}/confirm`, {})).status);
-      const ok = await post(mgmt, `/v1/admin/partners/offers/${id}/confirm`, { reason: 'Programme agreement on file' });
+      expect(
+        (await w.api(mgmt).get('/v1/admin/partners/offers')).body.data.map(
+          (o: { id: string }) => o.id,
+        ),
+      ).toContain(id);
+      expect([401, 403]).toContain(
+        (await post(bankAdmin, `/v1/admin/partners/offers/${id}/confirm`, {})).status,
+      );
+      const ok = await post(mgmt, `/v1/admin/partners/offers/${id}/confirm`, {
+        reason: 'Programme agreement on file',
+      });
       expect(ok.status, JSON.stringify(ok.body)).toBe(200);
       expect(await shown()).toBe(true); // public, frictionless discovery (unchanged rule)
-      expect((await w.api(bankAnalyst).get(`${pb(bank)}/offers`)).body.data.find((o: { id: string }) => o.id === id).publication).toBe('PUBLISHABLE');
+      expect(
+        (await w.api(bankAnalyst).get(`${pb(bank)}/offers`)).body.data.find(
+          (o: { id: string }) => o.id === id,
+        ).publication,
+      ).toBe('PUBLISHABLE');
       // a partner Live Deal gives the referenced merchant NO controlled capability
       const d = await w.api(bankAnalyst).get(`${pb(bank)}/network/merchants/${m.body.data.id}`);
       expect(d.body.data.state).toBe('REFERENCED');
       expect(Object.values(d.body.data.capabilities).every((v) => v === false)).toBe(true);
       // audited, and DealDash can withdraw the right again
-      expect(await t.prisma.auditLog.count({ where: { entityId: id, action: { startsWith: 'partner.offer.' } } })).toBe(2);
-      expect((await post(mgmt, `/v1/admin/partners/offers/${id}/withdraw`, { reason: 'Programme ended' })).status).toBe(200);
+      expect(
+        await t.prisma.auditLog.count({
+          where: { entityId: id, action: { startsWith: 'partner.offer.' } },
+        }),
+      ).toBe(2);
+      expect(
+        (
+          await post(mgmt, `/v1/admin/partners/offers/${id}/withdraw`, {
+            reason: 'Programme ended',
+          })
+        ).status,
+      ).toBe(200);
       expect(await shown()).toBe(false);
     });
   });

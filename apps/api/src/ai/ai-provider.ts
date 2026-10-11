@@ -103,10 +103,22 @@ const RULES: Record<AiAgent, Array<{ intent: string; words: string[] }>> = {
     // Stage 8: case work, reconciliation variance and queue priority (the case id comes from the screen context)
     {
       intent: 'CASE_SUMMARY',
-      words: ['summar', 'missing evidence', 'next step', 'draft a reply', 'draft reply', 'لخص', 'ملخص', 'الخطوة التالية'],
+      words: [
+        'summar',
+        'missing evidence',
+        'next step',
+        'draft a reply',
+        'draft reply',
+        'لخص',
+        'ملخص',
+        'الخطوة التالية',
+      ],
     },
     { intent: 'RECON_VARIANCE', words: ['reconcil', 'variance', 'mismatch', 'مطابق', 'فرق'] },
-    { intent: 'QUEUE_PRIORITY', words: ['priorit', 'queue', 'backlog', 'overdue', 'أولوي', 'متأخر'] },
+    {
+      intent: 'QUEUE_PRIORITY',
+      words: ['priorit', 'queue', 'backlog', 'overdue', 'أولوي', 'متأخر'],
+    },
     {
       intent: 'CUSTOMER_CASE',
       words: ['customer', 'case', 'complaint', 'refund', 'عميل', 'شكوى', 'استرداد'],

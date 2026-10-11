@@ -61,8 +61,16 @@ export class WatchFundingService {
       throw new AppError('INVALID_STATE', `A ${c.status} campaign cannot be funded`, 409);
     // FD-S7-1: a partner-owned budget is funded by that partner (DealDash Admin credits stay possible); never by the merchant
     const owner = c.sponsorOrganizationId ?? c.organizationId;
-    if (c.sponsorOrganizationId && organizationId && actor.partnerContext?.partnerOrganizationId !== c.sponsorOrganizationId)
-      throw new AppError('INVALID_STATE', 'This campaign budget is owned and funded by its sponsor', 409);
+    if (
+      c.sponsorOrganizationId &&
+      organizationId &&
+      actor.partnerContext?.partnerOrganizationId !== c.sponsorOrganizationId
+    )
+      throw new AppError(
+        'INVALID_STATE',
+        'This campaign budget is owned and funded by its sponsor',
+        409,
+      );
     const key = opts.idempotencyKey ?? randomUUID();
     const idemKey = `watch-fund:${c.id}:${key}`;
     await this.prisma.$transaction(async (tx) => {
@@ -247,7 +255,11 @@ export class WatchFundingService {
       reversesJournalId: view.consumptionJournalId,
       lines: [
         { family: 'PLATFORM_REVENUE', amountHalalas: charge },
-        { family: 'CAMPAIGN_UNUSED', organizationId: await this.budgetOwner(tx, c), amountHalalas: -charge },
+        {
+          family: 'CAMPAIGN_UNUSED',
+          organizationId: await this.budgetOwner(tx, c),
+          amountHalalas: -charge,
+        },
       ],
     });
   }
@@ -284,8 +296,14 @@ export class WatchFundingService {
   }
 
   /** FD-S7-1: the organization whose campaign budget this is (the partner Sponsor / Funder that owns it, else the merchant). */
-  private async budgetOwner(tx: Prisma.TransactionClient, c: { id: string; organizationId: string }) {
-    const row = await tx.watchCampaign.findUnique({ where: { id: c.id }, select: { sponsorOrganizationId: true } });
+  private async budgetOwner(
+    tx: Prisma.TransactionClient,
+    c: { id: string; organizationId: string },
+  ) {
+    const row = await tx.watchCampaign.findUnique({
+      where: { id: c.id },
+      select: { sponsorOrganizationId: true },
+    });
     return row?.sponsorOrganizationId ?? c.organizationId;
   }
 }

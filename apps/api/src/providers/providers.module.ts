@@ -6,12 +6,14 @@ import {
   FILE_SCANNER,
   MAPS_PROVIDER,
   PAYMENT_PROVIDER,
+  PAYOUT_PROVIDER,
   PUSH_PROVIDER,
   SMS_PROVIDER,
   STORAGE_PROVIDER,
   VIDEO_PROVIDER,
 } from './interfaces';
 import { DevFileScanner, LocalStorageProvider } from './local-storage';
+import { ManualPayoutProvider, MockPayoutProvider } from './payout';
 import {
   MockEmailProvider,
   MockMapsProvider,
@@ -42,6 +44,13 @@ import {
           : new MockStorageProvider(),
     },
     { provide: FILE_SCANNER, useClass: DevFileScanner },
+    // Stage 9 (B2): settlement payouts (manual by default; a vendor adapter is added when contracted)
+    {
+      provide: PAYOUT_PROVIDER,
+      inject: [APP_ENV],
+      useFactory: (env: ApiEnv) =>
+        env.PAYOUT_PROVIDER === 'mock' ? new MockPayoutProvider() : new ManualPayoutProvider(),
+    },
     { provide: VIDEO_PROVIDER, useClass: MockVideoProvider },
     { provide: MAPS_PROVIDER, useClass: MockMapsProvider },
   ],
@@ -54,6 +63,7 @@ import {
     FILE_SCANNER,
     VIDEO_PROVIDER,
     MAPS_PROVIDER,
+    PAYOUT_PROVIDER,
   ],
 })
 export class ProvidersModule {}

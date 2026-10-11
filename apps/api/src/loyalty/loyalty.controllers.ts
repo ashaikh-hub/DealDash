@@ -11,7 +11,13 @@ import {
   loyaltyRuleCreateSchema,
   loyaltyRuleViewSchema,
 } from '@dealdash/validation';
-import { Audiences, CurrentActor, Idempotent, Meta, RequirePermissions } from '../common/decorators';
+import {
+  Audiences,
+  CurrentActor,
+  Idempotent,
+  Meta,
+  RequirePermissions,
+} from '../common/decorators';
 import { AppError } from '../common/errors';
 import type { Actor, RequestMeta } from '../common/request-context';
 import { LoyaltyFinanceService } from './loyalty-finance.service';
@@ -61,7 +67,11 @@ export class AdminLoyaltyController {
   @HttpCode(200)
   @RequirePermissions('admin.loyalty.manage')
   @ApiOkResponse({ type: RuleResponse })
-  submit(@Param('id', ParseUUIDPipe) id: string, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  submit(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.rules.submit(actor, id, undefined, meta);
   }
 
@@ -70,7 +80,12 @@ export class AdminLoyaltyController {
   @HttpCode(200)
   @RequirePermissions('admin.loyalty.approve')
   @ApiOkResponse({ type: RuleResponse })
-  approve(@Param('id', ParseUUIDPipe) id: string, @Body() b: DecisionDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  approve(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: DecisionDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.rules.approve(actor, id, meta, b.reason);
   }
 
@@ -79,7 +94,12 @@ export class AdminLoyaltyController {
   @HttpCode(200)
   @RequirePermissions('admin.loyalty.approve')
   @ApiOkResponse({ type: RuleResponse })
-  reject(@Param('id', ParseUUIDPipe) id: string, @Body() b: DecisionDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  reject(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: DecisionDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     if (!b.reason) throw AppError.validation('A reason is required', 'reason');
     return this.rules.reject(actor, id, b.reason, meta);
   }
@@ -89,7 +109,12 @@ export class AdminLoyaltyController {
   @HttpCode(200)
   @RequirePermissions('admin.loyalty.manage')
   @ApiOkResponse({ type: RuleResponse })
-  pause(@Param('id', ParseUUIDPipe) id: string, @Body() b: DecisionDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  pause(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: DecisionDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.rules.pause(actor, id, undefined, b.reason, meta);
   }
 
@@ -98,7 +123,11 @@ export class AdminLoyaltyController {
   @HttpCode(200)
   @RequirePermissions('admin.loyalty.manage')
   @ApiOkResponse({ type: RuleResponse })
-  resume(@Param('id', ParseUUIDPipe) id: string, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  resume(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.rules.resume(actor, id, undefined, meta);
   }
 
@@ -107,7 +136,12 @@ export class AdminLoyaltyController {
   @HttpCode(200)
   @RequirePermissions('admin.loyalty.manage')
   @ApiOkResponse({ type: RuleResponse })
-  end(@Param('id', ParseUUIDPipe) id: string, @Body() b: DecisionDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  end(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: DecisionDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.rules.end(actor, id, undefined, b.reason, meta);
   }
 
@@ -116,7 +150,12 @@ export class AdminLoyaltyController {
   @HttpCode(200)
   @RequirePermissions('admin.loyalty.approve')
   @ApiOkResponse({ type: RuleResponse })
-  allocation(@Param('id', ParseUUIDPipe) id: string, @Body() b: AllocationDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  allocation(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: AllocationDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     return this.rules.increaseAllocation(actor, id, undefined, b.maxAllocationPoints, meta);
   }
 
@@ -140,9 +179,16 @@ export class OrgLoyaltyController {
 
   private need(actor: Actor, orgId: string) {
     const m = actor.membership;
-    if (!m || m.organizationId !== orgId || (m.organizationType !== 'MERCHANT' && m.organizationType !== 'PARTNER')) throw AppError.notFound();
-    const code = `${m.organizationType === 'PARTNER' ? 'partner' : 'merchant'}.loyalty.manage` as PermissionCode;
-    if (!actor.permissions.has(code) || m.scoped) throw new AppError('SCOPE_FORBIDDEN', 'You do not have permission to do this', 403);
+    if (
+      !m ||
+      m.organizationId !== orgId ||
+      (m.organizationType !== 'MERCHANT' && m.organizationType !== 'PARTNER')
+    )
+      throw AppError.notFound();
+    const code =
+      `${m.organizationType === 'PARTNER' ? 'partner' : 'merchant'}.loyalty.manage` as PermissionCode;
+    if (!actor.permissions.has(code) || m.scoped)
+      throw new AppError('SCOPE_FORBIDDEN', 'You do not have permission to do this', 403);
   }
 
   @Get('rules')
@@ -155,7 +201,12 @@ export class OrgLoyaltyController {
   @Post('rules')
   @Idempotent()
   @ApiOkResponse({ type: RuleResponse })
-  create(@Param('orgId', ParseUUIDPipe) orgId: string, @Body() b: RuleCreateDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  create(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Body() b: RuleCreateDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     this.need(actor, orgId);
     return this.rules.create(actor, orgId, b, meta);
   }
@@ -164,7 +215,12 @@ export class OrgLoyaltyController {
   @Idempotent()
   @HttpCode(200)
   @ApiOkResponse({ type: RuleResponse })
-  submit(@Param('orgId', ParseUUIDPipe) orgId: string, @Param('id', ParseUUIDPipe) id: string, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  submit(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     this.need(actor, orgId);
     return this.rules.submit(actor, id, orgId, meta);
   }
@@ -173,7 +229,13 @@ export class OrgLoyaltyController {
   @Idempotent()
   @HttpCode(200)
   @ApiOkResponse({ type: RuleResponse })
-  pause(@Param('orgId', ParseUUIDPipe) orgId: string, @Param('id', ParseUUIDPipe) id: string, @Body() b: DecisionDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  pause(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: DecisionDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     this.need(actor, orgId);
     return this.rules.pause(actor, id, orgId, b.reason, meta);
   }
@@ -182,7 +244,12 @@ export class OrgLoyaltyController {
   @Idempotent()
   @HttpCode(200)
   @ApiOkResponse({ type: RuleResponse })
-  resume(@Param('orgId', ParseUUIDPipe) orgId: string, @Param('id', ParseUUIDPipe) id: string, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  resume(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     this.need(actor, orgId);
     return this.rules.resume(actor, id, orgId, meta);
   }
@@ -191,7 +258,13 @@ export class OrgLoyaltyController {
   @Idempotent()
   @HttpCode(200)
   @ApiOkResponse({ type: RuleResponse })
-  end(@Param('orgId', ParseUUIDPipe) orgId: string, @Param('id', ParseUUIDPipe) id: string, @Body() b: DecisionDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  end(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: DecisionDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     this.need(actor, orgId);
     return this.rules.end(actor, id, orgId, b.reason, meta);
   }
@@ -201,7 +274,13 @@ export class OrgLoyaltyController {
   @Idempotent()
   @HttpCode(200)
   @ApiOkResponse({ type: RuleResponse })
-  allocation(@Param('orgId', ParseUUIDPipe) orgId: string, @Param('id', ParseUUIDPipe) id: string, @Body() b: AllocationDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
+  allocation(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: AllocationDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
     this.need(actor, orgId);
     return this.rules.increaseAllocation(actor, id, orgId, b.maxAllocationPoints, meta);
   }

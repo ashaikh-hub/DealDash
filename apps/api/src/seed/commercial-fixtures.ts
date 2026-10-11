@@ -47,9 +47,18 @@ export async function seedCommercialFixtures(prisma: PrismaClient) {
   } as const;
   const skip = ['DRAFT', 'NEEDS_CHANGES', 'REJECTED'];
   const [hot, vouchers, watch] = await Promise.all([
-    prisma.hotDeal.findMany({ where: { status: { notIn: skip as never[] } }, select: { id: true, status: true, organizationId: true, content: true } }),
-    prisma.voucher.findMany({ where: { status: { notIn: skip as never[] } }, select: { id: true, status: true, organizationId: true, content: true } }),
-    prisma.watchCampaign.findMany({ where: { status: { notIn: skip as never[] } }, select: { id: true, status: true, organizationId: true, content: true } }),
+    prisma.hotDeal.findMany({
+      where: { status: { notIn: skip as never[] } },
+      select: { id: true, status: true, organizationId: true, content: true },
+    }),
+    prisma.voucher.findMany({
+      where: { status: { notIn: skip as never[] } },
+      select: { id: true, status: true, organizationId: true, content: true },
+    }),
+    prisma.watchCampaign.findMany({
+      where: { status: { notIn: skip as never[] } },
+      select: { id: true, status: true, organizationId: true, content: true },
+    }),
   ]);
   let n = 0;
   for (const [product, rows] of [
@@ -63,11 +72,19 @@ export async function seedCommercialFixtures(prisma: PrismaClient) {
         // campaigns that are already approved get their first version (a pending campaign gets one when it is approved)
         if ((approved[product] as readonly string[]).includes(r.status))
           await prisma.$transaction((tx) =>
-            versions.recordLive(tx, { product, subjectId: r.id, organizationId: r.organizationId, content: r.content, reason: 'APPROVED' }),
+            versions.recordLive(tx, {
+              product,
+              subjectId: r.id,
+              organizationId: r.organizationId,
+              content: r.content,
+              reason: 'APPROVED',
+            }),
           );
         n++;
       } catch (e) {
-        console.warn(`  commercial fixture skipped for ${product} ${r.id}: ${(e as Error).message}`);
+        console.warn(
+          `  commercial fixture skipped for ${product} ${r.id}: ${(e as Error).message}`,
+        );
       }
     }
   }

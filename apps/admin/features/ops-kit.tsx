@@ -2,8 +2,23 @@
 
 import { useState, type ReactNode } from 'react';
 import { errorMessage, useApi, useAuth, useResource, type Resource } from '@dealdash/app-shell';
-import { createTranslator, dictionaries, formatAmount, type DictionaryKey } from '@dealdash/localization';
-import { Alert, Button, EmptyState, ErrorState, Field, LoadingState, Select, Textarea, type StatusTone } from '@dealdash/ui';
+import {
+  createTranslator,
+  dictionaries,
+  formatAmount,
+  type DictionaryKey,
+} from '@dealdash/localization';
+import {
+  Alert,
+  Button,
+  EmptyState,
+  ErrorState,
+  Field,
+  LoadingState,
+  Select,
+  Textarea,
+  type StatusTone,
+} from '@dealdash/ui';
 
 /**
  * Stage 8 admin operations kit: the states every operations screen shows (loading, empty, error, access denied), a command runner
@@ -16,7 +31,8 @@ export function useT() {
   const { locale } = useAuth();
   const t = createTranslator(locale);
   /** A translated code, or the code itself when no copy exists yet (never a blank). */
-  const code = (prefix: string, v: string | null | undefined) => (v ? (has(`${prefix}.${v}`) ? t(k(prefix, v)) : v) : '-');
+  const code = (prefix: string, v: string | null | undefined) =>
+    v ? (has(`${prefix}.${v}`) ? t(k(prefix, v)) : v) : '-';
   return { t, locale, code };
 }
 
@@ -83,7 +99,13 @@ export function useOpsCommand() {
   const { locale } = useAuth();
   const [banner, setBanner] = useState<{ tone: 'success' | 'danger'; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
-  const run = async <T,>(path: string, body: unknown, ok: string, after?: (d: T | null) => void | Promise<void>, method: 'POST' | 'PUT' = 'POST') => {
+  const run = async <T,>(
+    path: string,
+    body: unknown,
+    ok: string,
+    after?: (d: T | null) => void | Promise<void>,
+    method: 'POST' | 'PUT' = 'POST',
+  ) => {
     setBusy(true);
     const r = await call<T>(method, path, { body, idempotent: true });
     setBusy(false);
@@ -104,14 +126,35 @@ export function useOpsCommand() {
 }
 
 /** Loading, access denied, error and empty states for one resource, then the content. */
-export function OpsStates<T>({ res, empty, emptyTitle, children }: { res: Resource<T>; empty?: (d: T) => boolean; emptyTitle?: string; children: (d: T) => ReactNode }) {
+export function OpsStates<T>({
+  res,
+  empty,
+  emptyTitle,
+  children,
+}: {
+  res: Resource<T>;
+  empty?: (d: T) => boolean;
+  emptyTitle?: string;
+  children: (d: T) => ReactNode;
+}) {
   const { t, locale } = useT();
   if (res.loading && !res.data) return <LoadingState label={t('state.loading')} />;
   if (res.errors.length) {
-    const denied = res.errors.some((e) => e.code === 'FORBIDDEN' || e.code === 'SCOPE_FORBIDDEN' || e.code === 'UNAUTHORIZED');
+    const denied = res.errors.some(
+      (e) => e.code === 'FORBIDDEN' || e.code === 'SCOPE_FORBIDDEN' || e.code === 'UNAUTHORIZED',
+    );
     return (
       <div data-testid={denied ? 'ops-denied' : 'ops-error'}>
-        {denied ? <Alert tone="warning">{t('s8.state.denied')}</Alert> : <ErrorState title={t('s8.state.error')} description={errorMessage(locale, res.errors)} retryLabel={t('s8.state.retry')} onRetry={() => void res.reload()} />}
+        {denied ? (
+          <Alert tone="warning">{t('s8.state.denied')}</Alert>
+        ) : (
+          <ErrorState
+            title={t('s8.state.error')}
+            description={errorMessage(locale, res.errors)}
+            retryLabel={t('s8.state.retry')}
+            onRetry={() => void res.reload()}
+          />
+        )}
       </div>
     );
   }
@@ -125,18 +168,40 @@ export function OpsStates<T>({ res, empty, emptyTitle, children }: { res: Resour
   return <>{children(res.data)}</>;
 }
 
-export function Money({ minor, currency }: { minor: number | null | undefined; currency?: string | null }) {
+export function Money({
+  minor,
+  currency,
+}: {
+  minor: number | null | undefined;
+  currency?: string | null;
+}) {
   const { locale } = useT();
   if (minor === null || minor === undefined) return <span>-</span>;
   return <span className="dd-ltr">{formatAmount(locale, minor, currency || 'SAR')}</span>;
 }
 
 /** A reason every decision records (3 characters or more); the button stays disabled until it is given. */
-export function ReasonField({ id, value, onChange, label }: { id: string; value: string; onChange: (v: string) => void; label?: string }) {
+export function ReasonField({
+  id,
+  value,
+  onChange,
+  label,
+}: {
+  id: string;
+  value: string;
+  onChange: (v: string) => void;
+  label?: string;
+}) {
   const { t } = useT();
   return (
     <Field label={label ?? t('s8.reason')} htmlFor={id} help={t('s8.reasonHelp')}>
-      <Textarea id={id} rows={2} value={value} maxLength={1000} onChange={(e) => onChange(e.target.value)} />
+      <Textarea
+        id={id}
+        rows={2}
+        value={value}
+        maxLength={1000}
+        onChange={(e) => onChange(e.target.value)}
+      />
     </Field>
   );
 }
@@ -145,7 +210,17 @@ export const reasonOk = (v: string) => v.trim().length >= 3;
 
 type ReasonList = Array<{ code: string; en: string; ar: string }>;
 /** A reason code chosen from the configured list (operations.reasons.<kind>). */
-export function ReasonCodePicker({ id, kind, value, onChange }: { id: string; kind: 'refund' | 'dispute' | 'adjustment' | 'hold' | 'moderation'; value: string; onChange: (v: string) => void }) {
+export function ReasonCodePicker({
+  id,
+  kind,
+  value,
+  onChange,
+}: {
+  id: string;
+  kind: 'refund' | 'dispute' | 'adjustment' | 'hold' | 'moderation';
+  value: string;
+  onChange: (v: string) => void;
+}) {
   const { t, locale } = useT();
   const res = useResource<Record<string, ReasonList>>('/v1/admin/ops/reasons');
   const list = res.data?.[kind] ?? [];
@@ -164,9 +239,25 @@ export function ReasonCodePicker({ id, kind, value, onChange }: { id: string; ki
 }
 
 /** Header of an operations page: title, a short description and optional actions. */
-export function OpsHeader({ title, intro, actions }: { title: string; intro?: string; actions?: ReactNode }) {
+export function OpsHeader({
+  title,
+  intro,
+  actions,
+}: {
+  title: string;
+  intro?: string;
+  actions?: ReactNode;
+}) {
   return (
-    <div className="dd-row" style={{ justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
+    <div
+      className="dd-row"
+      style={{
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        flexWrap: 'wrap',
+        gap: 12,
+      }}
+    >
       <div>
         <h1 className="dd-title-xl">{title}</h1>
         {intro ? (
@@ -181,7 +272,19 @@ export function OpsHeader({ title, intro, actions }: { title: string; intro?: st
 }
 
 /** A second-person decision: approve / reject with a reason. Hidden from the requester (the server refuses them anyway). */
-export function DecisionBar({ id, canDecide, onDecide, busy, waitingNote }: { id: string; canDecide: boolean; onDecide: (approve: boolean, reason: string) => void; busy: boolean; waitingNote?: string }) {
+export function DecisionBar({
+  id,
+  canDecide,
+  onDecide,
+  busy,
+  waitingNote,
+}: {
+  id: string;
+  canDecide: boolean;
+  onDecide: (approve: boolean, reason: string) => void;
+  busy: boolean;
+  waitingNote?: string;
+}) {
   const { t } = useT();
   const [reason, setReason] = useState('');
   if (!canDecide)
@@ -194,10 +297,21 @@ export function DecisionBar({ id, canDecide, onDecide, busy, waitingNote }: { id
     <div className="dd-stack" style={{ gap: 6 }}>
       <ReasonField id={`dec-${id}`} value={reason} onChange={setReason} />
       <div className="dd-row">
-        <Button size="sm" disabled={!reasonOk(reason) || busy} onClick={() => onDecide(true, reason)} data-testid={`ops-approve-${id}`}>
+        <Button
+          size="sm"
+          disabled={!reasonOk(reason) || busy}
+          onClick={() => onDecide(true, reason)}
+          data-testid={`ops-approve-${id}`}
+        >
           {t('s8.approve')}
         </Button>
-        <Button size="sm" variant="outline" disabled={!reasonOk(reason) || busy} onClick={() => onDecide(false, reason)} data-testid={`ops-reject-${id}`}>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={!reasonOk(reason) || busy}
+          onClick={() => onDecide(false, reason)}
+          data-testid={`ops-reject-${id}`}
+        >
           {t('s8.reject')}
         </Button>
       </div>

@@ -103,7 +103,10 @@ export async function buildVoucherWorld(t: Parameters<typeof buildHotWorld>[0]) 
     return res.body.data as Record<string, any>;
   }
   const commercialReady = (id: string) => t.app.get(CommercialService).devComplete('VOUCHER', id);
-  const submitVoucher = async (org: 'A' | 'B', id: string): Promise<{ status: number; body: any }> => {
+  const submitVoucher = async (
+    org: 'A' | 'B',
+    id: string,
+  ): Promise<{ status: number; body: any }> => {
     await commercialReady(id);
     return w
       .api(owner(org))

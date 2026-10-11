@@ -141,7 +141,10 @@ const S4 = {
   'hot.branchesTitle': ['Branches', 'الفروع'],
   'hot.detailsTitle': ['Details', 'التفاصيل'],
   'hot.termsTitle': ['Terms', 'الشروط'],
-  'hot.unavailable': ['This Exclusive Deal is not available any more', 'لم يعد هذا العرض الحصري متاحاً'],
+  'hot.unavailable': [
+    'This Exclusive Deal is not available any more',
+    'لم يعد هذا العرض الحصري متاحاً',
+  ],
   'hot.unavailableBody': [
     'It may have ended, sold out or been paused. Explore other offers.',
     'قد يكون انتهى أو نفد أو أُوقف مؤقتاً. استكشف عروضاً أخرى.',
@@ -531,7 +534,10 @@ const S4 = {
   'nav.hotDeals': ['Exclusive Deals', 'العروض الحصرية'],
   'nav.reservations': ['Reservations', 'الحجوزات'],
   'ah.title': ['Exclusive Deals', 'العروض الحصرية'],
-  'ah.sub': ['Review, monitor and control Exclusive Deals.', 'راجع العروض الحصرية وراقبها وتحكّم بها.'],
+  'ah.sub': [
+    'Review, monitor and control Exclusive Deals.',
+    'راجع العروض الحصرية وراقبها وتحكّم بها.',
+  ],
   'ah.tabQueue': ['Review queue', 'قائمة المراجعة'],
   'ah.tabAll': ['All Exclusive Deals', 'كل العروض الحصرية'],
   'ah.tabMonitor': ['Live monitor', 'المراقبة المباشرة'],

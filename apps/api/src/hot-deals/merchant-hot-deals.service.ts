@@ -233,7 +233,11 @@ export class MerchantHotDealsService {
     this.core.requireMerchantScope(actor, organizationId);
     await this.core.access.newCampaign(actor, 'EXCLUSIVE', organizationId, input);
     const content = dedupe(input);
-    content.commercial.creatorOrganizationId = campaignCreator(actor, null, content.commercial.creatorOrganizationId);
+    content.commercial.creatorOrganizationId = campaignCreator(
+      actor,
+      null,
+      content.commercial.creatorOrganizationId,
+    );
     await this.core.validateReferences(organizationId, content);
     const id = await this.prisma.$transaction(async (tx) => {
       const deal = await tx.hotDeal.create({
@@ -284,7 +288,11 @@ export class MerchantHotDealsService {
     // ---- free editing (drafts and requested changes)
     if (deal.status === 'DRAFT' || deal.status === 'NEEDS_CHANGES') {
       const next = dedupe(input);
-      next.commercial.creatorOrganizationId = campaignCreator(actor, live.commercial.creatorOrganizationId, next.commercial.creatorOrganizationId);
+      next.commercial.creatorOrganizationId = campaignCreator(
+        actor,
+        live.commercial.creatorOrganizationId,
+        next.commercial.creatorOrganizationId,
+      );
       await this.core.validateReferences(organizationId, next);
       const changed = diffFields(live, next);
       if (!changed.length) return done('SAVED');
@@ -313,7 +321,11 @@ export class MerchantHotDealsService {
 
     // ---- approved deals: wording and photos only. Stock is changed through the stock endpoint.
     const next = dedupe({ ...input, allocations: live.allocations });
-    next.commercial.creatorOrganizationId = campaignCreator(actor, live.commercial.creatorOrganizationId, next.commercial.creatorOrganizationId);
+    next.commercial.creatorOrganizationId = campaignCreator(
+      actor,
+      live.commercial.creatorOrganizationId,
+      next.commercial.creatorOrganizationId,
+    );
     await this.core.validateReferences(organizationId, next);
     const material = hotMaterialChanges(live, next);
     if (material.length)
@@ -369,7 +381,8 @@ export class MerchantHotDealsService {
     await this.core.commercial.assertCanSubmit('EXCLUSIVE', id, actor);
     const trust = await this.core.merchantTrust(organizationId);
     const g = await this.guardrails.evaluate(content, trust, GUARD_KEYS);
-    const commerciallyReady = (await this.core.commercial.blockersFor('EXCLUSIVE', id)).length === 0;
+    const commerciallyReady =
+      (await this.core.commercial.blockersFor('EXCLUSIVE', id)).length === 0;
     const finish = async (outcome: 'SENT_FOR_REVIEW' | 'PUBLISHED' | 'SCHEDULED') => ({
       deal: await this.view.build(await this.core.loadOwned(organizationId, id)),
       outcome,
@@ -508,7 +521,9 @@ export class MerchantHotDealsService {
     this.requireStatus(deal, ['SCHEDULED', 'LIVE', 'PAUSED', 'SOLD_OUT'], 'restocked');
     const { maxUnitsPerBranch } = await this.core.limits();
     if (body.delta > 0) {
-      const inv = await this.prisma.hotDealInventory.findMany({ where: { dealId: id, tracked: true } });
+      const inv = await this.prisma.hotDealInventory.findMany({
+        where: { dealId: id, tracked: true },
+      });
       await this.core.commercial.requireCoverage(
         'EXCLUSIVE',
         id,
@@ -530,7 +545,15 @@ export class MerchantHotDealsService {
       const fresh = await this.core.loadOwned(organizationId, id);
       const quotationId = await this.core.commercial.acceptedQuotationId('EXCLUSIVE', id);
       await this.prisma.$transaction((tx) =>
-        this.core.versions.recordLive(tx, { product: 'EXCLUSIVE', subjectId: id, organizationId, content: fresh.content, reason: 'AMENDMENT', quotationId, userId: actor.userId }),
+        this.core.versions.recordLive(tx, {
+          product: 'EXCLUSIVE',
+          subjectId: id,
+          organizationId,
+          content: fresh.content,
+          reason: 'AMENDMENT',
+          quotationId,
+          userId: actor.userId,
+        }),
       );
     }
     return this.view.build(await this.core.loadOwned(organizationId, id));
@@ -686,9 +709,15 @@ export class MerchantHotDealsService {
   ) {
     this.core.requireMerchantScope(actor, organizationId);
     if (this.core.access.isScoped(actor)) {
-      const r = await this.prisma.reservation.findFirst({ where: { id: reservationId, organizationId }, select: { dealId: true, branchId: true } });
+      const r = await this.prisma.reservation.findFirst({
+        where: { id: reservationId, organizationId },
+        select: { dealId: true, branchId: true },
+      });
       if (!r) throw AppError.notFound();
-      await this.core.access.branch(actor, 'merchant.deals.manage', r.branchId, { product: 'EXCLUSIVE', campaignId: r.dealId });
+      await this.core.access.branch(actor, 'merchant.deals.manage', r.branchId, {
+        product: 'EXCLUSIVE',
+        campaignId: r.dealId,
+      });
     }
     return this.reservations.cancel(
       reservationId,

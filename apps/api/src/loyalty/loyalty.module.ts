@@ -16,7 +16,18 @@ import { PointsLedgerService } from './points-ledger.service';
 @Module({
   imports: [FinanceModule, LiveDealsModule],
   controllers: [AdminLoyaltyController, OrgLoyaltyController],
-  providers: [PointsLedgerService, LoyaltyIssuanceService, LoyaltyRulesService, LoyaltyFinanceService, LoyaltyCommercialAdapter],
-  exports: [PointsLedgerService, LoyaltyIssuanceService, LoyaltyRulesService, LoyaltyFinanceService],
+  providers: [
+    PointsLedgerService,
+    LoyaltyIssuanceService,
+    LoyaltyRulesService,
+    LoyaltyFinanceService,
+    LoyaltyCommercialAdapter,
+  ],
+  exports: [
+    PointsLedgerService,
+    LoyaltyIssuanceService,
+    LoyaltyRulesService,
+    LoyaltyFinanceService,
+  ],
 })
 export class LoyaltyModule {}

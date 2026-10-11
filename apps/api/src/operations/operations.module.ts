@@ -4,6 +4,7 @@ import { ActivityService } from './activity.service';
 import { ConflictService } from './conflict.service';
 import { DisputeService } from './dispute.service';
 import { InboxService } from './inbox.service';
+import { LaunchControlService } from './launch-control.service';
 import { AdminOperationsController, OrgOperationsController } from './operations.controllers';
 import { RestrictionCheckService } from './restriction-check.service';
 
@@ -12,7 +13,21 @@ import { RestrictionCheckService } from './restriction-check.service';
 @Module({
   imports: [MerchantsModule],
   controllers: [AdminOperationsController, OrgOperationsController],
-  providers: [DisputeService, ConflictService, InboxService, ActivityService, RestrictionCheckService],
-  exports: [DisputeService, ConflictService, InboxService, ActivityService, RestrictionCheckService],
+  providers: [
+    DisputeService,
+    ConflictService,
+    InboxService,
+    ActivityService,
+    RestrictionCheckService,
+    LaunchControlService,
+  ],
+  exports: [
+    DisputeService,
+    ConflictService,
+    InboxService,
+    ActivityService,
+    RestrictionCheckService,
+    LaunchControlService,
+  ],
 })
 export class OperationsModule {}
