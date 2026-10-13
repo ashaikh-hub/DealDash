@@ -14,6 +14,15 @@ RUN pnpm --filter @dealdash/api build
 # (the generated Prisma client is TypeScript under src/generated and is compiled into dist with the rest of the API)
 RUN pnpm --filter @dealdash/api deploy --prod /out && cp -r apps/api/dist /out/dist && cp -r apps/api/prisma /out/prisma && cp apps/api/prisma.config.ts /out/
 
+# Migration job image (launch readiness): the runtime image deliberately has no Prisma CLI, so release migrations run from this
+# target as a one-off job BEFORE the new API revision takes traffic. Forward-only `migrate deploy`, then the permission catalogue
+# sync (no seed, no reset, users untouched). Build: docker build -f infra/docker/api.Dockerfile --target migrate -t dealdash-migrate:<v> .
+FROM build AS migrate
+ENV NODE_ENV=production
+WORKDIR /repo/apps/api
+USER node
+CMD ["sh", "-c", "node_modules/.bin/prisma migrate deploy && node_modules/.bin/tsx prisma/catalog-sync.ts"]
+
 FROM node:22-alpine
 ENV NODE_ENV=production
 WORKDIR /app

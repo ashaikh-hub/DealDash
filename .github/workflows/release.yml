@@ -79,7 +79,8 @@ jobs:
 
   deploy-staging:
     # after a tag build (needs succeeded), or a manual redeploy of an existing tag to staging (needs skipped)
-    if: ${{ !failure() && !cancelled() && (github.event_name == 'push' || github.event.inputs.target == 'staging') }}
+    # the generic hook path; once the Google Cloud staging cell is configured, staging-gcp.yml deploys staging instead
+    if: ${{ !failure() && !cancelled() && vars.GCP_WORKLOAD_IDENTITY_PROVIDER == '' && (github.event_name == 'push' || github.event.inputs.target == 'staging') }}
     needs: [release-record]
     runs-on: ubuntu-latest
     environment: staging

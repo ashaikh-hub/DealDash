@@ -14,6 +14,7 @@ import {
 } from './interfaces';
 import { DevFileScanner, LocalStorageProvider } from './local-storage';
 import { ManualPayoutProvider, MockPayoutProvider } from './payout';
+import { S3StorageProvider } from './s3-storage';
 import {
   MockEmailProvider,
   MockMapsProvider,
@@ -39,9 +40,22 @@ import {
       provide: STORAGE_PROVIDER,
       inject: [APP_ENV],
       useFactory: (env: ApiEnv) =>
-        env.STORAGE_PROVIDER === 'local'
-          ? new LocalStorageProvider(env.STORAGE_LOCAL_DIR, env.API_PUBLIC_URL, env.SESSION_SECRET)
-          : new MockStorageProvider(),
+        env.STORAGE_PROVIDER === 's3'
+          ? new S3StorageProvider({
+              endpoint: env.S3_ENDPOINT ?? '',
+              bucket: env.S3_BUCKET ?? '',
+              region: env.S3_REGION,
+              accessKeyId: env.S3_ACCESS_KEY_ID ?? '',
+              secretAccessKey: env.S3_SECRET_ACCESS_KEY ?? '',
+              pathStyle: env.S3_PATH_STYLE,
+            })
+          : env.STORAGE_PROVIDER === 'local'
+            ? new LocalStorageProvider(
+                env.STORAGE_LOCAL_DIR,
+                env.API_PUBLIC_URL,
+                env.SESSION_SECRET,
+              )
+            : new MockStorageProvider(),
     },
     { provide: FILE_SCANNER, useClass: DevFileScanner },
     // Stage 9 (B2): settlement payouts (manual by default; a vendor adapter is added when contracted)

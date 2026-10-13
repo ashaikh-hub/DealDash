@@ -66,6 +66,44 @@ describe('config', () => {
     expect(appEnvOf(parseApiEnv(base))).toBe('local');
   });
 
+  it('launch readiness: staging on Google Cloud — Cloud SQL connector socket and S3-compatible storage', () => {
+    const staging = {
+      ...base,
+      NODE_ENV: 'production',
+      APP_ENV: 'staging',
+      ALLOW_MOCK_PROVIDERS: 'true',
+      DATABASE_URL:
+        'postgresql://dealdash_app:pw@localhost/dealdash_staging?host=/cloudsql/dd-staging:me-central1:dd-pg',
+      SESSION_SECRET: 'z'.repeat(40),
+      API_PUBLIC_URL: 'https://api.staging.example',
+      CORS_ORIGINS: 'https://app.staging.example',
+      RATE_LIMIT_PER_MINUTE: '600',
+      AUTH_RATE_LIMIT_PER_MINUTE: '20',
+      LOG_FORMAT: 'json',
+      STORAGE_PROVIDER: 's3',
+      S3_ENDPOINT: 'https://storage.googleapis.com',
+      S3_BUCKET: 'dd-staging-files',
+      S3_ACCESS_KEY_ID: 'GOOG1EXAMPLE',
+      S3_SECRET_ACCESS_KEY: 'x'.repeat(40),
+    };
+    expect(productionSafetyProblems(parseApiEnv(staging))).toEqual([]);
+    // a plain TCP connection without TLS is still refused
+    expect(
+      productionSafetyProblems(
+        parseApiEnv({
+          ...staging,
+          DATABASE_URL: 'postgresql://dealdash_app:pw@10.0.0.5/dealdash_staging',
+        }),
+      ),
+    ).toEqual(expect.arrayContaining([expect.stringMatching(/TLS/)]));
+    // incomplete storage settings are named, never echoed
+    const p = productionSafetyProblems(
+      parseApiEnv({ ...staging, S3_SECRET_ACCESS_KEY: undefined }),
+    );
+    expect(p).toEqual(expect.arrayContaining([expect.stringMatching(/S3_SECRET_ACCESS_KEY/)]));
+    expect(p.join(' ')).not.toContain('GOOG1EXAMPLE');
+  });
+
   it('Stage 9: launch controls default to open with no stop', () => {
     expect(launchControlsSchema.parse(CONFIG_DEFAULTS['launch.controls'])).toEqual({
       pilot: { mode: 'OPEN', merchantOrganizationIds: [], partnerOrganizationIds: [] },

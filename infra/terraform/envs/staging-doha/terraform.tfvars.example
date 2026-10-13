@@ -1,0 +1,18 @@
+# Copy to terraform.tfvars (git-ignored) and fill in. No secret belongs here.
+project_id      = "dealdash-staging-XXXX"
+billing_account = "XXXXXX-XXXXXX-XXXXXX"
+
+# first apply only: Google's public sample image; CI deploys the real release images afterwards
+images = {
+  api      = "us-docker.pkg.dev/cloudrun/container/hello"
+  migrate  = "us-docker.pkg.dev/cloudrun/container/job"
+  customer = "us-docker.pkg.dev/cloudrun/container/hello"
+  merchant = "us-docker.pkg.dev/cloudrun/container/hello"
+  staff    = "us-docker.pkg.dev/cloudrun/container/hello"
+  partner  = "us-docker.pkg.dev/cloudrun/container/hello"
+  admin    = "us-docker.pkg.dev/cloudrun/container/hello"
+}
+
+domain           = ""                       # empty = PRIVATE mode until the founder confirms the domain
+engineer_members = ["user:engineer@example.com"]
+alert_emails     = ["founder@example.com"]

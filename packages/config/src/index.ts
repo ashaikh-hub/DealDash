@@ -36,8 +36,19 @@ export const apiEnvSchema = z.object({
   PUSH_PROVIDER: providerSchema,
   PAYMENT_PROVIDER: providerSchema,
   // `local` is the development storage adapter (files on local disk behind signed, expiring URLs).
-  STORAGE_PROVIDER: z.enum(['mock', 'local']).default('local'),
+  // `s3` = provider-neutral S3-compatible object storage (Google Cloud Storage via HMAC keys, Amazon S3, R2, MinIO, onshore stores).
+  STORAGE_PROVIDER: z.enum(['mock', 'local', 's3']).default('local'),
   STORAGE_LOCAL_DIR: z.string().default('.storage'),
+  S3_ENDPOINT: z.string().url().optional(),
+  S3_BUCKET: z.string().min(3).optional(),
+  /** Bucket region for signing; Google Cloud Storage accepts `auto`. */
+  S3_REGION: z.string().default('auto'),
+  S3_ACCESS_KEY_ID: z.string().min(1).optional(),
+  S3_SECRET_ACCESS_KEY: z.string().min(1).optional(),
+  S3_PATH_STYLE: z
+    .enum(['true', 'false'])
+    .default('true')
+    .transform((v) => v === 'true'),
   VIDEO_PROVIDER: providerSchema,
   MAPS_PROVIDER: providerSchema,
   // ---- Stage 9: production readiness
@@ -105,6 +116,15 @@ export function productionSafetyProblems(env: ApiEnv): string[] {
     if (env.PAYOUT_PROVIDER === 'mock')
       problems.push('PAYOUT_PROVIDER=mock is a development adapter');
   }
+  if (
+    env.STORAGE_PROVIDER === 's3' &&
+    !(env.S3_ENDPOINT && env.S3_BUCKET && env.S3_ACCESS_KEY_ID && env.S3_SECRET_ACCESS_KEY)
+  )
+    problems.push(
+      'STORAGE_PROVIDER=s3 needs S3_ENDPOINT, S3_BUCKET, S3_ACCESS_KEY_ID and S3_SECRET_ACCESS_KEY',
+    );
+  if (env.S3_ENDPOINT && !env.S3_ENDPOINT.startsWith('https://'))
+    problems.push('S3_ENDPOINT must be https');
   let db: URL | null = null;
   try {
     db = new URL(env.DATABASE_URL);
@@ -115,8 +135,15 @@ export function productionSafetyProblems(env: ApiEnv): string[] {
     const name = db.pathname.replace(/^\//, '');
     if (/_(dev|test)$/.test(name))
       problems.push('DATABASE_URL points at a development / test database');
-    if (!/sslmode=(require|verify-ca|verify-full)/.test(db.search))
-      problems.push('DATABASE_URL must require TLS (sslmode=require or verify-full)');
+    // TLS on the wire, or the managed Cloud SQL connector's local socket (`host=/cloudsql/<instance>`): the connector carries the
+    // connection to the instance over mutually-authenticated TLS, and the socket itself never leaves the container.
+    const viaCloudSqlConnector = /(^|&)host=%2Fcloudsql%2F|(^|&)host=\/cloudsql\//.test(
+      db.search.slice(1),
+    );
+    if (!viaCloudSqlConnector && !/sslmode=(require|verify-ca|verify-full)/.test(db.search))
+      problems.push(
+        'DATABASE_URL must require TLS (sslmode=require or verify-full) or use the Cloud SQL connector socket',
+      );
     if (db.username === 'postgres')
       problems.push(
         'DATABASE_URL must use the least-privilege application role, not the administrative account',

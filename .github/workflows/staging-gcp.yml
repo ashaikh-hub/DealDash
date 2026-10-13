@@ -1,0 +1,93 @@
+name: Staging (Google Cloud Doha)
+
+# Launch readiness: deploys a TAGGED release to the Doha STAGING cell (founder-approved for staging only). Inactive until the
+# repository variables below exist (set after `terraform apply` of infra/terraform/envs/staging-doha):
+#   GCP_PROJECT, GCP_REGION (me-central1), GCP_ARTIFACT_REGISTRY, GCP_WORKLOAD_IDENTITY_PROVIDER, GCP_DEPLOYER_SA,
+#   STAGING_API_URL (baked into the web images), optional STAGING_HEALTH_URL.
+# Keyless: GitHub OIDC -> Workload Identity Federation (only the `staging` environment of this repository is trusted).
+# Production is NOT deployed here (and tooling/deploy/deploy-gcp.mjs refuses any target but staging).
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Existing release tag to deploy to staging (e.g. v1.0.0)'
+        required: true
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: staging-gcp
+  cancel-in-progress: false
+
+env:
+  VERSION: ${{ github.event.inputs.version || github.ref_name }}
+
+jobs:
+  images:
+    if: vars.GCP_WORKLOAD_IDENTITY_PROVIDER != ''
+    runs-on: ubuntu-latest
+    environment: staging
+    timeout-minutes: 45
+    strategy:
+      matrix:
+        app: [api, migrate, customer, merchant, staff, partner, admin]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.VERSION }}
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOYER_SA }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - run: gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet
+      - name: Build and push ${{ matrix.app }}
+        run: |
+          case "${{ matrix.app }}" in
+            api)     ARGS="-f infra/docker/api.Dockerfile" ;;
+            migrate) ARGS="-f infra/docker/api.Dockerfile --target migrate" ;;
+            *)       ARGS="-f infra/docker/web.Dockerfile --build-arg APP=${{ matrix.app }} --build-arg NEXT_PUBLIC_API_URL=${{ vars.STAGING_API_URL }}" ;;
+          esac
+          IMAGE="${{ vars.GCP_ARTIFACT_REGISTRY }}/${{ matrix.app }}:${VERSION}"
+          docker build $ARGS -t "$IMAGE" .
+          docker push "$IMAGE"
+      - name: Scan the image (high / critical vulnerabilities reported)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ vars.GCP_ARTIFACT_REGISTRY }}/${{ matrix.app }}:${{ env.VERSION }}
+          severity: HIGH,CRITICAL
+          exit-code: '0'
+          ignore-unfixed: true
+
+  deploy:
+    needs: images
+    runs-on: ubuntu-latest
+    environment: staging
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOYER_SA }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Migrate, roll out, verify readiness (staging only)
+        env:
+          DEPLOY_TARGET: staging
+          RELEASE_VERSION: ${{ env.VERSION }}
+          GCP_PROJECT: ${{ vars.GCP_PROJECT }}
+          GCP_REGION: ${{ vars.GCP_REGION }}
+          GCP_ARTIFACT_REGISTRY: ${{ vars.GCP_ARTIFACT_REGISTRY }}
+          HEALTH_URL: ${{ vars.STAGING_HEALTH_URL }}
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+        run: node tooling/deploy/deploy-gcp.mjs

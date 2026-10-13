@@ -18,3 +18,11 @@ test-results/
 playwright-report/
 # development file storage (uploaded documents)
 .storage/
+# Terraform: provider caches, local state and real variable files (state and tfvars can hold secrets / project ids)
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform.tfstate.lock.info
+crash.log

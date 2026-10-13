@@ -37,6 +37,8 @@ export function testEnv(): ApiEnv {
     PAYMENT_PROVIDER: 'mock',
     STORAGE_PROVIDER: 'local',
     STORAGE_LOCAL_DIR: join(tmpdir(), 'dealdash-test-storage'),
+    S3_REGION: 'auto',
+    S3_PATH_STYLE: true,
     VIDEO_PROVIDER: 'mock',
     MAPS_PROVIDER: 'mock',
     // Stage 9
