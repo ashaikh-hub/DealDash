@@ -13,6 +13,7 @@ import { AppError } from '../common/errors';
 import type { Actor, RequestMeta } from '../common/request-context';
 import { CommercialService } from '../finance/commercial.service';
 import { Prisma } from '../generated/prisma/client';
+import { MarketService } from '../platform/markets/market.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { EMAIL_PROVIDER, type EmailProvider } from '../providers/interfaces';
 import { SystemConfigService } from '../system-config/system-config.service';
@@ -68,6 +69,7 @@ export class InvoicingService {
     private readonly config: SystemConfigService,
     @Inject(EMAIL_PROVIDER) private readonly email: EmailProvider,
     private readonly marketConfig: MarketConfigService,
+    private readonly markets: MarketService,
   ) {}
 
   async settings(): Promise<BillingConfig> {
@@ -814,7 +816,9 @@ export class InvoicingService {
         .filter((l) => l.amountMinor > 0);
     }
     if (!lines.length) throw new AppError('INVALID_STATE', 'Nothing is due', 409);
-    const currency = b.currency ?? 'SAR';
+    // the business's market billing currency unless one is named (Market / Country Configuration; never assumed)
+    const currency =
+      b.currency ?? (await this.markets.profileOfOrganization(b.organizationId)).billingCurrency;
     const id = await this.prisma.$transaction(async (tx) => {
       const acc = await this.accounts.ensure(tx, b.organizationId, null, currency);
       const total = lines.reduce((s, l) => s + l.amountMinor, 0);

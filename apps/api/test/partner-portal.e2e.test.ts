@@ -113,7 +113,13 @@ describe.skipIf(!DB_READY)('Stage 7 partner portal', () => {
       where: { organizationId: bank, country: 'SA' },
     });
     await t.prisma.businessAccount.create({
-      data: { organizationId: bank, legalEntityId: le.id, currency: 'SAR', fundingMode: 'PREPAID' },
+      data: {
+        organizationId: bank,
+        legalEntityId: le.id,
+        currency: 'SAR', // KSA fixture
+        country: 'SA',
+        fundingMode: 'PREPAID',
+      },
     });
     await contract(
       bank,
@@ -211,7 +217,8 @@ describe.skipIf(!DB_READY)('Stage 7 partner portal', () => {
         data: {
           organizationId: org,
           legalEntityId: le.id,
-          currency: 'SAR',
+          currency: 'SAR', // KSA fixture
+          country: 'SA',
           fundingMode: 'PREPAID',
         },
       });

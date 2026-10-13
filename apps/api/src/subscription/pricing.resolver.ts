@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AppError } from '../common/errors';
 import { Prisma } from '../generated/prisma/client';
+import { MarketService } from '../platform/markets/market.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 type Db = Prisma.TransactionClient | PrismaService;
@@ -77,7 +78,10 @@ export function applyModel(
  */
 @Injectable()
 export class PricingResolver {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly markets: MarketService,
+  ) {}
 
   private async contractRate(
     contractId: string | null | undefined,
@@ -118,7 +122,11 @@ export class PricingResolver {
       include: { planVersion: { include: { plan: true } } },
     });
     if (!c) throw AppError.notFound();
-    const currency = c.currency ?? c.planVersion?.currency ?? 'SAR';
+    // the contract's currency, else its plan's, else its market's (never a fixed country)
+    const currency =
+      c.currency ??
+      c.planVersion?.currency ??
+      (await this.markets.currencyFor(c.organizationId, c.market ?? c.planVersion?.market, db));
     const cad =
       cadence ??
       (c.billingCadence !== 'NONE'
@@ -196,7 +204,11 @@ export class PricingResolver {
       include: { planVersion: true },
     });
     if (!c) throw AppError.notFound();
-    const currency = c.currency ?? c.planVersion?.currency ?? 'SAR';
+    // the contract's currency, else its plan's, else its market's (never a fixed country)
+    const currency =
+      c.currency ??
+      c.planVersion?.currency ??
+      (await this.markets.currencyFor(c.organizationId, c.market ?? c.planVersion?.market, db));
     const fees = (Array.isArray(c.planVersion?.fees) ? c.planVersion!.fees : []) as Array<{
       code: string;
       amountMinor: number;
@@ -232,7 +244,11 @@ export class PricingResolver {
       include: { planVersion: true },
     });
     if (!c) throw AppError.notFound();
-    const currency = c.currency ?? c.planVersion?.currency ?? 'SAR';
+    // the contract's currency, else its plan's, else its market's (never a fixed country)
+    const currency =
+      c.currency ??
+      c.planVersion?.currency ??
+      (await this.markets.currencyFor(c.organizationId, c.market ?? c.planVersion?.market, db));
     const prices = (c.planVersion?.addOnPrices ?? {}) as Record<
       string,
       { amountMinor: number; indicative?: boolean }
@@ -379,7 +395,7 @@ export class PricingResolver {
           select: { currency: true },
         })
       )?.currency ??
-      'SAR';
+      (await this.markets.profile(input.market)).currency;
     const adjustments: ResolvedPrice['adjustments'] = [];
     let key = pb?.key ?? 'NONE';
     let source: ResolvedPrice['source'] = 'PRICE_BOOK';

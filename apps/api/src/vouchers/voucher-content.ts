@@ -1,10 +1,9 @@
 import { randomInt } from 'node:crypto';
+import { endOfDayAfter, endOfDayIn } from '@dealdash/localization';
 import { VOUCHER_QR_PREFIX } from '@dealdash/types';
 import { voucherContentSchema, type VoucherContent } from '@dealdash/validation';
 import { AppError } from '../common/errors';
 import { newManualCode, newQrToken } from '../hot-deals/hot-content';
-
-const RIYADH_OFFSET_MS = 3 * 3_600_000; // Saudi Arabia has no daylight saving time.
 
 /** Parses stored or submitted content into the canonical shape (defaults filled in). */
 export const parseVoucherContent = (raw: unknown): VoucherContent =>
@@ -49,14 +48,10 @@ export function voucherStatusFromDates(
   return saleStartAt && saleStartAt.getTime() > now.getTime() ? 'SCHEDULED' : 'ON_SALE';
 }
 
-/** End of the Riyadh calendar day containing `t` (inclusive: 23:59:59.999 local). */
-export function endOfRiyadhDay(t: Date): Date {
-  const local = t.getTime() + RIYADH_OFFSET_MS;
-  const startOfLocalDay = Math.floor(local / 86_400_000) * 86_400_000;
-  return new Date(startOfLocalDay + 86_400_000 - 1 - RIYADH_OFFSET_MS);
-}
-
-/** When a voucher bought at `issuedAt` expires: N whole Riyadh days from purchase, or the fixed date. Never mid-day. */
+/**
+ * When a voucher bought at `issuedAt` expires: N whole days from purchase, or the fixed date — always at the end of a local day in
+ * the voucher's market time zone (Market / Country Configuration), never mid-day and never a fixed country's clock.
+ */
 export function instanceExpiry(
   v: {
     validityType: 'FIXED_DATE' | 'DAYS_FROM_PURCHASE';
@@ -64,11 +59,11 @@ export function instanceExpiry(
     validUntil: Date | null;
   },
   issuedAt: Date,
+  timeZone: string,
 ): Date {
-  if (v.validityType === 'FIXED_DATE' && v.validUntil) return endOfRiyadhDay(v.validUntil);
-  return endOfRiyadhDay(new Date(issuedAt.getTime() + (v.validityDays ?? 30) * 86_400_000));
+  if (v.validityType === 'FIXED_DATE' && v.validUntil) return endOfDayIn(v.validUntil, timeZone);
+  return endOfDayAfter(issuedAt, v.validityDays ?? 30, timeZone);
 }
-
 // ---------------------------------------------------------------- references and codes
 const REF_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 /** Short customer-facing reference, random and never sequential (`VC-`, `ORD-`, `RF-`, `RV-`, `SC-`). */

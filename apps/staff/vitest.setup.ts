@@ -1,7 +1,11 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
-import { afterEach, vi } from 'vitest';
+import { afterEach, beforeEach, vi } from 'vitest';
 import { createElement } from 'react';
+import { setDisplayMarket } from '@dealdash/localization';
+
+// The fixtures are a KSA business: the session's display market (normally from GET /v1/market-context) is SAR / Riyadh.
+beforeEach(() => setDisplayMarket({ currency: 'SAR', timeZone: 'Asia/Riyadh' }));
 
 // Next.js router hooks and Link are mocked: tests render the shell without a running Next server.
 vi.mock('next/navigation', () => ({

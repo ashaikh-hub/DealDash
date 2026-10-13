@@ -132,6 +132,7 @@ export class VoucherLifecycleService {
             sourceType: 'VoucherInstance',
             sourceId: i.id,
             idempotencyKey: `expiry:${i.id}`,
+            currency: await this.core.orderCurrency(tx, i.orderId),
             memo: `Voucher ${i.reference} expired unredeemed`,
             reasonCode: 'EXPIRED_UNREDEEMED',
             lines: [
@@ -154,6 +155,7 @@ export class VoucherLifecycleService {
               instanceId: i.id,
               type: 'EXPIRED',
               amountHalalas: i.purchasePriceHalalas,
+              currency: await this.core.orderCurrency(tx, i.orderId),
               journalId: j.journalId,
               note: 'expired unredeemed (treatment of expired value: VALIDATE-KSA)',
               createdAt: now,

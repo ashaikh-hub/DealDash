@@ -17,8 +17,8 @@ import {
   inTimeWindow,
   newPromptId,
   newViewToken,
-  nextRiyadhMidnight,
-  startOfRiyadhDay,
+  nextMarketMidnight,
+  startOfMarketDay,
 } from './watch-content';
 import { WatchCoreService } from './watch-core.service';
 import { WatchFundingService } from './watch-funding.service';
@@ -113,7 +113,9 @@ export class WatchQualificationService {
     if (c.status !== 'LIVE' || (c.startAt && c.startAt > now))
       return { availability: 'UNAVAILABLE', availableAgainAt: null };
     const content = this.core.content(c);
-    if (!inTimeWindow(content.targeting.timeWindow, now))
+    // the campaign's market time zone decides its serving hours and the customer's day (never a fixed country)
+    const tz = (await this.core.markets.profileOfCampaign(c.organizationId, c.content)).timezone;
+    if (!inTimeWindow(content.targeting.timeWindow, now, tz))
       return { availability: 'UNAVAILABLE', availableAgainAt: null };
     if (
       c.qualifiedViews >= c.paidViews ||
@@ -134,12 +136,12 @@ export class WatchQualificationService {
         availableAgainAt: new Date(first.getTime() + c.repeatWindowHours * 3_600_000),
       };
     }
-    const today = startOfRiyadhDay(now);
+    const today = startOfMarketDay(now, tz);
     const todayCount = await this.prisma.watchView.count({
       where: { userId, status: 'QUALIFIED', qualifiedAt: { gte: today } },
     });
     if (todayCount >= f.customerDailyCap)
-      return { availability: 'DAILY_CAP', availableAgainAt: nextRiyadhMidnight(now) };
+      return { availability: 'DAILY_CAP', availableAgainAt: nextMarketMidnight(now, tz) };
     return { availability: 'AVAILABLE', availableAgainAt: null };
   }
 
@@ -529,7 +531,17 @@ export class WatchQualificationService {
         if (earnedInWindow >= f.maxQualifiedPerCustomerPerCampaign)
           return reject('INVALID', 'ALREADY_EARNED', { watchedSeconds: watched, positionSec: pos });
         const today = await tx.watchView.count({
-          where: { userId, status: 'QUALIFIED', qualifiedAt: { gte: startOfRiyadhDay(now) } },
+          where: {
+            userId,
+            status: 'QUALIFIED',
+            qualifiedAt: {
+              gte: startOfMarketDay(
+                now,
+                (await this.core.markets.profileOfCampaign(c.organizationId, c.content, tx))
+                  .timezone,
+              ),
+            },
+          },
         });
         if (today >= f.customerDailyCap)
           return reject('CAPPED', 'DAILY_CAP', { watchedSeconds: watched, positionSec: pos });
@@ -603,7 +615,7 @@ export class WatchQualificationService {
             campaignId: c.id,
             unitRateMinor: c.chargePerViewHalalas,
             amountMinor: c.chargePerViewHalalas,
-            currency: 'SAR',
+            currency: c.currency,
             pricingVersionKey: await this.usage.campaignPricingKey('WATCH', c.id, tx),
             occurredAt: now,
           },

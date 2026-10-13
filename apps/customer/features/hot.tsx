@@ -13,7 +13,7 @@ import {
   useAuth,
   type ReserveOutcome,
 } from '@dealdash/app-shell';
-import { createTranslator, type DictionaryKey } from '@dealdash/localization';
+import { createTranslator, displayTimeZone, type DictionaryKey } from '@dealdash/localization';
 import type { UnlockAction } from '@dealdash/types';
 import { Button, EmptyState, LoadingState, Skeleton } from '@dealdash/ui';
 import type { HotDealCard, HotDealDetail, ReservationView } from '@dealdash/validation';
@@ -506,7 +506,7 @@ function NotificationRow({ n }: { n: NotificationItem }) {
           {new Date(n.createdAt).toLocaleString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-GB', {
             dateStyle: 'medium',
             timeStyle: 'short',
-            timeZone: 'Asia/Riyadh',
+            timeZone: displayTimeZone(),
           })}
         </div>
       </div>

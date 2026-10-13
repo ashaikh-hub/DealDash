@@ -270,7 +270,7 @@ export class VoucherViewService {
       sellingPriceHalalas: r.sellingPriceHalalas,
       reportedSavingsHalalas: s.savingsHalalas,
       reportedSavingsPercent: s.savingsPercent,
-      currency: 'SAR',
+      currency: r.currency,
       validity: c.validity,
       saleEndsAt: iso(r.saleEndAt),
       remaining: stock.remaining <= VOUCHER_SHOW_REMAINING_THRESHOLD ? stock.remaining : null,

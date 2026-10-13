@@ -14,7 +14,6 @@ import {
   voucherSavings,
 } from '@dealdash/validation';
 import {
-  endOfRiyadhDay,
   faceValueLabel,
   instanceExpiry,
   newRef,
@@ -118,25 +117,47 @@ describe('voucher content rules', () => {
 });
 
 describe('dates, codes and references', () => {
-  it('validity is counted in whole Riyadh days and ends at the end of the day, never mid-day', () => {
-    const issued = new Date('2026-10-08T21:30:00Z'); // 00:30 on 9 October in Riyadh
-    const end = endOfRiyadhDay(issued);
-    expect(end.toISOString()).toBe('2026-10-09T20:59:59.999Z'); // 23:59:59.999 Riyadh on 9 October
-    const exp = instanceExpiry(
-      { validityType: 'DAYS_FROM_PURCHASE', validityDays: 30, validUntil: null },
-      issued,
+  it('validity is counted in whole days of the voucher market and ends at the end of a local day (Riyadh and Karachi)', () => {
+    const issued = new Date('2026-10-08T21:30:00Z'); // 00:30 on 9 Oct in Riyadh (UTC+3); 02:30 on 9 Oct in Karachi (UTC+5)
+    const days = {
+      validityType: 'DAYS_FROM_PURCHASE' as const,
+      validityDays: 30,
+      validUntil: null,
+    };
+    expect(instanceExpiry(days, issued, 'Asia/Riyadh').toISOString()).toBe(
+      '2026-11-08T20:59:59.999Z',
+    ); // 23:59:59.999 Riyadh, 8 Nov
+    expect(instanceExpiry(days, issued, 'Asia/Karachi').toISOString()).toBe(
+      '2026-11-08T18:59:59.999Z',
+    ); // 23:59:59.999 Karachi, 8 Nov
+    const fixed = {
+      validityType: 'FIXED_DATE' as const,
+      validityDays: null,
+      validUntil: new Date('2026-12-31T00:00:00Z'),
+    };
+    expect(instanceExpiry(fixed, issued, 'Asia/Riyadh').toISOString()).toBe(
+      '2026-12-31T20:59:59.999Z',
     );
-    expect(exp.toISOString()).toBe('2026-11-08T20:59:59.999Z');
-    expect(
-      instanceExpiry(
-        {
-          validityType: 'FIXED_DATE',
-          validityDays: null,
-          validUntil: new Date('2026-12-31T00:00:00Z'),
-        },
-        issued,
-      ).toISOString(),
-    ).toBe('2026-12-31T20:59:59.999Z');
+    expect(instanceExpiry(fixed, issued, 'Asia/Karachi').toISOString()).toBe(
+      '2026-12-31T18:59:59.999Z',
+    );
+    // a purchase late on 8 Oct in Riyadh is already 9 Oct in Karachi: each market counts its own calendar day
+    const late = new Date('2026-10-08T19:30:00Z'); // 22:30 Riyadh on 8 Oct, 00:30 Karachi on 9 Oct
+    const one = { validityType: 'DAYS_FROM_PURCHASE' as const, validityDays: 1, validUntil: null };
+    expect(instanceExpiry(one, late, 'Asia/Riyadh').toISOString()).toBe('2026-10-09T20:59:59.999Z');
+    expect(instanceExpiry(one, late, 'Asia/Karachi').toISOString()).toBe(
+      '2026-10-10T18:59:59.999Z',
+    );
+  });
+  it('a market with daylight saving still ends validity at local midnight across the change (extensibility)', () => {
+    // Europe/London moves from BST (UTC+1) to GMT (UTC+0) on 25 Oct 2026
+    const issued = new Date('2026-10-20T12:00:00Z');
+    const exp = instanceExpiry(
+      { validityType: 'DAYS_FROM_PURCHASE', validityDays: 10, validUntil: null },
+      issued,
+      'Europe/London',
+    );
+    expect(exp.toISOString()).toBe('2026-10-30T23:59:59.999Z'); // 23:59:59.999 GMT on 30 Oct
   });
   it('voucher QR text and typed codes parse; malformed QR text is recognised as invalid, not as a manual code', () => {
     expect(parseVoucherCode('DV1.' + 'A'.repeat(22))).toEqual({
@@ -169,15 +190,55 @@ describe('dates, codes and references', () => {
 describe('platform fee and the ledger guard', () => {
   const core = Object.create(VoucherCoreService.prototype) as VoucherCoreService;
   it('the fee is a percentage plus a fixed part, never more than the price, rounded half up', () => {
-    expect(core.computeFee(8000, { percentBps: 1000, fixedHalalas: 0, version: 1 })).toBe(800);
-    expect(core.computeFee(8005, { percentBps: 1000, fixedHalalas: 0, version: 1 })).toBe(801);
-    expect(core.computeFee(8000, { percentBps: 500, fixedHalalas: 100, version: 2 })).toBe(500);
-    expect(core.computeFee(100, { percentBps: 5000, fixedHalalas: 500, version: 3 })).toBe(100);
-    expect(core.computeFee(0, { percentBps: 1000, fixedHalalas: 0, version: 1 })).toBe(0);
+    expect(
+      core.computeFee(8000, {
+        percentBps: 1000,
+        fixedHalalas: 0,
+        fixedCurrency: 'SAR',
+        version: 1,
+      }),
+    ).toBe(800);
+    expect(
+      core.computeFee(8005, {
+        percentBps: 1000,
+        fixedHalalas: 0,
+        fixedCurrency: 'SAR',
+        version: 1,
+      }),
+    ).toBe(801);
+    expect(
+      core.computeFee(8000, {
+        percentBps: 500,
+        fixedHalalas: 100,
+        fixedCurrency: 'SAR',
+        version: 2,
+      }),
+    ).toBe(500);
+    expect(
+      core.computeFee(100, {
+        percentBps: 5000,
+        fixedHalalas: 500,
+        fixedCurrency: 'SAR',
+        version: 3,
+      }),
+    ).toBe(100);
+    expect(
+      core.computeFee(0, { percentBps: 1000, fixedHalalas: 0, fixedCurrency: 'SAR', version: 1 }),
+    ).toBe(0);
+    // a fixed part set in SAR is never charged on a PKR order (no conversion): only the percentage applies
+    const sarFixed = { percentBps: 500, fixedHalalas: 100, fixedCurrency: 'SAR', version: 2 };
+    expect(core.computeFee(8000, sarFixed, 'SAR')).toBe(500);
+    expect(core.computeFee(8000, sarFixed, 'PKR')).toBe(400);
   });
   it('a journal that does not sum to zero, or uses fractions, is refused before anything is written', async () => {
     const ledger = new LedgerService({} as never);
-    const base = { type: 'SALE' as const, sourceType: 'T', sourceId: 'x', idempotencyKey: 'k' };
+    const base = {
+      type: 'SALE' as const,
+      sourceType: 'T',
+      sourceId: 'x',
+      idempotencyKey: 'k',
+      currency: 'PKR',
+    };
     await expect(
       ledger.post({} as never, {
         ...base,

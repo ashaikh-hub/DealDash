@@ -1612,6 +1612,8 @@ model Voucher {
   titleAr                String              @default("")
   faceValueHalalas       Int                 @default(0)
   sellingPriceHalalas    Int                 @default(0)
+  /// ISO currency of the prices, from the voucher's market (Market / Country Configuration); orders and payments inherit it.
+  currency               String
   totalQty               Int                 @default(0)
   heldQty                Int                 @default(0)
   soldQty                Int                 @default(0)
@@ -1690,7 +1692,7 @@ model VoucherOrder {
   unitPriceHalalas Int
   faceValueHalalas Int
   totalHalalas     Int
-  currency         String             @default("SAR")
+  currency         String
   status           VoucherOrderStatus @default(PENDING_PAYMENT)
   holdExpiresAt    DateTime
   /// Snapshot of the terms the customer accepted at checkout.
@@ -1725,7 +1727,7 @@ model Payment {
   providerReference String?       @unique
   status            PaymentStatus @default(CREATED)
   amountHalalas     Int
-  currency          String        @default("SAR")
+  currency          String
   attemptNo         Int           @default(1)
   idempotencyKey    String        @unique
   methodType        String?
@@ -1771,6 +1773,7 @@ model Refund {
   organizationId          String       @db.Uuid
   /// Full refunds only in the MVP; the amount column keeps partial refunds a Phase 2 addition with no redesign.
   amountHalalas           Int
+  currency                String
   status                  RefundStatus @default(REQUESTED)
   kind                    RefundKind
   reasonCode              String
@@ -1871,7 +1874,7 @@ model LedgerAccount {
   id             String              @id @default(uuid(7)) @db.Uuid
   family         LedgerAccountFamily
   organizationId String?             @db.Uuid
-  currency       String              @default("SAR")
+  currency       String
   createdAt      DateTime            @default(now())
 
   entries LedgerEntry[]
@@ -1890,6 +1893,8 @@ model LedgerJournal {
   reasonCode        String?
   feeRuleVersion    Int?
   reversesJournalId String?           @db.Uuid
+  /// Single-currency journal: every entry's account is in this currency (database trigger).
+  currency          String
   postedAt          DateTime          @default(now())
   postedByUserId    String?           @db.Uuid
   postedByRole      String?
@@ -1926,6 +1931,7 @@ model MerchantPayableEvent {
   type           PayableEventType
   amountHalalas  Int
   feeHalalas     Int              @default(0)
+  currency       String
   journalId      String?          @db.Uuid
   settlementId   String?          @db.Uuid
   note           String?
@@ -2061,6 +2067,8 @@ model WatchCampaign {
   /// FD-S7-1: the Sponsor / Funder that OWNS the campaign budget (null = the merchant). Funding and the budget ledger are posted to
   /// this organization. DealDash still controls points economics, qualification, fraud controls and reward rules.
   sponsorOrganizationId  String?         @db.Uuid
+  /// ISO currency of the budget and rate, from the campaign's market.
+  currency               String
   status                 WatchStatus     @default(DRAFT)
   statusBeforeSuspension WatchStatus?
   pausedBy               DealPausedBy?
@@ -2136,6 +2144,7 @@ model WatchFunding {
   campaignId      String             @db.Uuid
   organizationId  String             @db.Uuid
   amountHalalas   Int
+  currency        String
   source          WatchFundingSource
   reference       String             @unique
   idempotencyKey  String             @unique
@@ -2533,9 +2542,9 @@ model LegalEntity {
   legalName          String
   registrationNumber String?
   taxNumber          String?
-  country            String   @default("SA")
+  country            String
   /// Billing and settlement currency of this legal entity (different subsidiaries can differ).
-  currency           String   @default("SAR")
+  currency           String
   /// Tax profile, address and contact: configuration per country, statutory content is VALIDATE-KSA.
   taxProfile         Json     @default("{}")
   address            Json     @default("{}")
@@ -2554,7 +2563,7 @@ model BusinessAccount {
   id               String      @id @default(uuid(7)) @db.Uuid
   organizationId   String      @db.Uuid
   legalEntityId    String      @db.Uuid
-  currency         String      @default("SAR")
+  currency         String
   fundingMode      FundingMode @default(PREPAID)
   /// ACTIVE | CREDIT_HOLD | FINANCIAL_HOLD | SUSPENDED | CLOSED
   status           String      @default("ACTIVE")
@@ -2562,7 +2571,7 @@ model BusinessAccount {
   /// Phase 5: the billing account. One default account per (organization, currency); other legal entities can have their own.
   isDefault        Boolean     @default(true)
   name             String?
-  country          String      @default("SA")
+  country          String
   billingAddress   Json        @default("{}")
   /// Defaults to the legal entity's tax number; statutory validation is VALIDATE-KSA.
   taxId            String?
@@ -2671,6 +2680,8 @@ model CommercialCase {
   benefitCommitmentHalalas Int               @default(0)
   /// The market (country) whose pricing, tax and commercial rules apply to this campaign (never inherited from another country).
   market                   String?
+  /// ISO currency of the campaign's market: quotation, funding, utilisation and finance documents of this case are in it.
+  currency                 String
   createdByUserId          String            @db.Uuid
   createdAt                DateTime          @default(now())
   updatedAt                DateTime          @updatedAt
@@ -2842,7 +2853,7 @@ model FinancePayment {
   receivedAt        DateTime @default(now())
   createdAt         DateTime @default(now())
   /// Phase 5: payments in any configured currency, allocated (fully or partly) to documents; the remainder stays unallocated credit.
-  currency          String   @default("SAR")
+  currency          String
   legalEntityId     String?  @db.Uuid
 
   allocations PaymentAllocation[]
@@ -2860,7 +2871,7 @@ model FinanceDocument {
   organizationId         String                @db.Uuid
   caseId                 String?               @db.Uuid
   relatedDocumentId      String?               @db.Uuid
-  currency               String                @default("SAR")
+  currency               String
   subtotalHalalas        Int                   @default(0)
   taxHalalas             Int                   @default(0)
   totalHalalas           Int                   @default(0)
@@ -2921,7 +2932,7 @@ model CreditFacility {
   id                 String       @id @default(uuid(7)) @db.Uuid
   businessAccountId  String       @db.Uuid
   organizationId     String       @db.Uuid
-  currency           String       @default("SAR")
+  currency           String
   limitHalalas       Int
   paymentTermsDays   Int
   expiresAt          DateTime
@@ -4818,7 +4829,7 @@ model AiUsageRecord {
   provider           String
   model              String
   estimatedCostMinor Int      @default(0)
-  currency           String   @default("SAR")
+  currency           String
   occurredAt         DateTime @default(now())
 
   @@index([organizationId, occurredAt])
@@ -4844,7 +4855,7 @@ model AdjustmentRequest {
   direction          String
   amountMinor        Int       @default(0)
   points             Int       @default(0)
-  currency           String    @default("SAR")
+  currency           String
   market             String?
   legalEntityId      String?   @db.Uuid
   contractId         String?   @db.Uuid
@@ -5010,7 +5021,7 @@ model ReconciliationItem {
   internalAmountMinor  Int?
   internalAt           DateTime?
   varianceMinor        Int       @default(0)
-  currency             String    @default("SAR")
+  currency             String
   market               String?
   organizationId       String?   @db.Uuid
   ownerUserId          String?   @db.Uuid

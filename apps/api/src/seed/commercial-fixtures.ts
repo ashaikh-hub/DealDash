@@ -5,6 +5,7 @@ import { PricingService } from '../finance/pricing.service';
 import type { PrismaClient } from '../generated/prisma/client';
 import { CampaignVersionService } from '../platform/campaign-version.service';
 import { EntitlementService } from '../platform/entitlement.service';
+import { MarketService } from '../platform/markets/market.service';
 import { HotCommercialAdapter } from '../hot-deals/hot-commercial.adapter';
 import type { TenantService } from '../identity/tenant.service';
 import type { PrismaService } from '../prisma/prisma.service';
@@ -26,9 +27,11 @@ export async function seedCommercialFixtures(prisma: PrismaClient) {
   const audit = new AuditService(db);
   const config = new SystemConfigService(db, audit);
   const registry = new CommercialRegistry();
-  new HotCommercialAdapter(db, registry).onModuleInit();
-  new VoucherCommercialAdapter(db, registry).onModuleInit();
-  new WatchCommercialAdapter(db, registry, config).onModuleInit();
+  // market profiles (currency / time zone) only; the scope service is used by permission checks the fixtures never make
+  const markets = new MarketService(db, audit, config, null as never);
+  new HotCommercialAdapter(db, registry, markets).onModuleInit();
+  new VoucherCommercialAdapter(db, registry, markets).onModuleInit();
+  new WatchCommercialAdapter(db, registry, config, markets).onModuleInit();
   const svc = new CommercialService(
     db,
     audit,

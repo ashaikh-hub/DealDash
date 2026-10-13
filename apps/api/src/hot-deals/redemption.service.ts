@@ -1,3 +1,5 @@
+import { nextMidnightIn, startOfDayIn } from '@dealdash/localization';
+import { MarketService } from '../platform/markets/market.service';
 import { randomInt } from 'node:crypto';
 import { Injectable, Optional } from '@nestjs/common';
 import { CONFIG_KEYS } from '@dealdash/config';
@@ -83,8 +85,6 @@ export interface StaffCodeExtension {
   >;
 }
 
-const RIYADH_OFFSET_MS = 3 * 3_600_000; // Saudi Arabia has no daylight saving time.
-
 const redemptionRef = () => {
   const a = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
   let s = '';
@@ -113,6 +113,7 @@ export class RedemptionService {
     @Optional() private readonly loyalty?: LoyaltyIssuanceService,
     @Optional() private readonly usage?: UsageService,
     @Optional() private readonly restrictions?: RestrictionCheckService,
+    @Optional() private readonly markets?: MarketService,
   ) {}
 
   private get prisma() {
@@ -549,11 +550,28 @@ export class RedemptionService {
   }
 
   // ================================================================ staff history
-  private dayRange(day: 'today' | 'yesterday', now: Date) {
-    const local = new Date(now.getTime() + RIYADH_OFFSET_MS);
-    const startLocal = Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate());
-    const start = new Date(startLocal - RIYADH_OFFSET_MS - (day === 'yesterday' ? 86_400_000 : 0));
-    return { start, end: new Date(start.getTime() + 86_400_000) };
+  /** `today` / `yesterday` as local calendar days in the staff member's branch market (else the business's market). */
+  private async dayRange(
+    day: 'today' | 'yesterday',
+    now: Date,
+    scope: { organizationId: string; branchId: string | null },
+  ) {
+    const branch = scope.branchId
+      ? await this.prisma.merchantBranch.findUnique({
+          where: { id: scope.branchId },
+          select: { country: true },
+        })
+      : null;
+    const tz = this.markets
+      ? (branch?.country
+          ? await this.markets.profile(branch.country)
+          : await this.markets.profileOfOrganization(scope.organizationId)
+        ).timezone
+      : 'UTC';
+    const today = startOfDayIn(now, tz);
+    const start =
+      day === 'yesterday' ? startOfDayIn(new Date(today.getTime() - 3_600_000), tz) : today;
+    return { start, end: day === 'yesterday' ? today : nextMidnightIn(now, tz) };
   }
 
   async history(
@@ -567,7 +585,7 @@ export class RedemptionService {
     now = new Date(),
   ) {
     const scope = this.scopeOf(actor);
-    const { start, end } = this.dayRange(q.day, now);
+    const { start, end } = await this.dayRange(q.day, now, scope);
     const base: Prisma.RedemptionAttemptWhereInput = {
       staffUserId: actor.userId,
       organizationId: scope.organizationId,

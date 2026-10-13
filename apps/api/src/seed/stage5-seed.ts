@@ -15,6 +15,9 @@ import {
 } from '../vouchers/voucher-content';
 import { makeDevImagePng, type Rgb } from './png';
 
+/** Stage 5 sample data is Saudi Arabia (KSA market fixture): its money is SAR. New data takes the market's currency. */
+const SEED_CURRENCY = 'SAR';
+
 export interface Stage5SeedInput {
   prisma: PrismaClient;
   organizations: Record<string, string>;
@@ -392,10 +395,13 @@ export async function seedStage5(input: Stage5SeedInput) {
 
   const account = async (tx: Prisma.TransactionClient, family: string, orgId: string | null) => {
     const found = await tx.ledgerAccount.findFirst({
-      where: { family: family as never, organizationId: orgId },
+      where: { family: family as never, organizationId: orgId, currency: SEED_CURRENCY },
     });
     return (
-      found ?? tx.ledgerAccount.create({ data: { family: family as never, organizationId: orgId } })
+      found ??
+      tx.ledgerAccount.create({
+        data: { family: family as never, organizationId: orgId, currency: SEED_CURRENCY },
+      })
     );
   };
   async function journal(
@@ -410,6 +416,7 @@ export async function seedStage5(input: Stage5SeedInput) {
       const j = await tx.ledgerJournal.create({
         data: {
           type,
+          currency: SEED_CURRENCY,
           sourceType,
           sourceId,
           idempotencyKey: key,
@@ -492,6 +499,7 @@ export async function seedStage5(input: Stage5SeedInput) {
     const v = await prisma.voucher.create({
       data: {
         organizationId: orgId,
+        currency: SEED_CURRENCY,
         status: d.status,
         pausedBy: d.status === 'PAUSED' ? (d.pausedBy ?? 'MERCHANT') : null,
         content: content as unknown as Prisma.InputJsonValue,
@@ -597,6 +605,7 @@ export async function seedStage5(input: Stage5SeedInput) {
     const order = await prisma.voucherOrder.create({
       data: {
         reference: newRef('ORD'),
+        currency: SEED_CURRENCY,
         userId,
         voucherId: m.id,
         organizationId: m.orgId,
@@ -615,6 +624,7 @@ export async function seedStage5(input: Stage5SeedInput) {
       data: {
         orderId: order.id,
         provider: 'mock',
+        currency: SEED_CURRENCY,
         providerReference: `seed-pay-${n}`,
         status: s.state === 'REFUNDED' ? 'REFUNDED' : 'SUCCEEDED',
         amountHalalas: price,
@@ -634,6 +644,7 @@ export async function seedStage5(input: Stage5SeedInput) {
               validUntil: null,
             },
             at,
+            'Asia/Riyadh', // Saudi sample data (KSA market fixture)
           );
     const status: VoucherInstanceStatus =
       s.state === 'REDEEMED'
@@ -671,6 +682,7 @@ export async function seedStage5(input: Stage5SeedInput) {
         {
           organizationId: m.orgId,
           voucherId: m.id,
+          currency: SEED_CURRENCY,
           type: 'SOLD',
           amountHalalas: price,
           journalId: sale,
@@ -680,6 +692,7 @@ export async function seedStage5(input: Stage5SeedInput) {
         {
           organizationId: m.orgId,
           voucherId: m.id,
+          currency: SEED_CURRENCY,
           instanceId: inst.id,
           type: 'ISSUED',
           amountHalalas: price,
@@ -720,6 +733,7 @@ export async function seedStage5(input: Stage5SeedInput) {
           {
             organizationId: m.orgId,
             voucherId: m.id,
+            currency: SEED_CURRENCY,
             instanceId: inst.id,
             type: 'REDEEMED',
             amountHalalas: price,
@@ -729,6 +743,7 @@ export async function seedStage5(input: Stage5SeedInput) {
           {
             organizationId: m.orgId,
             voucherId: m.id,
+            currency: SEED_CURRENCY,
             instanceId: inst.id,
             type: 'ELIGIBLE',
             amountHalalas: price - fee,
@@ -744,6 +759,7 @@ export async function seedStage5(input: Stage5SeedInput) {
       const refund = await prisma.refund.create({
         data: {
           reference: newRef('RF'),
+          currency: SEED_CURRENCY,
           orderId: order.id,
           paymentId: pay.id,
           instanceId: inst.id,
@@ -778,6 +794,7 @@ export async function seedStage5(input: Stage5SeedInput) {
           data: {
             organizationId: m.orgId,
             voucherId: m.id,
+            currency: SEED_CURRENCY,
             instanceId: inst.id,
             type: 'REFUNDED',
             amountHalalas: price,
@@ -804,6 +821,7 @@ export async function seedStage5(input: Stage5SeedInput) {
         data: {
           organizationId: m.orgId,
           voucherId: m.id,
+          currency: SEED_CURRENCY,
           instanceId: inst.id,
           type: 'EXPIRED',
           amountHalalas: price,

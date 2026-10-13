@@ -86,6 +86,7 @@ export class WatchReviewService {
         title: { en: d.titleEn, ar: d.titleAr },
         paidViews: d.paidViews,
         qualifiedViews: d.qualifiedViews,
+        currency: d.currency,
         fundedHalalas: d.fundedHalalas,
         spentHalalas: d.spentHalalas,
         startAt: d.startAt ? d.startAt.toISOString() : null,
@@ -151,6 +152,7 @@ export class WatchReviewService {
       preview: await this.merchant.previewOf(c),
       adminActions: this.adminActions(actor, c.status),
       economics: {
+        currency: c.currency,
         chargePerViewHalalas: c.chargePerViewHalalas || rate.chargePerViewHalalas,
         rateCardVersion: c.rateCardVersion ?? rate.version,
         estimatedCostHalalas: c.paidViews * (c.chargePerViewHalalas || rate.chargePerViewHalalas),
@@ -396,6 +398,7 @@ export class WatchReviewService {
         title: { en: c.titleEn, ar: c.titleAr },
         merchantName: { en: c.organization.nameEn, ar: c.organization.nameAr },
         status: c.status,
+        currency: c.currency,
         paidViews: c.paidViews,
         qualifiedViews: c.qualifiedViews,
         budgetPct:

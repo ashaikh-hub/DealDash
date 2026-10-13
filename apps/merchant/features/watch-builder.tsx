@@ -15,6 +15,7 @@ import {
 } from '@dealdash/app-shell';
 import {
   createTranslator,
+  displayTimeZone,
   formatMoney,
   formatNumber,
   withLocale,
@@ -49,7 +50,7 @@ import {
   type WatchDetail,
   type WatchLimits,
 } from '@dealdash/validation';
-import { fromRiyadhInput, toRiyadhInput, useOrgId } from './deal-utils';
+import { fromMarketInput, toMarketInput, useOrgId } from './deal-utils';
 
 interface Options {
   eligibility: {
@@ -880,9 +881,9 @@ function BuilderInner({ campaignId }: { campaignId?: string }) {
             id="f-start"
             type="datetime-local"
             dir="ltr"
-            value={toRiyadhInput(content.startAt)}
+            value={toMarketInput(content.startAt)}
             disabled={live}
-            onChange={(e) => edit({ startAt: fromRiyadhInput(e.target.value) })}
+            onChange={(e) => edit({ startAt: fromMarketInput(e.target.value) })}
           />
         </Field>
         <Field
@@ -894,9 +895,9 @@ function BuilderInner({ campaignId }: { campaignId?: string }) {
             id="f-end"
             type="datetime-local"
             dir="ltr"
-            value={toRiyadhInput(content.endAt)}
+            value={toMarketInput(content.endAt)}
             disabled={live}
-            onChange={(e) => edit({ endAt: fromRiyadhInput(e.target.value) })}
+            onChange={(e) => edit({ endAt: fromMarketInput(e.target.value) })}
           />
         </Field>
       </div>
@@ -1095,8 +1096,8 @@ function BuilderInner({ campaignId }: { campaignId?: string }) {
           <div className="dd-kv__row">
             <dt>{t('mw.period')}</dt>
             <dd className="dd-ltr">
-              {toRiyadhInput(content.startAt).replace('T', ' ')} →{' '}
-              {toRiyadhInput(content.endAt).replace('T', ' ')}
+              {toMarketInput(content.startAt).replace('T', ' ')} →{' '}
+              {toMarketInput(content.endAt).replace('T', ' ')}
             </dd>
           </div>
         </dl>
@@ -1144,7 +1145,7 @@ function BuilderInner({ campaignId }: { campaignId?: string }) {
                         {
                           hour: '2-digit',
                           minute: '2-digit',
-                          timeZone: 'Asia/Riyadh',
+                          timeZone: displayTimeZone(),
                         },
                       ),
                     })

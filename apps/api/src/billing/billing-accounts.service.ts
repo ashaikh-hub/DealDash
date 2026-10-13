@@ -63,9 +63,8 @@ export class BillingAccountsService {
           orderBy: { createdAt: 'asc' },
         });
     if (!le) {
-      // no legal entity yet: the commercial default account creates one from the business's legal name
-      if (currency === 'SAR') return this.commercial.accountOf(db, organizationId);
-      throw AppError.validation('This business has no legal entity to bill', 'legalEntityId');
+      // no legal entity yet: the commercial default account creates one (in this currency) from the business's legal name
+      return this.commercial.accountOf(db, organizationId, currency);
     }
     const found = await db.businessAccount.findUnique({
       where: {

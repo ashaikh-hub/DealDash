@@ -51,6 +51,7 @@ export interface AiGovernance {
   provider: string;
   model: string;
   estimatedCostPerRequestMinor: number;
+  costCurrency: string;
   commercialTreatment: string;
   businessFeature: string;
 }
@@ -104,6 +105,8 @@ interface Ctx {
   actor: Actor;
   agent: AiAgent;
   organizationId: string | null;
+  /** The currency money is stated in: the business's market currency, else the default market's (never assumed). */
+  currency: string;
   locale: 'en' | 'ar';
   autonomy: number;
   allowed: Set<string>;
@@ -153,6 +156,7 @@ const DEFAULT_GOVERNANCE: AiGovernance = {
   provider: 'BUILTIN',
   model: 'dealdash-rules-v1',
   estimatedCostPerRequestMinor: 0,
+  costCurrency: 'SAR',
   commercialTreatment: 'INCLUDED_FEATURE',
   businessFeature: 'AI_COPILOT',
 };
@@ -282,6 +286,9 @@ export class AiService {
       actor,
       agent,
       organizationId: auth.organizationId,
+      currency: auth.organizationId
+        ? (await this.markets.profileOfOrganization(auth.organizationId)).currency
+        : (await this.markets.profile((await this.markets.settings()).defaultMarket)).currency,
       locale,
       autonomy: auth.autonomy,
       allowed: new Set(),
@@ -402,6 +409,7 @@ export class AiService {
           units: 1,
           provider: g.provider,
           model: g.model,
+          currency: g.costCurrency,
           estimatedCostMinor: g.estimatedCostPerRequestMinor,
         },
       ];
@@ -414,6 +422,7 @@ export class AiService {
           units: ctx.calls.length,
           provider: g.provider,
           model: g.model,
+          currency: g.costCurrency,
           estimatedCostMinor: 0,
         });
       if (ctx?.drafts.length)
@@ -425,6 +434,7 @@ export class AiService {
           units: ctx.drafts.length,
           provider: g.provider,
           model: g.model,
+          currency: g.costCurrency,
           estimatedCostMinor: 0,
         });
       await tx.aiUsageRecord.createMany({ data: usage });
@@ -447,7 +457,8 @@ export class AiService {
     ctx.allowed.add(String(v));
     return String(v);
   }
-  private money(ctx: Ctx, minor: number, currency = 'SAR') {
+  /** Money in a stated currency (always explicit: there is no platform currency). */
+  private money(ctx: Ctx, minor: number, currency: string) {
     const s = (minor / 100).toFixed(2);
     ctx.allowed.add(s);
     ctx.allowed.add(String(Number(s)));
@@ -702,6 +713,8 @@ export class AiService {
       availability?: string;
       soldOut?: boolean;
       reportedSavingsHalalas?: number;
+      /** Currency of the voucher's money (voucher cards carry it; the voucher's market). */
+      currency?: string;
       reportedSavingsPercent?: number;
       saleEndsAt?: string | null;
       reservationsEnabled?: boolean;
@@ -789,7 +802,7 @@ export class AiService {
         reportedSavings:
           product === 'VOUCHER' && card.reportedSavingsHalalas
             ? {
-                amount: this.money(ctx, card.reportedSavingsHalalas),
+                amount: this.money(ctx, card.reportedSavingsHalalas, card.currency ?? ctx.currency),
                 percent: card.reportedSavingsPercent ?? 0,
                 basis: 'MERCHANT_REPORTED',
               }
@@ -957,7 +970,11 @@ export class AiService {
         const v = p.metrics[k];
         if (v === null || v === undefined) return;
         const s =
-          fmt === 'money' ? this.money(ctx, v) : fmt === 'pct' ? this.pct(ctx, v) : this.n(ctx, v);
+          fmt === 'money'
+            ? this.money(ctx, v, ctx.currency)
+            : fmt === 'pct'
+              ? this.pct(ctx, v)
+              : this.n(ctx, v);
         facts.push([k, `${en} ${s}`, `${ar} ${s}`]);
       };
       if (p.product === 'LIVE') {
@@ -1010,7 +1027,7 @@ export class AiService {
           const dir = a > b ? ['up', 'ارتفاع'] : a < b ? ['down', 'انخفاض'] : ['flat', 'ثبات'];
           // money metrics (voucher sales) are shown as money, never as a bare minor-unit number
           const fmt = (v: number) =>
-            key === 'voucher.sales_value' ? this.money(ctx, v) : this.n(ctx, v);
+            key === 'voucher.sales_value' ? this.money(ctx, v, ctx.currency) : this.n(ctx, v);
           this.say(
             ctx,
             'CALCULATED_TREND',
@@ -1152,7 +1169,7 @@ export class AiService {
     }
     for (const x of proposals) {
       const fmt = (v: number) =>
-        x.metric === 'VOUCHER_SALES' ? this.money(ctx, v) : this.n(ctx, v);
+        x.metric === 'VOUCHER_SALES' ? this.money(ctx, v, ctx.currency) : this.n(ctx, v);
       this.say(
         ctx,
         'RECOMMENDATION',
@@ -1426,8 +1443,8 @@ export class AiService {
       this.say(
         ctx,
         'OBSERVED_FACT',
-        `Recorded financial impact: ${this.money(ctx, c.financialImpactMinor, c.currency ?? 'SAR')}.`,
-        `الأثر المالي المسجل: ${this.money(ctx, c.financialImpactMinor, c.currency ?? 'SAR')}.`,
+        `Recorded financial impact: ${this.money(ctx, c.financialImpactMinor, c.currency ?? '')}.`,
+        `الأثر المالي المسجل: ${this.money(ctx, c.financialImpactMinor, c.currency ?? '')}.`,
         ['ops.case'],
       );
     const missing: Array<[string, string]> = [];
@@ -1553,8 +1570,8 @@ export class AiService {
       this.say(
         ctx,
         'OBSERVED_FACT',
-        `${source}: ${this.n(ctx, x.n)} open exceptions, absolute variance ${this.money(ctx, x.v)}.`,
-        `${source}: ${this.n(ctx, x.n)} استثناءات مفتوحة، إجمالي الفرق ${this.money(ctx, x.v)}.`,
+        `${source}: ${this.n(ctx, x.n)} open exceptions, absolute variance ${this.money(ctx, x.v, ctx.currency)}.`,
+        `${source}: ${this.n(ctx, x.n)} استثناءات مفتوحة، إجمالي الفرق ${this.money(ctx, x.v, ctx.currency)}.`,
         ['ops.reconciliation'],
       );
     }
@@ -1655,12 +1672,15 @@ export class AiService {
       }
     }
     const now = Date.now();
+    // trends are stated in one currency: the default market's (other currencies are reported above, never added in)
+    const head = (await this.markets.profile((await this.markets.settings()).defaultMarket))
+      .currency;
     const issued = async (from: number, to: number) =>
       this.prisma.financeDocument.aggregate({
         where: {
           type: { in: ['INVOICE', 'TAX_INVOICE'] },
           status: { notIn: ['DRAFT', 'PENDING_APPROVAL', 'CANCELLED', 'VOID'] },
-          currency: 'SAR',
+          currency: head,
           issuedAt: { gte: new Date(from), lt: new Date(to) },
         },
         _sum: { totalHalalas: true },
@@ -1687,8 +1707,8 @@ export class AiService {
     this.say(
       ctx,
       'CALCULATED_TREND',
-      `SAR invoiced in the last 30 days: ${this.money(ctx, cur30._sum.totalHalalas ?? 0)} vs ${this.money(ctx, prev30._sum.totalHalalas ?? 0)} in the 30 days before.`,
-      `المفوتر بالريال خلال آخر 30 يومًا: ${this.money(ctx, cur30._sum.totalHalalas ?? 0)} مقابل ${this.money(ctx, prev30._sum.totalHalalas ?? 0)} في الثلاثين يومًا السابقة.`,
+      `${head} invoiced in the last 30 days: ${this.money(ctx, cur30._sum.totalHalalas ?? 0, head)} vs ${this.money(ctx, prev30._sum.totalHalalas ?? 0, head)} in the 30 days before.`,
+      `المفوتر بعملة ${head} خلال آخر 30 يومًا: ${this.money(ctx, cur30._sum.totalHalalas ?? 0, head)} مقابل ${this.money(ctx, prev30._sum.totalHalalas ?? 0, head)} في الثلاثين يومًا السابقة.`,
       ['finance.invoicing_trend', 'finance.invoicing_trend.prior'],
     );
     ctx.allowed.add('30');
@@ -1702,7 +1722,7 @@ export class AiService {
         this.prisma.financeDocument.aggregate({
           where: {
             type: { in: ['INVOICE', 'TAX_INVOICE', 'DEBIT_NOTE'] },
-            currency: 'SAR',
+            currency: head,
             status: { in: ['ISSUED', 'SENT', 'PARTIALLY_PAID'] },
             dueAt: { gte: new Date(now), lt: new Date(now + 30 * D) },
           },
@@ -1716,8 +1736,8 @@ export class AiService {
     this.say(
       ctx,
       'FORECAST',
-      `If every invoice due in the next 30 days is paid on time, ${this.money(ctx, expected)} would be collected. An estimate, not a commitment.`,
-      `إذا سُددت كل الفواتير المستحقة خلال 30 يومًا القادمة في موعدها فسيُحصَّل ${this.money(ctx, expected)}. تقدير وليس التزامًا.`,
+      `If every invoice due in the next 30 days is paid on time, ${this.money(ctx, expected, head)} would be collected. An estimate, not a commitment.`,
+      `إذا سُددت كل الفواتير المستحقة خلال 30 يومًا القادمة في موعدها فسيُحصَّل ${this.money(ctx, expected, head)}. تقدير وليس التزامًا.`,
       ['finance.due_next_30'],
     );
     const flows = await this.tool(
@@ -1879,6 +1899,7 @@ export class AiService {
         units: 1,
         provider: g.provider,
         model: g.model,
+        currency: g.costCurrency,
       },
     });
     await this.audit.record({

@@ -7996,7 +7996,16 @@
     "/v1/admin/finance/overview": {
       "get": {
         "operationId": "AdminFinanceController_overview_v1",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "currency",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -10654,6 +10663,29 @@
             "name": "orgId",
             "required": true,
             "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "markets"
+        ]
+      }
+    },
+    "/v1/market-context": {
+      "get": {
+        "operationId": "MarketContextController_context_v1",
+        "parameters": [
+          {
+            "name": "city",
+            "required": true,
+            "in": "query",
             "schema": {
               "type": "string"
             }
@@ -25593,7 +25625,16 @@
     "/v1/admin/commercial/overview": {
       "get": {
         "operationId": "AdminFinanceController_overview_v1",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "currency",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -60723,10 +60764,7 @@
                 "maximum": 9007199254740991
               },
               "currency": {
-                "type": "string",
-                "enum": [
-                  "SAR"
-                ]
+                "type": "string"
               },
               "validity": {
                 "type": "object",
@@ -61606,10 +61644,7 @@
             "type": "object",
             "properties": {
               "currency": {
-                "type": "string",
-                "enum": [
-                  "SAR"
-                ]
+                "type": "string"
               },
               "heldHalalas": {
                 "type": "integer",
@@ -63194,10 +63229,7 @@
                     "maximum": 9007199254740991
                   },
                   "currency": {
-                    "type": "string",
-                    "enum": [
-                      "SAR"
-                    ]
+                    "type": "string"
                   },
                   "validity": {
                     "type": "object",
@@ -63988,6 +64020,15 @@
                   "refundsLast24h"
                 ]
               },
+              "currency": {
+                "type": "string"
+              },
+              "currencies": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
               "ledger": {
                 "type": "object",
                 "properties": {
@@ -64106,6 +64147,8 @@
             },
             "required": [
               "counts",
+              "currency",
+              "currencies",
               "ledger",
               "merchants",
               "disclaimerKey"
@@ -65914,10 +65957,7 @@
                   "maximum": 9007199254740991
                 },
                 "currency": {
-                  "type": "string",
-                  "enum": [
-                    "SAR"
-                  ]
+                  "type": "string"
                 },
                 "validity": {
                   "type": "object",
@@ -66290,10 +66330,7 @@
                 "maximum": 9007199254740991
               },
               "currency": {
-                "type": "string",
-                "enum": [
-                  "SAR"
-                ]
+                "type": "string"
               },
               "validity": {
                 "type": "object",
@@ -66848,10 +66885,7 @@
                 "maximum": 9007199254740991
               },
               "currency": {
-                "type": "string",
-                "enum": [
-                  "SAR"
-                ]
+                "type": "string"
               },
               "holdExpiresAt": {
                 "type": "string"
@@ -66957,10 +66991,7 @@
                     "maximum": 9007199254740991
                   },
                   "currency": {
-                    "type": "string",
-                    "enum": [
-                      "SAR"
-                    ]
+                    "type": "string"
                   },
                   "attemptNo": {
                     "type": "integer",
@@ -67119,10 +67150,7 @@
                   "maximum": 9007199254740991
                 },
                 "currency": {
-                  "type": "string",
-                  "enum": [
-                    "SAR"
-                  ]
+                  "type": "string"
                 },
                 "holdExpiresAt": {
                   "type": "string"
@@ -67228,10 +67256,7 @@
                       "maximum": 9007199254740991
                     },
                     "currency": {
-                      "type": "string",
-                      "enum": [
-                        "SAR"
-                      ]
+                      "type": "string"
                     },
                     "attemptNo": {
                       "type": "integer",
@@ -67447,10 +67472,7 @@
                   "maximum": 9007199254740991
                 },
                 "currency": {
-                  "type": "string",
-                  "enum": [
-                    "SAR"
-                  ]
+                  "type": "string"
                 },
                 "validFrom": {
                   "type": [
@@ -67599,10 +67621,7 @@
                 "maximum": 9007199254740991
               },
               "currency": {
-                "type": "string",
-                "enum": [
-                  "SAR"
-                ]
+                "type": "string"
               },
               "validFrom": {
                 "type": [
@@ -75645,12 +75664,20 @@
                     "enum": [
                       true
                     ]
+                  },
+                  "currency": {
+                    "type": "string"
+                  },
+                  "available": {
+                    "type": "boolean"
                   }
                 },
                 "required": [
                   "chargePerViewHalalas",
                   "version",
-                  "placeholder"
+                  "placeholder",
+                  "currency",
+                  "available"
                 ]
               },
               "minRepeatWindowHours": {
@@ -75757,6 +75784,9 @@
                   "minimum": -9007199254740991,
                   "maximum": 9007199254740991
                 },
+                "currency": {
+                  "type": "string"
+                },
                 "fundedHalalas": {
                   "type": "integer",
                   "minimum": -9007199254740991,
@@ -75795,6 +75825,7 @@
                 "title",
                 "paidViews",
                 "qualifiedViews",
+                "currency",
                 "fundedHalalas",
                 "spentHalalas",
                 "startAt",
@@ -76639,6 +76670,9 @@
               "budget": {
                 "type": "object",
                 "properties": {
+                  "currency": {
+                    "type": "string"
+                  },
                   "paidViews": {
                     "type": "integer",
                     "minimum": -9007199254740991,
@@ -76695,6 +76729,7 @@
                   }
                 },
                 "required": [
+                  "currency",
                   "paidViews",
                   "qualifiedViews",
                   "remainingViews",
@@ -77689,6 +77724,9 @@
                   "budget": {
                     "type": "object",
                     "properties": {
+                      "currency": {
+                        "type": "string"
+                      },
                       "paidViews": {
                         "type": "integer",
                         "minimum": -9007199254740991,
@@ -77745,6 +77783,7 @@
                       }
                     },
                     "required": [
+                      "currency",
                       "paidViews",
                       "qualifiedViews",
                       "remainingViews",
@@ -78414,6 +78453,9 @@
                   "budget": {
                     "type": "object",
                     "properties": {
+                      "currency": {
+                        "type": "string"
+                      },
                       "paidViews": {
                         "type": "integer",
                         "minimum": -9007199254740991,
@@ -78470,6 +78512,7 @@
                       }
                     },
                     "required": [
+                      "currency",
                       "paidViews",
                       "qualifiedViews",
                       "remainingViews",
@@ -79181,6 +79224,9 @@
               "budget": {
                 "type": "object",
                 "properties": {
+                  "currency": {
+                    "type": "string"
+                  },
                   "paidViews": {
                     "type": "integer",
                     "minimum": -9007199254740991,
@@ -79237,6 +79283,7 @@
                   }
                 },
                 "required": [
+                  "currency",
                   "paidViews",
                   "qualifiedViews",
                   "remainingViews",
@@ -79461,6 +79508,9 @@
               "budget": {
                 "type": "object",
                 "properties": {
+                  "currency": {
+                    "type": "string"
+                  },
                   "paidViews": {
                     "type": "integer",
                     "minimum": -9007199254740991,
@@ -79517,6 +79567,7 @@
                   }
                 },
                 "required": [
+                  "currency",
                   "paidViews",
                   "qualifiedViews",
                   "remainingViews",
@@ -79888,6 +79939,9 @@
                     "budgetPct": {
                       "type": "number"
                     },
+                    "currency": {
+                      "type": "string"
+                    },
                     "fundedHalalas": {
                       "type": "integer",
                       "minimum": -9007199254740991,
@@ -79912,6 +79966,7 @@
                     "paidViews",
                     "qualifiedViews",
                     "budgetPct",
+                    "currency",
                     "fundedHalalas",
                     "spentHalalas",
                     "openFlags"
@@ -80012,6 +80067,9 @@
                   "minimum": -9007199254740991,
                   "maximum": 9007199254740991
                 },
+                "currency": {
+                  "type": "string"
+                },
                 "fundedHalalas": {
                   "type": "integer",
                   "minimum": -9007199254740991,
@@ -80086,6 +80144,7 @@
                 "title",
                 "paidViews",
                 "qualifiedViews",
+                "currency",
                 "fundedHalalas",
                 "spentHalalas",
                 "startAt",
@@ -80515,6 +80574,9 @@
               "budget": {
                 "type": "object",
                 "properties": {
+                  "currency": {
+                    "type": "string"
+                  },
                   "paidViews": {
                     "type": "integer",
                     "minimum": -9007199254740991,
@@ -80571,6 +80633,7 @@
                   }
                 },
                 "required": [
+                  "currency",
                   "paidViews",
                   "qualifiedViews",
                   "remainingViews",
@@ -81206,6 +81269,9 @@
               "economics": {
                 "type": "object",
                 "properties": {
+                  "currency": {
+                    "type": "string"
+                  },
                   "chargePerViewHalalas": {
                     "type": "integer",
                     "minimum": -9007199254740991,
@@ -81270,6 +81336,7 @@
                   }
                 },
                 "required": [
+                  "currency",
                   "chargePerViewHalalas",
                   "rateCardVersion",
                   "estimatedCostHalalas",
@@ -87944,6 +88011,9 @@
                 "format": "uuid",
                 "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
               },
+              "currency": {
+                "type": "string"
+              },
               "status": {
                 "type": "string",
                 "enum": [
@@ -88694,6 +88764,7 @@
               "reference",
               "product",
               "subjectId",
+              "currency",
               "status",
               "ownerOrganizationId",
               "fulfilmentOrganizationId",
@@ -88821,6 +88892,9 @@
                     "ar"
                   ]
                 },
+                "currency": {
+                  "type": "string"
+                },
                 "maxCashHalalas": {
                   "type": "integer",
                   "minimum": -9007199254740991,
@@ -88857,6 +88931,7 @@
                 "status",
                 "ownerOrganizationId",
                 "ownerName",
+                "currency",
                 "maxCashHalalas",
                 "benefitCommitmentHalalas",
                 "developmentFixture",
@@ -89006,6 +89081,41 @@
                   "maximum": 9007199254740991
                 }
               },
+              "currency": {
+                "type": "string"
+              },
+              "byCurrency": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "currency": {
+                      "type": "string"
+                    },
+                    "receivablesHalalas": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "fundsHeldHalalas": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "fundingUtilizedHalalas": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "currency",
+                    "receivablesHalalas",
+                    "fundsHeldHalalas",
+                    "fundingUtilizedHalalas"
+                  ]
+                }
+              },
               "receivablesHalalas": {
                 "type": "integer",
                 "minimum": -9007199254740991,
@@ -89045,6 +89155,8 @@
             },
             "required": [
               "cases",
+              "currency",
+              "byCurrency",
               "receivablesHalalas",
               "fundsHeldHalalas",
               "fundingUtilizedHalalas",

@@ -5,6 +5,7 @@ import { AuditService } from '../audit/audit.service';
 import { AppError } from '../common/errors';
 import type { Actor, RequestMeta } from '../common/request-context';
 import { DisputeService } from '../operations/dispute.service';
+import { MarketService } from '../platform/markets/market.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { D, ref } from './ops-util';
 
@@ -48,6 +49,7 @@ export class ReconciliationOpsService {
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
     private readonly disputes: DisputeService,
+    private readonly markets: MarketService,
   ) {}
 
   view(i: Prisma.ReconciliationItemGetPayload<object>) {
@@ -126,7 +128,7 @@ export class ReconciliationOpsService {
     if (source === 'PAYMENT_GATEWAY') {
       const p = await this.prisma.payment.findUnique({
         where: { providerReference: reference },
-        include: { order: { select: { organizationId: true, reference: true } } },
+        include: { order: { select: { organizationId: true, reference: true, currency: true } } },
       });
       return p
         ? {
@@ -153,7 +155,7 @@ export class ReconciliationOpsService {
             id: r.id,
             reference: r.reference,
             amountMinor: r.amountHalalas,
-            currency: 'SAR',
+            currency: r.currency,
             at: r.refundedAt ?? r.updatedAt,
             final: r.status === 'REFUNDED',
             organizationId: r.organizationId,
@@ -236,7 +238,10 @@ export class ReconciliationOpsService {
         'Statements can be imported for payment gateway, refund, settlement and receipt sources',
         400,
       );
-    const currency = b.currency ?? 'SAR';
+    // a statement is in its stated currency, else the default market's (configured, never a hard-coded country)
+    const currency =
+      b.currency ??
+      (await this.markets.profile((await this.markets.settings()).defaultMarket)).currency;
     const from = b.periodFrom ? new Date(b.periodFrom) : null;
     const to = b.periodTo ? new Date(b.periodTo) : null;
     const run = await this.prisma.reconciliationRun.create({
@@ -302,7 +307,7 @@ export class ReconciliationOpsService {
             completedAt: { gte: from, lte: to },
             currency,
           },
-          include: { order: { select: { organizationId: true, reference: true } } },
+          include: { order: { select: { organizationId: true, reference: true, currency: true } } },
           take: 1000,
         }))
           if (!matchedIds.has(p.id) && p.providerReference)
@@ -327,7 +332,7 @@ export class ReconciliationOpsService {
               id: r.id,
               reference: r.providerRefundReference ?? r.reference,
               amountMinor: r.amountHalalas,
-              currency: 'SAR',
+              currency: r.currency,
               at: r.refundedAt,
               final: true,
               organizationId: r.organizationId,
@@ -411,7 +416,8 @@ export class ReconciliationOpsService {
         expected: number;
         actual: number;
         organizationId: string | null;
-        currency?: string;
+        /** ISO currency of the amounts; `XXX` (ISO 4217 'no currency') for count / points checks. */
+        currency: string;
       },
     ) => {
       const dedupeKey = `${source}:${i.type}:${i.id}`;
@@ -430,7 +436,7 @@ export class ReconciliationOpsService {
         internalAmountMinor: i.actual,
         externalAmountMinor: i.expected,
         varianceMinor: i.actual - i.expected,
-        currency: i.currency ?? 'SAR',
+        currency: i.currency,
         organizationId: i.organizationId,
       };
       if (open)
@@ -453,7 +459,7 @@ export class ReconciliationOpsService {
         status: { in: ['SUCCEEDED', 'REFUNDED', 'REFUND_PENDING'] },
         completedAt: { gte: since },
       },
-      include: { order: { select: { organizationId: true, reference: true } } },
+      include: { order: { select: { organizationId: true, reference: true, currency: true } } },
       take: 2000,
     })) {
       const j = await this.prisma.ledgerJournal.findUnique({
@@ -468,6 +474,7 @@ export class ReconciliationOpsService {
           expected: p.amountHalalas,
           actual: 0,
           organizationId: p.order.organizationId,
+          currency: p.order.currency,
         });
     }
     // voucher redemption: a valid redemption must have its payable events
@@ -486,12 +493,19 @@ export class ReconciliationOpsService {
           expected: 1,
           actual: 0,
           organizationId: r.organizationId,
+          currency: 'XXX', // a count, not money
         });
     }
     // Watch & Earn funding: the campaign's funded total equals its funding records
     for (const c of await this.prisma.watchCampaign.findMany({
       where: { fundedHalalas: { gt: 0 } },
-      select: { id: true, fundedHalalas: true, organizationId: true, sponsorOrganizationId: true },
+      select: {
+        id: true,
+        fundedHalalas: true,
+        organizationId: true,
+        sponsorOrganizationId: true,
+        currency: true,
+      },
       take: 2000,
     })) {
       const sum =
@@ -509,11 +523,13 @@ export class ReconciliationOpsService {
           expected: sum,
           actual: c.fundedHalalas,
           organizationId: c.sponsorOrganizationId ?? c.organizationId,
+          currency: c.currency,
         });
     }
     // sponsor funding: never used beyond what was committed
     for (const f of await this.prisma.fundingCommitment.findMany({
       where: { kind: 'SPONSOR_FUNDING' },
+      include: { case: { select: { currency: true } } },
       take: 2000,
     }))
       if (f.utilizedHalalas > f.upfrontHalalas + f.usageMaxHalalas)
@@ -524,6 +540,7 @@ export class ReconciliationOpsService {
           expected: f.upfrontHalalas + f.usageMaxHalalas,
           actual: f.utilizedHalalas,
           organizationId: f.organizationId,
+          currency: f.case.currency,
         });
     // loyalty funding: a rule's allocated counter equals the points it actually issued
     for (const r of await this.prisma.loyaltyRule.findMany({
@@ -545,6 +562,7 @@ export class ReconciliationOpsService {
           expected: sum,
           actual: r.allocatedPoints,
           organizationId: r.fundingOrganizationId ?? r.organizationId,
+          currency: 'XXX', // points, not money
         });
     }
     // invoices: the paid amount equals the live allocations
@@ -571,35 +589,40 @@ export class ReconciliationOpsService {
         });
     }
     // merchant payable: the settlement-eligible ledger balance equals the payable events net of recorded settlement payouts
+    // checked per (merchant, currency): amounts in different currencies are never netted against each other
     const orgs = await this.prisma.merchantPayableEvent.findMany({
-      distinct: ['organizationId'],
-      select: { organizationId: true },
+      distinct: ['organizationId', 'currency'],
+      select: { organizationId: true, currency: true },
       take: 1000,
     });
-    for (const { organizationId } of orgs) {
+    for (const { organizationId, currency } of orgs) {
       const ev = await this.prisma.merchantPayableEvent.groupBy({
         by: ['type'],
-        where: { organizationId, type: { in: ['ELIGIBLE', 'REDEMPTION_REVERSED', 'ADJUSTMENT'] } },
+        where: {
+          organizationId,
+          currency,
+          type: { in: ['ELIGIBLE', 'REDEMPTION_REVERSED', 'ADJUSTMENT'] },
+        },
         _sum: { amountHalalas: true },
       });
       const s = (t: string) => ev.find((e) => e.type === t)?._sum.amountHalalas ?? 0;
       const paid =
         (
           await this.prisma.settlementPayout.aggregate({
-            where: { status: 'PAID', settlement: { organizationId } },
+            where: { status: 'PAID', settlement: { organizationId, currency } },
             _sum: { amountMinor: true },
           })
         )._sum.amountMinor ?? 0;
       const reversed =
         (
           await this.prisma.settlementPayout.aggregate({
-            where: { status: 'REVERSED', settlement: { organizationId } },
+            where: { status: 'REVERSED', settlement: { organizationId, currency } },
             _sum: { amountMinor: true },
           })
         )._sum.amountMinor ?? 0;
       const expected = s('ELIGIBLE') - s('REDEMPTION_REVERSED') + s('ADJUSTMENT') - paid + reversed;
       const acc = await this.prisma.ledgerAccount.findFirst({
-        where: { family: 'MERCHANT_SETTLEMENT_ELIGIBLE', organizationId },
+        where: { family: 'MERCHANT_SETTLEMENT_ELIGIBLE', organizationId, currency },
       });
       const bal = acc
         ? -(
@@ -619,6 +642,7 @@ export class ReconciliationOpsService {
           expected,
           actual: bal,
           organizationId,
+          currency,
         });
     }
     await this.prisma.reconciliationRun.update({ where: { id: run.id }, data: { totals: counts } });

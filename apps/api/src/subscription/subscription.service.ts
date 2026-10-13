@@ -10,6 +10,7 @@ import { AppError } from '../common/errors';
 import type { Actor, RequestMeta } from '../common/request-context';
 import { Prisma } from '../generated/prisma/client';
 import { EntitlementService } from '../platform/entitlement.service';
+import { MarketService } from '../platform/markets/market.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SystemConfigService } from '../system-config/system-config.service';
 import { BillingEventService } from './billing-event.service';
@@ -68,6 +69,7 @@ export class SubscriptionService {
     private readonly signals: SignalService,
     private readonly entitlements: EntitlementService,
     private readonly usage: UsageService,
+    private readonly markets: MarketService,
   ) {}
 
   // ---------------------------------------------------------------- plan -> contract
@@ -225,7 +227,10 @@ export class SubscriptionService {
           }
         : { code: c.planCode },
       kind: c.kind,
-      currency: c.currency ?? c.planVersion?.currency ?? 'SAR',
+      currency:
+        c.currency ??
+        c.planVersion?.currency ??
+        (await this.markets.currencyFor(c.organizationId, c.market ?? c.planVersion?.market)),
       basePrice: sub
         ? {
             amountMinor: sub.indicative ? null : sub.amountMinor,

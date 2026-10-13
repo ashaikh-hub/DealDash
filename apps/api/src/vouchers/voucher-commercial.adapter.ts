@@ -1,4 +1,5 @@
 import { Injectable, type OnModuleInit } from '@nestjs/common';
+import { MarketService } from '../platform/markets/market.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AppError } from '../common/errors';
 import { CommercialRegistry, type CommercialAdapter } from '../finance/commercial.registry';
@@ -16,6 +17,7 @@ export class VoucherCommercialAdapter implements CommercialAdapter, OnModuleInit
   constructor(
     private readonly prisma: PrismaService,
     private readonly registry: CommercialRegistry,
+    private readonly markets: MarketService,
   ) {}
 
   onModuleInit() {
@@ -53,7 +55,8 @@ export class VoucherCommercialAdapter implements CommercialAdapter, OnModuleInit
     }
     const benefit = Math.max(0, c.faceValueHalalas - c.sellingPriceHalalas);
     return {
-      currency: 'SAR',
+      // the campaign's market decides the currency (Market / Country Configuration), never a fixed country
+      currency: (await this.markets.profileOfCampaign(organizationId, content)).currency,
       maxUnits: units,
       unitLabel: 'VOUCHER',
       base: {

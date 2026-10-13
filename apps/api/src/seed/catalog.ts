@@ -95,6 +95,9 @@ export async function seedCatalog(db: Db) {
       enabled: false,
     },
     { code: 'QA', nameEn: 'Qatar', nameAr: 'قطر', currency: 'QAR', enabled: false },
+    // Probable first pilot market (founder direction 2026-10-11): configuration only — PLANNED, products disabled until DealDash
+    // activates it through the governed market lifecycle; tax / legal content stays VALIDATE-PAKISTAN.
+    { code: 'PK', nameEn: 'Pakistan', nameAr: 'باكستان', currency: 'PKR', enabled: false },
   ];
   for (const m of markets)
     await db.countryConfiguration.upsert({

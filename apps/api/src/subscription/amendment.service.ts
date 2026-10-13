@@ -11,6 +11,7 @@ import { AuditService } from '../audit/audit.service';
 import { AppError } from '../common/errors';
 import type { Actor, RequestMeta } from '../common/request-context';
 import { Prisma } from '../generated/prisma/client';
+import { MarketService } from '../platform/markets/market.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { BillingEventService } from './billing-event.service';
 import { PlanService } from './plan.service';
@@ -64,6 +65,7 @@ export class AmendmentService {
     private readonly billing: BillingEventService,
     private readonly usage: UsageService,
     private readonly subscriptions: SubscriptionService,
+    private readonly markets: MarketService,
   ) {}
 
   // ---------------------------------------------------------------- impact (shown before anything is accepted)
@@ -88,7 +90,7 @@ export class AmendmentService {
       },
       to: null,
       priceDeltaMinor: null,
-      currency: c.currency ?? 'SAR',
+      currency: c.currency ?? (await this.markets.currencyFor(c.organizationId, c.market)),
       effectiveAt: effectiveAt.toISOString(),
       effectiveMode: b.effectiveMode,
       added: { products: [], features: [] },
@@ -816,7 +818,7 @@ export class AmendmentService {
         rateBps: p.rateBps,
         discountBps: p.discountBps,
         waived: p.waived,
-        currency: c.currency ?? 'SAR',
+        currency: c.currency ?? (await this.markets.currencyFor(c.organizationId, c.market)),
         effectiveFrom: at,
         approvalRef: a.id,
         createdByUserId: actor?.userId ?? a.requestedByUserId,
@@ -846,7 +848,7 @@ export class AmendmentService {
           discountBps: b.discountBps,
           waived: b.waived || b.kind === 'SETUP_WAIVER' || b.kind === 'FREE_ONBOARDING',
           creditMinor: b.creditMinor,
-          currency: c.currency ?? 'SAR',
+          currency: c.currency ?? (await this.markets.currencyFor(c.organizationId, c.market)),
           startAt: new Date(b.startAt),
           endAt: new Date(b.endAt),
           postPromotion: b.postPromotion,
@@ -901,7 +903,7 @@ export class AmendmentService {
           rateBps: b.rateBps,
           discountBps: b.discountBps,
           waived: b.waived,
-          currency: c.currency ?? 'SAR',
+          currency: c.currency ?? (await this.markets.currencyFor(c.organizationId, c.market)),
           effectiveFrom: from,
           effectiveUntil: b.effectiveUntil ? new Date(b.effectiveUntil) : null,
           approvalRef: b.approvalRef ?? null,

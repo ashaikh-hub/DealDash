@@ -829,6 +829,8 @@ export const CONFIG_DEFAULTS: Record<ConfigKey, unknown> = {
     model: 'dealdash-rules-v1',
     /** Estimated cost per request in minor units of SAR (the built-in provider has no external cost). */
     estimatedCostPerRequestMinor: 0,
+    /** Currency of the estimated AI cost (DealDash's own provider cost, not a customer amount). */
+    costCurrency: 'SAR',
     commercialTreatment: 'INCLUDED_FEATURE',
     /** Business agents need this contract feature; the customer agent does not. */
     businessFeature: 'AI_COPILOT',
@@ -841,8 +843,12 @@ export const CONFIG_DEFAULTS: Record<ConfigKey, unknown> = {
     defaultMarket: 'SA',
     /** Markets where the platform default campaign pricing is approved; other markets need market-specific pricing. */
     defaultPricingMarkets: ['SA'],
-    /** Ledger currencies the campaign funding ledger supports today (the general ledger is SAR-only; no full multi-currency GL). */
-    campaignLedgerCurrencies: ['SAR'],
+    /**
+     * Currencies campaign funding may be booked in (governed: enabling a currency is a decision, not a code change). The ledger keeps one
+     * account per currency and single-currency journals; nothing is converted. Create-only default for new databases; existing ones change
+     * it through Rules and controls.
+     */
+    campaignLedgerCurrencies: ['SAR', 'PKR', 'AED', 'QAR'],
   },
   // ---- Partners (Stage 7): what each partner TYPE is offered. The contract (entitlements) still decides what is switched on, and the
   // market decides where. Nothing here names a particular bank, scheme or employer.

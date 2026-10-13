@@ -1,7 +1,13 @@
 'use client';
 
 import { useAuth } from '@dealdash/app-shell';
-import { createTranslator, formatDateTime } from '@dealdash/localization';
+import {
+  createTranslator,
+  displayTimeZone,
+  formatDateTime,
+  localParts,
+  zoneOffsetMs,
+} from '@dealdash/localization';
 import type { LiveDealStatus } from '@dealdash/types';
 import { StatusChip, type StatusTone } from '@dealdash/ui';
 
@@ -28,26 +34,27 @@ export function DealStatusChip({ status }: { status: LiveDealStatus }) {
   );
 }
 
-/** Riyadh wall-clock text for <input type="datetime-local"> from an ISO instant. */
-export function toRiyadhInput(iso: string | null): string {
+/**
+ * Wall-clock text for <input type="datetime-local"> from an ISO instant, in the business's market time zone (Market / Country
+ * Configuration via the session's display market) — a Pakistani merchant edits Karachi time, a Saudi merchant Riyadh time.
+ */
+export function toMarketInput(iso: string | null, timeZone?: string | null): string {
   if (!iso) return '';
-  const parts = new Intl.DateTimeFormat('sv-SE', {
-    timeZone: 'Asia/Riyadh',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).format(new Date(iso));
-  return parts.replace(' ', 'T');
+  const p = localParts(new Date(iso), displayTimeZone(timeZone));
+  const two = (n: number) => String(n).padStart(2, '0');
+  return `${p.year}-${two(p.month)}-${two(p.day)}T${two(p.hour)}:${two(p.minute)}`;
 }
 
-/** ISO instant from a Riyadh wall-clock "YYYY-MM-DDTHH:mm" (Saudi Arabia has no daylight saving: always +03:00). */
-export function fromRiyadhInput(local: string): string | null {
-  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(local)) return null;
-  const d = new Date(`${local}:00+03:00`);
-  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+/** ISO instant from a market wall-clock "YYYY-MM-DDTHH:mm" (DST-safe: the zone's offset at that moment, checked twice). */
+export function fromMarketInput(local: string, timeZone?: string | null): string | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(local);
+  if (!m) return null;
+  const tz = displayTimeZone(timeZone);
+  const naive = Date.UTC(+m[1]!, +m[2]! - 1, +m[3]!, +m[4]!, +m[5]!);
+  if (Number.isNaN(naive)) return null;
+  let at = naive - zoneOffsetMs(new Date(naive), tz);
+  at = naive - zoneOffsetMs(new Date(at), tz);
+  return new Date(at).toISOString();
 }
 
 export const when = (locale: 'en' | 'ar', iso: string | null) =>

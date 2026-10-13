@@ -272,7 +272,12 @@ export class DisputeService {
           sourceEventId: organizationId ? null : (b.sourceEventId ?? null),
           transactionRef: b.transactionRef ?? null,
           financialImpactMinor: b.financialImpactMinor ?? null,
-          currency: b.currency ?? (b.financialImpactMinor ? 'SAR' : null),
+          // a financial impact is in the stated currency, else the case market's currency (never assumed)
+          currency:
+            b.currency ??
+            (b.financialImpactMinor && market
+              ? (await this.markets.profile(market)).currency
+              : null),
           supportCaseId: organizationId ? null : (b.supportCaseId ?? null),
         },
         include: { notes: true },

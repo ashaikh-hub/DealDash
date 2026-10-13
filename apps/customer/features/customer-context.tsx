@@ -81,7 +81,7 @@ function newAnonymousId() {
  * Discovery events carry a random per-device id, never a name, phone number or exact location.
  */
 export function CustomerProvider({ children }: { children: ReactNode }) {
-  const { apiUrl } = useAuth();
+  const { apiUrl, setMarketCity } = useAuth();
   const [device, setDevice] = useState<{ lat: number; lng: number } | null>(null);
   const [cities, setCities] = useState<CityOption[]>([]);
   const [city, setCityState] = useState<string>(DEFAULT_CITY); // replaced by the configured default as soon as it loads
@@ -89,6 +89,11 @@ export function CustomerProvider({ children }: { children: ReactNode }) {
   const [anonymousId, setAnonymousId] = useState('dev-pending-id');
   const queue = useRef<Array<TrackedEvent & { anonymousId: string }>>([]);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // the chosen city's market decides the currency and time zone shown where a value carries none of its own
+  useEffect(() => {
+    setMarketCity(city);
+  }, [city, setMarketCity]);
 
   useEffect(() => {
     let id = safe.get('local', 'dd_anon');

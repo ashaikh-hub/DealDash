@@ -325,11 +325,10 @@ export class ReceivablesService {
       });
       let credit = 0;
       for (const p of pays) credit += await this.unallocated(this.prisma, p.id);
-      // prepaid campaign funds held (SAR general ledger): a deposit the business holds with DealDash, not a payment of invoices
-      const deposits =
-        acc.currency === 'SAR' && acc.isDefault
-          ? -(await this.ledger.balance('CAMPAIGN_FUNDS_HELD', acc.organizationId))
-          : 0;
+      // prepaid campaign funds held in this account's currency: a deposit the business holds with DealDash, not a payment of invoices
+      const deposits = acc.isDefault
+        ? -(await this.ledger.balance('CAMPAIGN_FUNDS_HELD', acc.organizationId, acc.currency))
+        : 0;
       const holds = await this.prisma.financialHold.count({
         where: {
           organizationId: acc.organizationId,

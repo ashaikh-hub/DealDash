@@ -7,6 +7,7 @@ import { AuditService } from '../audit/audit.service';
 import { AppError } from '../common/errors';
 import { keysetPage, Page } from '../common/pagination';
 import type { Actor, RequestMeta } from '../common/request-context';
+import { MarketService } from '../platform/markets/market.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { LedgerService } from '../vouchers/ledger.service';
 import { CommercialRegistry } from './commercial.registry';
@@ -25,6 +26,7 @@ export class FinanceAdminService {
     private readonly commercial: CommercialService,
     private readonly registry: CommercialRegistry,
     private readonly pricing: PricingService,
+    private readonly markets: MarketService,
     @Optional() private readonly signals?: SignalService,
   ) {}
 
@@ -352,6 +354,7 @@ export class FinanceAdminService {
           data: {
             businessAccountId: acc.id,
             organizationId: b.organizationId,
+            currency: acc.currency,
             limitHalalas: b.limitHalalas,
             paymentTermsDays: b.paymentTermsDays,
             expiresAt: expires,
@@ -743,7 +746,15 @@ export class FinanceAdminService {
         if (!rel || rel.organizationId !== b.organizationId)
           throw AppError.validation('The related document was not found', 'relatedDocumentId');
       }
-      const acc = await this.commercial.accountOf(tx, b.organizationId);
+      const caseCurrency = b.caseId
+        ? (
+            await tx.commercialCase.findUnique({
+              where: { id: b.caseId },
+              select: { currency: true },
+            })
+          )?.currency
+        : undefined;
+      const acc = await this.commercial.accountOf(tx, b.organizationId, caseCurrency);
       const subtotal = b.lines.reduce((n, l) => n + l.amountHalalas, 0);
       const d = await tx.financeDocument.create({
         data: {
@@ -753,6 +764,7 @@ export class FinanceAdminService {
           organizationId: b.organizationId,
           caseId: b.caseId ?? null,
           relatedDocumentId: b.relatedDocumentId ?? null,
+          currency: acc.currency,
           subtotalHalalas: subtotal,
           taxHalalas: b.taxHalalas,
           totalHalalas: subtotal + b.taxHalalas,
@@ -839,13 +851,22 @@ export class FinanceAdminService {
     meta: RequestMeta,
   ) {
     return this.prisma.$transaction(async (tx) => {
-      const acc = await this.commercial.accountOf(tx, b.organizationId);
+      const caseCurrency = b.caseId
+        ? (
+            await tx.commercialCase.findUnique({
+              where: { id: b.caseId },
+              select: { currency: true },
+            })
+          )?.currency
+        : undefined;
+      const acc = await this.commercial.accountOf(tx, b.organizationId, caseCurrency);
       const sign = b.kind === 'CREDIT' ? 1 : -1;
       const j = await this.ledger.post(tx, {
         type: 'DOCUMENT_ADJUSTMENT',
         sourceType: 'FINANCE_ADJUSTMENT',
         sourceId: b.caseId ?? acc.id,
         idempotencyKey: `adj:${meta.requestId}`,
+        currency: acc.currency,
         memo: b.reason,
         reasonCode: b.kind,
         actor: { userId: actor.userId, role: actor.membership?.roleCode ?? null },
@@ -924,6 +945,7 @@ export class FinanceAdminService {
           status: c.status,
           ownerOrganizationId: c.ownerOrganizationId,
           ownerName: { en: o?.nameEn ?? '', ar: o?.nameAr ?? '' },
+          currency: c.currency,
           maxCashHalalas: c.maxCashHalalas,
           benefitCommitmentHalalas: c.benefitCommitmentHalalas,
           developmentFixture: c.developmentFixture,
@@ -934,17 +956,36 @@ export class FinanceAdminService {
     );
   }
 
-  async overview() {
+  /** Commercial finance overview: the headline figures in ONE currency (default: the default market's) plus every currency's figures. */
+  async overview(currencyIn?: string) {
     const grouped = await this.prisma.commercialCase.groupBy({ by: ['status'], _count: true });
+    const [rec, hld, utl] = await Promise.all([
+      this.ledger.totalsByCurrency('RECEIVABLE'),
+      this.ledger.totalsByCurrency('CAMPAIGN_FUNDS_HELD'),
+      this.ledger.totalsByCurrency('FUNDING_UTILIZED'),
+    ]);
+    const currencies = [
+      ...new Set([...Object.keys(rec), ...Object.keys(hld), ...Object.keys(utl)]),
+    ].sort();
+    const currency =
+      currencyIn ??
+      (await this.markets.profile((await this.markets.settings()).defaultMarket)).currency;
     const [receivables, held, utilized, holds, pending] = await Promise.all([
-      this.sumFamily('RECEIVABLE'),
-      this.sumFamily('CAMPAIGN_FUNDS_HELD'),
-      this.sumFamily('FUNDING_UTILIZED'),
+      rec[currency] ?? 0,
+      hld[currency] ?? 0,
+      utl[currency] ?? 0,
       this.prisma.financialHold.count({ where: { status: 'ACTIVE' } }),
       this.prisma.creditFacility.count({ where: { status: 'PENDING_APPROVAL' } }),
     ]);
     return {
       cases: Object.fromEntries(grouped.map((g) => [g.status, g._count])),
+      currency,
+      byCurrency: currencies.map((x) => ({
+        currency: x,
+        receivablesHalalas: rec[x] ?? 0,
+        fundsHeldHalalas: -(hld[x] ?? 0),
+        fundingUtilizedHalalas: -(utl[x] ?? 0),
+      })),
       receivablesHalalas: receivables,
       fundsHeldHalalas: -held,
       fundingUtilizedHalalas: -utilized,
@@ -955,13 +996,6 @@ export class FinanceAdminService {
       }),
       statutoryNote: 'statutory_formats_validate_ksa' as const,
     };
-  }
-
-  private async sumFamily(family: 'RECEIVABLE' | 'CAMPAIGN_FUNDS_HELD' | 'FUNDING_UTILIZED') {
-    const m = await this.ledger.balancesByOrganization(family);
-    let n = 0;
-    for (const v of m.values()) n += v;
-    return n;
   }
 
   // ---------------------------------------------------------------- reconciliation and closure
@@ -1069,7 +1103,7 @@ export class FinanceAdminService {
     if (c.unusedTreatment === 'TRANSFER_CAMPAIGN' && hasUnused && !transferTargetCaseId)
       throw AppError.validation('A target campaign is required', 'transferTargetCaseId');
     await this.prisma.$transaction(async (tx) => {
-      const acc = await this.commercial.accountOf(tx, c.ownerOrganizationId);
+      const acc = await this.commercial.accountOf(tx, c.ownerOrganizationId, c.currency);
       let invoiceTotal = 0;
       for (const m of c.commitments.filter((x) => !x.adapterManaged)) {
         const used = m.utilizedHalalas + m.upfrontEarnedHalalas;
@@ -1084,6 +1118,7 @@ export class FinanceAdminService {
               sourceType: 'COMMERCIAL_CASE',
               sourceId: c.id,
               idempotencyKey: `release:${m.id}`,
+              currency: c.currency,
               memo: 'Unused funding refunded',
               actor: { userId: actor.userId, role: actor.membership?.roleCode ?? null },
               lines: [
@@ -1101,6 +1136,7 @@ export class FinanceAdminService {
               sourceType: 'COMMERCIAL_CASE',
               sourceId: c.id,
               idempotencyKey: `release:${m.id}`,
+              currency: c.currency,
               memo: 'Unused funding retained (non-refundable by agreement)',
               actor: { userId: actor.userId, role: actor.membership?.roleCode ?? null },
               lines: [
@@ -1125,6 +1161,16 @@ export class FinanceAdminService {
               throw AppError.validation(
                 'The target campaign has no matching commitment',
                 'transferTargetCaseId',
+              );
+            const targetCase = await tx.commercialCase.findUniqueOrThrow({
+              where: { id: transferTargetCaseId },
+              select: { currency: true },
+            });
+            if (targetCase.currency !== c.currency)
+              throw new AppError(
+                'MARKET_CURRENCY_MISMATCH',
+                'Unused funding can only move to a campaign in the same currency',
+                409,
               );
             const room = target.upfrontHalalas + target.usageMaxHalalas - target.receivedHalalas;
             if (room < unused)
@@ -1161,6 +1207,7 @@ export class FinanceAdminService {
             businessAccountId: acc.id,
             organizationId: c.ownerOrganizationId,
             caseId: c.id,
+            currency: c.currency,
             subtotalHalalas: invoiceTotal,
             taxHalalas: tax,
             totalHalalas: invoiceTotal + tax,

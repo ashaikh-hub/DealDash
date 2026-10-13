@@ -116,8 +116,10 @@ export class PartnerDashboardService {
       idx.cases.map(async (c) => ({ c, status: await this.subjectStatus(c.product, c.subjectId) })),
     );
     const activeCampaigns = statuses.filter((s) => ACTIVE.includes(s.status)).length;
+    // funding figures in the partner's market currency (commitments in other currencies are never added in)
+    const fundingCurrency = (await this.markets.profileOfOrganization(organizationId)).currency;
     const commitments = await this.prisma.fundingCommitment.findMany({
-      where: { organizationId, status: 'OPEN' },
+      where: { organizationId, status: 'OPEN', case: { currency: fundingCurrency } },
     });
     const committed = commitments.reduce((n, m) => n + m.upfrontHalalas + m.usageMaxHalalas, 0);
     const received = commitments.reduce((n, m) => n + m.receivedHalalas, 0);
@@ -212,7 +214,7 @@ export class PartnerDashboardService {
         receivedHalalas: received,
         utilizedHalalas: utilized,
         remainingHalalas: Math.max(0, received - utilized),
-        currency: 'SAR',
+        currency: fundingCurrency,
       },
       invoices: {
         open: docs.length,

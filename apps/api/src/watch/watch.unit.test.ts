@@ -20,8 +20,8 @@ import {
   inTimeWindow,
   mp4DurationSec,
   newViewToken,
-  nextRiyadhMidnight,
-  startOfRiyadhDay,
+  nextMarketMidnight,
+  startOfMarketDay,
   watchStatusAfterApproval,
   watchStatusFromDates,
 } from './watch-content';
@@ -133,7 +133,7 @@ describe('campaign content rules', () => {
   });
 });
 
-describe('dates and windows (Riyadh has no daylight saving)', () => {
+describe('dates and windows in the market time zone', () => {
   it('approval is scheduled for the future and live from the start; an ended campaign cannot be approved', () => {
     const now = new Date('2030-01-10T00:00:00Z');
     expect(
@@ -153,19 +153,26 @@ describe('dates and windows (Riyadh has no daylight saving)', () => {
     expect(() => watchStatusAfterApproval(null, new Date('2030-01-05T00:00:00Z'), now)).toThrow();
     expect(watchStatusFromDates(null, new Date('2030-01-05T00:00:00Z'), now)).toBe('EXPIRED');
   });
-  it('the Riyadh day boundary is UTC+3', () => {
-    const t = new Date('2030-01-10T22:30:00Z'); // 01:30 on the 11th in Riyadh
-    expect(startOfRiyadhDay(t).toISOString()).toBe('2030-01-10T21:00:00.000Z');
-    expect(nextRiyadhMidnight(t).toISOString()).toBe('2030-01-11T21:00:00.000Z');
+  it('the day boundary follows the campaign market: Riyadh UTC+3, Karachi UTC+5', () => {
+    const t = new Date('2030-01-10T22:30:00Z'); // 01:30 on the 11th in Riyadh, 03:30 on the 11th in Karachi
+    expect(startOfMarketDay(t, 'Asia/Riyadh').toISOString()).toBe('2030-01-10T21:00:00.000Z');
+    expect(nextMarketMidnight(t, 'Asia/Riyadh').toISOString()).toBe('2030-01-11T21:00:00.000Z');
+    expect(startOfMarketDay(t, 'Asia/Karachi').toISOString()).toBe('2030-01-10T19:00:00.000Z');
+    expect(nextMarketMidnight(t, 'Asia/Karachi').toISOString()).toBe('2030-01-11T19:00:00.000Z');
+    // a 23-hour daylight-saving day (Europe/London, 29 Mar 2026) still resets at local midnight
+    expect(
+      nextMarketMidnight(new Date('2026-03-29T12:00:00Z'), 'Europe/London').toISOString(),
+    ).toBe('2026-03-29T23:00:00.000Z');
   });
-  it('a daily serving window uses Riyadh wall-clock hours', () => {
+  it('a daily serving window uses the market wall-clock hours', () => {
     const w = { startHour: 9, endHour: 17 };
-    expect(inTimeWindow(w, new Date('2030-01-10T07:00:00Z'))).toBe(true); // 10:00
-    expect(inTimeWindow(w, new Date('2030-01-10T14:00:00Z'))).toBe(false); // 17:00
-    expect(inTimeWindow(null, new Date())).toBe(true);
+    expect(inTimeWindow(w, new Date('2030-01-10T07:00:00Z'), 'Asia/Riyadh')).toBe(true); // 10:00 Riyadh
+    expect(inTimeWindow(w, new Date('2030-01-10T14:00:00Z'), 'Asia/Riyadh')).toBe(false); // 17:00 Riyadh
+    expect(inTimeWindow(w, new Date('2030-01-10T12:30:00Z'), 'Asia/Karachi')).toBe(false); // 17:30 Karachi
+    expect(inTimeWindow(w, new Date('2030-01-10T12:30:00Z'), 'Asia/Riyadh')).toBe(true); // 15:30 Riyadh
+    expect(inTimeWindow(null, new Date(), 'Asia/Karachi')).toBe(true);
   });
 });
-
 describe('reward and qualification rules come from configuration', () => {
   const rule = {
     version: 1,

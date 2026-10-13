@@ -10,7 +10,15 @@ import {
 } from 'react';
 import { BatchingAnalyticsClient } from '@dealdash/analytics';
 import { createApiClient, type ApiClient } from '@dealdash/api-client';
+import { setDisplayMarket } from '@dealdash/localization';
 import type { Audience, Locale, MeView } from '@dealdash/types';
+
+/** The market the screens show money and time in when a value carries no currency / zone of its own (from the API). */
+export interface DisplayMarketView {
+  market: string;
+  currency: string;
+  timeZone: string;
+}
 
 export interface AuthState {
   status: 'loading' | 'anonymous' | 'authenticated';
@@ -28,6 +36,10 @@ export interface AuthContextValue extends AuthState {
   refresh: () => Promise<void>;
   setSession: (me: MeView, csrfToken: string, needsMfa: boolean) => void;
   signOut: () => Promise<void>;
+  /** The session's market (Market / Country Configuration): the business's market, else the customer's city's, else the default. */
+  market: DisplayMarketView | null;
+  /** Customer app: the chosen city decides the display market. */
+  setMarketCity: (city: string | null) => void;
   track: (
     name: Parameters<BatchingAnalyticsClient['track']>[0]['name'],
     properties?: Record<string, string | number | boolean | null>,
@@ -107,6 +119,27 @@ export function AuthProvider({
     void refresh();
   }, [refresh]);
 
+  // ---- display market: whose currency and time zone values without their own are shown in (never a fixed country)
+  const [market, setMarket] = useState<DisplayMarketView | null>(null);
+  const [marketCity, setMarketCity] = useState<string | null>(null);
+  const orgId = state.me?.activeMembership?.organizationId ?? null;
+  useEffect(() => {
+    if (state.status === 'loading') return;
+    let cancelled = false;
+    const q = marketCity ? `?city=${encodeURIComponent(marketCity)}` : '';
+    fetch(`${apiUrl}/v1/market-context${q}`, { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((b: { data?: DisplayMarketView } | null) => {
+        if (cancelled || !b?.data?.currency) return;
+        setDisplayMarket({ currency: b.data.currency, timeZone: b.data.timeZone });
+        setMarket(b.data);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [apiUrl, state.status, orgId, marketCity]);
+
   const setSession = useCallback((me: MeView, csrfToken: string, needsMfa: boolean) => {
     csrfRef.current = csrfToken;
     setState({ status: 'authenticated', me, csrfToken, needsMfa });
@@ -137,6 +170,8 @@ export function AuthProvider({
     refresh,
     setSession,
     signOut,
+    market,
+    setMarketCity,
     track,
   };
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

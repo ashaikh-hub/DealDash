@@ -8,6 +8,9 @@ import { type Prisma, type PrismaClient } from '../generated/prisma/client';
 import { denormalizeWatch } from '../watch/watch-content';
 import { makeDevImagePng, type Rgb } from './png';
 
+/** Stage 6 sample data is Saudi Arabia (KSA market fixture): its money is SAR. New data takes the market's currency. */
+const SEED_CURRENCY = 'SAR';
+
 export interface Stage6SeedInput {
   prisma: PrismaClient;
   organizations: Record<string, string>;
@@ -332,8 +335,11 @@ export async function seedStage6(input: Stage6SeedInput) {
 
   const account = async (tx: Prisma.TransactionClient, family: string, orgId: string | null) =>
     (await tx.ledgerAccount.findFirst({
-      where: { family: family as never, organizationId: orgId },
-    })) ?? tx.ledgerAccount.create({ data: { family: family as never, organizationId: orgId } });
+      where: { family: family as never, organizationId: orgId, currency: SEED_CURRENCY },
+    })) ??
+    tx.ledgerAccount.create({
+      data: { family: family as never, organizationId: orgId, currency: SEED_CURRENCY },
+    });
   async function journal(
     type: 'CAMPAIGN_FUNDING' | 'CAMPAIGN_CONSUMPTION' | 'CAMPAIGN_RELEASE',
     key: string,
@@ -345,6 +351,7 @@ export async function seedStage6(input: Stage6SeedInput) {
       const j = await tx.ledgerJournal.create({
         data: {
           type,
+          currency: SEED_CURRENCY,
           sourceType: 'WatchCampaign',
           sourceId,
           idempotencyKey: key,
@@ -466,6 +473,7 @@ export async function seedStage6(input: Stage6SeedInput) {
     const created = await prisma.watchCampaign.create({
       data: {
         organizationId: orgId,
+        currency: SEED_CURRENCY,
         status: d.status,
         statusBeforeSuspension: d.status === 'SUSPENDED' ? 'LIVE' : null,
         pausedBy:
@@ -580,6 +588,7 @@ export async function seedStage6(input: Stage6SeedInput) {
         data: {
           campaignId: created.id,
           organizationId: orgId,
+          currency: SEED_CURRENCY,
           amountHalalas: d.funded,
           source: 'MOCK_PAYMENT',
           reference: `WF-SEED${idx.toString().padStart(2, '0')}`,

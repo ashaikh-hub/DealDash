@@ -799,6 +799,8 @@ export const ERROR_CODES = {
   CONFIG_CHANGE_STALE: 'CONFIG_CHANGE_STALE',
   PROVIDER_NOT_CONFIGURED: 'PROVIDER_NOT_CONFIGURED',
   LEGAL_HOLD_ACTIVE: 'LEGAL_HOLD_ACTIVE',
+  // launch readiness: money in one currency is never priced, funded or moved with another's (no silent conversion)
+  MARKET_CURRENCY_MISMATCH: 'MARKET_CURRENCY_MISMATCH',
   INTERNAL: 'INTERNAL',
 } as const;
 export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];

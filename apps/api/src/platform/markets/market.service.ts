@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { CONFIG_KEYS } from '@dealdash/config';
+import { Inject, Injectable, Optional } from '@nestjs/common';
+import { appEnvOf, CONFIG_KEYS, type ApiEnv } from '@dealdash/config';
 import {
   MARKET_APPROVAL_REQUIRED,
   MARKET_AVAILABLE_STATUSES,
@@ -12,6 +12,7 @@ import {
   type PermissionCode,
 } from '@dealdash/types';
 import { AuditService } from '../../audit/audit.service';
+import { APP_ENV } from '../../common/env';
 import { AppError } from '../../common/errors';
 import type { Actor, RequestMeta } from '../../common/request-context';
 import { Prisma } from '../../generated/prisma/client';
@@ -23,11 +24,21 @@ type Db = Prisma.TransactionClient | PrismaService;
 type MarketRow = Prisma.CountryConfigurationGetPayload<object>;
 
 export interface MarketsConfig {
+  /** Effective statuses under which new business is open (includes TESTING only under the development UAT gate below). */
   availableStatuses: string[];
   defaultMarket: string;
   defaultPricingMarkets: string[];
   campaignLedgerCurrencies: string[];
+  /**
+   * Founder decision 2026-10-13 (Pakistan development UAT): a TESTING market may take new business for UAT. Opt-in per database
+   * (`markets.developmentUatTestingOpen`) AND honoured only in a local / development / test process — staging and production always
+   * apply the normal lifecycle and readiness gates, whatever the stored setting says. Reported here as the effective value.
+   */
+  developmentUatTestingOpen: boolean;
 }
+
+/** Process environments in which the development UAT gate may open TESTING markets. Never staging or production. */
+const UAT_ENVIRONMENTS: readonly string[] = ['local', 'development', 'test'];
 
 export interface MarketMasterInput {
   nameEn: string;
@@ -51,6 +62,16 @@ export interface MarketMasterInput {
   supportContact?: Record<string, unknown>;
 }
 
+/** What engines need to act in a market's terms: its currency (and minor-unit decimals) and its business time zone. */
+export interface MarketProfile {
+  code: string;
+  currency: string;
+  currencyDecimals: number;
+  settlementCurrency: string;
+  billingCurrency: string;
+  timezone: string;
+}
+
 const MARKET_SCOPE = (code: string) => `COUNTRY:${code}`;
 
 /**
@@ -65,15 +86,25 @@ export class MarketService {
     private readonly audit: AuditService,
     private readonly config: SystemConfigService,
     private readonly scope: ScopeService,
+    // absent (hand-wired seeds / scripts) = not a UAT process: the development gate stays closed
+    @Optional() @Inject(APP_ENV) private readonly env?: Pick<ApiEnv, 'APP_ENV' | 'NODE_ENV'>,
   ) {}
+
+  /** Is this process one where the development UAT gate may apply? Staging / production: never. */
+  uatProcess(): boolean {
+    return !!this.env && UAT_ENVIRONMENTS.includes(appEnvOf(this.env));
+  }
 
   async settings(): Promise<MarketsConfig> {
     const c = (await this.config.get<Partial<MarketsConfig>>(CONFIG_KEYS.MARKETS)) ?? {};
+    const base = c.availableStatuses ?? [...MARKET_AVAILABLE_STATUSES];
+    const uat = c.developmentUatTestingOpen === true && this.uatProcess();
     return {
-      availableStatuses: c.availableStatuses ?? [...MARKET_AVAILABLE_STATUSES],
+      availableStatuses: uat && !base.includes('TESTING') ? [...base, 'TESTING'] : base,
       defaultMarket: c.defaultMarket ?? 'SA',
       defaultPricingMarkets: c.defaultPricingMarkets ?? ['SA'],
-      campaignLedgerCurrencies: c.campaignLedgerCurrencies ?? ['SAR'],
+      campaignLedgerCurrencies: c.campaignLedgerCurrencies ?? ['SAR', 'PKR', 'AED', 'QAR'],
+      developmentUatTestingOpen: uat,
     };
   }
 
@@ -558,6 +589,79 @@ export class MarketService {
       return r;
     });
     return row;
+  }
+
+  // ---------------------------------------------------------------- market profile: currency and time zone come ONLY from here
+  private readonly profiles = new Map<string, { at: number; p: MarketProfile }>();
+
+  /**
+   * Currency, minor-unit decimals and business time zone of a market, from Market configuration (cached 10 s like the rest of the
+   * configuration). No engine may assume a country's currency or time zone; they ask here, or read the currency stored on the
+   * originating record (order, campaign, contract, statement).
+   */
+  async profile(code: string, db: Db = this.prisma): Promise<MarketProfile> {
+    const key = code.toUpperCase();
+    const hit = this.profiles.get(key);
+    if (hit && Date.now() - hit.at < 10_000) return hit.p;
+    const m = await db.countryConfiguration.findUnique({
+      where: { code: key },
+      select: {
+        code: true,
+        currency: true,
+        currencyDecimals: true,
+        settlementCurrency: true,
+        billingCurrency: true,
+        timezone: true,
+      },
+    });
+    if (!m) throw new AppError('MARKET_CONFIG_INVALID', `Market ${key} is not configured`, 422);
+    const p: MarketProfile = {
+      code: m.code,
+      currency: m.currency,
+      currencyDecimals: m.currencyDecimals,
+      settlementCurrency: m.settlementCurrency ?? m.currency,
+      billingCurrency: m.billingCurrency ?? m.currency,
+      timezone: m.timezone,
+    };
+    this.profiles.set(key, { at: Date.now(), p });
+    return p;
+  }
+
+  async profileOfOrganization(
+    organizationId: string,
+    opts: { market?: string | null; legalEntityId?: string | null; at?: Date } = {},
+    db: Db = this.prisma,
+  ) {
+    return this.profile(await this.resolveMarket(organizationId, opts, db), db);
+  }
+
+  /** The currency of a record that names a market (else its business's market): the fallback when a record states no currency. */
+  async currencyFor(organizationId: string, market?: string | null, db: Db = this.prisma) {
+    return (
+      market
+        ? await this.profile(market, db)
+        : await this.profileOfOrganization(organizationId, {}, db)
+    ).currency;
+  }
+
+  /**
+   * The market of a customer's city: the country of the branches in that city (cities are not configured per market; branches
+   * carry their country), else the configured default market.
+   */
+  async marketOfCity(city: string | null | undefined, db: Db = this.prisma): Promise<string> {
+    if (city) {
+      const b = await db.merchantBranch.findFirst({
+        where: { city: { equals: city, mode: 'insensitive' } },
+        select: { country: true },
+      });
+      if (b?.country) return b.country;
+    }
+    return (await this.settings()).defaultMarket;
+  }
+
+  /** The profile of a campaign / product's market (its branches' country, else the business's market). */
+  async profileOfCampaign(organizationId: string, content: unknown, db: Db = this.prisma) {
+    return this.profile(await this.marketOfCampaign(organizationId, content, db), db);
   }
 
   // ---------------------------------------------------------------- which market applies (never another country's by accident)

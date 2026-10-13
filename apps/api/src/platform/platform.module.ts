@@ -14,6 +14,7 @@ import { MarketConfigService } from './markets/market-config.service';
 import { MarketReadinessService } from './markets/market-readiness.service';
 import { MarketService } from './markets/market.service';
 import { AdminMarketsController, OrgMarketsController } from './markets/markets.controller';
+import { MarketContextController } from './markets/market-context.controller';
 
 /**
  * Shared platform foundation: business account structure (legal entities, organization units), scoped role assignments with
@@ -27,6 +28,7 @@ import { AdminMarketsController, OrgMarketsController } from './markets/markets.
     AdminPlatformController,
     AdminMarketsController,
     OrgMarketsController,
+    MarketContextController,
   ],
   providers: [
     ScopeService,

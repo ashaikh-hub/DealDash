@@ -3908,6 +3908,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/market-context": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["MarketContextController_context_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/loyalty/rules": {
         parameters: {
             query?: never;
@@ -20333,8 +20349,7 @@ export interface components {
                 sellingPriceHalalas: number;
                 reportedSavingsHalalas: number;
                 reportedSavingsPercent: number;
-                /** @enum {string} */
-                currency: "SAR";
+                currency: string;
                 validity: {
                     /**
                      * @default DAYS_FROM_PURCHASE
@@ -20533,8 +20548,7 @@ export interface components {
         };
         PayableSummaryResponse: {
             data: {
-                /** @enum {string} */
-                currency: "SAR";
+                currency: string;
                 heldHalalas: number;
                 settlementEligibleHalalas: number;
                 platformFeeHalalas: number;
@@ -20990,8 +21004,7 @@ export interface components {
                     sellingPriceHalalas: number;
                     reportedSavingsHalalas: number;
                     reportedSavingsPercent: number;
-                    /** @enum {string} */
-                    currency: "SAR";
+                    currency: string;
                     validity: {
                         /**
                          * @default DAYS_FROM_PURCHASE
@@ -21167,6 +21180,8 @@ export interface components {
                     failedLast24h: number;
                     refundsLast24h: number;
                 };
+                currency: string;
+                currencies: string[];
                 ledger: {
                     balanced: boolean;
                     journals: number;
@@ -21587,8 +21602,7 @@ export interface components {
                 sellingPriceHalalas: number;
                 reportedSavingsHalalas: number;
                 reportedSavingsPercent: number;
-                /** @enum {string} */
-                currency: "SAR";
+                currency: string;
                 validity: {
                     /**
                      * @default DAYS_FROM_PURCHASE
@@ -21680,8 +21694,7 @@ export interface components {
                 sellingPriceHalalas: number;
                 reportedSavingsHalalas: number;
                 reportedSavingsPercent: number;
-                /** @enum {string} */
-                currency: "SAR";
+                currency: string;
                 validity: {
                     /**
                      * @default DAYS_FROM_PURCHASE
@@ -21814,8 +21827,7 @@ export interface components {
                 unitPriceHalalas: number;
                 faceValueHalalas: number;
                 totalHalalas: number;
-                /** @enum {string} */
-                currency: "SAR";
+                currency: string;
                 holdExpiresAt: string;
                 termsVersion: string | null;
                 createdAt: string;
@@ -21840,8 +21852,7 @@ export interface components {
                     /** @enum {string} */
                     status: "CREATED" | "PENDING" | "SUCCEEDED" | "FAILED" | "CANCELLED" | "REFUND_PENDING" | "REFUNDED" | "PARTIALLY_REFUNDED" | "REVERSED";
                     amountHalalas: number;
-                    /** @enum {string} */
-                    currency: "SAR";
+                    currency: string;
                     attemptNo: number;
                     redirectUrl: string | null;
                     failureCode: string | null;
@@ -21873,8 +21884,7 @@ export interface components {
                 unitPriceHalalas: number;
                 faceValueHalalas: number;
                 totalHalalas: number;
-                /** @enum {string} */
-                currency: "SAR";
+                currency: string;
                 holdExpiresAt: string;
                 termsVersion: string | null;
                 createdAt: string;
@@ -21899,8 +21909,7 @@ export interface components {
                     /** @enum {string} */
                     status: "CREATED" | "PENDING" | "SUCCEEDED" | "FAILED" | "CANCELLED" | "REFUND_PENDING" | "REFUNDED" | "PARTIALLY_REFUNDED" | "REVERSED";
                     amountHalalas: number;
-                    /** @enum {string} */
-                    currency: "SAR";
+                    currency: string;
                     attemptNo: number;
                     redirectUrl: string | null;
                     failureCode: string | null;
@@ -21949,8 +21958,7 @@ export interface components {
                 imageUrl: string | null;
                 purchasePriceHalalas: number;
                 faceValueHalalas: number;
-                /** @enum {string} */
-                currency: "SAR";
+                currency: string;
                 validFrom: string | null;
                 expiresAt: string;
                 issuedAt: string;
@@ -21984,8 +21992,7 @@ export interface components {
                 imageUrl: string | null;
                 purchasePriceHalalas: number;
                 faceValueHalalas: number;
-                /** @enum {string} */
-                currency: "SAR";
+                currency: string;
                 validFrom: string | null;
                 expiresAt: string;
                 issuedAt: string;
@@ -24060,6 +24067,8 @@ export interface components {
                     version: number;
                     /** @enum {boolean} */
                     placeholder: true;
+                    currency: string;
+                    available: boolean;
                 };
                 minRepeatWindowHours: number;
                 cities: string[];
@@ -24084,6 +24093,7 @@ export interface components {
                 };
                 paidViews: number;
                 qualifiedViews: number;
+                currency: string;
                 fundedHalalas: number;
                 spentHalalas: number;
                 startAt: string | null;
@@ -24424,6 +24434,7 @@ export interface components {
                 videoUrl: string | null;
                 thumbnailUrl: string | null;
                 budget: {
+                    currency: string;
                     paidViews: number;
                     qualifiedViews: number;
                     remainingViews: number;
@@ -24788,6 +24799,7 @@ export interface components {
                     videoUrl: string | null;
                     thumbnailUrl: string | null;
                     budget: {
+                        currency: string;
                         paidViews: number;
                         qualifiedViews: number;
                         remainingViews: number;
@@ -25009,6 +25021,7 @@ export interface components {
                     videoUrl: string | null;
                     thumbnailUrl: string | null;
                     budget: {
+                        currency: string;
                         paidViews: number;
                         qualifiedViews: number;
                         remainingViews: number;
@@ -25167,6 +25180,7 @@ export interface components {
                 status: "DRAFT" | "PENDING_REVIEW" | "NEEDS_CHANGES" | "REJECTED" | "SCHEDULED" | "LIVE" | "PAUSED" | "COMPLETED" | "EXPIRED" | "CANCELLED" | "SUSPENDED";
                 serverNow: string;
                 budget: {
+                    currency: string;
                     paidViews: number;
                     qualifiedViews: number;
                     remainingViews: number;
@@ -25224,6 +25238,7 @@ export interface components {
         WatchBudgetResponse: {
             data: {
                 budget: {
+                    currency: string;
                     paidViews: number;
                     qualifiedViews: number;
                     remainingViews: number;
@@ -25323,6 +25338,7 @@ export interface components {
                     paidViews: number;
                     qualifiedViews: number;
                     budgetPct: number;
+                    currency: string;
                     fundedHalalas: number;
                     spentHalalas: number;
                     openFlags: number;
@@ -25349,6 +25365,7 @@ export interface components {
                 };
                 paidViews: number;
                 qualifiedViews: number;
+                currency: string;
                 fundedHalalas: number;
                 spentHalalas: number;
                 startAt: string | null;
@@ -25530,6 +25547,7 @@ export interface components {
                 videoUrl: string | null;
                 thumbnailUrl: string | null;
                 budget: {
+                    currency: string;
                     paidViews: number;
                     qualifiedViews: number;
                     remainingViews: number;
@@ -25665,6 +25683,7 @@ export interface components {
                 };
                 adminActions: string[];
                 economics: {
+                    currency: string;
                     chargePerViewHalalas: number;
                     rateCardVersion: number;
                     estimatedCostHalalas: number;
@@ -27271,6 +27290,7 @@ export interface components {
                 product: "VOUCHER" | "WATCH" | "EXCLUSIVE" | "LIVE_BENEFIT" | "LOYALTY";
                 /** Format: uuid */
                 subjectId: string;
+                currency: string;
                 /** @enum {string} */
                 status: "PRICING_DRAFT" | "AWAITING_ACCEPTANCE" | "ACCEPTED" | "AWAITING_FUNDING" | "PARTIALLY_FUNDED" | "FULLY_FUNDED" | "CREDIT_APPROVED" | "FINANCIAL_HOLD" | "RECONCILED" | "CLOSED";
                 /** Format: uuid */
@@ -27451,6 +27471,7 @@ export interface components {
                     en: string;
                     ar: string;
                 };
+                currency: string;
                 maxCashHalalas: number;
                 benefitCommitmentHalalas: number;
                 developmentFixture: boolean;
@@ -27494,6 +27515,13 @@ export interface components {
                 cases: {
                     [key: string]: number;
                 };
+                currency: string;
+                byCurrency: {
+                    currency: string;
+                    receivablesHalalas: number;
+                    fundsHeldHalalas: number;
+                    fundingUtilizedHalalas: number;
+                }[];
                 receivablesHalalas: number;
                 fundsHeldHalalas: number;
                 fundingUtilizedHalalas: number;
@@ -32202,7 +32230,9 @@ export interface operations {
     };
     AdminFinanceController_overview_v1: {
         parameters: {
-            query?: never;
+            query: {
+                currency: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -33883,6 +33913,25 @@ export interface operations {
             path: {
                 orgId: string;
             };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MarketContextController_context_v1: {
+        parameters: {
+            query: {
+                city: string;
+            };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -43595,7 +43644,9 @@ export interface operations {
     };
     AdminFinanceController_overview_v1: {
         parameters: {
-            query?: never;
+            query: {
+                currency: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CONFIG_KEYS } from '@dealdash/config';
 import { METRICS, type MetricDef, type MetricKey } from '@dealdash/types';
 import { Prisma } from '../generated/prisma/client';
+import { MarketService } from '../platform/markets/market.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SystemConfigService } from '../system-config/system-config.service';
 import { LedgerService } from '../vouchers/ledger.service';
@@ -53,6 +54,7 @@ export class MetricsService {
     private readonly prisma: PrismaService,
     private readonly config: SystemConfigService,
     private readonly ledger: LedgerService,
+    private readonly markets: MarketService,
   ) {}
 
   /** Recomputes the hourly buckets touched in the last N hours (idempotent: same input, same rows). */
@@ -121,9 +123,15 @@ export class MetricsService {
     f: MetricFilter,
     names: string[],
     group: GroupColumn = 'none',
-    tz = 'Asia/Riyadh',
+    tzIn?: string,
   ): Promise<RawRow[]> {
     if (!names.length) return [];
+    // days are calendar days in the report's market: one business's market, else the default market (never a fixed country)
+    const tz =
+      tzIn ??
+      (f.organizationIds?.length === 1
+        ? (await this.markets.profileOfOrganization(f.organizationIds[0]!)).timezone
+        : (await this.markets.profile((await this.markets.settings()).defaultMarket)).timezone);
     const g =
       group === 'none'
         ? Prisma.sql`''`
@@ -311,11 +319,21 @@ export class MetricsService {
             break;
           }
           if (k === 'voucher.merchant_payable') {
-            const pos = await this.ledger.merchantPosition(scope.organizationIds[0]!);
+            // the merchant's position in its market currency (other currencies are reported separately)
+            const org = scope.organizationIds[0]!;
+            const pos = await this.ledger.merchantPosition(
+              org,
+              (await this.markets.profileOfOrganization(org)).currency,
+            );
             out[k] = pos.heldHalalas + pos.settlementEligibleHalalas;
           } else {
             const r = await p.merchantPayableEvent.aggregate({
-              where: { organizationId: scope.organizationIds[0]!, settlementId: { not: null } },
+              where: {
+                organizationId: scope.organizationIds[0]!,
+                settlementId: { not: null },
+                currency: (await this.markets.profileOfOrganization(scope.organizationIds[0]!))
+                  .currency,
+              },
               _sum: { amountHalalas: true },
             });
             out[k] = r._sum.amountHalalas ?? 0;

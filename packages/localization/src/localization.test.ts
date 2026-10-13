@@ -121,10 +121,17 @@ import {
   createTranslator,
   dirOf,
   en,
+  endOfDayIn,
   formatAmount,
+  formatDate,
+  formatDateTime,
   formatMoney,
   formatNumber,
   isRtl,
+  isValidTimeZone,
+  nextMidnightIn,
+  setDisplayMarket,
+  startOfDayIn,
   negotiateLocale,
   normalizeArabic,
   pickLocalized,
@@ -171,9 +178,47 @@ describe('localization', () => {
   it('formats numbers and money with Western digits in both locales', () => {
     expect(formatNumber('ar', 1234567)).toMatch(/^[0-9,.٬٫\s]+$/);
     expect(formatNumber('ar', 1234567)).not.toMatch(/[٠-٩]/);
+    expect(formatMoney('en', 8000, 'SAR')).toBe('SAR 80.00');
+    expect(formatMoney('ar', 8000, 'SAR')).toContain('80.00');
+    expect(formatMoney('ar', 8000, 'SAR')).not.toMatch(/[٠-٩]/);
+  });
+
+  it('money and dates follow the market (record currency / zone first, then the session market; never a fixed country)', () => {
+    setDisplayMarket({ currency: null, timeZone: null });
+    // no currency known: the bare amount, never a guessed currency
+    expect(formatMoney('en', 8000)).toBe('80.00');
+    setDisplayMarket({ currency: 'PKR', timeZone: 'Asia/Karachi' });
+    expect(formatMoney('en', 499_900)).toBe('PKR 4,999.00');
+    // a record that states its own currency wins over the session market
+    expect(formatMoney('en', 8000, 'SAR')).toBe('SAR 80.00');
+    const t = '2026-10-08T21:30:00Z'; // 02:30 on 9 Oct in Karachi, 00:30 on 9 Oct in Riyadh
+    expect(formatDateTime('en', t)).toContain('02:30');
+    expect(formatDateTime('en', t, 'Asia/Riyadh')).toContain('00:30');
+    expect(formatDate('en', '2026-10-08T20:00:00Z')).toContain('9 Oct'); // already 9 Oct in Karachi
+    expect(formatDate('en', '2026-10-08T20:00:00Z', 'Asia/Riyadh')).toContain('8 Oct');
+    setDisplayMarket({ currency: 'SAR', timeZone: 'Asia/Riyadh' });
     expect(formatMoney('en', 8000)).toBe('SAR 80.00');
-    expect(formatMoney('ar', 8000)).toContain('80.00');
-    expect(formatMoney('ar', 8000)).not.toMatch(/[٠-٩]/);
+    expect(formatDateTime('en', t)).toContain('00:30');
+    setDisplayMarket({ currency: null, timeZone: null });
+  });
+
+  it('market calendar days are DST-safe (extensibility beyond current markets)', () => {
+    expect(startOfDayIn(new Date('2030-01-10T22:30:00Z'), 'Asia/Karachi').toISOString()).toBe(
+      '2030-01-10T19:00:00.000Z',
+    );
+    expect(endOfDayIn(new Date('2030-01-10T22:30:00Z'), 'Asia/Riyadh').toISOString()).toBe(
+      '2030-01-11T20:59:59.999Z',
+    );
+    // London: 23-hour day (29 Mar 2026) and 25-hour day (25 Oct 2026)
+    expect(nextMidnightIn(new Date('2026-03-29T12:00:00Z'), 'Europe/London').getTime()).toBe(
+      Date.parse('2026-03-29T23:00:00Z'),
+    );
+    expect(
+      nextMidnightIn(new Date('2026-10-25T12:00:00Z'), 'Europe/London').getTime() -
+        startOfDayIn(new Date('2026-10-25T12:00:00Z'), 'Europe/London').getTime(),
+    ).toBe(25 * 3_600_000);
+    expect(isValidTimeZone('Asia/Karachi')).toBe(true);
+    expect(isValidTimeZone('Mars/Olympus')).toBe(false);
   });
 
   it('picks bilingual text with fallback', () => {
@@ -736,7 +781,7 @@ describe('dictionary layering', () => {
   it('formats an amount in any configured currency with Western digits', () => {
     expect(formatAmount('en', 499_900, 'PKR')).toBe('PKR 4,999.00');
     expect(formatAmount('ar', 499_900, 'PKR')).toBe('4,999.00 PKR');
-    expect(formatAmount('en', 12_345, 'SAR')).toBe(formatMoney('en', 12_345));
+    expect(formatAmount('en', 12_345, 'SAR')).toBe(formatMoney('en', 12_345, 'SAR'));
   });
 
   it('every Stage 3 string exists in both languages and keeps its {placeholders}', () => {

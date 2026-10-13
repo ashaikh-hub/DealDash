@@ -13,6 +13,7 @@ import { CommercialService } from '../finance/commercial.service';
 import { CampaignVersionService } from '../platform/campaign-version.service';
 import type { Actor, RequestMeta } from '../common/request-context';
 import { AccessScopeService } from '../platform/access-scope.service';
+import { MarketService } from '../platform/markets/market.service';
 import { TenantService } from '../identity/tenant.service';
 import { actorInfo, DealCoreService } from '../live-deals/deal-core.service';
 import { EligibilityService } from '../live-deals/eligibility.service';
@@ -62,6 +63,8 @@ export interface RefundPolicy {
 export interface FeeRule {
   percentBps: number;
   fixedHalalas: number;
+  /** The currency the fixed part is expressed in. It applies only to orders in that currency (never converted). */
+  fixedCurrency: string;
   version: number;
 }
 
@@ -78,7 +81,27 @@ export class VoucherCoreService {
     private readonly eligibility: EligibilityService,
     private readonly liveCore: DealCoreService,
     readonly access: AccessScopeService,
+    readonly markets: MarketService,
   ) {}
+
+  /** The voucher's currency: its branches' market (Market / Country Configuration). Fixed once the voucher has been on sale. */
+  async currencyOf(
+    organizationId: string,
+    content: VoucherContent,
+    db: Prisma.TransactionClient | PrismaService = this.prisma,
+  ): Promise<string> {
+    return (await this.markets.profileOfCampaign(organizationId, content, db)).currency;
+  }
+
+  /** The currency of an issued voucher is the currency of the order that bought it (the originating financial transaction). */
+  async orderCurrency(db: Prisma.TransactionClient | PrismaService, orderId: string) {
+    return (
+      await db.voucherOrder.findUniqueOrThrow({
+        where: { id: orderId },
+        select: { currency: true },
+      })
+    ).currency;
+  }
 
   // ---------------------------------------------------------------- tenant scope
   /** Merchant routes: own organisation only (404 otherwise) and never for branch staff. Scoped members are checked per record by AccessScopeService. */
@@ -143,13 +166,19 @@ export class VoucherCoreService {
     return {
       percentBps: v.percentBps ?? 1000,
       fixedHalalas: v.fixedHalalas ?? 0,
+      // the configured fixed amount was set in SAR before markets existed; a market-specific rule states its own currency
+      fixedCurrency: v.fixedCurrency ?? 'SAR',
       version: v.version ?? 1,
     };
   }
 
-  /** Platform fee for a redeemed price under the versioned rule: percentage plus fixed, never more than the price. */
-  computeFee(priceHalalas: number, rule: FeeRule): number {
-    const fee = Math.round((priceHalalas * rule.percentBps) / 10_000) + rule.fixedHalalas;
+  /**
+   * Platform fee for a redeemed price under the versioned rule: percentage plus fixed, never more than the price. The fixed part is
+   * money in `rule.fixedCurrency` and is applied only to an order in that currency (no conversion); the percentage applies everywhere.
+   */
+  computeFee(priceHalalas: number, rule: FeeRule, currency: string = rule.fixedCurrency): number {
+    const fixed = currency === rule.fixedCurrency ? rule.fixedHalalas : 0;
+    const fee = Math.round((priceHalalas * rule.percentBps) / 10_000) + fixed;
     return Math.max(0, Math.min(priceHalalas, fee));
   }
 
@@ -308,12 +337,16 @@ export class VoucherCoreService {
       content.eligibility,
     );
     const editable = voucher.status === 'DRAFT' || voucher.status === 'NEEDS_CHANGES';
+    // while never on sale, the currency follows the branches' market; afterwards it is fixed (orders carry it)
+    const currency = editable
+      ? await this.currencyOf(voucher.organizationId, content, tx)
+      : undefined;
     await tx.voucher.update({
       where: { id: voucher.id },
       data: {
         content: content as unknown as Prisma.InputJsonValue,
         ...denormalizeVoucher(content),
-        ...(editable ? { totalQty: content.totalQty } : {}),
+        ...(editable ? { totalQty: content.totalQty, currency } : {}),
         eligibilityRuleSetId: ruleSetId,
         ...(opts.bumpVersion === false ? {} : { version: { increment: 1 } }),
         updatedByUserId: userId,

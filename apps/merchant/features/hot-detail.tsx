@@ -12,6 +12,7 @@ import {
 } from '@dealdash/app-shell';
 import {
   createTranslator,
+  displayTimeZone,
   formatDateTime,
   withLocale,
   type DictionaryKey,
@@ -600,7 +601,7 @@ function Monitor({
                   hour: '2-digit',
                   minute: '2-digit',
                   second: '2-digit',
-                  timeZone: 'Asia/Riyadh',
+                  timeZone: displayTimeZone(),
                 }),
               })
             : ''}{' '}

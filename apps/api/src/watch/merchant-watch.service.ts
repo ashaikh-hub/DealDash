@@ -66,17 +66,18 @@ export class MerchantWatchService {
   // ---------------------------------------------------------------- reading
   async options(actor: Actor, organizationId: string) {
     this.core.requireMerchantScope(actor, organizationId);
-    const [limits, rate, f] = await Promise.all([
-      this.core.limits(),
-      this.core.rateCard(),
-      this.core.frequency(),
-    ]);
+    const [limits, f] = await Promise.all([this.core.limits(), this.core.frequency()]);
+    // the rate card of the business's market, in its currency (a market without a configured rate shows it as unavailable)
+    const market = await this.core.markets.profileOfOrganization(organizationId);
+    const rate = await this.core.rateCardFor(organizationId, {}).catch(() => null);
     return {
       limits,
       rateCard: {
-        chargePerViewHalalas: rate.chargePerViewHalalas,
-        version: rate.version,
+        chargePerViewHalalas: rate?.chargePerViewHalalas ?? 0,
+        version: rate?.version ?? 0,
         placeholder: true as const,
+        currency: rate?.currency ?? market.currency,
+        available: !!rate,
       },
       minRepeatWindowHours: f.minRepeatWindowHours,
       cities: await this.core.enabledCities(),
@@ -119,6 +120,7 @@ export class MerchantWatchService {
         title: { en: d.titleEn, ar: d.titleAr },
         paidViews: d.paidViews,
         qualifiedViews: d.qualifiedViews,
+        currency: d.currency,
         fundedHalalas: d.fundedHalalas,
         spentHalalas: d.spentHalalas,
         startAt: d.startAt ? d.startAt.toISOString() : null,
@@ -220,8 +222,11 @@ export class MerchantWatchService {
   }
 
   // ---------------------------------------------------------------- writing
-  private async guardFunding(c: { fundedHalalas: number }, content: WatchContent) {
-    const rate = await this.core.rateCard();
+  private async guardFunding(
+    c: { fundedHalalas: number; organizationId: string },
+    content: WatchContent,
+  ) {
+    const rate = await this.core.rateCardFor(c.organizationId, content);
     const required = content.paidViews * rate.chargePerViewHalalas;
     if (c.fundedHalalas > required)
       throw AppError.validation(
@@ -243,6 +248,8 @@ export class MerchantWatchService {
           organizationId,
           creatorOrganizationId: partner,
           sponsorOrganizationId: partner,
+          // priced in the campaign's market currency (applyContent re-prices it while the campaign is editable)
+          currency: (await this.core.rateCardFor(organizationId, content, tx)).currency,
           content: content as unknown as Prisma.InputJsonValue,
           createdByUserId: actor.userId,
           updatedByUserId: actor.userId,

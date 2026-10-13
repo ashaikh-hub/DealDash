@@ -1,4 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { MarketService } from '../platform/markets/market.service';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 import { CONFIG_KEYS } from '@dealdash/config';
 import type { AnalyticsSink } from '@dealdash/analytics';
 import type { DealEventType } from '@dealdash/types';
@@ -63,6 +64,7 @@ export class DealEventsService {
     private readonly prisma: PrismaService,
     private readonly config: SystemConfigService,
     @Inject(ANALYTICS_SINK) private readonly sink: AnalyticsSink,
+    @Optional() private readonly markets?: MarketService,
   ) {}
 
   private async publicDeal(dealId: string, now: Date) {
@@ -276,10 +278,14 @@ export class DealEventsService {
     branchNames: Map<string, { en: string; ar: string }>,
   ): Promise<DealPerformance> {
     const { start, end } = this.resolveRange(range.from, range.to);
+    // days are calendar days in the merchant's market time zone
+    const tz = this.markets
+      ? (await this.markets.profileOfOrganization(organizationId)).timezone
+      : 'UTC';
     const byDayRows = await this.prisma.$queryRaw<
       Array<{ day: string; type: string; n: number }>
     >(Prisma.sql`
-      SELECT to_char((e."occurredAt" AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Riyadh', 'YYYY-MM-DD') AS day,
+      SELECT to_char((e."occurredAt" AT TIME ZONE 'UTC') AT TIME ZONE ${tz}, 'YYYY-MM-DD') AS day,
              e."type"::text AS type, count(*)::int AS n
       FROM "DealEvent" e
       WHERE e."merchantOrgId" = ${organizationId}::uuid AND e."productType" = 'LIVE'

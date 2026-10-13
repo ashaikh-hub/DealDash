@@ -205,13 +205,14 @@ export class SettlementService {
     meta: RequestMeta,
   ) {
     const market = b.market.toUpperCase();
-    const currency = b.currency ?? 'SAR';
+    // a run is in the market's settlement currency (Market / Country Configuration) unless one is named; nothing is converted
+    const currency = b.currency ?? (await this.markets.profile(market)).settlementCurrency;
     const periodTo = b.periodTo ? new Date(b.periodTo) : new Date();
     const orgIds = b.organizationId
       ? [b.organizationId]
       : (
           await this.prisma.merchantPayableEvent.findMany({
-            where: { type: { in: [...SETTLING_TYPES] }, createdAt: { lte: periodTo } },
+            where: { type: { in: [...SETTLING_TYPES] }, currency, createdAt: { lte: periodTo } },
             distinct: ['organizationId'],
             select: { organizationId: true },
             take: 500,
@@ -298,6 +299,8 @@ export class SettlementService {
         where: {
           organizationId,
           type: { in: [...SETTLING_TYPES] },
+          // only this run's currency: payables in another currency settle in their own run
+          currency,
           createdAt: { lte: cutoff },
           id: { notIn: taken },
         },
@@ -567,6 +570,7 @@ export class SettlementService {
         sourceType: 'Settlement',
         sourceId: s.id,
         idempotencyKey: key,
+        currency: s.currency,
         memo: `Settlement payout ${s.reference} (${b.externalRef})`,
         actor: { userId: actor.userId, role: actor.membership?.roleCode ?? null },
         lines: [
@@ -764,6 +768,7 @@ export class SettlementService {
           sourceType: 'Settlement',
           sourceId: s.id,
           idempotencyKey: key,
+          currency: s.currency,
           memo: `Settlement payout ${s.reference} (${bankRef ?? providerRef})`,
           actor: { userId: system.userId, role: null },
           lines: [
@@ -883,6 +888,7 @@ export class SettlementService {
           sourceType: 'Settlement',
           sourceId: s.id,
           idempotencyKey: key,
+          currency: s.currency,
           memo: `Settlement reversal ${s.reference}: ${reason}`,
           actor: { userId: actor.userId, role: actor.membership?.roleCode ?? null },
           lines: [

@@ -15,6 +15,7 @@ import {
 } from '@dealdash/app-shell';
 import {
   createTranslator,
+  displayTimeZone,
   formatMoney,
   withLocale,
   type DictionaryKey,
@@ -49,7 +50,7 @@ import {
   type VoucherLimits,
   type VoucherView,
 } from '@dealdash/validation';
-import { fromRiyadhInput, toRiyadhInput, useOrgId } from './deal-utils';
+import { fromMarketInput, toMarketInput, useOrgId } from './deal-utils';
 import {
   VoucherStatusChip,
   halalasToInput,
@@ -789,9 +790,9 @@ function BuilderInner({ voucherId }: { voucherId?: string }) {
               id="f-vuntil"
               type="datetime-local"
               dir="ltr"
-              value={toRiyadhInput(v.validUntil)}
+              value={toMarketInput(v.validUntil)}
               onChange={(e) =>
-                edit({ validity: { ...v, validUntil: fromRiyadhInput(e.target.value) } })
+                edit({ validity: { ...v, validUntil: fromMarketInput(e.target.value) } })
               }
             />
           </Field>
@@ -808,9 +809,9 @@ function BuilderInner({ voucherId }: { voucherId?: string }) {
             id="f-sstart"
             type="datetime-local"
             dir="ltr"
-            value={toRiyadhInput(content.saleStartAt)}
+            value={toMarketInput(content.saleStartAt)}
             disabled={live}
-            onChange={(e) => edit({ saleStartAt: fromRiyadhInput(e.target.value) })}
+            onChange={(e) => edit({ saleStartAt: fromMarketInput(e.target.value) })}
           />
         </Field>
         <div className="dd-stack">
@@ -823,9 +824,9 @@ function BuilderInner({ voucherId }: { voucherId?: string }) {
               id="f-send"
               type="datetime-local"
               dir="ltr"
-              value={noSaleEnd ? '' : toRiyadhInput(content.saleEndAt)}
+              value={noSaleEnd ? '' : toMarketInput(content.saleEndAt)}
               disabled={noSaleEnd || live}
-              onChange={(e) => edit({ saleEndAt: fromRiyadhInput(e.target.value) })}
+              onChange={(e) => edit({ saleEndAt: fromMarketInput(e.target.value) })}
             />
           </Field>
           {!live ? (
@@ -1102,7 +1103,7 @@ function BuilderInner({ voucherId }: { voucherId?: string }) {
               {v.type === 'DAYS_FROM_PURCHASE'
                 ? t('vch.validDays', { n: v.days ?? 0 })
                 : v.validUntil
-                  ? t('vch.validUntil', { date: toRiyadhInput(v.validUntil).slice(0, 10) })
+                  ? t('vch.validUntil', { date: toMarketInput(v.validUntil).slice(0, 10) })
                   : '-'}
             </dd>
           </div>
@@ -1179,7 +1180,7 @@ function BuilderInner({ voucherId }: { voucherId?: string }) {
                         {
                           hour: '2-digit',
                           minute: '2-digit',
-                          timeZone: 'Asia/Riyadh',
+                          timeZone: displayTimeZone(),
                         },
                       ),
                     })

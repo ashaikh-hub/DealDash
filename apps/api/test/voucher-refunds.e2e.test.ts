@@ -435,6 +435,7 @@ describe.skipIf(!DB_READY)('Voucher refunds, ledger and finance workbench', () =
             type: 'ADJUSTMENT',
             sourceType: 'Test',
             sourceId: w.A.orgId,
+            currency: 'SAR',
             idempotencyKey: `unbalanced:${Date.now()}`,
           },
         });

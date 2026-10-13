@@ -12,6 +12,7 @@ import { AuditService } from '../audit/audit.service';
 import { AppError } from '../common/errors';
 import type { Actor, RequestMeta } from '../common/request-context';
 import { Prisma } from '../generated/prisma/client';
+import { MarketService } from '../platform/markets/market.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SystemConfigService } from '../system-config/system-config.service';
 import { AlertsService } from './alerts.service';
@@ -65,6 +66,7 @@ export class TargetsService {
     private readonly alerts: AlertsService,
     private readonly audit: AuditService,
     private readonly config: SystemConfigService,
+    private readonly markets: MarketService,
   ) {}
 
   async create(
@@ -128,7 +130,16 @@ export class TargetsService {
           legalEntityId: b.legalEntityId ?? null,
           targetValue: b.targetValue,
           unit: def.unit,
-          currency: def.unit === 'MINOR' ? (b.currency ?? 'SAR') : null,
+          // a money target is in the stated currency, else its business's (or the default) market currency
+          currency:
+            def.unit === 'MINOR'
+              ? (b.currency ??
+                (
+                  await this.markets.profileOfOrganization(organizationId, {
+                    legalEntityId: b.legalEntityId,
+                  })
+                ).currency)
+              : null,
           direction: def.direction,
           periodStart: start,
           periodEnd: end,

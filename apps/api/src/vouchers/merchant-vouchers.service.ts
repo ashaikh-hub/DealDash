@@ -213,10 +213,12 @@ export class MerchantVouchersService {
       content.commercial.creatorOrganizationId,
     );
     await this.core.validateReferences(organizationId, content);
+    const currency = await this.core.currencyOf(organizationId, content);
     const id = await this.prisma.$transaction(async (tx) => {
       const v = await tx.voucher.create({
         data: {
           organizationId,
+          currency,
           content: content as unknown as Prisma.InputJsonValue,
           createdByUserId: actor.userId,
           updatedByUserId: actor.userId,
@@ -697,12 +699,15 @@ export class MerchantVouchersService {
     return this.payableOf(organizationId);
   }
 
-  async payableOf(organizationId: string): Promise<PayableSummary> {
+  /** The merchant's payable position in its market currency (amounts in other currencies are never added into it). */
+  async payableOf(organizationId: string, currencyIn?: string): Promise<PayableSummary> {
+    const currency =
+      currencyIn ?? (await this.core.markets.profileOfOrganization(organizationId)).currency;
     const [pos, groups] = await Promise.all([
-      this.ledger.merchantPosition(organizationId),
+      this.ledger.merchantPosition(organizationId, currency),
       this.prisma.merchantPayableEvent.groupBy({
         by: ['type'],
-        where: { organizationId },
+        where: { organizationId, currency },
         _count: { _all: true },
         _sum: { amountHalalas: true, feeHalalas: true },
       }),
@@ -711,7 +716,7 @@ export class MerchantVouchersService {
     const amt = (t: string) => groups.find((g) => g.type === t)?._sum.amountHalalas ?? 0;
     const fee = (t: string) => groups.find((g) => g.type === t)?._sum.feeHalalas ?? 0;
     return {
-      currency: 'SAR',
+      currency,
       heldHalalas: pos.heldHalalas,
       settlementEligibleHalalas: pos.settlementEligibleHalalas,
       platformFeeHalalas: fee('ELIGIBLE') - fee('REDEMPTION_REVERSED'),

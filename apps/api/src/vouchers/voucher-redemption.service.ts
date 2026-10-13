@@ -267,7 +267,9 @@ export class VoucherRedemptionService implements StaffCodeExtension, OnModuleIni
       const sent: Array<NotificationInput & { id: string }> = [];
       const post: Array<() => void> = [];
       const rule = await this.core.feeRule();
-      const fee = this.core.computeFee(target.purchasePriceHalalas, rule);
+      // the issued voucher's money is in its order's currency (the originating transaction)
+      const currency = await this.core.orderCurrency(this.prisma, target.orderId);
+      const fee = this.core.computeFee(target.purchasePriceHalalas, rule, currency);
       const outcome = await this.prisma.$transaction(async (tx) => {
         // the one decisive step: only one caller can move ACTIVE -> REDEEMED
         const claimed = await tx.voucherInstance.updateMany({
@@ -307,7 +309,7 @@ export class VoucherRedemptionService implements StaffCodeExtension, OnModuleIni
             campaignId: target.voucherId,
             unitRateMinor: fee,
             amountMinor: fee,
-            currency: 'SAR',
+            currency,
             pricingVersionKey: `FEE:${rule.version}`,
             occurredAt: now,
             metadata: { grossHalalas: target.purchasePriceHalalas },
@@ -331,6 +333,7 @@ export class VoucherRedemptionService implements StaffCodeExtension, OnModuleIni
           sourceType: 'VoucherRedemption',
           sourceId: created.id,
           idempotencyKey: `redemption:${created.id}`,
+          currency,
           memo: `Voucher ${target.reference} redeemed`,
           feeRuleVersion: rule.version,
           actor: { userId: actor.userId, role: actor.membership?.roleCode ?? null },
@@ -356,6 +359,7 @@ export class VoucherRedemptionService implements StaffCodeExtension, OnModuleIni
               instanceId: target.id,
               type: 'REDEEMED',
               amountHalalas: target.purchasePriceHalalas,
+              currency,
               journalId: j.journalId,
               note: created.reference,
               createdAt: now,
@@ -366,6 +370,7 @@ export class VoucherRedemptionService implements StaffCodeExtension, OnModuleIni
               instanceId: target.id,
               type: 'ELIGIBLE',
               amountHalalas: net,
+              currency,
               feeHalalas: fee,
               journalId: j.journalId,
               note: `settlement-eligible after redemption (fee rule v${rule.version})`,
@@ -598,6 +603,7 @@ export class VoucherRedemptionService implements StaffCodeExtension, OnModuleIni
           instanceId: red.instanceId,
           type: 'REDEMPTION_REVERSED',
           amountHalalas: net,
+          currency: await this.core.orderCurrency(tx, red.instance.orderId),
           feeHalalas: fee,
           journalId,
           note: reason,

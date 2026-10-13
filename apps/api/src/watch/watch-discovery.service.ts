@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { WatchCard, WatchDetail, WatchHub } from '@dealdash/validation';
 import { AppError } from '../common/errors';
 import { EligibilityService, evaluateEligibility } from '../live-deals/eligibility.service';
-import { nextRiyadhMidnight, startOfRiyadhDay } from './watch-content';
+import { nextMarketMidnight, startOfMarketDay } from './watch-content';
 import { WATCH_INCLUDE, WatchCoreService, type WatchRowData } from './watch-core.service';
 import { RewardsLedgerService } from './rewards-ledger.service';
 import { WatchQualificationService } from './watch-qualification.service';
@@ -109,9 +109,12 @@ export class WatchDiscoveryService {
     };
     cards.sort((a, b) => (rank[a.availability] ?? 9) - (rank[b.availability] ?? 9));
     const f = await this.core.frequency();
+    // the customer's day is the day in their city's market time zone
+    const tz = (await this.core.markets.profile(await this.core.markets.marketOfCity(q.city)))
+      .timezone;
     const earnedToday = userId
       ? await this.prisma.watchView.count({
-          where: { userId, status: 'QUALIFIED', qualifiedAt: { gte: startOfRiyadhDay(now) } },
+          where: { userId, status: 'QUALIFIED', qualifiedAt: { gte: startOfMarketDay(now, tz) } },
         })
       : 0;
     const summary = userId ? await this.rewards.summary(userId, now) : null;
@@ -120,7 +123,7 @@ export class WatchDiscoveryService {
       daily: {
         earnedViews: earnedToday,
         cap: f.customerDailyCap,
-        resetsAt: nextRiyadhMidnight(now).toISOString(),
+        resetsAt: nextMarketMidnight(now, tz).toISOString(),
       },
       balance: {
         availableBalance: summary?.availableBalance ?? 0,

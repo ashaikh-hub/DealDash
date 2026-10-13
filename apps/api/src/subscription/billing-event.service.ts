@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { BILLING_EVENT_TYPES, IN_FORCE_LIFECYCLE, type BillingEventType } from '@dealdash/types';
 import { AppError } from '../common/errors';
 import { Prisma } from '../generated/prisma/client';
+import { MarketService } from '../platform/markets/market.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 type Db = Prisma.TransactionClient | PrismaService;
@@ -36,7 +37,10 @@ export interface BillingEventInput {
  */
 @Injectable()
 export class BillingEventService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly markets: MarketService,
+  ) {}
 
   /** Who is billed: the contract's billing legal entity, else the contracting entity, else the organization's first legal entity. */
   async billingParty(
@@ -86,7 +90,11 @@ export class BillingEventService {
           select: { currency: true, country: true },
         })
       : null;
-    const currency = input.currency ?? contract?.currency ?? le?.currency ?? 'SAR';
+    const currency =
+      input.currency ??
+      contract?.currency ??
+      le?.currency ??
+      (await this.markets.currencyFor(input.organizationId, le?.country ?? null, db));
     const account = await db.businessAccount.findFirst({
       where: { organizationId: input.organizationId, currency },
       select: { id: true },

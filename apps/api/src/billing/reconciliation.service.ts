@@ -189,7 +189,7 @@ export class ReconciliationService {
           ...(q.by === 'SPONSOR' ? { role: 'SPONSOR' } : {}),
           ...(hasAt ? { createdAt: at } : {}),
         },
-        include: { case: { select: { product: true, subjectId: true } } },
+        include: { case: { select: { product: true, subjectId: true, currency: true } } },
       });
       for (const c of commitments) {
         const key =
@@ -198,7 +198,7 @@ export class ReconciliationService {
             : q.by === 'PRODUCT'
               ? c.case.product
               : `${c.organizationId}:${c.role}`;
-        const x = b(key, 'SAR');
+        const x = b(key, c.case.currency);
         x.fundingReceivedMinor += c.receivedHalalas;
         x.fundingUtilizedMinor += c.utilizedHalalas + c.upfrontEarnedHalalas;
       }
@@ -207,12 +207,12 @@ export class ReconciliationService {
     // ---- merchant payables (voucher sales, payable to the merchant less commission)
     if (q.by === 'MERCHANT' || q.by === 'PRODUCT' || q.by === 'CURRENCY') {
       const pay = await this.prisma.merchantPayableEvent.groupBy({
-        by: ['organizationId', 'type'],
+        by: ['organizationId', 'type', 'currency'],
         where: { ...(org ? { organizationId: org } : {}), ...(hasAt ? { createdAt: at } : {}) },
         _sum: { amountHalalas: true },
       });
       const settled = await this.prisma.merchantPayableEvent.groupBy({
-        by: ['organizationId'],
+        by: ['organizationId', 'currency'],
         where: {
           ...(org ? { organizationId: org } : {}),
           settlementId: { not: null },
@@ -222,15 +222,15 @@ export class ReconciliationService {
       });
       for (const r of pay) {
         const x = b(
-          q.by === 'MERCHANT' ? r.organizationId : q.by === 'PRODUCT' ? 'VOUCHER' : 'SAR',
-          'SAR',
+          q.by === 'MERCHANT' ? r.organizationId : q.by === 'PRODUCT' ? 'VOUCHER' : r.currency,
+          r.currency,
         );
         x.merchantPayableMinor += r._sum.amountHalalas ?? 0;
       }
       for (const r of settled)
         b(
-          q.by === 'MERCHANT' ? r.organizationId : q.by === 'PRODUCT' ? 'VOUCHER' : 'SAR',
-          'SAR',
+          q.by === 'MERCHANT' ? r.organizationId : q.by === 'PRODUCT' ? 'VOUCHER' : r.currency,
+          r.currency,
         ).merchantSettledMinor += r._sum.amountHalalas ?? 0;
     }
 

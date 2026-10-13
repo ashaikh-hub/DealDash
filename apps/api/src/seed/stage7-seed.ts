@@ -64,7 +64,8 @@ export async function seedStage7(args: {
         data: {
           organizationId: org,
           legalEntityId: entity,
-          currency: 'SAR',
+          currency: 'SAR', // the Saudi sample entity's account (KSA fixture)
+          country: 'SA',
           fundingMode: 'PREPAID',
           name: 'Main account',
         },

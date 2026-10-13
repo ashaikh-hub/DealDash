@@ -156,6 +156,8 @@ export class PaymentsService {
             quantity: input.quantity,
             unitPriceHalalas: v.sellingPriceHalalas,
             faceValueHalalas: v.faceValueHalalas,
+            // the order is priced in the voucher's currency (its market); payment, ledger and payables inherit it
+            currency: v.currency,
             totalHalalas: v.sellingPriceHalalas * input.quantity,
             holdExpiresAt: new Date(now.getTime() + holdMinutes * 60_000),
             idempotencyKey,
@@ -303,6 +305,7 @@ export class PaymentsService {
             orderId: order.id,
             provider: this.provider.name,
             amountHalalas: order.totalHalalas,
+            currency: order.currency,
             attemptNo,
             idempotencyKey,
           },
@@ -332,7 +335,7 @@ export class PaymentsService {
       const res = await this.provider.initiate({
         orderId: order.reference,
         amountHalalas: order.totalHalalas,
-        currency: 'SAR',
+        currency: order.currency,
         idempotencyKey,
         returnUrl,
       });
@@ -452,6 +455,7 @@ export class PaymentsService {
     id: string;
     status: PaymentStatus;
     amountHalalas: number;
+    currency: string;
     attemptNo: number;
     redirectUrl: string | null;
     failureCode: string | null;
@@ -463,7 +467,7 @@ export class PaymentsService {
       id: p.id,
       status: p.status,
       amountHalalas: p.amountHalalas,
-      currency: 'SAR',
+      currency: p.currency,
       attemptNo: p.attemptNo,
       redirectUrl: open ? p.redirectUrl : null,
       failureCode: p.failureCode,
@@ -498,7 +502,7 @@ export class PaymentsService {
       unitPriceHalalas: o.unitPriceHalalas,
       faceValueHalalas: o.faceValueHalalas,
       totalHalalas: o.totalHalalas,
-      currency: 'SAR',
+      currency: o.currency,
       holdExpiresAt: o.holdExpiresAt.toISOString(),
       termsVersion: o.termsVersion,
       createdAt: o.createdAt.toISOString(),
@@ -887,6 +891,7 @@ export class PaymentsService {
       sourceType: 'Payment',
       sourceId: paymentId,
       idempotencyKey: `sale:${paymentId}`,
+      currency: pay.currency,
       memo: `Voucher sale, order ${order.id}`,
       lines: [
         {
@@ -908,6 +913,7 @@ export class PaymentsService {
           voucherId: order.voucherId,
           type: 'SOLD',
           amountHalalas: pay.amountHalalas,
+          currency: pay.currency,
           journalId: j.journalId,
           note: `payment ${paymentId}`,
           createdAt: now,
@@ -931,7 +937,10 @@ export class PaymentsService {
          SET "heldQty" = "heldQty" - ${order.quantity}, "soldQty" = "soldQty" + ${order.quantity}, "updatedAt" = now()
        WHERE "id" = ${v.id}::uuid AND "heldQty" >= ${order.quantity}`;
     if (moved !== 1) throw new AppError('INVALID_STATE', 'Voucher stock could not be updated', 409);
-    const expiresAt = instanceExpiry(v, now);
+    // validity ends at the end of a local day in the voucher's market time zone
+    const tz = (await this.core.markets.profileOfCampaign(v.organizationId, v.content, tx))
+      .timezone;
+    const expiresAt = instanceExpiry(v, now, tz);
     const instances: Array<{ id: string; reference: string }> = [];
     for (let seq = 1; seq <= order.quantity; seq++) {
       const instance = await tx.voucherInstance.create({
@@ -959,6 +968,7 @@ export class PaymentsService {
           instanceId: instance.id,
           type: 'ISSUED',
           amountHalalas: order.unitPriceHalalas,
+          currency: order.currency,
           note: `order ${order.reference}`,
           createdAt: now,
         },

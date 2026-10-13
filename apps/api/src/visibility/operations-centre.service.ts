@@ -9,6 +9,7 @@ import {
 } from '@dealdash/types';
 import { AppError } from '../common/errors';
 import { Prisma } from '../generated/prisma/client';
+import { MarketService } from '../platform/markets/market.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SystemConfigService } from '../system-config/system-config.service';
 import { LedgerService } from '../vouchers/ledger.service';
@@ -43,7 +44,13 @@ export class OperationsCentreService {
     private readonly prisma: PrismaService,
     private readonly config: SystemConfigService,
     private readonly ledger: LedgerService,
+    private readonly markets: MarketService,
   ) {}
+
+  /** Headline money is shown in the default market's currency; every currency is also listed (never added together). */
+  private async headlineCurrency() {
+    return (await this.markets.profile((await this.markets.settings()).defaultMarket)).currency;
+  }
 
   async commandCentre(now = new Date()) {
     const [campaigns, transactions, finance, integrations, risk, alerts, platform] =
@@ -151,13 +158,17 @@ export class OperationsCentreService {
   async transactionHealth(now: Date) {
     const since = new Date(now.getTime() - D);
     const rows = await this.prisma.analyticsEvent.groupBy({
-      by: ['name'],
+      by: ['name', 'currency'],
       where: { occurredAt: { gte: since } },
       _sum: { quantity: true, amountMinor: true, points: true },
     });
-    const q = (n: string) => rows.find((r) => r.name === n)?._sum.quantity ?? 0;
-    const amt = (n: string) => rows.find((r) => r.name === n)?._sum.amountMinor ?? 0;
-    const pts = (n: string) => rows.find((r) => r.name === n)?._sum.points ?? 0;
+    const headline = await this.headlineCurrency();
+    const all = (n: string) => rows.filter((r) => r.name === n);
+    const q = (n: string) => all(n).reduce((s, r) => s + (r._sum.quantity ?? 0), 0);
+    // money only within one currency
+    const amt = (n: string, c = headline) =>
+      all(n).find((r) => r.currency === c)?._sum.amountMinor ?? 0;
+    const pts = (n: string) => all(n).reduce((s, r) => s + (r._sum.points ?? 0), 0);
     const ok = q('VOUCHER_PAYMENT_SUCCEEDED');
     const failed = q('VOUCHER_PAYMENT_FAILED');
     const loyalty = await this.prisma.rewardEntry.count({
@@ -173,7 +184,10 @@ export class OperationsCentreService {
       voucherPurchases: {
         count: ok,
         valueMinor: amt('VOUCHER_PAYMENT_SUCCEEDED'),
-        currency: 'SAR',
+        currency: headline,
+        byCurrency: all('VOUCHER_PAYMENT_SUCCEEDED')
+          .filter((r) => r.currency)
+          .map((r) => ({ currency: r.currency!, valueMinor: r._sum.amountMinor ?? 0 })),
       },
       redemptions: {
         exclusive: q('EXCLUSIVE_REDEMPTION_VERIFIED'),
@@ -225,8 +239,18 @@ export class OperationsCentreService {
       }
       byCurrency.set(d.currency, x);
     }
-    const sum = async (family: 'MERCHANT_HELD' | 'MERCHANT_SETTLEMENT_ELIGIBLE' | 'RECEIVABLE') =>
-      [...(await this.ledger.balancesByOrganization(family)).values()].reduce((s, v) => s + v, 0);
+    const headline = await this.headlineCurrency();
+    const totals = {
+      RECEIVABLE: await this.ledger.totalsByCurrency('RECEIVABLE'),
+      MERCHANT_HELD: await this.ledger.totalsByCurrency('MERCHANT_HELD'),
+      MERCHANT_SETTLEMENT_ELIGIBLE: await this.ledger.totalsByCurrency(
+        'MERCHANT_SETTLEMENT_ELIGIBLE',
+      ),
+    };
+    const sum = async (family: keyof typeof totals, c = headline) => totals[family][c] ?? 0;
+    const ledgerCurrencies = [
+      ...new Set(Object.values(totals).flatMap((m) => Object.keys(m))),
+    ].sort();
     const credit = await p.creditFacility.aggregate({
       where: { status: 'ACTIVE' },
       _sum: { limitHalalas: true },
@@ -277,6 +301,16 @@ export class OperationsCentreService {
         overdueCount: x.overdueCount,
         overdueMinor: x.overdue,
       })),
+      ledgerCurrency: headline,
+      ledgerByCurrency: await Promise.all(
+        ledgerCurrencies.map(async (c) => ({
+          currency: c,
+          receivablesLedgerMinor: await sum('RECEIVABLE', c),
+          merchantPayableMinor: -(
+            (await sum('MERCHANT_HELD', c)) + (await sum('MERCHANT_SETTLEMENT_ELIGIBLE', c))
+          ),
+        })),
+      ),
       receivablesLedgerMinor: await sum('RECEIVABLE'),
       sponsorUtilizationBps:
         (sponsor._sum.usageMaxHalalas ?? 0) + (sponsor._sum.upfrontHalalas ?? 0) > 0
@@ -750,7 +784,7 @@ export class OperationsCentreService {
           reference: r.reference,
           status: r.status,
           amountMinor: r.amountHalalas,
-          currency: 'SAR',
+          currency: r.currency,
           data: { kind: r.kind, reasonCode: r.reasonCode },
         });
     if (want('VOUCHER'))
@@ -766,7 +800,7 @@ export class OperationsCentreService {
           reference: v.reference,
           status: v.status,
           amountMinor: v.purchasePriceHalalas,
-          currency: 'SAR',
+          currency: orders.find((o) => o.id === v.orderId)?.currency ?? null,
           data: {
             voucherId: v.voucherId,
             expiresAt: v.expiresAt.toISOString(),

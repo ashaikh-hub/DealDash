@@ -322,6 +322,15 @@ export class AnalyticsProjector {
             orderBy: { updatedAt: 'asc' },
             take,
           });
+          // each issued voucher's money is in its order's currency
+          const orderCurrency = new Map(
+            (
+              await p.voucherOrder.findMany({
+                where: { id: { in: [...new Set(rows.map((r) => r.orderId))] } },
+                select: { id: true, currency: true },
+              })
+            ).map((o) => [o.id, o.currency]),
+          );
           const events: DraftEvent[] = [];
           for (const r of rows) {
             const base = {
@@ -337,7 +346,7 @@ export class AnalyticsProjector {
               name: 'VOUCHER_ISSUED',
               occurredAt: r.issuedAt,
               amountMinor: r.purchasePriceHalalas,
-              currency: 'SAR',
+              currency: orderCurrency.get(r.orderId) ?? null,
             });
             if (r.expiredAt)
               events.push({
@@ -408,7 +417,7 @@ export class AnalyticsProjector {
             campaignId: orders.get(r.orderId)?.voucherId ?? null,
             userId: orders.get(r.orderId)?.userId ?? null,
             amountMinor: r.amountHalalas,
-            currency: 'SAR',
+            currency: r.currency,
             sourceType: 'Refund',
             sourceId: r.id,
             financeRefType: 'Refund',
@@ -429,14 +438,14 @@ export class AnalyticsProjector {
             (
               await p.watchCampaign.findMany({
                 where: { id: { in: [...new Set(rows.map((r) => r.campaignId))] } },
-                select: { id: true, organizationId: true },
+                select: { id: true, organizationId: true, currency: true },
               })
-            ).map((c) => [c.id, c.organizationId]),
+            ).map((c) => [c.id, c]),
           );
           const events: DraftEvent[] = [];
           for (const r of rows) {
             const base = {
-              organizationId: camps.get(r.campaignId) ?? null,
+              organizationId: camps.get(r.campaignId)?.organizationId ?? null,
               campaignId: r.campaignId,
               userId: r.userId,
               city: r.city,
@@ -470,7 +479,7 @@ export class AnalyticsProjector {
                 name: 'WATCH_QUALIFIED_VIEW',
                 occurredAt: r.qualifiedAt,
                 amountMinor: r.chargeHalalas,
-                currency: 'SAR',
+                currency: camps.get(r.campaignId)?.currency ?? null,
                 financeRefType: r.consumptionJournalId ? 'LedgerJournal' : null,
                 financeRefId: r.consumptionJournalId,
               });
@@ -481,7 +490,7 @@ export class AnalyticsProjector {
                 name: 'WATCH_VIEW_CREDITED_BACK',
                 occurredAt: r.creditedBackAt ?? r.lastEventAt,
                 amountMinor: r.chargeHalalas,
-                currency: 'SAR',
+                currency: camps.get(r.campaignId)?.currency ?? null,
               });
             if (r.status === 'INVALID' || r.status === 'CAPPED')
               events.push({
@@ -525,7 +534,7 @@ export class AnalyticsProjector {
             organizationId: r.organizationId,
             campaignId: r.campaignId,
             amountMinor: r.amountHalalas,
-            currency: 'SAR',
+            currency: r.currency,
             sourceType: 'WatchFunding',
             sourceId: r.id,
             financeRefType: r.journalId ? 'LedgerJournal' : null,

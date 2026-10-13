@@ -16,6 +16,17 @@ export {
   type Dictionary,
 } from './dictionaries';
 export { LOCALES, DEFAULT_LOCALE };
+export {
+  endOfDayAfter,
+  endOfDayIn,
+  hourIn,
+  isValidTimeZone,
+  localDateIn,
+  localParts,
+  nextMidnightIn,
+  startOfDayIn,
+  zoneOffsetMs,
+} from './timezone';
 export type { Locale, BilingualText };
 
 // ------------------------------------------------------------------ direction
@@ -78,52 +89,93 @@ export function negotiateLocale(acceptLanguage: string | null | undefined): Loca
   return DEFAULT_LOCALE;
 }
 
-// ------------------------------------------------------------------ formatting (Western digits, Gregorian, Riyadh)
+// ------------------------------------------------------------------ display context: the session's market (never a fixed country)
+/**
+ * The market whose currency and business time zone the screens use when a value does not carry its own: set by the app shell from
+ * the signed-in business's (or the customer's city's) market, from Market / Country Configuration via the API. A value that states
+ * its own currency or zone (an order, a campaign, a statement) always passes it explicitly and wins.
+ */
+interface DisplayMarket {
+  currency: string | null;
+  timeZone: string | null;
+}
+const display: DisplayMarket = { currency: null, timeZone: null };
+
+export function setDisplayMarket(m: { currency?: string | null; timeZone?: string | null }) {
+  if (m.currency !== undefined) display.currency = m.currency;
+  if (m.timeZone !== undefined) display.timeZone = m.timeZone;
+}
+export const getDisplayMarket = (): Readonly<DisplayMarket> => ({ ...display });
+
+/**
+ * The zone dates are shown in: explicit > the session's market > the viewer's own device zone. Never the server's zone and never a
+ * fixed country.
+ */
+export function displayTimeZone(explicit?: string | null): string {
+  return (
+    explicit ??
+    display.timeZone ??
+    (typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : 'UTC')
+  );
+}
+
+// ------------------------------------------------------------------ formatting (Western digits, Gregorian)
 const intlTag = (locale: Locale) => (locale === 'ar' ? 'ar-SA-u-nu-latn-ca-gregory' : 'en-GB');
 
 export function formatNumber(locale: Locale, value: number): string {
   return new Intl.NumberFormat(intlTag(locale), { numberingSystem: 'latn' }).format(value);
 }
 
-/** Money is stored as integer halalas; display as SAR with 2 decimals. */
-export function formatMoney(locale: Locale, halalas: number): string {
-  const riyals = halalas / 100;
-  const n = new Intl.NumberFormat(intlTag(locale), {
-    numberingSystem: 'latn',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(riyals);
-  return locale === 'ar' ? `${n} ر.س` : `SAR ${n}`;
-}
-
-/**
- * Money in any configured currency (integer minor units, two decimals), for commercial plans and agreements in other markets.
- * Western digits in both languages; SAR keeps its usual symbol, other currencies show their ISO code.
- */
-export function formatAmount(locale: Locale, minor: number, currency: string): string {
-  if (currency === 'SAR') return formatMoney(locale, minor);
-  const n = new Intl.NumberFormat(intlTag(locale), {
+/** Western-digit amount with two decimals (money is stored in integer minor units). */
+function amountText(locale: Locale, minor: number) {
+  return new Intl.NumberFormat(intlTag(locale), {
     numberingSystem: 'latn',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(minor / 100);
+}
+
+/**
+ * Money in any configured currency (integer minor units, two decimals). Western digits in both languages; SAR keeps its usual Arabic
+ * symbol, every other currency shows its ISO code.
+ */
+export function formatAmount(locale: Locale, minor: number, currency: string): string {
+  const n = amountText(locale, minor);
+  if (currency === 'SAR') return locale === 'ar' ? `${n} ر.س` : `SAR ${n}`;
   return locale === 'ar' ? `${n} ${currency}` : `${currency} ${n}`;
 }
 
-export function formatDate(locale: Locale, date: Date | string | number): string {
+/**
+ * Money in its own currency when given (an order, a voucher, a statement), else the session market's currency. With neither known,
+ * the bare amount is shown rather than a guessed currency.
+ */
+export function formatMoney(locale: Locale, minor: number, currency?: string | null): string {
+  const c = currency ?? display.currency;
+  return c ? formatAmount(locale, minor, c) : amountText(locale, minor);
+}
+
+export function formatDate(
+  locale: Locale,
+  date: Date | string | number,
+  timeZone?: string | null,
+): string {
   return new Intl.DateTimeFormat(intlTag(locale), {
     dateStyle: 'medium',
-    timeZone: 'Asia/Riyadh',
+    timeZone: displayTimeZone(timeZone),
     numberingSystem: 'latn',
     calendar: 'gregory',
   } as Intl.DateTimeFormatOptions).format(new Date(date));
 }
 
-export function formatDateTime(locale: Locale, date: Date | string | number): string {
+export function formatDateTime(
+  locale: Locale,
+  date: Date | string | number,
+  timeZone?: string | null,
+): string {
   return new Intl.DateTimeFormat(intlTag(locale), {
     dateStyle: 'medium',
     timeStyle: 'short',
-    timeZone: 'Asia/Riyadh',
+    timeZone: displayTimeZone(timeZone),
     numberingSystem: 'latn',
     calendar: 'gregory',
   } as Intl.DateTimeFormatOptions).format(new Date(date));

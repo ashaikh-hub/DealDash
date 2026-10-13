@@ -95,6 +95,7 @@ export class WatchFundingService {
         sourceType: 'WatchCampaign',
         sourceId: c.id,
         idempotencyKey: `journal:${idemKey}`,
+        currency: await this.currencyOf(tx, c.id),
         memo: `Campaign budget funding ${ref}`,
         reasonCode: opts.source,
         actor: { userId: actor.userId, role: actor.membership?.roleCode ?? null },
@@ -113,6 +114,7 @@ export class WatchFundingService {
           campaignId: c.id,
           organizationId: owner,
           amountHalalas,
+          currency: await this.currencyOf(tx, c.id),
           source: opts.source,
           reference: ref,
           idempotencyKey: idemKey,
@@ -201,6 +203,7 @@ export class WatchFundingService {
       sourceType: 'WatchView',
       sourceId: viewId,
       idempotencyKey: `watch-consume:${viewId}`,
+      currency: await this.currencyOf(tx, c.id),
       memo: 'Qualified view charge',
       lines: [
         {
@@ -215,6 +218,16 @@ export class WatchFundingService {
     const exhausted =
       r.qualifiedViews >= r.paidViews || r.fundedHalalas - r.spentHalalas < chargeHalalas;
     return { ok: true, exhausted, journalId: journal.journalId };
+  }
+
+  /** A campaign's money is in its own currency (its market's, fixed when it was priced). */
+  private async currencyOf(tx: Prisma.TransactionClient, campaignId: string) {
+    return (
+      await tx.watchCampaign.findUniqueOrThrow({
+        where: { id: campaignId },
+        select: { currency: true },
+      })
+    ).currency;
   }
 
   /** A billed view was later found invalid: the merchant is credited back with the exact reverse journal. */
@@ -250,6 +263,7 @@ export class WatchFundingService {
       sourceType: 'WatchView',
       sourceId: view.id,
       idempotencyKey: `watch-creditback:${view.id}`,
+      currency: await this.currencyOf(tx, c.id),
       memo: `Credit back after close-out: ${reason}`,
       reasonCode: 'CREDIT_BACK',
       reversesJournalId: view.consumptionJournalId,
@@ -285,6 +299,7 @@ export class WatchFundingService {
       sourceType: 'WatchCampaign',
       sourceId: c.id,
       idempotencyKey: `watch-closeout:${c.id}`,
+      currency: await this.currencyOf(tx, c.id),
       memo: 'Unused campaign budget released to a separate balance',
       reasonCode: 'CLOSE_OUT',
       lines: [

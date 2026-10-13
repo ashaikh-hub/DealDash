@@ -273,6 +273,8 @@ export const commercialCaseViewSchema = z.object({
   reference: z.string(),
   product: z.enum(COMMERCIAL_PRODUCTS),
   subjectId: uuid,
+  /** ISO currency of every amount of the case (its campaign market's). */
+  currency: z.string(),
   status: z.enum(COMMERCIAL_STATUSES),
   ownerOrganizationId: uuid,
   fulfilmentOrganizationId: uuid,
@@ -353,6 +355,8 @@ export const caseRowSchema = z.object({
   status: z.enum(COMMERCIAL_STATUSES),
   ownerOrganizationId: uuid,
   ownerName: biText,
+  /** ISO currency of the case (its campaign market's). */
+  currency: z.string(),
   maxCashHalalas: z.number().int(),
   benefitCommitmentHalalas: z.number().int(),
   developmentFixture: z.boolean(),
@@ -441,6 +445,16 @@ export type ReconciliationView = z.infer<typeof reconciliationViewSchema>;
 
 export const commercialFinanceOverviewSchema = z.object({
   cases: z.record(z.string(), z.number().int()),
+  /** The headline figures below are in this currency (never added across currencies). */
+  currency: z.string(),
+  byCurrency: z.array(
+    z.object({
+      currency: z.string(),
+      receivablesHalalas: z.number().int(),
+      fundsHeldHalalas: z.number().int(),
+      fundingUtilizedHalalas: z.number().int(),
+    }),
+  ),
   receivablesHalalas: z.number().int(),
   fundsHeldHalalas: z.number().int(),
   fundingUtilizedHalalas: z.number().int(),

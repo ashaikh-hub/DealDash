@@ -228,8 +228,8 @@ function ListInner() {
                         {n(r.qualifiedViews)} / {n(r.paidViews)}
                       </td>
                       <td className="dd-ltr">
-                        {n(r.budgetPct)}% · {formatMoney(locale, r.spentHalalas)} /{' '}
-                        {formatMoney(locale, r.fundedHalalas)}
+                        {n(r.budgetPct)}% · {formatMoney(locale, r.spentHalalas, r.currency)} /{' '}
+                        {formatMoney(locale, r.fundedHalalas, r.currency)}
                       </td>
                       <td className="dd-ltr">{n(r.openFlags)}</td>
                       <td>
@@ -274,7 +274,8 @@ function ListInner() {
                       {n(r.qualifiedViews)} / {n(r.paidViews)}
                     </td>
                     <td className="dd-ltr">
-                      {formatMoney(locale, r.spentHalalas)} / {formatMoney(locale, r.fundedHalalas)}
+                      {formatMoney(locale, r.spentHalalas, r.currency)} /{' '}
+                      {formatMoney(locale, r.fundedHalalas, r.currency)}
                     </td>
                     <td className="dd-caption">
                       {r.submittedAt ? formatDateTime(locale, r.submittedAt) : '–'}
@@ -500,7 +501,9 @@ function ReviewInner({ id }: { id: string }) {
                     {budget.funding.map((f) => (
                       <tr key={f.id}>
                         <td className="dd-ltr">{f.reference}</td>
-                        <td className="dd-ltr">{formatMoney(locale, f.amountHalalas)}</td>
+                        <td className="dd-ltr">
+                          {formatMoney(locale, f.amountHalalas, budget.budget.currency)}
+                        </td>
                         <td className="dd-caption">{formatDateTime(locale, f.createdAt)}</td>
                         <td>{f.source}</td>
                       </tr>
@@ -518,7 +521,9 @@ function ReviewInner({ id }: { id: string }) {
                   {budget.journals.map((j) => (
                     <tr key={j.id}>
                       <td>{j.type}</td>
-                      <td className="dd-ltr">{formatMoney(locale, j.amountHalalas)}</td>
+                      <td className="dd-ltr">
+                        {formatMoney(locale, j.amountHalalas, budget.budget.currency)}
+                      </td>
                       <td className="dd-caption">{formatDateTime(locale, j.postedAt)}</td>
                       <td className="dd-caption">{j.memo ?? ''}</td>
                     </tr>
@@ -618,19 +623,19 @@ function ReviewInner({ id }: { id: string }) {
                 <div className="dd-kv__row">
                   <dt>{t('wmon.charge')}</dt>
                   <dd className="dd-ltr">
-                    {formatMoney(locale, e.chargePerViewHalalas)} (v{e.rateCardVersion})
+                    {formatMoney(locale, e.chargePerViewHalalas, e.currency)} (v{e.rateCardVersion})
                   </dd>
                 </div>
                 <div className="dd-kv__row">
                   <dt>{t('aw.estimatedCost')}</dt>
                   <dd className="dd-ltr" data-testid="econ-cost">
-                    {formatMoney(locale, e.estimatedCostHalalas)}
+                    {formatMoney(locale, e.estimatedCostHalalas, e.currency)}
                   </dd>
                 </div>
                 <div className="dd-kv__row">
                   <dt>{t('wmon.funded')}</dt>
                   <dd className="dd-ltr" data-testid="econ-funded">
-                    {formatMoney(locale, d.budget.fundedHalalas)}
+                    {formatMoney(locale, d.budget.fundedHalalas, d.budget.currency)}
                   </dd>
                 </div>
                 <div className="dd-kv__row">

@@ -346,6 +346,7 @@ export class SupportOpsService {
           paymentId: payment.id,
           organizationId: order.organizationId,
           amountHalalas: payment.amountHalalas,
+          currency: payment.currency,
           status: 'REQUESTED',
           kind: 'ADMIN_INITIATED',
           reasonCode: b.reason,

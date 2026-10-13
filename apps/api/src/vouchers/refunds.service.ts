@@ -176,7 +176,7 @@ export class RefundsService {
   async createSystemRefund(
     tx: Tx,
     input: {
-      order: { id: string; organizationId: string; userId: string };
+      order: { id: string; organizationId: string; userId: string; currency: string };
       paymentId: string;
       amountHalalas: number;
       note: string;
@@ -192,6 +192,7 @@ export class RefundsService {
         paymentId: input.paymentId,
         organizationId: input.order.organizationId,
         amountHalalas: input.amountHalalas,
+        currency: input.order.currency,
         status: 'APPROVED',
         kind: 'SYSTEM',
         reasonCode: 'LATE_OR_DUPLICATE_PAYMENT',
@@ -268,6 +269,7 @@ export class RefundsService {
             instanceId: inst.id,
             organizationId: inst.organizationId,
             amountHalalas: inst.purchasePriceHalalas,
+            currency: payment.currency,
             status: within ? 'APPROVED' : 'UNDER_REVIEW',
             kind: 'CUSTOMER_REQUEST',
             reasonCode: input.reasonCode,
@@ -353,6 +355,7 @@ export class RefundsService {
             instanceId: inst.id,
             organizationId: inst.organizationId,
             amountHalalas: inst.purchasePriceHalalas,
+            currency: payment.currency,
             status: 'REQUESTED',
             kind: 'ADMIN_INITIATED',
             reasonCode: 'ADMIN_EXCEPTION',
@@ -612,6 +615,7 @@ export class RefundsService {
       sourceType: 'Refund',
       sourceId: r.id,
       idempotencyKey: `refund:${r.id}`,
+      currency: r.currency,
       memo: `Refund ${r.reference}`,
       lines: [
         {
@@ -629,6 +633,7 @@ export class RefundsService {
         instanceId: r.instanceId,
         type: 'REFUNDED',
         amountHalalas: r.amountHalalas,
+        currency: r.currency,
         journalId: j.journalId,
         note: r.reference,
         createdAt: now,

@@ -96,10 +96,19 @@ export class CommercialService {
   }
 
   // ---------------------------------------------------------------- accounts
-  /** The organization's DEFAULT billing account in SAR (other legal entities can hold their own accounts: Phase 5). */
-  async accountOf(tx: Tx | PrismaService, organizationId: string) {
+  /**
+   * The organization's DEFAULT billing account in a currency — by default its market's currency (Market / Country Configuration).
+   * Other legal entities can hold their own accounts (Phase 5). Accounts in different currencies are separate; nothing is converted.
+   */
+  async accountOf(tx: Tx | PrismaService, organizationId: string, currencyIn?: string) {
+    const market = this.markets
+      ? await this.markets.profileOfOrganization(organizationId, {}, tx)
+      : null;
+    const currency = currencyIn ?? market?.currency;
+    if (!currency)
+      throw new Error('accountOf needs a currency when no market service is available');
     const found = await tx.businessAccount.findFirst({
-      where: { organizationId, currency: 'SAR', isDefault: true },
+      where: { organizationId, currency, isDefault: true },
     });
     if (found) return found;
     const org = await tx.organization.findUniqueOrThrow({
@@ -110,17 +119,42 @@ export class CommercialService {
     const entity = await tx.legalEntity.upsert({
       where: { organizationId_legalName: { organizationId, legalName } },
       update: {},
-      create: { organizationId, legalName },
+      create: {
+        organizationId,
+        legalName,
+        country: market?.code ?? (await this.marketOfCurrency(tx, currency)),
+        currency,
+      },
     });
     try {
       return await tx.businessAccount.create({
-        data: { organizationId, legalEntityId: entity.id, currency: 'SAR' },
+        data: { organizationId, legalEntityId: entity.id, currency, country: entity.country },
       });
     } catch {
       return tx.businessAccount.findFirstOrThrow({
-        where: { organizationId, currency: 'SAR', isDefault: true },
+        where: { organizationId, currency, isDefault: true },
       });
     }
+  }
+
+  /** A market whose currency this is (used only when no market service is wired, e.g. hand-built fixtures). */
+  private async marketOfCurrency(tx: Tx | PrismaService, currency: string) {
+    const m = await tx.countryConfiguration.findFirst({
+      where: { currency },
+      select: { code: true },
+    });
+    if (!m) throw new AppError('MARKET_CONFIG_INVALID', `No market uses ${currency}`, 422);
+    return m.code;
+  }
+
+  /** The currency a commercial case is in (its campaign market's; stated on the case). */
+  private async caseCurrency(tx: Tx | PrismaService, caseId: string) {
+    return (
+      await tx.commercialCase.findUniqueOrThrow({
+        where: { id: caseId },
+        select: { currency: true },
+      })
+    ).currency;
   }
 
   /** Active, unexpired credit facility and its remaining headroom (exposure is computed, never stored). */
@@ -128,7 +162,8 @@ export class CommercialService {
     const f = await this.prisma.creditFacility.findFirst({
       where: { organizationId, status: 'ACTIVE', expiresAt: { gt: now } },
     });
-    const exposure = await this.creditExposure(organizationId);
+    // exposure is measured in the facility's currency (commitments and receivables in other currencies are separate)
+    const exposure = await this.creditExposure(organizationId, f?.currency);
     return {
       facility: f,
       exposureHalalas: exposure,
@@ -136,9 +171,14 @@ export class CommercialService {
     };
   }
 
-  async creditExposure(organizationId: string): Promise<number> {
+  async creditExposure(organizationId: string, currencyIn?: string): Promise<number> {
+    const currency =
+      currencyIn ??
+      (this.markets
+        ? (await this.markets.profileOfOrganization(organizationId)).currency
+        : undefined);
     const rows = await this.prisma.fundingCommitment.findMany({
-      where: { organizationId, mode: 'CREDIT' },
+      where: { organizationId, mode: 'CREDIT', ...(currency ? { case: { currency } } : {}) },
       select: {
         status: true,
         upfrontHalalas: true,
@@ -160,7 +200,7 @@ export class CommercialService {
     const ar = await this.prisma.financeDocument.aggregate({
       where: {
         organizationId,
-        currency: 'SAR',
+        ...(currency ? { currency } : {}),
         type: { in: ['INVOICE', 'TAX_INVOICE', 'DEBIT_NOTE'] },
         sourceKind: { in: ['BILLING_RUN', 'MANUAL'] },
         status: { in: ['ISSUED', 'SENT', 'PARTIALLY_PAID', 'OVERDUE', 'DISPUTED'] },
@@ -287,8 +327,14 @@ export class CommercialService {
     for (const f of out) {
       if (f.managed) continue;
       const pos = await this.creditPosition(f.organizationId);
-      const account = await this.accountOf(this.prisma, f.organizationId);
-      if (account.fundingMode === 'CREDIT' && pos.facility && pos.availableHalalas >= f.maxHalalas)
+      const account = await this.accountOf(this.prisma, f.organizationId, e.currency);
+      // credit only from a facility in the campaign's currency (a facility in another currency is not converted)
+      if (
+        account.fundingMode === 'CREDIT' &&
+        pos.facility &&
+        pos.facility.currency === e.currency &&
+        pos.availableHalalas >= f.maxHalalas
+      )
         f.mode = 'CREDIT';
     }
     return out;
@@ -333,6 +379,13 @@ export class CommercialService {
           409,
         );
     }
+    // the product's money (its market currency) and the price list must be in the same currency: never converted silently
+    if (economics.currency !== pricing.currency)
+      throw new AppError(
+        'MARKET_CURRENCY_MISMATCH',
+        `This campaign is in ${economics.currency} but the pricing that applies is in ${pricing.currency}: DealDash must set pricing for this market`,
+        409,
+      );
     const { lines, totals } = calculateQuote(economics, pricing);
     const funding = await this.fundingOf(
       economics,
@@ -450,6 +503,7 @@ export class CommercialService {
             billingTrigger: billing?.trigger ?? null,
             billingModel: billing?.model ?? null,
             market: p.market,
+            currency: e.currency,
           },
         }));
       const version = (current?.version ?? 0) + 1;
@@ -719,7 +773,7 @@ export class CommercialService {
     }
     const totals = q.totals as unknown as QuoteTotals;
     const result = await this.prisma.$transaction(async (tx) => {
-      const acc = await this.accountOf(tx, organizationId);
+      const acc = await this.accountOf(tx, organizationId, econ.currency);
       await tx.commercialAcceptance
         .create({
           data: {
@@ -1198,6 +1252,7 @@ export class CommercialService {
       sourceType: 'COMMERCIAL_CASE',
       sourceId: caseId,
       idempotencyKey: key,
+      currency: await this.caseCurrency(tx, caseId),
       memo,
       lines: [
         { family: debit, organizationId: m.organizationId, amountHalalas: amount },
@@ -1587,6 +1642,7 @@ export class CommercialService {
       reference: c.reference,
       product: c.product,
       subjectId: c.subjectId,
+      currency: c.currency,
       status: c.status,
       ownerOrganizationId: c.ownerOrganizationId,
       fulfilmentOrganizationId: c.fulfilmentOrganizationId,
@@ -1732,7 +1788,7 @@ export class CommercialService {
       const econ = (q.inputs as unknown as { economics: Economics }).economics;
       await this.prisma.$transaction(async (tx) => {
         for (const p of parties) {
-          const acc = await this.accountOf(tx, p.organizationId);
+          const acc = await this.accountOf(tx, p.organizationId, econ.currency);
           await tx.commercialAcceptance.upsert({
             where: {
               quotationId_role_organizationId: {
@@ -1820,13 +1876,15 @@ export class CommercialService {
           `The amount is more than the remaining commitment (${Math.max(0, max - m.receivedHalalas)} halalas)`,
           409,
         );
-      const acc = await this.accountOf(tx, m.organizationId);
+      const currency = await this.caseCurrency(tx, m.caseId);
+      const acc = await this.accountOf(tx, m.organizationId, currency);
       const ref = await this.nextNumber(tx, 'payment', 'PY');
       const j = await this.ledger.post(tx, {
         type: 'FUNDING_RECEIVED',
         sourceType: 'FINANCE_PAYMENT',
         sourceId: m.caseId,
         idempotencyKey: `pay:${p.key}`,
+        currency,
         memo: `Payment ${ref} (${p.method})`,
         actor: p.actor
           ? { userId: p.actor.userId, role: p.actor.membership?.roleCode ?? null }
@@ -1852,6 +1910,7 @@ export class CommercialService {
           caseId: m.caseId,
           commitmentId: m.id,
           amountHalalas: p.amountHalalas,
+          currency,
           method: p.method,
           externalReference: p.externalReference ?? null,
           recordedByUserId: p.actor?.userId ?? null,
@@ -1867,6 +1926,7 @@ export class CommercialService {
           businessAccountId: acc.id,
           organizationId: m.organizationId,
           caseId: m.caseId,
+          currency,
           subtotalHalalas: p.amountHalalas,
           totalHalalas: p.amountHalalas,
           paidHalalas: p.amountHalalas,

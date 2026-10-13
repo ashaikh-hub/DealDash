@@ -42,8 +42,10 @@ export type PaymentStatus = 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'CANCELLED';
 export interface PaymentInitiation {
   /** DealDash's own order reference: sent to the PSP as the merchant reference (PY-11). */
   orderId: string;
+  /** Minor units of `currency` (the order's currency, from the voucher's market). */
   amountHalalas: number;
-  currency: 'SAR';
+  /** ISO 4217 — a provider adapter refuses currencies its contract does not cover. */
+  currency: string;
   idempotencyKey: string;
   returnUrl: string;
 }

@@ -1,4 +1,5 @@
 import { Injectable, type OnModuleInit } from '@nestjs/common';
+import { MarketService } from '../platform/markets/market.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AppError } from '../common/errors';
 import { CommercialRegistry, type CommercialAdapter } from '../finance/commercial.registry';
@@ -20,6 +21,7 @@ export class WatchCommercialAdapter implements CommercialAdapter, OnModuleInit {
     private readonly prisma: PrismaService,
     private readonly registry: CommercialRegistry,
     private readonly config: SystemConfigService,
+    private readonly markets: MarketService,
   ) {}
 
   onModuleInit() {
@@ -46,6 +48,7 @@ export class WatchCommercialAdapter implements CommercialAdapter, OnModuleInit {
     subjectId: string | null,
   ): Promise<Economics> {
     const c = parseWatchContent(content);
+    const market = await this.markets.profileOfCampaign(organizationId, content);
     let perView: number;
     let units = c.paidViews;
     // FD-S7-1: a partner may own the campaign budget (Sponsor / Funder); the merchant that holds the campaign stays its fulfilment party
@@ -54,11 +57,12 @@ export class WatchCommercialAdapter implements CommercialAdapter, OnModuleInit {
       const w = await this.prisma.watchCampaign.findUnique({ where: { id: subjectId } });
       budgetOwner = w?.sponsorOrganizationId ?? null;
       // once the campaign is priced, the stored rate (not today's rate card) is what was quoted
-      perView = w && w.chargePerViewHalalas > 0 ? w.chargePerViewHalalas : await this.rate();
+      perView = w && w.chargePerViewHalalas > 0 ? w.chargePerViewHalalas : await this.rate(market);
       if (w && w.paidViews > units) units = w.paidViews;
-    } else perView = await this.rate();
+    } else perView = await this.rate(market);
     return {
-      currency: 'SAR',
+      // the campaign's market decides the currency (Market / Country Configuration), never a fixed country
+      currency: market.currency,
       maxUnits: units,
       unitLabel: 'VIEW',
       base: {
@@ -78,9 +82,21 @@ export class WatchCommercialAdapter implements CommercialAdapter, OnModuleInit {
     };
   }
 
-  private async rate() {
-    const r = await this.config.get<{ chargePerViewHalalas: number }>(CONFIG_KEYS.WATCH_RATE_CARD);
-    return r.chargePerViewHalalas;
+  /** The rate card in the campaign market's currency (same rule as WatchCoreService.rateCardFor; never converted). */
+  private async rate(market: { code: string; currency: string }) {
+    const r = await this.config.get<{
+      chargePerViewHalalas: number;
+      currency?: string;
+      markets?: Record<string, { chargePerViewHalalas: number }>;
+    }>(CONFIG_KEYS.WATCH_RATE_CARD);
+    const own = r.markets?.[market.code];
+    if (own) return own.chargePerViewHalalas;
+    if ((r.currency ?? 'SAR') === market.currency) return r.chargePerViewHalalas;
+    throw new AppError(
+      'PRICING_NOT_AVAILABLE',
+      `No Watch & Earn rate card is configured for ${market.code} (${market.currency})`,
+      409,
+    );
   }
 
   async managedFunding(subjectId: string) {

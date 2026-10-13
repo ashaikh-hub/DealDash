@@ -1,8 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto';
+import { hourIn, nextMidnightIn, startOfDayIn } from '@dealdash/localization';
 import { watchContentSchema, type WatchContent } from '@dealdash/validation';
 import { AppError } from '../common/errors';
-
-const RIYADH_OFFSET_MS = 3 * 3_600_000; // Saudi Arabia has no daylight saving time.
 
 /** Parses stored or submitted content into the canonical shape (defaults filled in). */
 export const parseWatchContent = (raw: unknown): WatchContent =>
@@ -45,25 +44,21 @@ export function watchStatusFromDates(
   return startAt && startAt.getTime() > now.getTime() ? 'SCHEDULED' : 'LIVE';
 }
 
-/** Start of the Riyadh calendar day containing `t`. */
-export function startOfRiyadhDay(t: Date): Date {
-  const local = t.getTime() + RIYADH_OFFSET_MS;
-  return new Date(Math.floor(local / 86_400_000) * 86_400_000 - RIYADH_OFFSET_MS);
-}
-export const nextRiyadhMidnight = (t: Date): Date =>
-  new Date(startOfRiyadhDay(t).getTime() + 86_400_000);
+/** Start of the calendar day containing `t` in the market's business time zone (Market / Country Configuration). */
+export const startOfMarketDay = (t: Date, timeZone: string): Date => startOfDayIn(t, timeZone);
+/** The next midnight in the market's time zone (when a customer's daily cap resets). */
+export const nextMarketMidnight = (t: Date, timeZone: string): Date => nextMidnightIn(t, timeZone);
 
-/** Riyadh wall-clock hour (0-23) of `t`. */
-export const riyadhHour = (t: Date): number =>
-  new Date(t.getTime() + RIYADH_OFFSET_MS).getUTCHours();
-
-/** Is `t` inside the campaign's daily serving window (null = all day)? Windows may not wrap midnight in the MVP. */
-export function inTimeWindow(w: { startHour: number; endHour: number } | null, t: Date): boolean {
+/** Is `t` inside the campaign's daily serving window, in its market's wall-clock hours (null = all day)? No wrap past midnight. */
+export function inTimeWindow(
+  w: { startHour: number; endHour: number } | null,
+  t: Date,
+  timeZone: string,
+): boolean {
   if (!w) return true;
-  const h = riyadhHour(t);
+  const h = hourIn(t, timeZone);
   return h >= w.startHour && h < w.endHour;
 }
-
 // ---------------------------------------------------------------- view tokens (random, stored only as a hash)
 export const newViewToken = (): string => randomBytes(32).toString('base64url');
 export const hashToken = (token: string): string =>

@@ -10,7 +10,7 @@ import type { Actor, RequestMeta } from '../common/request-context';
 import { actorInfo } from '../live-deals/deal-core.service';
 import { WatchFundingService } from './watch-funding.service';
 import { RewardsLedgerService } from './rewards-ledger.service';
-import { startOfRiyadhDay } from './watch-content';
+import { startOfMarketDay } from './watch-content';
 import { WatchCoreService, type FraudPolicy, type FrequencyPolicy } from './watch-core.service';
 
 export interface RiskSignalHit {
@@ -183,10 +183,17 @@ export class RiskService {
       hit('VIEW_VELOCITY', 40, `${starts} views started in ${fraud.velocityWindowMinutes} minutes`);
 
     if (fraud.dailyCapStreakDays > 0) {
-      const today = startOfRiyadhDay(now);
+      // days are counted in the campaign market's time zone
+      const camp = await db.watchCampaign.findUniqueOrThrow({
+        where: { id: view.campaignId },
+        select: { organizationId: true, content: true },
+      });
+      const tz = (await this.core.markets.profileOfCampaign(camp.organizationId, camp.content, db))
+        .timezone;
+      const today = startOfMarketDay(now, tz);
       const from = new Date(today.getTime() - fraud.dailyCapStreakDays * 86_400_000);
       const rows = await db.$queryRaw<Array<{ day: Date; n: number }>>(Prisma.sql`
-        SELECT date_trunc('day', ("qualifiedAt" AT TIME ZONE 'Asia/Riyadh')) AS day, count(*)::int AS n
+        SELECT date_trunc('day', ("qualifiedAt" AT TIME ZONE 'UTC') AT TIME ZONE ${tz}) AS day, count(*)::int AS n
         FROM "WatchView" WHERE "userId" = ${view.userId}::uuid AND "status" = 'QUALIFIED'
           AND "qualifiedAt" >= ${from} AND "qualifiedAt" < ${today}
         GROUP BY 1`);

@@ -395,7 +395,7 @@ export const voucherCardSchema = z.object({
   /** Reported savings = merchant face value minus selling price. Never a guarantee of total personal savings. */
   reportedSavingsHalalas: z.number().int(),
   reportedSavingsPercent: z.number().int(),
-  currency: z.literal('SAR'),
+  currency: z.string(), // ISO 4217, from the voucher's market (stored on the voucher / order)
   validity: voucherValiditySchema,
   saleEndsAt: z.string().nullable(),
   /** Vouchers left (null above the display threshold). */
@@ -431,7 +431,7 @@ export const paymentViewSchema = z.object({
   id: uuid,
   status: z.enum(PAYMENT_STATUSES),
   amountHalalas: z.number().int(),
-  currency: z.literal('SAR'),
+  currency: z.string(), // ISO 4217, from the voucher's market (stored on the voucher / order)
   attemptNo: z.number().int(),
   /** Where the customer completes payment (mock page in development). Null once the attempt is final. */
   redirectUrl: z.string().nullable(),
@@ -449,7 +449,7 @@ export const orderViewSchema = z.object({
   unitPriceHalalas: z.number().int(),
   faceValueHalalas: z.number().int(),
   totalHalalas: z.number().int(),
-  currency: z.literal('SAR'),
+  currency: z.string(), // ISO 4217, from the voucher's market (stored on the voucher / order)
   holdExpiresAt: z.string(),
   termsVersion: z.string().nullable(),
   createdAt: z.string(),
@@ -496,7 +496,7 @@ export const walletItemSchema = z.object({
   imageUrl: z.string().nullable(),
   purchasePriceHalalas: z.number().int(),
   faceValueHalalas: z.number().int(),
-  currency: z.literal('SAR'),
+  currency: z.string(), // ISO 4217, from the voucher's market (stored on the voucher / order)
   validFrom: z.string().nullable(),
   expiresAt: z.string(),
   issuedAt: z.string(),
@@ -661,7 +661,7 @@ export const voucherMonitorSchema = z.object({
 export type VoucherMonitor = z.infer<typeof voucherMonitorSchema>;
 
 export const payableSummarySchema = z.object({
-  currency: z.literal('SAR'),
+  currency: z.string(), // ISO 4217, from the voucher's market (stored on the voucher / order)
   /** Customer money held for the merchant, not yet settlement-eligible (sold, not redeemed). */
   heldHalalas: z.number().int(),
   /** Net of platform fee, after successful redemption. Settlement itself is Stage 8. */
@@ -881,6 +881,10 @@ export const financeOverviewSchema = z.object({
     failedLast24h: z.number().int(),
     refundsLast24h: z.number().int(),
   }),
+  /** Money below is in this currency only (balances are never added across currencies). */
+  currency: z.string(),
+  /** Every currency that has ledger activity; the overview is requested per currency (`?currency=`). */
+  currencies: z.array(z.string()),
   ledger: z.object({
     balanced: z.boolean(),
     journals: z.number().int(),

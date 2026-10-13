@@ -2,6 +2,7 @@ import { Injectable, type OnModuleInit } from '@nestjs/common';
 import { AppError } from '../common/errors';
 import { CommercialRegistry, type CommercialAdapter } from '../finance/commercial.registry';
 import type { Economics } from '../finance/quote.calculator';
+import { MarketService } from '../platform/markets/market.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 /**
@@ -16,6 +17,7 @@ export class LoyaltyCommercialAdapter implements CommercialAdapter, OnModuleInit
   constructor(
     private readonly prisma: PrismaService,
     private readonly registry: CommercialRegistry,
+    private readonly markets: MarketService,
   ) {}
 
   onModuleInit() {
@@ -55,7 +57,8 @@ export class LoyaltyCommercialAdapter implements CommercialAdapter, OnModuleInit
       }
     }
     return {
-      currency: 'SAR',
+      // the campaign's market decides the currency (Market / Country Configuration), never a fixed country
+      currency: (await this.markets.profileOfCampaign(organizationId, content)).currency,
       maxUnits: units,
       unitLabel: 'VIEW',
       base: { SELLING_PRICE: 0, FACE_VALUE: 0, BENEFIT_VALUE: 0, MEDIA_SPEND_TOTAL: units * rate },

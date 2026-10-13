@@ -92,7 +92,9 @@ export function VoucherCardView({
           <Icon name="ticket" size={13} /> {t('vch.badge')}
         </span>
         {soldOut ? <span className="dd-dc__state">{t('vch.soldOut')}</span> : null}
-        <span className="dd-dc__offer dd-ltr">{formatMoney(locale, voucher.faceValueHalalas)}</span>
+        <span className="dd-dc__offer dd-ltr">
+          {formatMoney(locale, voucher.faceValueHalalas, voucher.currency)}
+        </span>
         {locked ? (
           <span className="dd-dc__lock">
             <Icon name="lock" size={14} /> {t('elig.locked')}
@@ -103,7 +105,9 @@ export function VoucherCardView({
         <h3 className="dd-dc__title">{pickText(voucher.title, locale)}</h3>
         <div className="dd-dc__merchant">{pickText(voucher.merchantName, locale)}</div>
         <div className="dd-voucher-price">
-          <strong className="dd-ltr">{formatMoney(locale, voucher.sellingPriceHalalas)}</strong>
+          <strong className="dd-ltr">
+            {formatMoney(locale, voucher.sellingPriceHalalas, voucher.currency)}
+          </strong>
           {voucher.reportedSavingsPercent > 0 ? (
             <span className="dd-chip dd-chip--success dd-ltr">
               {voucher.reportedSavingsPercent}%
@@ -176,7 +180,9 @@ export function VoucherDetailView({
   const nearest =
     detail.branches.find((b) => b.id === detail.nearestBranch?.id) ?? detail.branches[0] ?? null;
   const distance = formatDistance(locale, detail.distanceMeters);
-  const lines = visibleTermLines(locale, detail.terms.blocks, (h) => formatMoney(locale, h));
+  const lines = visibleTermLines(locale, detail.terms.blocks, (h) =>
+    formatMoney(locale, h, detail.currency),
+  );
   const termsText = pickText(detail.terms.text, locale);
   const soldOut = detail.soldOut;
   const v = detail.validity;
@@ -254,7 +260,9 @@ export function VoucherDetailView({
       <div className="dd-dd__sheet">
         <div className="dd-dd__headline">
           <h2 className="dd-dd__offer dd-ltr">
-            {t('vch.worth', { value: formatMoney(locale, detail.faceValueHalalas) })}
+            {t('vch.worth', {
+              value: formatMoney(locale, detail.faceValueHalalas, detail.currency),
+            })}
           </h2>
           <span className="dd-voucher-badge dd-voucher-badge--inline">
             <Icon name="ticket" size={13} /> {t('vch.badge')}
@@ -267,12 +275,14 @@ export function VoucherDetailView({
           <div>
             <span className="dd-caption">{t('vch.youPay')}</span>
             <strong className="dd-voucher-pricebox__price dd-ltr">
-              {formatMoney(locale, detail.sellingPriceHalalas)}
+              {formatMoney(locale, detail.sellingPriceHalalas, detail.currency)}
             </strong>
           </div>
           <div>
             <span className="dd-caption">{t('vch.voucherValue')}</span>
-            <strong className="dd-ltr">{formatMoney(locale, detail.faceValueHalalas)}</strong>
+            <strong className="dd-ltr">
+              {formatMoney(locale, detail.faceValueHalalas, detail.currency)}
+            </strong>
           </div>
           <SavingsLine
             locale={locale}
@@ -428,9 +438,13 @@ export function VoucherDetailView({
       {!embedded ? (
         <div className="dd-dd__bar">
           <div>
-            <strong className="dd-ltr">{formatMoney(locale, detail.sellingPriceHalalas)}</strong>
+            <strong className="dd-ltr">
+              {formatMoney(locale, detail.sellingPriceHalalas, detail.currency)}
+            </strong>
             <div className="dd-caption dd-ltr">
-              {t('vch.worth', { value: formatMoney(locale, detail.faceValueHalalas) })}
+              {t('vch.worth', {
+                value: formatMoney(locale, detail.faceValueHalalas, detail.currency),
+              })}
             </div>
           </div>
           {action}
@@ -463,11 +477,11 @@ export function OrderSummary({ order, locale }: { order: OrderView; locale: Loca
       <dl className="dd-kv" style={{ marginBlockStart: 12 }}>
         <div className="dd-kv__row">
           <dt>{t('ck.faceValue')}</dt>
-          <dd className="dd-ltr">{formatMoney(locale, order.faceValueHalalas)}</dd>
+          <dd className="dd-ltr">{formatMoney(locale, order.faceValueHalalas, order.currency)}</dd>
         </div>
         <div className="dd-kv__row">
           <dt>{t('ck.price')}</dt>
-          <dd className="dd-ltr">{formatMoney(locale, order.unitPriceHalalas)}</dd>
+          <dd className="dd-ltr">{formatMoney(locale, order.unitPriceHalalas, order.currency)}</dd>
         </div>
         <div className="dd-kv__row">
           <dt>{t('ck.quantity')}</dt>
@@ -476,7 +490,7 @@ export function OrderSummary({ order, locale }: { order: OrderView; locale: Loca
         {saved > 0 ? (
           <div className="dd-kv__row">
             <dt>{t('ck.savings')}</dt>
-            <dd className="dd-ltr">{formatMoney(locale, saved)}</dd>
+            <dd className="dd-ltr">{formatMoney(locale, saved, order.currency)}</dd>
           </div>
         ) : null}
         <div className="dd-kv__row dd-kv__row--total">
@@ -484,7 +498,7 @@ export function OrderSummary({ order, locale }: { order: OrderView; locale: Loca
             <strong>{t('ck.total')}</strong>
           </dt>
           <dd className="dd-ltr" data-testid="order-total">
-            <strong>{formatMoney(locale, order.totalHalalas)}</strong>
+            <strong>{formatMoney(locale, order.totalHalalas, order.currency)}</strong>
           </dd>
         </div>
       </dl>
@@ -534,7 +548,7 @@ export function WalletRowView({
         <strong>{pickText(item.title, locale)}</strong>
         <div className="dd-caption">{pickText(item.merchantName, locale)}</div>
         <div className="dd-caption dd-ltr">
-          {formatMoney(locale, item.faceValueHalalas)} · {item.reference}
+          {formatMoney(locale, item.faceValueHalalas, item.currency)} · {item.reference}
         </div>
         <div style={{ marginBlockStart: 4 }}>
           <span className={`dd-chip dd-chip--${WALLET_TONE[item.state] ?? 'neutral'}`}>
@@ -624,7 +638,7 @@ export function WalletTicket({
         <h1 className="dd-ticket__title">{pickText(v.title, locale)}</h1>
         <p className="dd-muted" style={{ margin: 0 }}>
           {pickText(v.merchantName, locale)} ·{' '}
-          <span className="dd-ltr">{formatMoney(locale, v.faceValueHalalas)}</span>
+          <span className="dd-ltr">{formatMoney(locale, v.faceValueHalalas, v.currency)}</span>
         </p>
 
         {live ? (
@@ -674,7 +688,7 @@ export function WalletTicket({
           </div>
           <div>
             <dt>{t('ck.price')}</dt>
-            <dd className="dd-ltr">{formatMoney(locale, v.purchasePriceHalalas)}</dd>
+            <dd className="dd-ltr">{formatMoney(locale, v.purchasePriceHalalas, v.currency)}</dd>
           </div>
         </dl>
 
@@ -717,7 +731,9 @@ export function WalletTicket({
           <summary>{t('vch.termsTitle')}</summary>
           <p className="dd-pre">{pickText(v.redemptionRules, locale)}</p>
           <ul className="dd-dd__terms">
-            {visibleTermLines(locale, v.terms.blocks, (h) => formatMoney(locale, h)).map((l) => (
+            {visibleTermLines(locale, v.terms.blocks, (h) =>
+              formatMoney(locale, h, v.currency),
+            ).map((l) => (
               <li key={l}>{l}</li>
             ))}
             {pickText(v.terms.text, locale) ? <li>{pickText(v.terms.text, locale)}</li> : null}

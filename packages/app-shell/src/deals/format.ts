@@ -1,6 +1,7 @@
 import {
   createTranslator,
   dictionaries,
+  displayTimeZone,
   formatDate,
   formatNumber,
   type Locale,
@@ -20,7 +21,7 @@ export function formatDistance(locale: Locale, meters: number | null | undefined
   return t('deal.km', { n: formatNumber(locale, km) });
 }
 
-/** "Ends in 3 days", "Ends today", "Ongoing offer". Dates are Gregorian and shown in Riyadh time. */
+/** "Ends in 3 days", "Ends today", "Ongoing offer". Dates are Gregorian and shown in the market's time zone. */
 export function timeLeftLabel(locale: Locale, endsAt: string | null, now = new Date()): string {
   const t = createTranslator(locale);
   if (!endsAt) return t('deal.ongoing');
@@ -42,10 +43,10 @@ export const directionsUrl = (latitude: number, longitude: number) =>
 
 const WEEK = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
 
-/** Day key and minutes since midnight, in Riyadh time. */
+/** Day key and minutes since midnight, in the market's business time zone (branch opening hours are local wall-clock times). */
 function riyadhClock(now: Date): { day: (typeof WEEK)[number]; minutes: number } {
   const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'Asia/Riyadh',
+    timeZone: displayTimeZone(),
     weekday: 'short',
     hour: '2-digit',
     minute: '2-digit',

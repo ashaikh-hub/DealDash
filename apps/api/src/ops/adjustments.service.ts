@@ -215,6 +215,13 @@ export class AdjustmentsService {
   /** Maker: record the request; below its threshold (and where configuration allows) it is applied at once. */
   async request(actor: Actor, b: AdjustmentInput, meta: RequestMeta) {
     const p = await this.prepare(b);
+    // money adjustments are in the stated currency, else the market's (never assumed)
+    const currency =
+      b.currency ??
+      (p.market ? (await this.markets.profile(p.market)).currency : null) ??
+      (b.organizationId
+        ? (await this.markets.profileOfOrganization(b.organizationId)).currency
+        : null);
     const cfg = await opsConfig(this.config);
     if (!cfg.reasons.adjustment.some((r) => r.code === b.reasonCode))
       throw AppError.validation('Choose a configured reason', 'reasonCode');
@@ -241,7 +248,9 @@ export class AdjustmentsService {
           direction: b.direction,
           amountMinor: p.amount,
           points: p.points,
-          currency: b.currency ?? 'SAR',
+          currency:
+            currency ??
+            (await this.markets.profile((await this.markets.settings()).defaultMarket)).currency,
           market: p.market,
           legalEntityId: p.legalEntityId,
           contractId: b.contractId ?? null,
@@ -370,6 +379,7 @@ export class AdjustmentsService {
             organizationId: a.organizationId!,
             amountHalalas: sign * a.amountMinor,
             reason: `${a.reference}: ${a.reason}`,
+            currency: a.currency,
           },
           meta,
         );
@@ -381,6 +391,7 @@ export class AdjustmentsService {
             sourceType: 'AdjustmentRequest',
             sourceId: a.id,
             idempotencyKey: `adj-apply:${a.id}`,
+            currency: a.currency,
             memo: `Reconciliation adjustment ${a.reference}: ${a.reason}`,
             reasonCode: a.reasonCode,
             actor: { userId: actor.userId, role: actor.membership?.roleCode ?? null },

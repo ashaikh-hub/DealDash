@@ -44,6 +44,14 @@ const isoPlus = (days: number) => new Date(Date.now() + days * 86_400_000).toISO
 
 interface Overview {
   cases: Record<string, number>;
+  /** The headline figures are in this currency; other currencies are listed separately (never added together). */
+  currency: string;
+  byCurrency?: Array<{
+    currency: string;
+    receivablesHalalas: number;
+    fundsHeldHalalas: number;
+    fundingUtilizedHalalas: number;
+  }>;
   receivablesHalalas: number;
   fundsHeldHalalas: number;
   fundingUtilizedHalalas: number;
@@ -58,6 +66,7 @@ interface CaseRow {
   status: string;
   ownerName: { en: string; ar: string };
   ownerOrganizationId: string;
+  currency: string;
   maxCashHalalas: number;
   benefitCommitmentHalalas: number;
   developmentFixture: boolean;
@@ -88,6 +97,7 @@ interface Rule {
 interface Credit {
   id: string;
   organizationId: string;
+  currency: string;
   limitHalalas: number;
   exposureHalalas: number;
   availableHalalas: number;
@@ -113,6 +123,7 @@ interface Payment {
   organizationId: string;
   caseId: string | null;
   amountHalalas: number;
+  currency: string;
   method: string;
   receivedAt: string;
 }
@@ -123,6 +134,7 @@ interface Doc {
   status: string;
   organizationId: string;
   totalHalalas: number;
+  currency: string;
   issuedAt: string;
 }
 interface Auth {
@@ -238,7 +250,7 @@ function OverviewTab() {
   const t = createTranslator(locale);
   const { data } = useGet<Overview>('/v1/admin/commercial/overview');
   if (!data) return <LoadingState label={t('state.loading')} />;
-  const money = (v: number) => formatMoney(locale, v);
+  const money = (v: number) => formatMoney(locale, v, data?.currency);
   const stat = (label: DictionaryKey, value: string, id: string) => (
     <Card flat key={id}>
       <div className="dd-caption">{t(label)}</div>
@@ -343,8 +355,10 @@ function CasesTab({ canManage }: { canManage: boolean }) {
                       {t(k('cm.status', c.status))}
                     </StatusChip>
                   </td>
-                  <td className="dd-ltr">{formatMoney(locale, c.maxCashHalalas)}</td>
-                  <td className="dd-ltr">{formatMoney(locale, c.benefitCommitmentHalalas)}</td>
+                  <td className="dd-ltr">{formatMoney(locale, c.maxCashHalalas, c.currency)}</td>
+                  <td className="dd-ltr">
+                    {formatMoney(locale, c.benefitCommitmentHalalas, c.currency)}
+                  </td>
                   <td>
                     <Button
                       variant="outline"
@@ -445,10 +459,14 @@ function CaseDetail({
                 <tr key={f.id}>
                   <td>{t(k('cm.role', f.role))}</td>
                   <td>{t(k('cm.mode', f.mode))}</td>
-                  <td className="dd-ltr">{formatMoney(locale, f.maxHalalas)}</td>
-                  <td className="dd-ltr">{formatMoney(locale, f.receivedHalalas)}</td>
-                  <td className="dd-ltr">{formatMoney(locale, f.earnedHalalas)}</td>
-                  <td className="dd-ltr">{formatMoney(locale, f.outstandingHalalas)}</td>
+                  <td className="dd-ltr">{formatMoney(locale, f.maxHalalas, data.currency)}</td>
+                  <td className="dd-ltr">
+                    {formatMoney(locale, f.receivedHalalas, data.currency)}
+                  </td>
+                  <td className="dd-ltr">{formatMoney(locale, f.earnedHalalas, data.currency)}</td>
+                  <td className="dd-ltr">
+                    {formatMoney(locale, f.outstandingHalalas, data.currency)}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -1112,9 +1130,9 @@ function CreditTab({ canRequest, canApprove }: { canRequest: boolean; canApprove
               {data.map((c) => (
                 <tr key={c.id} data-testid={`ac-credit-${c.agreementReference}`}>
                   <td className="dd-ltr">{c.organizationId.slice(0, 8)}</td>
-                  <td className="dd-ltr">{formatMoney(locale, c.limitHalalas)}</td>
-                  <td className="dd-ltr">{formatMoney(locale, c.exposureHalalas)}</td>
-                  <td className="dd-ltr">{formatMoney(locale, c.availableHalalas)}</td>
+                  <td className="dd-ltr">{formatMoney(locale, c.limitHalalas, c.currency)}</td>
+                  <td className="dd-ltr">{formatMoney(locale, c.exposureHalalas, c.currency)}</td>
+                  <td className="dd-ltr">{formatMoney(locale, c.availableHalalas, c.currency)}</td>
                   <td>{t('ac.credit.days', { n: c.paymentTermsDays })}</td>
                   <td>{formatDateTime(locale, c.expiresAt)}</td>
                   <td>
@@ -1392,7 +1410,7 @@ function MoneyTab({ canManage }: { canManage: boolean }) {
                   <tr key={x.id}>
                     <td className="dd-ltr">{x.reference}</td>
                     <td className="dd-ltr">{x.organizationId.slice(0, 8)}</td>
-                    <td className="dd-ltr">{formatMoney(locale, x.amountHalalas)}</td>
+                    <td className="dd-ltr">{formatMoney(locale, x.amountHalalas, x.currency)}</td>
                     <td>{x.method}</td>
                     <td>{formatDateTime(locale, x.receivedAt)}</td>
                   </tr>
@@ -1496,7 +1514,7 @@ function MoneyTab({ canManage }: { canManage: boolean }) {
                     <td className="dd-ltr">{x.number}</td>
                     <td>{t(k('ac.doc', x.type))}</td>
                     <td className="dd-ltr">{x.organizationId.slice(0, 8)}</td>
-                    <td className="dd-ltr">{formatMoney(locale, x.totalHalalas)}</td>
+                    <td className="dd-ltr">{formatMoney(locale, x.totalHalalas, x.currency)}</td>
                     <td>{formatDateTime(locale, x.issuedAt)}</td>
                   </tr>
                 ))}

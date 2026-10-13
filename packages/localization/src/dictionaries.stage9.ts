@@ -22,6 +22,10 @@ const S9 = {
     'A legal hold is in place for this account.',
     'يوجد حجز قانوني على هذا الحساب.',
   ],
+  'error.MARKET_CURRENCY_MISMATCH': [
+    'These amounts are in different currencies. DealDash must set pricing for this market first.',
+    'هذه المبالغ بعملات مختلفة. يجب أن تحدد ديل داش التسعير لهذا السوق أولاً.',
+  ],
 
   // ---------------------------------------------------------------- B6: customer case replies
   's9.case.you': ['You', 'أنت'],

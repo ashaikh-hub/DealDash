@@ -15,6 +15,7 @@ import {
 } from '@dealdash/app-shell';
 import {
   createTranslator,
+  displayTimeZone,
   withLocale,
   type DictionaryKey,
   type Locale,
@@ -49,7 +50,7 @@ import {
   type HotDealLimits,
   type HotDealView,
 } from '@dealdash/validation';
-import { fromRiyadhInput, toRiyadhInput, useOrgId } from './deal-utils';
+import { fromMarketInput, toMarketInput, useOrgId } from './deal-utils';
 import { HotStatusChip, stepOfHotField } from './hot-utils';
 
 interface Options {
@@ -753,9 +754,9 @@ function BuilderInner({ dealId }: { dealId?: string }) {
               id="f-startAt"
               type="datetime-local"
               dir="ltr"
-              value={startNow ? '' : toRiyadhInput(content.startAt)}
+              value={startNow ? '' : toMarketInput(content.startAt)}
               disabled={startNow || live}
-              onChange={(e) => edit({ startAt: fromRiyadhInput(e.target.value) })}
+              onChange={(e) => edit({ startAt: fromMarketInput(e.target.value) })}
             />
           </Field>
           {!live ? (
@@ -783,9 +784,9 @@ function BuilderInner({ dealId }: { dealId?: string }) {
               id="f-endAt"
               type="datetime-local"
               dir="ltr"
-              value={noEnd ? '' : toRiyadhInput(content.endAt)}
+              value={noEnd ? '' : toMarketInput(content.endAt)}
               disabled={noEnd || live}
-              onChange={(e) => edit({ endAt: fromRiyadhInput(e.target.value) })}
+              onChange={(e) => edit({ endAt: fromMarketInput(e.target.value) })}
             />
           </Field>
           {content.limitType === 'QUANTITY' && !live ? (
@@ -1205,7 +1206,7 @@ function BuilderInner({ dealId }: { dealId?: string }) {
                   ? t('builder.saved', {
                       time: savedAt.toLocaleTimeString(
                         locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-GB',
-                        { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Riyadh' },
+                        { hour: '2-digit', minute: '2-digit', timeZone: displayTimeZone() },
                       ),
                     })
                   : ''}

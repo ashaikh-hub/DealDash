@@ -69,7 +69,7 @@ export class WalletService {
       imageUrl: first ? (urls.get(first.fileId) ?? null) : null,
       purchasePriceHalalas: r.purchasePriceHalalas,
       faceValueHalalas: r.faceValueHalalas,
-      currency: 'SAR',
+      currency: r.voucher.currency,
       validFrom: r.validFrom ? r.validFrom.toISOString() : null,
       expiresAt: r.expiresAt.toISOString(),
       issuedAt: r.issuedAt.toISOString(),

@@ -335,6 +335,7 @@ describe.skipIf(!DB_READY)('Stage 8 operations', () => {
         data: {
           orderId,
           provider: 'mock',
+          currency: 'SAR', // KSA fixture order
           providerReference: `dup-${idem()}`,
           status: 'SUCCEEDED',
           amountHalalas: first.amountHalalas,

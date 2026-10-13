@@ -30,7 +30,8 @@ export class FinanceAdminService {
     return this.core.prisma;
   }
 
-  async overview(): Promise<FinanceOverview> {
+  /** Payments / refunds / ledger overview in ONE currency (default: the default market's), with the list of currencies in use. */
+  async overview(currencyIn?: string): Promise<FinanceOverview> {
     const dayAgo = new Date(Date.now() - 86_400_000);
     const [pending, open, failed, pay24, fail24, ref24, trial] = await Promise.all([
       this.prisma.voucherOrder.count({ where: { status: 'PENDING_PAYMENT' } }),
@@ -43,12 +44,31 @@ export class FinanceAdminService {
       this.prisma.refund.count({ where: { createdAt: { gte: dayAgo } } }),
       this.ledger.trialBalance(),
     ]);
+    const currencies = (
+      await this.prisma.ledgerAccount.findMany({
+        distinct: ['currency'],
+        select: { currency: true },
+      })
+    )
+      .map((a) => a.currency)
+      .sort();
+    const fallback = (
+      await this.core.markets.profile((await this.core.markets.settings()).defaultMarket)
+    ).currency;
+    const currency =
+      currencyIn ?? (currencies.includes(fallback) ? fallback : (currencies[0] ?? fallback));
+    const byOrg = async (family: Parameters<LedgerService['balancesByOrganization']>[0]) =>
+      new Map(
+        (await this.ledger.balancesByOrganization(family))
+          .filter((r) => r.currency === currency)
+          .map((r) => [r.organizationId, r.total]),
+      );
     const [held, eligible, revenue, psp, expired] = await Promise.all([
-      this.ledger.balancesByOrganization('MERCHANT_HELD'),
-      this.ledger.balancesByOrganization('MERCHANT_SETTLEMENT_ELIGIBLE'),
-      this.ledger.balance('PLATFORM_REVENUE', null),
-      this.ledger.balance('PSP_CLEARING', null),
-      this.ledger.balancesByOrganization('EXPIRED_VALUE'),
+      byOrg('MERCHANT_HELD'),
+      byOrg('MERCHANT_SETTLEMENT_ELIGIBLE'),
+      this.ledger.balance('PLATFORM_REVENUE', null, currency),
+      this.ledger.balance('PSP_CLEARING', null, currency),
+      byOrg('EXPIRED_VALUE'),
     ]);
     const sum = (m: Map<string | null, number>) => [...m.values()].reduce((a, b) => a + b, 0);
     const orgIds = [
@@ -64,6 +84,7 @@ export class FinanceAdminService {
           by: ['organizationId', 'type'],
           where: {
             organizationId: { in: orgIds },
+            currency,
             type: { in: ['REFUNDED', 'ELIGIBLE', 'REDEMPTION_REVERSED'] },
           },
           _sum: { amountHalalas: true, feeHalalas: true },
@@ -80,6 +101,8 @@ export class FinanceAdminService {
         failedLast24h: fail24,
         refundsLast24h: ref24,
       },
+      currency,
+      currencies: currencies.length ? currencies : [currency],
       ledger: {
         balanced: trial.balanced,
         journals: trial.journals,
@@ -361,13 +384,16 @@ export class FinanceAdminService {
    */
   async adjust(
     actor: Actor,
-    input: { organizationId: string; amountHalalas: number; reason: string },
+    input: { organizationId: string; amountHalalas: number; reason: string; currency?: string },
     meta: RequestMeta,
   ) {
     const org = await this.prisma.organization.findFirst({
       where: { id: input.organizationId, type: 'MERCHANT' },
     });
     if (!org) throw AppError.notFound();
+    // an adjustment is in the merchant's market currency unless the request names one (never converted)
+    const currency =
+      input.currency ?? (await this.core.markets.profileOfOrganization(org.id)).currency;
     const id = newRef('ADJ');
     return this.prisma.$transaction(async (tx) => {
       const j = await this.ledger.post(tx, {
@@ -377,6 +403,7 @@ export class FinanceAdminService {
         idempotencyKey: `adjustment:${org.id}:${id}:${Date.now()}`,
         memo: `Adjustment ${id}: ${input.reason}`,
         reasonCode: 'MANUAL_ADJUSTMENT',
+        currency,
         actor: { userId: actor.userId, role: actor.membership?.roleCode ?? null },
         lines: [
           {
@@ -392,6 +419,7 @@ export class FinanceAdminService {
           organizationId: org.id,
           type: 'ADJUSTMENT',
           amountHalalas: input.amountHalalas,
+          currency,
           journalId: j.journalId,
           note: input.reason,
         },

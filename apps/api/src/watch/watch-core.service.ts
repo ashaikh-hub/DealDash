@@ -15,6 +15,7 @@ import { CampaignVersionService } from '../platform/campaign-version.service';
 import type { Actor, RequestMeta } from '../common/request-context';
 import { FilesService } from '../files/files.service';
 import { AccessScopeService } from '../platform/access-scope.service';
+import { MarketService } from '../platform/markets/market.service';
 import { TenantService } from '../identity/tenant.service';
 import { actorInfo, DealCoreService } from '../live-deals/deal-core.service';
 import { EligibilityService } from '../live-deals/eligibility.service';
@@ -56,6 +57,10 @@ export interface WatchRecordInput {
 export interface RateCard {
   chargePerViewHalalas: number;
   version: number;
+  /** Currency of `chargePerViewHalalas` (the card was set in SAR before markets existed). */
+  currency?: string;
+  /** Market-specific rates in that market's own currency (minor units), e.g. { PK: { chargePerViewHalalas: 2500 } }. */
+  markets?: Record<string, { chargePerViewHalalas: number; version?: number }>;
 }
 export interface RewardRule {
   version: number;
@@ -174,6 +179,7 @@ export class WatchCoreService {
     private readonly files: FilesService,
     @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
     readonly access: AccessScopeService,
+    readonly markets: MarketService,
   ) {}
 
   // ---------------------------------------------------------------- tenant scope
@@ -216,6 +222,34 @@ export class WatchCoreService {
       ...D.rate,
       ...((await this.config.get<Partial<RateCard>>(CONFIG_KEYS.WATCH_RATE_CARD)) ?? {}),
     };
+  }
+  /**
+   * The rate card for a campaign's market, in that market's currency: the market's own rate when configured, else the base card ONLY
+   * when it is already in the market's currency. Otherwise the campaign cannot be priced there yet (no conversion is ever made).
+   */
+  async rateCardFor(
+    organizationId: string,
+    content: unknown,
+    db: Prisma.TransactionClient | PrismaService = this.prisma,
+  ): Promise<RateCard & { currency: string; market: string }> {
+    const card = await this.rateCard();
+    const m = await this.markets.profileOfCampaign(organizationId, content, db);
+    const own = card.markets?.[m.code];
+    if (own)
+      return {
+        ...card,
+        chargePerViewHalalas: own.chargePerViewHalalas,
+        version: own.version ?? card.version,
+        currency: m.currency,
+        market: m.code,
+      };
+    if ((card.currency ?? 'SAR') === m.currency)
+      return { ...card, currency: m.currency, market: m.code };
+    throw new AppError(
+      'PRICING_NOT_AVAILABLE',
+      `No Watch & Earn rate card is configured for ${m.code} (${m.currency}): DealDash must set one before campaigns can be priced there`,
+      409,
+    );
   }
   async rewardRule(): Promise<RewardRule> {
     const r = (await this.config.get<Partial<RewardRule>>(CONFIG_KEYS.WATCH_REWARD_RULE)) ?? {};
@@ -289,6 +323,7 @@ export class WatchCoreService {
       spentHalalas: number;
       unusedHalalas: number;
       closedOutAt: Date | null;
+      currency: string;
     },
     rate?: RateCard,
   ): Promise<WatchBudget> {
@@ -296,6 +331,7 @@ export class WatchCoreService {
     const charge = v.chargePerViewHalalas || r.chargePerViewHalalas;
     const required = v.requiredBudgetHalalas || v.paidViews * charge;
     return {
+      currency: v.currency,
       paidViews: v.paidViews,
       qualifiedViews: v.qualifiedViews,
       remainingViews: Math.max(0, v.paidViews - v.qualifiedViews),
@@ -446,14 +482,18 @@ export class WatchCoreService {
     userId: string | null,
     opts: { bumpVersion?: boolean } = {},
   ) {
-    const rate = await this.rateCard();
     const editable = campaign.status === 'DRAFT' || campaign.status === 'NEEDS_CHANGES';
+    // priced in the campaign's market currency while editable; afterwards the stored rate and currency are what was quoted
+    const rate = editable
+      ? await this.rateCardFor(campaign.organizationId, content, tx)
+      : await this.rateCard();
     // The budget is derived from the paid views and the rate card; it can only be re-priced while the campaign is editable.
     const money = editable
       ? {
           chargePerViewHalalas: rate.chargePerViewHalalas,
           rateCardVersion: rate.version,
           requiredBudgetHalalas: content.paidViews * rate.chargePerViewHalalas,
+          currency: (rate as { currency: string }).currency,
         }
       : {};
     await tx.watchCampaign.update({

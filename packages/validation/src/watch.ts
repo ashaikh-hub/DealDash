@@ -303,6 +303,8 @@ export const rewardItemSaveSchema = z.object({
 
 // ------------------------------------------------------------------ responses
 export const watchBudgetSchema = z.object({
+  /** ISO currency of every amount below: the campaign's market currency. */
+  currency: z.string(),
   paidViews: z.number().int(),
   qualifiedViews: z.number().int(),
   remainingViews: z.number().int(),
@@ -365,6 +367,8 @@ export const watchRowSchema = z.object({
   title: biText,
   paidViews: z.number().int(),
   qualifiedViews: z.number().int(),
+  /** The campaign's currency (its market). */
+  currency: z.string(),
   fundedHalalas: z.number().int(),
   spentHalalas: z.number().int(),
   startAt: z.string().nullable(),
@@ -457,6 +461,10 @@ export const watchOptionsSchema = z.object({
     chargePerViewHalalas: z.number().int(),
     version: z.number().int(),
     placeholder: z.literal(true),
+    /** Currency of the rate: the business's market currency. */
+    currency: z.string(),
+    /** false = no rate is configured for this market yet (campaigns cannot be priced there). */
+    available: z.boolean(),
   }),
   minRepeatWindowHours: z.number().int(),
   cities: z.array(z.string()),
@@ -622,6 +630,8 @@ export const adminWatchDetailSchema = watchViewSchema.extend({
   adminActions: z.array(z.string()),
   /** What the reviewer must check beyond the content: DealDash-controlled economics and settings in force. */
   economics: z.object({
+    /** The campaign's currency (its market). */
+    currency: z.string(),
     chargePerViewHalalas: z.number().int(),
     rateCardVersion: z.number().int(),
     estimatedCostHalalas: z.number().int(),
@@ -661,6 +671,8 @@ export const adminWatchOverviewSchema = z.object({
       paidViews: z.number().int(),
       qualifiedViews: z.number().int(),
       budgetPct: z.number(),
+      /** The campaign's currency (its market). */
+      currency: z.string(),
       fundedHalalas: z.number().int(),
       spentHalalas: z.number().int(),
       openFlags: z.number().int(),

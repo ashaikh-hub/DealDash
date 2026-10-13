@@ -189,8 +189,8 @@ export class AdminFinanceController {
   @Get('overview')
   @RequirePermissions('admin.payments.read')
   @ApiOkResponse({ type: FinanceOverviewResponse })
-  overview() {
-    return this.finance.overview();
+  overview(@Query('currency') currency?: string) {
+    return this.finance.overview(currency?.toUpperCase());
   }
 
   @Get('search')
