@@ -27,6 +27,7 @@ import {
 } from '@dealdash/validation';
 import { useCustomer, useImpression } from './customer-context';
 import { CardSkeletons, CityBar, LoadError, SectionHead, useHref, useT } from './parts';
+import { curate, presentCard, presentDetail } from './presentation';
 import { useDealList } from './use-deals';
 
 // ------------------------------------------------------------------ card with impression tracking
@@ -42,7 +43,7 @@ export function TrackedVoucherCard({
   const ref = useImpression(voucher.id, voucher.nearestBranch?.id, 'VOUCHER');
   return (
     <VoucherCardView
-      voucher={voucher}
+      voucher={presentCard(voucher)}
       locale={locale}
       variant={variant}
       href={href(`/vouchers/${voucher.id}`)}
@@ -76,9 +77,10 @@ export function VoucherRail() {
           </Link>
         }
       />
-      <div className="dd-hscroll">
-        {list.items.map((v) => (
-          <TrackedVoucherCard key={v.id} voucher={v} variant="carousel" />
+      {/* curated: two strong cards (one card fills the row), the rest behind See all */}
+      <div className="dd-duo">
+        {curate([list.items]).map((v) => (
+          <TrackedVoucherCard key={v.id} voucher={presentCard(v)} variant="carousel" />
         ))}
       </div>
     </section>
@@ -274,7 +276,7 @@ export function VoucherPage({ id }: { id: string }) {
   return (
     <div data-testid="customer-voucher">
       <VoucherDetailView
-        detail={detail}
+        detail={presentDetail(detail)}
         locale={locale}
         signedIn={status === 'authenticated'}
         onBack={back}

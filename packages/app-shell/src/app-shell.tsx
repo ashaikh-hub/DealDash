@@ -91,9 +91,12 @@ function MyDealsLink({ locale }: { locale: Locale }) {
 export function AppShell({
   children,
   hiddenKeys,
+  headerAccessory,
 }: {
   children: ReactNode;
   /** Stage 7: navigation items hidden because the contract does not include them. */ hiddenKeys?: readonly string[];
+  /** Customer header: an app-provided control beside the brand (the location selector on discovery screens). */
+  headerAccessory?: ReactNode;
 }) {
   const { audience, locale, me, status, signOut } = useAuth();
   const t = createTranslator(locale);
@@ -117,28 +120,44 @@ export function AppShell({
       current.startsWith('/watch/'));
   const noHeader = fullScreen || (isCustomer && current.startsWith('/merchants/'));
 
-  const navLinks = visible.map((item) => (
-    <Link
-      key={item.key}
-      href={withLocale(item.href, locale)}
-      className={mobileFirst ? undefined : 'dd-navitem'}
-      aria-current={
-        current === item.href || (item.href !== '/' && current.startsWith(item.href))
-          ? 'page'
-          : undefined
-      }
-    >
-      {isCustomer ? <Icon name={TAB_ICON[item.key] ?? 'other'} size={22} /> : null}
-      <span>{t(item.labelKey as DictionaryKey)}</span>
-    </Link>
-  ));
+  const navLinks = visible.map((item) => {
+    const active = current === item.href || (item.href !== '/' && current.startsWith(item.href));
+    // the customer tab bar features Watch & Earn as the raised centre action (approved customer UI)
+    const feature = isCustomer && item.key === 'watch';
+    return (
+      <Link
+        key={item.key}
+        href={withLocale(item.href, locale)}
+        className={mobileFirst ? (feature ? 'dd-tab--feature' : undefined) : 'dd-navitem'}
+        data-tab={item.key}
+        aria-current={active ? 'page' : undefined}
+      >
+        {isCustomer ? (
+          feature ? (
+            <span className="dd-tab__fab" aria-hidden="true">
+              <Icon name="play" size={22} filled />
+            </span>
+          ) : (
+            <Icon
+              name={TAB_ICON[item.key] ?? 'other'}
+              size={22}
+              filled={active && item.key !== 'explore'}
+            />
+          )
+        ) : null}
+        <span>{t(item.labelKey as DictionaryKey)}</span>
+      </Link>
+    );
+  });
 
   const header = isCustomer ? (
     <div className="dd-topbar dd-topbar--customer">
-      <div className="dd-row">
+      <div className="dd-brandblock">
+        {/* the proposition lives in the Home hero; the header stays light (brand, location, utilities) */}
         <Wordmark />
       </div>
-      <div className="dd-row">
+      {headerAccessory ? <div className="dd-topbar__accessory">{headerAccessory}</div> : null}
+      <div className="dd-row dd-topbar__actions">
         <MyDealsLink locale={locale} />
         <Link
           href={withLocale('/my-vouchers', locale)}
@@ -179,7 +198,10 @@ export function AppShell({
         )}
         <main className={isCustomer ? 'dd-main dd-main--customer' : 'dd-main'}>{children}</main>
         {visible.length && !fullScreen ? (
-          <nav className="dd-tabbar" aria-label="Primary">
+          <nav
+            className={isCustomer ? 'dd-tabbar dd-tabbar--customer' : 'dd-tabbar'}
+            aria-label="Primary"
+          >
             {navLinks}
           </nav>
         ) : (

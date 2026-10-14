@@ -19,6 +19,7 @@ import { Button, EmptyState, LoadingState, Skeleton } from '@dealdash/ui';
 import type { HotDealCard, HotDealDetail, ReservationView } from '@dealdash/validation';
 import { useCustomer, useImpression } from './customer-context';
 import { CardSkeletons, CityBar, LoadError, SectionHead, useHref, useT } from './parts';
+import { curate, presentCard, presentDetail } from './presentation';
 import { useDealList } from './use-deals';
 
 // ------------------------------------------------------------------ card with impression tracking
@@ -34,7 +35,7 @@ export function TrackedHotCard({
   const ref = useImpression(deal.id, deal.nearestBranch?.id, 'HOT');
   return (
     <HotCardView
-      deal={deal}
+      deal={presentCard(deal)}
       locale={locale}
       variant={variant}
       href={href(`/hot/${deal.id}`)}
@@ -68,9 +69,10 @@ export function HotRail() {
           </Link>
         }
       />
-      <div className="dd-hscroll">
-        {list.items.map((d) => (
-          <TrackedHotCard key={d.id} deal={d} variant="carousel" />
+      {/* curated: two strong cards (one card fills the row), the rest behind See all */}
+      <div className="dd-duo">
+        {curate([list.items]).map((d) => (
+          <TrackedHotCard key={d.id} deal={presentCard(d)} variant="carousel" />
         ))}
       </div>
     </section>
@@ -244,7 +246,7 @@ export function HotDealPage({ id }: { id: string }) {
   return (
     <div data-testid="customer-hot-deal">
       <HotDetailView
-        detail={detail}
+        detail={presentDetail(detail)}
         locale={locale}
         signedIn={status === 'authenticated'}
         onBack={back}

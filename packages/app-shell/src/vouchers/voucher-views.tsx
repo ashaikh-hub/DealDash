@@ -92,8 +92,15 @@ export function VoucherCardView({
           <Icon name="ticket" size={13} /> {t('vch.badge')}
         </span>
         {soldOut ? <span className="dd-dc__state">{t('vch.soldOut')}</span> : null}
-        <span className="dd-dc__offer dd-ltr">
-          {formatMoney(locale, voucher.faceValueHalalas, voucher.currency)}
+        {/* the merchant's reported saving leads on the image; the value it is worth is stated in the body */}
+        <span className="dd-dc__offer dd-voucher-offer">
+          {voucher.reportedSavingsPercent > 0 ? (
+            t('vch.saveChip', { pct: voucher.reportedSavingsPercent })
+          ) : (
+            <span className="dd-ltr">
+              {formatMoney(locale, voucher.faceValueHalalas, voucher.currency)}
+            </span>
+          )}
         </span>
         {locked ? (
           <span className="dd-dc__lock">
@@ -108,11 +115,11 @@ export function VoucherCardView({
           <strong className="dd-ltr">
             {formatMoney(locale, voucher.sellingPriceHalalas, voucher.currency)}
           </strong>
-          {voucher.reportedSavingsPercent > 0 ? (
-            <span className="dd-chip dd-chip--success dd-ltr">
-              {voucher.reportedSavingsPercent}%
-            </span>
-          ) : null}
+          <span className="dd-voucher-worth">
+            {t('vch.worth', {
+              value: formatMoney(locale, voucher.faceValueHalalas, voucher.currency),
+            })}
+          </span>
         </div>
         <div className="dd-dc__meta">
           {!soldOut && voucher.remaining !== null && voucher.remaining <= 10 ? (

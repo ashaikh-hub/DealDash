@@ -29,6 +29,7 @@ import {
   useHref,
   useT,
 } from './parts';
+import { presentDetail } from './presentation';
 
 // ------------------------------------------------------------------ search
 interface SearchResult {
@@ -211,7 +212,7 @@ export function DealPage({ id }: { id: string }) {
         </div>
       </div>
     );
-  if (state === 'error') return <LoadError onRetry={load} />;
+  if (state === 'error') return <LoadError onRetry={load} home />;
   if (state === 'missing' || !detail)
     return (
       <div className="dd-stack">
@@ -232,7 +233,7 @@ export function DealPage({ id }: { id: string }) {
   return (
     <div data-testid="customer-deal">
       <DealDetailView
-        detail={detail}
+        detail={presentDetail(detail)}
         locale={locale}
         signedIn={status === 'authenticated'}
         onBack={back}
@@ -606,10 +607,20 @@ export function ProfilePage() {
       <Card flat>
         <strong>{t('profile.language')}</strong>
         <div className="dd-row" style={{ marginBlockStart: 8 }}>
-          <Link className="dd-pill" href={withLocale('/profile', 'en')} hrefLang="en">
+          <Link
+            className={`dd-pill ${locale === 'en' ? 'dd-pill--active' : ''}`}
+            href={withLocale('/profile', 'en')}
+            hrefLang="en"
+            aria-current={locale === 'en' ? 'true' : undefined}
+          >
             English
           </Link>
-          <Link className="dd-pill" href={withLocale('/profile', 'ar')} hrefLang="ar">
+          <Link
+            className={`dd-pill ${locale === 'ar' ? 'dd-pill--active' : ''}`}
+            href={withLocale('/profile', 'ar')}
+            hrefLang="ar"
+            aria-current={locale === 'ar' ? 'true' : undefined}
+          >
             العربية
           </Link>
         </div>

@@ -1,12 +1,13 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { DealCardView, Icon, categoryIcon, useApi, useAuth } from '@dealdash/app-shell';
-import { createTranslator, withLocale, type Locale } from '@dealdash/localization';
+import { createTranslator, stripLocale, withLocale, type Locale } from '@dealdash/localization';
 import { Button, EmptyState, ErrorState, Skeleton } from '@dealdash/ui';
 import type { DealCard } from '@dealdash/validation';
 import { useCustomer, useImpression } from './customer-context';
+import { presentCard } from './presentation';
 
 export const useT = () => {
   const { locale } = useAuth();
@@ -53,7 +54,7 @@ export function TrackedCard({
   void from;
   return (
     <DealCardView
-      deal={{ ...deal, saved }}
+      deal={{ ...presentCard(deal), saved }}
       locale={locale}
       variant={variant}
       href={href(`/deals/${deal.id}`)}
@@ -122,9 +123,21 @@ export function CardSkeletons({
   );
 }
 
-export function LoadError({ onRetry }: { onRetry: () => void }) {
-  const { t } = useT();
-  return <ErrorState title={t('cust.loadError')} retryLabel={t('cust.retry')} onRetry={onRetry} />;
+export function LoadError({ onRetry, home }: { onRetry: () => void; home?: boolean }) {
+  const { t, locale } = useT();
+  const error = (
+    <ErrorState title={t('cust.loadError')} retryLabel={t('cust.retry')} onRetry={onRetry} />
+  );
+  if (!home) return error;
+  // full-screen pages have no tab bar: always offer a way back
+  return (
+    <div className="dd-stack">
+      {error}
+      <a className="dd-link dd-state__home" href={withLocale('/', locale)}>
+        {t('nav.home')}
+      </a>
+    </div>
+  );
 }
 
 export function NoDeals({ cityOff }: { cityOff?: boolean }) {
@@ -199,16 +212,72 @@ export function CityBar() {
   return (
     <>
       <div className="dd-citybar">
+        {/* the same slim location line as the Home header */}
         <button
           type="button"
-          className="dd-pill"
+          className="dd-loc"
           onClick={() => setOpen(true)}
           aria-label={t('loc.title')}
         >
-          <Icon name="pin" size={16} /> {city}
+          <Icon name="pin" size={16} />
+          <span className="dd-loc__city">{city}</span>
           <span className="dd-caption">{approximate ? '' : '•'}</span>
+          <svg
+            className="dd-loc__caret"
+            viewBox="0 0 24 24"
+            width="14"
+            height="14"
+            aria-hidden="true"
+          >
+            <path
+              d="M6 9l6 6 6-6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+            />
+          </svg>
         </button>
       </div>
+      <LocationSheet open={open} onClose={() => setOpen(false)} />
+    </>
+  );
+}
+
+/** Location selector built into the customer header on Home (approved customer UI); other screens keep their own city bar. */
+export function HeaderCity() {
+  const { t } = useT();
+  const { city } = useCustomer();
+  const [open, setOpen] = useState(false);
+  const path = stripLocale(usePathname() ?? '/');
+  if (path !== '/') return null;
+  return (
+    <>
+      <button
+        type="button"
+        className="dd-loc"
+        onClick={() => setOpen(true)}
+        aria-label={`${t('loc.title')}: ${city}`}
+        data-testid="header-city"
+      >
+        <Icon name="pin" size={16} />
+        <span className="dd-loc__city">{city}</span>
+        <svg
+          className="dd-loc__caret"
+          viewBox="0 0 24 24"
+          width="14"
+          height="14"
+          aria-hidden="true"
+        >
+          <path
+            d="M6 9l6 6 6-6"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+          />
+        </svg>
+      </button>
       <LocationSheet open={open} onClose={() => setOpen(false)} />
     </>
   );

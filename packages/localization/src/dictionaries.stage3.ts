@@ -15,7 +15,7 @@ const S3 = {
   'cust.searchPlaceholder': ['Search restaurants, brands, offers…', 'ابحث عن مطاعم وعلامات وعروض…'],
   'cust.searchLabel': ['Search', 'بحث'],
   'cust.shopByCategory': ['Shop by Category', 'تسوق حسب الفئة'],
-  'cust.liveOffers': ['Live Offers', 'العروض الحية'],
+  'cust.liveOffers': ['Live Deals', 'العروض الحية'],
   'cust.liveBadge': ['LIVE', 'مباشر'],
   'cust.happeningNow': ['Happening now around you', 'عروض متاحة الآن حولك'],
   'cust.seeAll': ['See all', 'عرض الكل'],
@@ -225,8 +225,8 @@ const S3 = {
   'profile.language': ['Language', 'اللغة'],
   'profile.savedDeals': ['Saved deals', 'العروض المحفوظة'],
   'profile.laterStages': [
-    'Rewards, Watch & Earn and My Deals arrive in later stages.',
-    'تصل المكافآت و«شاهد واكسب» و«عروضي» في مراحل لاحقة.',
+    'Sign in to collect points with Watch & Earn, redeem Rewards and keep your deals in My Deals.',
+    'سجّل الدخول لتجمع النقاط مع «شاهد واكسب» وتستبدل المكافآت وتحفظ عروضك في «عروضي».',
   ],
 
   'weekday.mon': ['Mon', 'الاثنين'],

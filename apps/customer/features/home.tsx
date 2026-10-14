@@ -2,16 +2,16 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
-import { Icon, categoryIcon, pickText, useApi } from '@dealdash/app-shell';
-import { formatNumber } from '@dealdash/localization';
-import type { DealCard } from '@dealdash/validation';
+import { Icon, categoryIcon, pickText, useApi, useAuth } from '@dealdash/app-shell';
+import { formatNumber, type DictionaryKey } from '@dealdash/localization';
+import type { DealCard, RewardSummary } from '@dealdash/validation';
 import { useCustomer } from './customer-context';
+import { curate, presentCard } from './presentation';
 import { HotRail } from './hot';
 import { VoucherRail } from './vouchers';
 import { WatchRail } from './watch';
 import {
   CardSkeletons,
-  CityBar,
   LoadError,
   NoDeals,
   SearchBox,
@@ -20,6 +20,90 @@ import {
   useHref,
   useT,
 } from './parts';
+
+/**
+ * Approved customer imagery (brand-free images from the approved UI package, apps/customer/public/brand). Category tiles without a
+ * photograph use the category's accent colour and icon. Deal cards always show the MERCHANT's own media: brand imagery is never
+ * presented as a merchant's product.
+ */
+const CATEGORY_ART: Record<string, { img?: string; accent: string }> = {
+  dining: { img: '/brand/cat-dining.jpg', accent: '#FFE9DC' },
+  cafes: { img: '/brand/cat-cafes.jpg', accent: '#F3E9DF' },
+  shopping: { img: '/brand/cat-shopping.jpg', accent: '#FCE7F0' },
+  groceries: { img: '/brand/cat-groceries.jpg', accent: '#E7F6EC' },
+  electronics: { img: '/brand/cat-electronics.jpg', accent: '#ECEEF5' },
+  fashion: { img: '/brand/cat-fashion.jpg', accent: '#EEF0F4' },
+  beauty_wellness: { accent: '#FDE6F1' },
+  entertainment: { accent: '#FFF1D6' },
+  services: { accent: '#E2F4F7' },
+  fitness: { accent: '#E2F7EF' },
+};
+
+/** The DealDash ecosystem at a glance: every product line, one tap away (existing screens only). */
+const ECOSYSTEM: Array<{ key: string; href: string; icon: string; tone: string }> = [
+  { key: 'live', href: '/explore', icon: 'tag', tone: 'live' },
+  { key: 'exclusive', href: '/hot', icon: 'flame', tone: 'hot' },
+  { key: 'vouchers', href: '/vouchers', icon: 'ticket', tone: 'voucher' },
+  { key: 'watch', href: '/watch', icon: 'play', tone: 'watch' },
+  { key: 'rewards', href: '/rewards', icon: 'gift', tone: 'rewards' },
+];
+
+function Ecosystem() {
+  const { t } = useT();
+  const href = useHref();
+  return (
+    <nav className="dd-eco" aria-label={t('home.ecosystem')} data-testid="home-ecosystem">
+      {ECOSYSTEM.map((e) => (
+        <Link key={e.key} href={href(e.href)} className={`dd-eco__item dd-eco__item--${e.tone}`}>
+          <span className="dd-eco__icon" aria-hidden="true">
+            <Icon name={e.icon} size={20} filled={e.icon === 'play' || e.icon === 'flame'} />
+          </span>
+          <span className="dd-eco__label">{t(`home.eco.${e.key}` as DictionaryKey)}</span>
+          <span className="dd-eco__sub">{t(`home.eco.${e.key}Sub` as DictionaryKey)}</span>
+        </Link>
+      ))}
+    </nav>
+  );
+}
+
+/** Points status for signed-in customers (existing rewards summary); an invitation to start earning for guests. */
+function RewardsCard() {
+  const { t, locale } = useT();
+  const href = useHref();
+  const { call } = useApi();
+  const { status } = useAuth();
+  const [summary, setSummary] = useState<RewardSummary | null>(null);
+  useEffect(() => {
+    if (status !== 'authenticated') return;
+    let alive = true;
+    void call<RewardSummary>('GET', '/v1/app/rewards').then((r) => {
+      if (alive && r.ok && r.data) setSummary(r.data);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [call, status]);
+  if (status === 'loading') return null;
+  const signedIn = status === 'authenticated';
+  return (
+    <section className="dd-rewardcard" data-testid="home-rewards">
+      <div className="dd-rewardcard__body">
+        <span className="dd-rewardcard__kicker">
+          <Icon name="gift" size={16} /> {t('home.rewardsTitle')}
+        </span>
+        <h2 className="dd-rewardcard__title">
+          {signedIn && summary
+            ? t('home.rewardsPoints', { points: formatNumber(locale, summary.availableBalance) })
+            : t('home.rewardsGuestTitle')}
+        </h2>
+        {signedIn ? null : <p className="dd-rewardcard__text">{t('home.rewardsGuestBody')}</p>}
+      </div>
+      <Link className="dd-rewardcard__cta" href={href(signedIn ? '/rewards' : '/watch')}>
+        {signedIn ? t('home.rewardsCta') : t('home.rewardsGuestCta')}
+      </Link>
+    </section>
+  );
+}
 
 interface Category {
   id: string;
@@ -64,15 +148,29 @@ export function HomePage() {
     void load();
   }, [load]);
 
-  const patch = (key: 'liveNow' | 'nearYou' | 'endingSoon') => (d: DealCard) =>
-    setFeed((f) => (f ? { ...f, [key]: f[key].map((x) => (x.id === d.id ? d : x)) } : f));
+  // a card's state (saved) changes everywhere it appears; the stored record keeps its own title and media
+  const patch = (d: DealCard) =>
+    setFeed((f) => {
+      if (!f) return f;
+      const upd = (xs: DealCard[]) =>
+        xs.map((x) => (x.id === d.id ? { ...d, title: x.title, imageUrl: x.imageUrl } : x));
+      return {
+        ...f,
+        liveNow: upd(f.liveNow),
+        nearYou: upd(f.nearYou),
+        endingSoon: upd(f.endingSoon),
+      };
+    });
   const total = feed
     ? new Set([...feed.liveNow, ...feed.nearYou, ...feed.endingSoon].map((d) => d.id)).size
     : 0;
+  // curated Home: ONE Live Deals section (near you first, then the city's other live deals), then Ending Soon only for cards
+  // not already shown — never the same card twice on the page
+  const principal = feed ? curate([feed.nearYou, feed.liveNow]) : [];
+  const ending = feed ? curate([feed.endingSoon], 2, new Set(principal.map((d) => d.id))) : [];
 
   return (
-    <div className="dd-stack" style={{ gap: 20 }} data-testid="customer-home">
-      <CityBar />
+    <div className="dd-stack dd-home" data-testid="customer-home">
       <SearchBox />
 
       {state === 'loading' ? (
@@ -86,120 +184,123 @@ export function HomePage() {
         <NoDeals cityOff />
       ) : (
         <>
-          <div className="dd-hero">
-            <span className="dd-hero__chip">
-              <span className="dd-dc__dot" aria-hidden="true" /> {t('cust.liveBadge')}
-            </span>
+          <div className="dd-hero dd-hero--photo">
+            <img className="dd-hero__img" src="/brand/hero-dining.jpg" alt="" />
+            <div className="dd-hero__top">
+              <span className="dd-hero__place">
+                <Icon name="pin" size={14} /> {t('home.heroKicker', { city: feed.city })}
+              </span>
+              {total ? (
+                <span className="dd-hero__live">
+                  <span className="dd-hero__pulse" aria-hidden="true" />
+                  {t('home.heroLive')} · {formatNumber(locale, total)}
+                </span>
+              ) : null}
+            </div>
             {/* the page's main heading (one h1 per page: Stage 9 accessibility) */}
-            <h1>{t('cust.explore.sub', { city: feed.city })}</h1>
-            <p>
-              {total
-                ? t('cust.dealsCount', { count: formatNumber(locale, total) })
-                : t('cust.tagline')}
-            </p>
+            <h1>{t('home.heroTitle')}</h1>
+            <p>{t('home.heroBody')}</p>
+            <Link className="dd-hero__cta" href={href('/explore')}>
+              {t('home.heroCta')} <Icon name="forward" size={16} />
+            </Link>
           </div>
+
+          <Ecosystem />
 
           <section className="dd-section" aria-label={t('cust.shopByCategory')}>
             <SectionHead icon="other" title={t('cust.shopByCategory')} />
-            <div className="dd-hscroll">
-              {feed.categories.map((c) => (
-                <Link key={c.id} href={href(`/explore?category=${c.code}`)} className="dd-cat">
-                  <span className="dd-cat__icon">
-                    <Icon name={categoryIcon(c.code)} size={22} />
-                  </span>
-                  <span>{pickText({ en: c.nameEn, ar: c.nameAr }, locale)}</span>
-                  {c.dealCount ? (
+            <div className="dd-hscroll dd-cats">
+              {feed.categories.map((c) => {
+                const art = CATEGORY_ART[c.code];
+                return (
+                  <Link
+                    key={c.id}
+                    href={href(`/explore?category=${c.code}`)}
+                    className="dd-cat dd-cat--art"
+                  >
                     <span
-                      className="dd-cat__count"
-                      aria-label={t('cust.dealsCount', { count: c.dealCount })}
+                      className="dd-cat__art"
+                      style={{ background: art?.accent ?? 'var(--dd-lilac)' }}
                     >
-                      {formatNumber(locale, c.dealCount)}
+                      {art?.img ? (
+                        <img src={art.img} alt="" />
+                      ) : (
+                        <Icon name={categoryIcon(c.code)} size={28} />
+                      )}
+                      {c.dealCount ? (
+                        <span
+                          className="dd-cat__count"
+                          aria-label={t('cust.dealsCount', { count: c.dealCount })}
+                        >
+                          {formatNumber(locale, c.dealCount)}
+                        </span>
+                      ) : null}
                     </span>
-                  ) : null}
-                </Link>
-              ))}
+                    <span className="dd-cat__name">
+                      {pickText({ en: c.nameEn, ar: c.nameAr }, locale)}
+                    </span>
+                  </Link>
+                );
+              })}
             </div>
           </section>
 
+          {principal.length ? (
+            <section className="dd-section" data-testid="home-live-deals">
+              <SectionHead
+                icon="pin"
+                title={t('cust.nearYou')}
+                sub={t('cust.nearYouSub')}
+                action={
+                  <Link className="dd-link" href={href('/explore?sort=nearest')}>
+                    {t('cust.seeAll')}
+                  </Link>
+                }
+              />
+              <div className="dd-duo">
+                {principal.map((d) => (
+                  <TrackedCard
+                    key={d.id}
+                    deal={presentCard(d)}
+                    variant="carousel"
+                    onChange={patch}
+                  />
+                ))}
+              </div>
+            </section>
+          ) : null}
+
           <HotRail />
-          <VoucherRail />
           <WatchRail />
+          <RewardsCard />
+          <VoucherRail />
 
-          {feed.liveNow.length === 0 && feed.nearYou.length === 0 ? (
-            <NoDeals />
-          ) : (
-            <>
-              {feed.liveNow.length ? (
-                <section className="dd-section">
-                  <SectionHead
-                    icon="tag"
-                    title={t('cust.liveOffers')}
-                    sub={t('cust.happeningNow')}
-                    action={
-                      <Link className="dd-link" href={href('/explore?sort=newest')}>
-                        {t('cust.seeAll')}
-                      </Link>
-                    }
-                  />
-                  <div className="dd-hscroll">
-                    {feed.liveNow.map((d) => (
-                      <TrackedCard
-                        key={d.id}
-                        deal={d}
-                        variant="carousel"
-                        onChange={patch('liveNow')}
-                      />
-                    ))}
-                  </div>
-                </section>
-              ) : null}
+          {principal.length === 0 ? <NoDeals /> : null}
 
-              {feed.nearYou.length ? (
-                <section className="dd-section">
-                  <SectionHead
-                    icon="pin"
-                    title={t('cust.nearYou')}
-                    sub={t('cust.nearYouSub')}
-                    action={
-                      <Link className="dd-link" href={href('/explore?sort=nearest')}>
-                        {t('cust.seeAll')}
-                      </Link>
-                    }
+          {ending.length ? (
+            <section className="dd-section" data-testid="home-ending-soon">
+              <SectionHead
+                icon="clock"
+                title={t('cust.endingSoon')}
+                sub={t('cust.endingSoonSub')}
+                action={
+                  <Link className="dd-link" href={href('/explore?sort=ending_soon')}>
+                    {t('cust.seeAll')}
+                  </Link>
+                }
+              />
+              <div className="dd-duo">
+                {ending.map((d) => (
+                  <TrackedCard
+                    key={d.id}
+                    deal={presentCard(d)}
+                    variant="carousel"
+                    onChange={patch}
                   />
-                  <div className="dd-cardgrid">
-                    {feed.nearYou.slice(0, 5).map((d) => (
-                      <TrackedCard key={d.id} deal={d} variant="list" onChange={patch('nearYou')} />
-                    ))}
-                  </div>
-                </section>
-              ) : null}
-
-              {feed.endingSoon.length ? (
-                <section className="dd-section">
-                  <SectionHead
-                    icon="clock"
-                    title={t('cust.endingSoon')}
-                    sub={t('cust.endingSoonSub')}
-                    action={
-                      <Link className="dd-link" href={href('/explore?sort=ending_soon')}>
-                        {t('cust.seeAll')}
-                      </Link>
-                    }
-                  />
-                  <div className="dd-hscroll">
-                    {feed.endingSoon.map((d) => (
-                      <TrackedCard
-                        key={d.id}
-                        deal={d}
-                        variant="carousel"
-                        onChange={patch('endingSoon')}
-                      />
-                    ))}
-                  </div>
-                </section>
-              ) : null}
-            </>
-          )}
+                ))}
+              </div>
+            </section>
+          ) : null}
         </>
       )}
     </div>

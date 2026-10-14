@@ -31,6 +31,7 @@ import type {
 } from '@dealdash/validation';
 import { useCustomer, useImpression } from './customer-context';
 import { CardSkeletons, CityBar, LoadError, SectionHead, useHref, useT } from './parts';
+import { curate, presentWatch } from './presentation';
 import { useDealList } from './use-deals';
 
 // ------------------------------------------------------------------ device id (random, app-generated: no fingerprinting)
@@ -63,7 +64,7 @@ export function TrackedWatchCard({
   const ref = useImpression(campaign.id, undefined, 'WATCH');
   return (
     <WatchCardView
-      campaign={campaign}
+      campaign={presentWatch(campaign)}
       locale={locale}
       variant={variant}
       href={href(`/watch/${campaign.id}`)}
@@ -112,9 +113,10 @@ export function WatchRail() {
           </Link>
         }
       />
-      <div className="dd-hscroll">
-        {cards.slice(0, 8).map((c) => (
-          <TrackedWatchCard key={c.id} campaign={c} variant="carousel" />
+      {/* curated: two strong cards (one card fills the row), the rest behind See all */}
+      <div className="dd-duo">
+        {curate([cards]).map((c) => (
+          <TrackedWatchCard key={c.id} campaign={presentWatch(c)} variant="carousel" />
         ))}
       </div>
     </section>
@@ -237,7 +239,7 @@ export function WatchPage({ id }: { id: string }) {
     );
   return (
     <WatchDetailView
-      detail={detail}
+      detail={presentWatch(detail)}
       locale={locale}
       signedIn={status === 'authenticated'}
       onBack={back}
@@ -673,15 +675,23 @@ export function RewardsPage() {
     return (
       <div className="dd-stack" data-testid="rewards-signin">
         <h1 className="dd-title-xl">{t('rew.title')}</h1>
-        <EmptyState
-          title={t('rew.signInTitle')}
-          description={t('rew.signInBody')}
-          action={
-            <Button onClick={() => router.push(href('/profile') + '?reason=earn')}>
-              {t('auth.signIn')}
-            </Button>
-          }
-        />
+        {/* the Home rewards card language: navy card, amber accent, one clear action */}
+        <section className="dd-rewardcard dd-rewardcard--stack">
+          <div className="dd-rewardcard__body">
+            <span className="dd-rewardcard__kicker">
+              <Icon name="gift" size={16} /> {t('rew.title')}
+            </span>
+            <h2 className="dd-rewardcard__title">{t('rew.signInTitle')}</h2>
+            <p className="dd-rewardcard__text">{t('rew.signInBody')}</p>
+          </div>
+          <button
+            type="button"
+            className="dd-rewardcard__cta"
+            onClick={() => router.push(href('/profile') + '?reason=earn')}
+          >
+            {t('auth.signIn')}
+          </button>
+        </section>
       </div>
     );
 

@@ -3021,3 +3021,770 @@ button.dd-staffrow:focus-visible {
   font-weight: 800;
   color: var(--dd-mint);
 }
+
+/* ================================================================ Customer brand layer (approved customer UI package)
+   Deal = navy, Dash = purple; white / light-lavender surfaces; navy text; purple actions; 20-24px rounded cards with restrained
+   shadows; photography for the proposition and categories. Customer-only selectors: business portals are unchanged. */
+
+/* ---- header: brand block + actions, location line beneath */
+.dd-topbar--customer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'brand actions'
+    'acc acc';
+  align-items: center;
+  row-gap: 10px;
+  column-gap: 12px;
+  padding-block-start: 6px;
+}
+.dd-brandblock {
+  grid-area: brand;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-inline-size: 0;
+}
+.dd-topbar--customer .dd-wordmark {
+  font-size: 27px;
+  line-height: 30px;
+  letter-spacing: -0.035em;
+  color: var(--dd-navy);
+}
+.dd-brandblock__tag {
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 600;
+  color: var(--dd-ink-2);
+  letter-spacing: 0.01em;
+}
+.dd-topbar__actions {
+  grid-area: actions;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+.dd-topbar__accessory {
+  grid-area: acc;
+  min-inline-size: 0;
+}
+.dd-topbar--customer .dd-topicon {
+  inline-size: 40px;
+  block-size: 40px;
+  border: 1px solid var(--dd-line);
+  background: transparent;
+  box-shadow: none;
+  color: var(--dd-navy);
+}
+.dd-topbar--customer .dd-lang {
+  background: var(--dd-lilac);
+  box-shadow: none;
+  padding: 3px;
+}
+.dd-topbar--customer .dd-lang a {
+  padding: 5px 9px;
+  font-size: 11px;
+}
+.dd-topbar--customer .dd-lang a[aria-current='true'] {
+  background: var(--dd-purple);
+  color: #fff;
+  box-shadow: none;
+}
+
+/* location line (Home) */
+.dd-loc {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-inline-size: 100%;
+  min-block-size: 32px;
+  padding: 0;
+  border-radius: 8px;
+  border: 0;
+  background: transparent;
+  color: var(--dd-navy);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.dd-loc .dd-ic {
+  color: var(--dd-purple);
+  flex: none;
+}
+.dd-loc__city {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dd-loc__caret {
+  flex: none;
+  color: var(--dd-purple);
+}
+.dd-loc:focus-visible {
+  box-shadow: var(--dd-focus);
+  outline: 0;
+}
+
+/* ---- search: the primary discovery control */
+.dd-shell--mobile .dd-searchbar {
+  min-block-size: 54px;
+  border-radius: 18px;
+  border: 1px solid transparent;
+  box-shadow:
+    0 1px 2px rgba(20, 22, 58, 0.05),
+    0 10px 28px rgba(20, 22, 58, 0.08);
+  padding-inline: 16px;
+}
+.dd-shell--mobile .dd-searchbar > .dd-ic {
+  color: var(--dd-purple);
+}
+.dd-shell--mobile .dd-searchbar input::placeholder {
+  color: #8a8cab;
+}
+.dd-shell--mobile .dd-searchbar:focus-within {
+  border-color: rgba(91, 26, 252, 0.4);
+  box-shadow: var(--dd-focus);
+}
+
+/* ---- home rhythm */
+.dd-home {
+  gap: 24px;
+}
+.dd-shell--mobile .dd-section__title {
+  font-size: 20px;
+  letter-spacing: -0.02em;
+}
+.dd-shell--mobile .dd-section__icon {
+  border-radius: 11px;
+  background: linear-gradient(135deg, #7e4dff, #5b1afc);
+  box-shadow: 0 4px 10px rgba(91, 26, 252, 0.25);
+}
+
+/* ---- photographic hero (the proposition) */
+.dd-hero--photo {
+  isolation: isolate;
+  min-block-size: 236px;
+  padding: 58px 18px 18px;
+  justify-content: flex-end;
+  gap: 6px;
+  background: var(--dd-navy);
+  box-shadow: 0 14px 34px rgba(15, 12, 66, 0.22);
+}
+.dd-hero--photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  inline-size: auto;
+  block-size: auto;
+  border-radius: 0;
+  z-index: -1;
+  background:
+    linear-gradient(
+      to top,
+      rgba(10, 8, 48, 0.88) 0%,
+      rgba(10, 8, 48, 0.3) 52%,
+      rgba(10, 8, 48, 0.05) 80%
+    ),
+    linear-gradient(to right, rgba(10, 8, 48, 0.5), transparent 62%);
+}
+[dir='rtl'] .dd-hero--photo::after {
+  background:
+    linear-gradient(
+      to top,
+      rgba(10, 8, 48, 0.88) 0%,
+      rgba(10, 8, 48, 0.3) 52%,
+      rgba(10, 8, 48, 0.05) 80%
+    ),
+    linear-gradient(to left, rgba(10, 8, 48, 0.5), transparent 62%);
+}
+.dd-hero__img {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  z-index: -2;
+}
+.dd-hero__top {
+  position: absolute;
+  inset-block-start: 16px;
+  inset-inline: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.dd-hero__place {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.dd-hero__live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 99px;
+  background: rgba(15, 12, 66, 0.72);
+  backdrop-filter: blur(6px);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.dd-hero__pulse {
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: 50%;
+  background: #ff4d67;
+  box-shadow: 0 0 0 3px rgba(255, 77, 103, 0.3);
+}
+.dd-hero--photo h1 {
+  font-size: 28px;
+  line-height: 32px;
+  letter-spacing: -0.03em;
+  max-inline-size: 13ch;
+}
+.dd-hero--photo p {
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0.9;
+  max-inline-size: 26ch;
+}
+.dd-hero__cta {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-block-start: 8px;
+  padding: 11px 18px;
+  border-radius: 99px;
+  background: #fff;
+  color: var(--dd-navy);
+  font-weight: 800;
+  font-size: 14px;
+  text-decoration: none;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+}
+.dd-hero__cta .dd-ic {
+  color: var(--dd-purple);
+}
+
+/* ---- the ecosystem row: Live Deals · Exclusive · Vouchers · Watch & Earn · Rewards */
+.dd-eco {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+.dd-eco__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 4px 10px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: var(--dd-shadow-card);
+  text-decoration: none;
+  text-align: center;
+  color: var(--dd-navy);
+  min-inline-size: 0;
+}
+.dd-eco__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 40px;
+  block-size: 40px;
+  margin-block-end: 6px;
+  border-radius: 14px;
+  color: #fff;
+}
+.dd-eco__item--live .dd-eco__icon {
+  background: linear-gradient(135deg, #7e4dff, #5b1afc);
+}
+.dd-eco__item--hot .dd-eco__icon {
+  background: linear-gradient(135deg, #ff7a1a, #e93a52);
+}
+.dd-eco__item--voucher .dd-eco__icon {
+  background: linear-gradient(135deg, #2fd3a2, #0e9f76);
+}
+.dd-eco__item--watch .dd-eco__icon {
+  background: linear-gradient(135deg, #2b1f7a, #0f0c42);
+}
+.dd-eco__item--rewards .dd-eco__icon {
+  background: linear-gradient(135deg, #ffb020, #f08a00);
+}
+.dd-eco__label {
+  font-size: 12px;
+  line-height: 15px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.dd-eco__sub {
+  font-size: 10px;
+  line-height: 13px;
+  font-weight: 600;
+  color: var(--dd-ink-2);
+}
+.dd-eco__item:focus-visible {
+  outline: 0;
+  box-shadow: var(--dd-focus);
+}
+
+/* ---- photographic category tiles */
+.dd-cats {
+  gap: 14px;
+}
+.dd-cat--art {
+  inline-size: 78px;
+  padding: 0;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  overflow: visible;
+}
+.dd-cat__art {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 78px;
+  block-size: 78px;
+  border-radius: 22px;
+  color: var(--dd-purple);
+  box-shadow: var(--dd-shadow-card);
+  overflow: hidden;
+}
+.dd-cat__art img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  mix-blend-mode: multiply;
+}
+.dd-cat--art .dd-cat__count {
+  inset-block-start: 6px;
+  inset-inline-end: 6px;
+  box-shadow: 0 2px 6px rgba(91, 26, 252, 0.35);
+}
+.dd-cat__name {
+  font-size: 12px;
+  line-height: 15px;
+  font-weight: 700;
+  color: var(--dd-navy);
+}
+.dd-cat--art:focus-visible .dd-cat__art {
+  box-shadow: var(--dd-focus);
+}
+
+/* ---- rewards / points status */
+.dd-rewardcard {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px;
+  border-radius: 22px;
+  color: #fff;
+  background:
+    radial-gradient(circle at 92% 10%, rgba(255, 176, 32, 0.45), transparent 42%),
+    linear-gradient(135deg, #2b1f7a 0%, #0f0c42 70%);
+  box-shadow: 0 12px 28px rgba(15, 12, 66, 0.2);
+}
+[dir='rtl'] .dd-rewardcard {
+  background:
+    radial-gradient(circle at 8% 10%, rgba(255, 176, 32, 0.45), transparent 42%),
+    linear-gradient(225deg, #2b1f7a 0%, #0f0c42 70%);
+}
+.dd-rewardcard__body {
+  flex: 1;
+  min-inline-size: 0;
+  display: grid;
+  gap: 4px;
+}
+.dd-rewardcard__kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #ffc861;
+}
+.dd-rewardcard__title {
+  margin: 0;
+  font-size: 18px;
+  line-height: 23px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.dd-rewardcard__text {
+  margin: 0;
+  font-size: 12px;
+  line-height: 17px;
+  opacity: 0.82;
+}
+.dd-rewardcard__cta {
+  flex: none;
+  padding: 10px 14px;
+  border-radius: 99px;
+  background: #fff;
+  color: var(--dd-navy);
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* ---- deal cards in the customer app: deeper media, premium placeholder when a merchant has no photo yet */
+.dd-shell--mobile .dd-dc {
+  border: 0;
+  border-radius: 22px;
+}
+.dd-shell--mobile .dd-dc__ph {
+  background:
+    radial-gradient(circle at 80% 15%, rgba(255, 255, 255, 0.28), transparent 45%),
+    linear-gradient(140deg, #7e4dff 0%, #5b1afc 45%, #2b1f7a 100%);
+}
+
+/* ---- bottom navigation: white bar, filled active icon, raised Watch & Earn */
+.dd-tabbar--customer {
+  position: sticky;
+  z-index: 20;
+  align-items: flex-end;
+  border-block-start: 0;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 -6px 24px rgba(15, 12, 66, 0.08);
+  border-start-start-radius: 22px;
+  border-start-end-radius: 22px;
+  padding: 8px 6px calc(10px + env(safe-area-inset-bottom));
+}
+.dd-tabbar--customer a {
+  flex: 1;
+  min-inline-size: 0;
+  padding: 4px 2px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #8a8cab;
+  background: transparent;
+}
+.dd-tabbar--customer a[aria-current='page'] {
+  background: transparent;
+  color: var(--dd-purple);
+}
+.dd-tabbar--customer a[aria-current='page']:not(.dd-tab--feature) span:last-child {
+  font-weight: 800;
+}
+.dd-tab--feature {
+  position: relative;
+}
+.dd-tab__fab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 56px;
+  block-size: 56px;
+  margin-block-start: -30px;
+  border-radius: 50%;
+  color: #fff;
+  background: linear-gradient(140deg, #7e4dff, #5b1afc 60%, #4310d6);
+  border: 4px solid #fff;
+  box-shadow: 0 10px 24px rgba(91, 26, 252, 0.4);
+}
+.dd-tab--feature[aria-current='page'] .dd-tab__fab {
+  box-shadow:
+    0 0 0 3px rgba(91, 26, 252, 0.25),
+    0 10px 24px rgba(91, 26, 252, 0.45);
+}
+.dd-tabbar--customer a:focus-visible {
+  outline: 0;
+  box-shadow: var(--dd-focus);
+  border-radius: 14px;
+}
+
+/* ---- install prompt: quiet, dismissible */
+.dd-install {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: var(--dd-shadow-card);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dd-ink-2);
+}
+.dd-install__mark {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 30px;
+  block-size: 30px;
+  border-radius: 9px;
+  background: var(--dd-purple);
+  color: #fff;
+  font-weight: 800;
+}
+.dd-install__text {
+  flex: 1;
+  min-inline-size: 0;
+}
+.dd-install__close {
+  flex: none;
+  inline-size: 32px;
+  block-size: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--dd-ink-2);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* ---- curated two-card sections: two strong cards; one card fills the row (never an empty slot) */
+.dd-duo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.dd-duo > .dd-dc {
+  inline-size: auto;
+  min-inline-size: 0;
+}
+.dd-duo > .dd-dc:only-child {
+  grid-column: 1 / -1;
+}
+.dd-duo > .dd-dc:only-child .dd-dc__media {
+  block-size: 180px;
+}
+.dd-duo > .dd-dc .dd-dc__body {
+  padding: 10px 12px 12px;
+}
+.dd-duo > .dd-dc .dd-dc__title {
+  font-size: 14px;
+  line-height: 19px;
+}
+
+/* ---- voucher merchandising: saving on the image, "price · worth" in the body */
+.dd-voucher-offer {
+  background: var(--dd-mint);
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+.dd-voucher-price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 8px;
+  row-gap: 2px;
+}
+.dd-voucher-price strong {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--dd-purple);
+}
+.dd-voucher-worth {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dd-ink-2);
+}
+
+/* ---- Watch & Earn cards: navy video frame, prominent play, points reward */
+.dd-shell--mobile .dd-dc--watch {
+  background: linear-gradient(180deg, #fff 0%, #fff 60%, #f4f0ff 100%);
+}
+.dd-shell--mobile .dd-dc--watch .dd-watch-play {
+  inline-size: 52px;
+  block-size: 52px;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--dd-purple);
+  box-shadow: 0 8px 20px rgba(15, 12, 66, 0.35);
+}
+.dd-shell--mobile .dd-dc--watch .dd-chip--success {
+  background: linear-gradient(135deg, #ffb020, #f08a00);
+  color: #fff;
+  font-weight: 800;
+}
+
+/* phones: the five products stay on one line with readable labels (the sub-line returns where there is room) */
+@media (max-width: 440px) {
+  .dd-eco {
+    gap: 6px;
+  }
+  .dd-eco__sub {
+    display: none;
+  }
+  .dd-eco__item {
+    padding: 12px 2px 10px;
+    min-block-size: 88px;
+    justify-content: flex-start;
+  }
+  .dd-eco__label {
+    font-size: 12px;
+    line-height: 15px;
+  }
+}
+@media (max-width: 359px) {
+  /* 320px: the five products scroll sideways at full label size instead of shrinking */
+  .dd-eco {
+    display: flex;
+    overflow-x: auto;
+    margin-inline: -16px;
+    padding-inline: 16px;
+    padding-block-end: 4px;
+    scrollbar-width: none;
+  }
+  .dd-eco::-webkit-scrollbar {
+    display: none;
+  }
+  .dd-eco__item {
+    flex: none;
+    inline-size: 78px;
+  }
+  .dd-duo > .dd-dc .dd-dc__title {
+    font-size: 13px;
+    line-height: 18px;
+  }
+  .dd-topbar--customer {
+    column-gap: 8px;
+  }
+  .dd-topbar--customer .dd-wordmark {
+    font-size: 22px;
+    line-height: 26px;
+  }
+  .dd-brandblock__tag {
+    font-size: 10px;
+    line-height: 13px;
+  }
+  .dd-topbar__actions {
+    gap: 6px;
+  }
+  .dd-topbar--customer .dd-topicon {
+    inline-size: 34px;
+    block-size: 34px;
+  }
+  .dd-topbar--customer .dd-lang a {
+    padding: 4px 7px;
+  }
+  .dd-tabbar--customer a {
+    font-size: 10px;
+  }
+  .dd-tabbar--customer a > span:last-child {
+    max-inline-size: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+/* ---- consistency across customer screens (Home language) */
+/* sort / filter options: one sideways-scrolling row instead of stacked rows */
+.dd-main--customer .dd-optrow {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  margin-inline: -16px;
+  padding-inline: 16px;
+  padding-block-end: 4px;
+  scrollbar-width: none;
+}
+.dd-main--customer .dd-optrow::-webkit-scrollbar {
+  display: none;
+}
+.dd-main--customer .dd-optrow > * {
+  flex: none;
+}
+/* list search fields look like the Home search */
+.dd-main--customer input.dd-input[type='search'] {
+  min-block-size: 50px;
+  border-radius: 16px;
+  border-color: transparent;
+  background: #fff;
+  box-shadow:
+    0 1px 2px rgba(20, 22, 58, 0.05),
+    0 10px 28px rgba(20, 22, 58, 0.08);
+  padding-inline: 16px;
+}
+a.dd-pill {
+  text-decoration: none;
+}
+/* detail headline (offer / points + product badge): wraps on narrow phones instead of pushing past the edge */
+.dd-shell--mobile .dd-dd__headline {
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+.dd-shell--mobile .dd-dd__offer {
+  min-inline-size: 0;
+}
+/* empty / error / loading states: a calm Home-style card instead of bare text */
+.dd-main--customer .dd-state {
+  background: #fff;
+  border-radius: 22px;
+  box-shadow: var(--dd-shadow-card);
+  padding: 28px 20px;
+}
+.dd-main--customer .dd-state::before {
+  content: '';
+  display: block;
+  inline-size: 48px;
+  block-size: 48px;
+  margin: 0 auto 6px;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.45), transparent 55%),
+    linear-gradient(135deg, #7e4dff, #5b1afc);
+  box-shadow: 0 6px 14px rgba(91, 26, 252, 0.25);
+}
+.dd-main--customer .dd-state[role='status']:has(.dd-spinner)::before {
+  display: none;
+}
+.dd-state__home {
+  align-self: center;
+  min-block-size: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+/* language toggle: at least a 32px tap target at every width */
+.dd-topbar--customer .dd-lang a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 32px;
+  min-block-size: 32px;
+}
+/* Watch & Earn list cards: one clear play control (the badge is the card's own label in the carousel only) */
+.dd-dc--list.dd-dc--watch .dd-watch-badge:not(.dd-watch-badge--inline) {
+  display: none;
+}
+.dd-shell--mobile .dd-dc--list.dd-dc--watch .dd-watch-play {
+  inline-size: 40px;
+  block-size: 40px;
+}
+/* the rewards card as a full-width call to action (guest Rewards) */
+.dd-rewardcard--stack {
+  flex-direction: column;
+  align-items: stretch;
+  padding: 22px;
+}
+.dd-rewardcard--stack .dd-rewardcard__cta {
+  align-self: flex-start;
+}
+button.dd-rewardcard__cta {
+  border: 0;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  min-block-size: 44px;
+  padding-inline: 20px;
+}
