@@ -870,6 +870,21 @@ const S8 = {
   's8.ntf.when': ['Last attempt', 'آخر محاولة'],
   's8.ntf.empty': ['No deliveries here.', 'لا توجد عمليات توصيل هنا.'],
   's8.ntf.retried': ['Retried.', 'تمت إعادة المحاولة.'],
+  // launch readiness G-1: staging test inbox (staging only)
+  'stg.inbox.title': ['Staging test inbox', 'صندوق رسائل الاختبار (بيئة التجربة)'],
+  'stg.inbox.intro': [
+    'Staging only. Sign-in codes and invitation links sent to synthetic test numbers and addresses, kept for 24 hours. No real SMS or e-mail is sent in staging.',
+    'في بيئة التجربة فقط. رموز الدخول وروابط الدعوة المرسلة إلى أرقام وعناوين اختبار وهمية، وتُحفظ 24 ساعة. لا تُرسل رسائل نصية أو بريد حقيقي في بيئة التجربة.',
+  ],
+  'stg.inbox.recipient': ['Test number or address', 'رقم أو عنوان الاختبار'],
+  'stg.inbox.refresh': ['Show', 'عرض'],
+  'stg.inbox.codeOrLink': ['Code / link', 'الرمز / الرابط'],
+  'stg.inbox.when': ['Sent', 'وقت الإرسال'],
+  'stg.inbox.empty': [
+    'No test messages in the last 24 hours.',
+    'لا توجد رسائل اختبار خلال آخر 24 ساعة.',
+  ],
+  'stg.inbox.error': ['The test inbox could not be loaded.', 'تعذر تحميل صندوق رسائل الاختبار.'],
   's8.dlvStatus.QUEUED': ['Queued', 'في الانتظار'],
   's8.dlvStatus.SENT': ['Sent', 'مُرسل'],
   's8.dlvStatus.DELIVERED': ['Delivered', 'مُسلّم'],

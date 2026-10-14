@@ -40,7 +40,14 @@ module "cell" {
   app_env = {
     # UAT before contracts: development adapters may stand in (refused in production)
     ALLOW_MOCK_PROVIDERS = "true"
+    # G-1 staging test inbox: synthetic recipients only — the seeded accounts' number range, a Pakistani range no real mobile uses
+    # (+92 0...), and reserved .test addresses. Refused in production by the boot check.
+    STAGING_TEST_PHONE_PREFIXES = "+966500000,+92000000"
+    STAGING_TEST_EMAIL_DOMAINS  = "test"
   }
+
+  # G-2: one-off synthetic seed job + its Secret Manager values (staging only)
+  enable_seed_job = true
 
   domain           = var.domain
   host_prefix      = "staging"
@@ -102,6 +109,8 @@ output "cell" {
     deployer_service_account   = module.cell.deployer_service_account
     services                   = module.cell.services
     migrate_job                = module.cell.migrate_job
+    seed_job                   = module.cell.seed_job
+    seed_secrets               = module.cell.seed_secrets
     service_uris               = module.cell.service_uris
     public_hosts               = module.cell.public_hosts
     dns_records                = module.cell.dns_records

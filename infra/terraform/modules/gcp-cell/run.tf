@@ -3,11 +3,14 @@ locals {
   cors_origins   = local.edge ? join(",", [for k, h in local.hosts : "https://${h}" if k != "api"]) : "https://private.invalid"
   # Non-secret runtime settings shared by the API and the migration job. Production refuses unsafe values at boot.
   api_env = merge({
-    NODE_ENV                   = "production"
-    APP_ENV                    = var.environment
-    API_PORT                   = "4000"
-    API_PUBLIC_URL             = local.api_public_url
-    CORS_ORIGINS               = local.cors_origins
+    NODE_ENV       = "production"
+    APP_ENV        = var.environment
+    API_PORT       = "4000"
+    API_PUBLIC_URL = local.api_public_url
+    CORS_ORIGINS   = local.cors_origins
+    # launch readiness G-3: links in invitation messages open the environment's own merchant / partner portals (never localhost)
+    MERCHANT_APP_URL           = local.edge ? "https://${local.hosts.merchant}" : "https://merchant.private.invalid"
+    PARTNER_APP_URL            = local.edge ? "https://${local.hosts.partner}" : "https://partner.private.invalid"
     LOG_FORMAT                 = "json"
     RATE_LIMIT_PER_MINUTE      = tostring(var.rate_limit_per_minute)
     AUTH_RATE_LIMIT_PER_MINUTE = tostring(var.auth_rate_limit_per_minute)
@@ -187,6 +190,73 @@ resource "google_cloud_run_v2_job" "migrate" {
     }
   }
   depends_on = [google_secret_manager_secret_version.app, google_secret_manager_secret_iam_member.runtime]
+}
+
+# Launch readiness G-2 — the ONE-OFF staging seed (synthetic data), started by tooling/deploy/seed-gcp.mjs after the first release.
+# Same image as the migration job, different command. It refuses anything but staging and any database that already has accounts.
+resource "google_cloud_run_v2_job" "seed" {
+  count               = var.enable_seed_job ? 1 : 0
+  project             = var.project_id
+  name                = "${local.name}-seed"
+  location            = var.region
+  deletion_protection = false
+
+  lifecycle {
+    ignore_changes = [template[0].template[0].containers[0].image, client, client_version]
+    precondition {
+      condition     = var.environment == "staging"
+      error_message = "The seed job exists only in staging (synthetic data). Production is never seeded."
+    }
+  }
+
+  template {
+    task_count = 1
+    template {
+      service_account = google_service_account.runtime.email
+      max_retries     = 0
+      timeout         = "1800s"
+      volumes {
+        name = "cloudsql"
+        cloud_sql_instance {
+          instances = [google_sql_database_instance.pg.connection_name]
+        }
+      }
+      containers {
+        image   = var.images["migrate"]
+        command = ["node_modules/.bin/tsx"]
+        args    = ["prisma/staging-seed.ts"]
+        dynamic "env" {
+          for_each = local.api_env
+          content {
+            name  = env.key
+            value = env.value
+          }
+        }
+        dynamic "env" {
+          for_each = merge(google_secret_manager_secret.app, google_secret_manager_secret.seed)
+          content {
+            name = env.key
+            value_source {
+              secret_key_ref {
+                secret  = env.value.secret_id
+                version = "latest"
+              }
+            }
+          }
+        }
+        volume_mounts {
+          name       = "cloudsql"
+          mount_path = "/cloudsql"
+        }
+      }
+    }
+  }
+  depends_on = [
+    google_secret_manager_secret_version.app,
+    google_secret_manager_secret_version.seed,
+    google_secret_manager_secret_iam_member.runtime,
+    google_secret_manager_secret_iam_member.seed_runtime,
+  ]
 }
 
 # Who may call the services: in EDGE mode only the load balancer path exists (ingress), so the services accept unauthenticated

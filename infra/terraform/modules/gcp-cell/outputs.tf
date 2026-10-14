@@ -20,6 +20,16 @@ output "migrate_job" {
   value = google_cloud_run_v2_job.migrate.name
 }
 
+output "seed_job" {
+  value       = var.enable_seed_job ? google_cloud_run_v2_job.seed[0].name : null
+  description = "Staging only (G-2): one-off synthetic seed job, run with tooling/deploy/seed-gcp.mjs."
+}
+
+output "seed_secrets" {
+  value       = [for s in google_secret_manager_secret.seed : s.secret_id]
+  description = "Secret Manager NAMES (never values) of the seed password and the shared authenticator key."
+}
+
 output "service_uris" {
   value       = { for k, s in local.all_services : k => s.uri }
   description = "Direct Cloud Run URLs (PRIVATE mode: reachable only by named engineers through `gcloud run services proxy`)."

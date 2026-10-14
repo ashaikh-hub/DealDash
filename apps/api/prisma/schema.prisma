@@ -4699,6 +4699,23 @@ model NotificationPreference {
   @@unique([userId, category])
 }
 
+/// Launch readiness (G-1): STAGING ONLY. What the development SMS / e-mail adapters "sent" to configured synthetic test recipients
+/// (STAGING_TEST_PHONE_PREFIXES / STAGING_TEST_EMAIL_DOMAINS), so testers can sign in without a real SMS provider. The body is
+/// field-encrypted and rows older than 24 hours are removed. Never written in development, test or production tiers.
+model StagingTestMessage {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  /// SMS | EMAIL
+  channel     String
+  recipient   String
+  templateKey String
+  subject     String?
+  bodyEnc     String
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([recipient, createdAt])
+}
+
 // =====================================================================================================================================
 // Phase 5: billing and finance
 // =====================================================================================================================================

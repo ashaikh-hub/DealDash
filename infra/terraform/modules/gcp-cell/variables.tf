@@ -161,6 +161,12 @@ variable "trust_proxy_hops" {
   description = "Proxies in front of the API. Default: 2 behind Cloudflare + load balancer, 1 direct. Verify client IPs in the smoke test."
 }
 
+variable "enable_seed_job" {
+  type        = bool
+  default     = false
+  description = "Staging only (launch readiness G-2): create the one-off seed job and its Secret Manager values (synthetic data). Refused for production."
+}
+
 variable "github_repository" {
   type        = string
   description = "owner/repo allowed to deploy through Workload Identity Federation (no long-lived keys)."

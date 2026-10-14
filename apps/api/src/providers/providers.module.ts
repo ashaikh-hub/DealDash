@@ -1,6 +1,8 @@
 import { Global, Module } from '@nestjs/common';
 import type { ApiEnv } from '@dealdash/config';
 import { APP_ENV } from '../common/env';
+import { PrismaService } from '../prisma/prisma.service';
+import { testInboxRecorder } from '../staging/test-inbox';
 import {
   EMAIL_PROVIDER,
   FILE_SCANNER,
@@ -23,7 +25,13 @@ import {
   MockSmsProvider,
   MockStorageProvider,
   MockVideoProvider,
+  type MockMessagingOptions,
 } from './mocks';
+
+const messagingOptions = (env: ApiEnv, prisma: PrismaService): MockMessagingOptions => ({
+  redactLogs: env.NODE_ENV === 'production',
+  observer: testInboxRecorder(env, prisma),
+});
 
 /**
  * Provider wiring. Only development adapters exist today; adding a real vendor means adding an adapter class and a
@@ -32,8 +40,20 @@ import {
 @Global()
 @Module({
   providers: [
-    { provide: SMS_PROVIDER, useClass: MockSmsProvider },
-    { provide: EMAIL_PROVIDER, useClass: MockEmailProvider },
+    // Outside development (staging with ALLOW_MOCK_PROVIDERS) the development adapters keep message bodies out of the logs and hand
+    // messages for synthetic test recipients to the staging test inbox (launch readiness G-1).
+    {
+      provide: SMS_PROVIDER,
+      inject: [APP_ENV, PrismaService],
+      useFactory: (env: ApiEnv, prisma: PrismaService) =>
+        new MockSmsProvider(messagingOptions(env, prisma)),
+    },
+    {
+      provide: EMAIL_PROVIDER,
+      inject: [APP_ENV, PrismaService],
+      useFactory: (env: ApiEnv, prisma: PrismaService) =>
+        new MockEmailProvider(messagingOptions(env, prisma)),
+    },
     { provide: PUSH_PROVIDER, useClass: MockPushProvider },
     { provide: PAYMENT_PROVIDER, useClass: MockPaymentProvider },
     {

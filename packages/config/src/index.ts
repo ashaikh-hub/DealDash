@@ -6,6 +6,11 @@ export * from './launch';
 export * from './operations';
 
 const providerSchema = z.enum(['mock']).default('mock'); // real vendors are added when selected
+const csv = (v: string) =>
+  v
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
 
 /** API environment. Business parameters are NOT here: they live in SystemConfiguration (database). */
 export const apiEnvSchema = z.object({
@@ -59,6 +64,17 @@ export const apiEnvSchema = z.object({
     .enum(['true', 'false'])
     .default('false')
     .transform((v) => v === 'true'),
+  /**
+   * Staging test inbox (launch readiness G-1): messages that the development SMS / e-mail adapters "send" to these synthetic
+   * recipients are kept (encrypted, 24 hours) so administrators can read sign-in codes and invitation links in the admin portal.
+   * Comma-separated: mobile-number prefixes (at least 9 characters, e.g. +92000000) and e-mail domains on a reserved test TLD
+   * (.test / .invalid / .example / .localhost; `test` = every *.test address). Staging only: refused in production.
+   */
+  STAGING_TEST_PHONE_PREFIXES: z.string().default('').transform(csv),
+  STAGING_TEST_EMAIL_DOMAINS: z
+    .string()
+    .default('')
+    .transform((v) => csv(v).map((d) => d.toLowerCase().replace(/^@|^\./, ''))),
   /** Settlement payouts (B2): `manual` = bank references recorded by finance; `mock` = development payout adapter. */
   PAYOUT_PROVIDER: z.enum(['manual', 'mock']).default('manual'),
   /** Shared secrets that sign provider callbacks (payout status, notification delivery status). Absent = callbacks refused. */
@@ -159,13 +175,74 @@ export function productionSafetyProblems(env: ApiEnv): string[] {
   )
     problems.push('SESSION_SECRET / FIELD_ENCRYPTION_KEY look like development values');
   if (!env.API_PUBLIC_URL.startsWith('https://')) problems.push('API_PUBLIC_URL must be https');
+  // launch readiness G-3: invitation links must open this environment's portals, never a developer's machine
+  for (const k of ['MERCHANT_APP_URL', 'PARTNER_APP_URL'] as const)
+    if (!env[k].startsWith('https://') || /localhost|127\.0\.0\.1/.test(env[k]))
+      problems.push(`${k} must be the environment's https portal address (invitation links)`);
   for (const o of env.CORS_ORIGINS)
     if (!o.startsWith('https://') || /localhost|127\.0\.0\.1/.test(o))
       problems.push('CORS_ORIGINS must list only https production origins');
   if (env.RATE_LIMIT_PER_MINUTE === 0 || env.AUTH_RATE_LIMIT_PER_MINUTE === 0)
     problems.push('RATE_LIMIT_PER_MINUTE and AUTH_RATE_LIMIT_PER_MINUTE must be set');
   if (env.LOG_FORMAT !== 'json') problems.push('LOG_FORMAT must be json');
+  if (tier === 'production' && hasStagingTestRecipients(env))
+    problems.push(
+      'STAGING_TEST_PHONE_PREFIXES / STAGING_TEST_EMAIL_DOMAINS must not be set in production',
+    );
+  problems.push(...stagingTestRecipientProblems(env));
   return problems;
+}
+
+// ---------------------------------------------------------------- staging test inbox (G-1)
+const RESERVED_TEST_TLDS = ['test', 'invalid', 'example', 'localhost'];
+type TestInboxEnv = Pick<
+  ApiEnv,
+  | 'APP_ENV'
+  | 'NODE_ENV'
+  | 'ALLOW_MOCK_PROVIDERS'
+  | 'STAGING_TEST_PHONE_PREFIXES'
+  | 'STAGING_TEST_EMAIL_DOMAINS'
+>;
+
+function hasStagingTestRecipients(env: TestInboxEnv) {
+  return env.STAGING_TEST_PHONE_PREFIXES.length > 0 || env.STAGING_TEST_EMAIL_DOMAINS.length > 0;
+}
+
+/** Shape rules for the test-recipient lists (any tier): a prefix never covers a whole country, a domain is never a real one. */
+export function stagingTestRecipientProblems(env: TestInboxEnv): string[] {
+  const problems: string[] = [];
+  for (const p of env.STAGING_TEST_PHONE_PREFIXES)
+    if (!/^\+[1-9]\d{7,}$/.test(p))
+      problems.push(
+        'STAGING_TEST_PHONE_PREFIXES entries must be + and at least 8 digits (one narrow synthetic range)',
+      );
+  for (const d of env.STAGING_TEST_EMAIL_DOMAINS)
+    if (!RESERVED_TEST_TLDS.includes(d.split('.').pop() ?? ''))
+      problems.push(
+        'STAGING_TEST_EMAIL_DOMAINS entries must be on a reserved test TLD (.test, .invalid, .example, .localhost)',
+      );
+  return [...new Set(problems)];
+}
+
+/** The staging test inbox exists only in staging, only with development adapters, only for configured synthetic recipients. */
+export function stagingTestInboxEnabled(env: TestInboxEnv): boolean {
+  return (
+    appEnvOf(env) === 'staging' &&
+    env.ALLOW_MOCK_PROVIDERS &&
+    hasStagingTestRecipients(env) &&
+    stagingTestRecipientProblems(env).length === 0
+  );
+}
+
+/** Whether a message to `to` (E.164 mobile or e-mail address) is kept in the staging test inbox. */
+export function isStagingTestRecipient(env: TestInboxEnv, to: string): boolean {
+  if (!stagingTestInboxEnabled(env)) return false;
+  const value = to.trim().toLowerCase();
+  if (value.includes('@')) {
+    const domain = value.slice(value.lastIndexOf('@') + 1);
+    return env.STAGING_TEST_EMAIL_DOMAINS.some((d) => domain === d || domain.endsWith(`.${d}`));
+  }
+  return env.STAGING_TEST_PHONE_PREFIXES.some((p) => value.startsWith(p));
 }
 
 export function parseApiEnv(source: Record<string, string | undefined> = process.env): ApiEnv {

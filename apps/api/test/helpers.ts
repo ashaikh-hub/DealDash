@@ -49,6 +49,9 @@ export function testEnv(): ApiEnv {
     AUTH_RATE_LIMIT_PER_MINUTE: 0,
     TRUST_PROXY_HOPS: 0,
     LOG_FORMAT: 'pretty',
+    // launch readiness G-1 (staging test inbox): off unless a test enables it
+    STAGING_TEST_PHONE_PREFIXES: [],
+    STAGING_TEST_EMAIL_DOMAINS: [],
   };
 }
 

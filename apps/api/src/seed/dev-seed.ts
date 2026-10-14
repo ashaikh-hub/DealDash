@@ -35,7 +35,16 @@ export interface SeedResult {
  */
 export async function seedDev(
   prisma: PrismaClient,
-  opts: { password?: string; fieldEncryptionKey: string; storageDir?: string },
+  opts: {
+    password?: string;
+    fieldEncryptionKey: string;
+    storageDir?: string;
+    /**
+     * Staging (G-2): the authenticator key (base32) for seeded accounts that need two-step verification, taken from Secret Manager
+     * like the seed password (the development TOTP helper does not exist outside development). Absent = a random key per account.
+     */
+    mfaSecret?: string;
+  },
 ): Promise<SeedResult> {
   await seedCatalog(prisma);
 
@@ -83,7 +92,10 @@ export async function seedDev(
           ...(args.mfa
             ? {
                 mfaEnabled: true,
-                mfaSecretEnc: encryptField(generateTotpSecret(), opts.fieldEncryptionKey),
+                mfaSecretEnc: encryptField(
+                  opts.mfaSecret ?? generateTotpSecret(),
+                  opts.fieldEncryptionKey,
+                ),
               }
             : {}),
           ...(args.userType === 'CUSTOMER'

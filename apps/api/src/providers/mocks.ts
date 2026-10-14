@@ -23,16 +23,49 @@ import type {
 /** Mock providers: deterministic, in-memory, and safe. They log instead of calling any vendor. */
 const MAX_KEPT = 200;
 
+/**
+ * Options for the SMS / e-mail adapters when they stand in for a provider outside development (staging, ALLOW_MOCK_PROVIDERS):
+ * `redactLogs` keeps message bodies (sign-in codes, links) and full recipients out of the logs; `observer` receives each message
+ * (the staging test inbox). A failing observer never fails the send.
+ */
+export interface MockMessagingOptions {
+  redactLogs?: boolean;
+  observer?: (m: {
+    channel: 'SMS' | 'EMAIL';
+    to: string;
+    templateKey: string;
+    subject?: string;
+    body: string;
+  }) => Promise<void>;
+}
+
+const maskRecipient = (to: string) =>
+  to.includes('@') ? `***${to.slice(to.lastIndexOf('@'))}` : `***${to.slice(-4)}`;
+
 export class MockSmsProvider implements SmsProvider {
   private readonly logger = new Logger('MockSms');
   readonly sent: Array<SmsMessage & { providerRef: string; at: Date }> = [];
+
+  constructor(private readonly opts: MockMessagingOptions = {}) {}
 
   async send(message: SmsMessage) {
     const providerRef = `mock-sms-${randomUUID()}`;
     this.sent.push({ ...message, providerRef, at: new Date() });
     if (this.sent.length > MAX_KEPT) this.sent.shift();
+    if (this.opts.redactLogs)
+      this.logger.log(
+        `SMS to ${maskRecipient(message.to)} [${message.templateKey}] (body withheld)`,
+      );
     // Development convenience: the OTP message is visible in the API console.
-    this.logger.log(`SMS to ${message.to} [${message.templateKey}]: ${message.body}`);
+    else this.logger.log(`SMS to ${message.to} [${message.templateKey}]: ${message.body}`);
+    await this.opts
+      .observer?.({
+        channel: 'SMS',
+        to: message.to,
+        templateKey: message.templateKey,
+        body: message.body,
+      })
+      .catch(() => this.logger.warn('Staging test inbox: message not kept'));
     return { providerRef };
   }
 
@@ -44,13 +77,30 @@ export class MockSmsProvider implements SmsProvider {
 export class MockEmailProvider implements EmailProvider {
   private readonly logger = new Logger('MockEmail');
   readonly sent: Array<EmailMessage & { providerRef: string; at: Date }> = [];
+
+  constructor(private readonly opts: MockMessagingOptions = {}) {}
+
   async send(message: EmailMessage) {
     const providerRef = `mock-email-${randomUUID()}`;
     this.sent.push({ ...message, providerRef, at: new Date() });
     if (this.sent.length > MAX_KEPT) this.sent.shift();
-    this.logger.log(
-      `Email to ${message.to} [${message.templateKey}]: ${message.subject} | ${message.body}`,
-    );
+    if (this.opts.redactLogs)
+      this.logger.log(
+        `Email to ${maskRecipient(message.to)} [${message.templateKey}] (body withheld)`,
+      );
+    else
+      this.logger.log(
+        `Email to ${message.to} [${message.templateKey}]: ${message.subject} | ${message.body}`,
+      );
+    await this.opts
+      .observer?.({
+        channel: 'EMAIL',
+        to: message.to,
+        templateKey: message.templateKey,
+        subject: message.subject,
+        body: message.body,
+      })
+      .catch(() => this.logger.warn('Staging test inbox: message not kept'));
     return { providerRef };
   }
 

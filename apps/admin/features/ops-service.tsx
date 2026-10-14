@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { RequirePermission, SupportTimeline, useResource } from '@dealdash/app-shell';
+import { useCallback, useEffect, useState } from 'react';
+import { RequirePermission, SupportTimeline, useApi, useResource } from '@dealdash/app-shell';
 import { formatDateTime, withLocale } from '@dealdash/localization';
 import { DATA_REQUEST_STATUSES, DELIVERY_CHANNELS, DELIVERY_STATUSES } from '@dealdash/types';
 import {
@@ -762,7 +762,10 @@ interface Delivery {
 export function AdminNotificationsPage() {
   return (
     <RequirePermission any={['admin.notifications.manage']}>
-      <Notifications />
+      <div className="dd-stack" style={{ gap: 16 }}>
+        <Notifications />
+        <StagingTestInbox />
+      </div>
     </RequirePermission>
   );
 }
@@ -907,5 +910,115 @@ function Notifications() {
         )}
       </OpsStates>
     </div>
+  );
+}
+
+interface TestMessage {
+  id: string;
+  channel: 'SMS' | 'EMAIL';
+  recipient: string;
+  templateKey: string;
+  subject: string | null;
+  code: string | null;
+  link: string | null;
+  createdAt: string;
+}
+
+/**
+ * Launch readiness G-1 — STAGING ONLY. Sign-in codes and invitation links that the development SMS / e-mail adapters "sent" to
+ * synthetic test recipients. The API answers 404 in every other environment, and then nothing is shown.
+ */
+function StagingTestInbox() {
+  const { t, locale, code } = useT();
+  const { call } = useApi();
+  const [recipient, setRecipient] = useState('');
+  const [state, setState] = useState<'loading' | 'off' | 'error' | 'ready'>('loading');
+  const [items, setItems] = useState<TestMessage[]>([]);
+  const load = useCallback(
+    async (filter: string) => {
+      setState('loading');
+      const r = await call<{ items: TestMessage[] }>('GET', '/v1/admin/staging/test-inbox', {
+        query: { recipient: filter.trim() || undefined },
+      });
+      if (r.status === 404) return setState('off');
+      if (!r.ok || !r.data) return setState('error');
+      setItems(r.data.items);
+      setState('ready');
+    },
+    [call],
+  );
+  useEffect(() => {
+    void load('');
+  }, [load]);
+  if (state === 'off') return null;
+  return (
+    <Card>
+      <div className="dd-stack" style={{ gap: 12 }} data-testid="staging-inbox">
+        <div>
+          <h2 className="dd-title">{t('stg.inbox.title')}</h2>
+          <p className="dd-muted">{t('stg.inbox.intro')}</p>
+        </div>
+        <form
+          className="dd-row"
+          style={{ flexWrap: 'wrap' }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            void load(recipient);
+          }}
+        >
+          <Input
+            aria-label={t('stg.inbox.recipient')}
+            placeholder={t('stg.inbox.recipient')}
+            value={recipient}
+            onChange={(e) => setRecipient(e.target.value)}
+            style={{ maxWidth: 280 }}
+            data-testid="staging-inbox-filter"
+          />
+          <Button type="submit" variant="outline" disabled={state === 'loading'}>
+            {t('stg.inbox.refresh')}
+          </Button>
+        </form>
+        {state === 'error' ? (
+          <Alert tone="danger">{t('stg.inbox.error')}</Alert>
+        ) : state === 'ready' && items.length === 0 ? (
+          <p className="dd-muted">{t('stg.inbox.empty')}</p>
+        ) : state === 'ready' ? (
+          <div className="dd-table-wrap">
+            <table className="dd-table">
+              <thead>
+                <tr>
+                  <th>{t('stg.inbox.recipient')}</th>
+                  <th>{t('s8.ntf.channel')}</th>
+                  <th>{t('stg.inbox.codeOrLink')}</th>
+                  <th>{t('stg.inbox.when')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((m) => (
+                  <tr key={m.id} data-testid={`staging-msg-${m.id}`}>
+                    <td>
+                      <span className="dd-ltr">{m.recipient}</span>
+                      <div className="dd-caption dd-ltr">{m.subject ?? m.templateKey}</div>
+                    </td>
+                    <td>{code('s8.channel', m.channel)}</td>
+                    <td className="dd-ltr">
+                      {m.code ? <strong>{m.code}</strong> : null}
+                      {m.link ? (
+                        <div>
+                          <a href={m.link} target="_blank" rel="noreferrer">
+                            {m.link}
+                          </a>
+                        </div>
+                      ) : null}
+                    </td>
+                    <td>{formatDateTime(locale, m.createdAt)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : null}
+      </div>
+    </Card>
   );
 }

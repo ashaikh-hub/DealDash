@@ -61,3 +61,57 @@ resource "google_secret_manager_secret_iam_member" "runtime" {
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.runtime.email}"
 }
+
+# ---------------------------------------------------------------- staging seed (launch readiness G-2; staging only)
+# The shared password and the shared authenticator key (base32) of the SYNTHETIC seeded accounts. Only the one-off seed job receives
+# them (the API service does not); people read them in Secret Manager. Never output, never printed.
+resource "random_password" "seed_user" {
+  count   = var.enable_seed_job ? 1 : 0
+  length  = 24
+  special = false
+}
+
+resource "random_string" "seed_totp" {
+  count            = var.enable_seed_job ? 1 : 0
+  length           = 32
+  upper            = true
+  lower            = false
+  numeric          = false
+  special          = true
+  override_special = "234567" # with A-Z: exactly the base32 alphabet
+}
+
+locals {
+  seed_secret_values = var.enable_seed_job ? {
+    SEED_USER_PASSWORD     = random_password.seed_user[0].result
+    SEED_ADMIN_TOTP_SECRET = random_string.seed_totp[0].result
+  } : {}
+}
+
+resource "google_secret_manager_secret" "seed" {
+  for_each  = toset(keys(local.seed_secret_values))
+  project   = var.project_id
+  secret_id = "${local.name}-${lower(replace(each.key, "_", "-"))}"
+  replication {
+    user_managed {
+      replicas {
+        location = var.region
+      }
+    }
+  }
+  depends_on = [google_project_service.apis]
+}
+
+resource "google_secret_manager_secret_version" "seed" {
+  for_each    = google_secret_manager_secret.seed
+  secret      = each.value.id
+  secret_data = local.seed_secret_values[each.key]
+}
+
+resource "google_secret_manager_secret_iam_member" "seed_runtime" {
+  for_each  = google_secret_manager_secret.seed
+  project   = var.project_id
+  secret_id = each.value.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.runtime.email}"
+}

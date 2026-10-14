@@ -460,6 +460,54 @@ describe('Stage 8 admin operations', () => {
     expect(row).toHaveTextContent('Provider unavailable');
     expect(row).toHaveTextContent('3 / 3');
     expect(screen.getByTestId('ntf-retry-d1')).toBeInTheDocument();
+    // outside staging the test inbox API answers 404 and nothing is shown
+    expect(screen.queryByTestId('staging-inbox')).toBeNull();
+  });
+
+  it('staging only (G-1): the test inbox shows sign-in codes and invitation links for synthetic recipients', async () => {
+    stub(
+      {
+        '/v1/admin/ops/notifications': ok({ counts: {}, items: [] }),
+        '/v1/admin/staging/test-inbox': ok({
+          retentionHours: 24,
+          items: [
+            {
+              id: 'm1',
+              channel: 'SMS',
+              recipient: '+920000001234',
+              templateKey: 'auth.otp',
+              subject: null,
+              code: '482913',
+              link: null,
+              createdAt: new Date().toISOString(),
+            },
+            {
+              id: 'm2',
+              channel: 'EMAIL',
+              recipient: 'owner@najdkitchen.test',
+              templateKey: 'merchant.invite',
+              subject: 'Invitation',
+              code: null,
+              link: 'https://merchant.staging.example/invite/abc',
+              createdAt: new Date().toISOString(),
+            },
+          ],
+        }),
+      },
+      ['admin.notifications.manage'],
+    );
+    show(<AdminNotificationsPage />);
+    expect(await screen.findByTestId('staging-msg-m1')).toHaveTextContent('482913');
+    const inbox = screen.getByTestId('staging-inbox');
+    expect(inbox).toHaveTextContent('Staging test inbox');
+    expect(screen.getByTestId('staging-msg-m2')).toHaveTextContent(
+      'https://merchant.staging.example/invite/abc',
+    );
+    await userEvent.type(screen.getByTestId('staging-inbox-filter'), '+92000000');
+    await userEvent.click(within(inbox).getByRole('button', { name: 'Show' }));
+    expect(
+      calls.filter((c) => c.path.endsWith('/v1/admin/staging/test-inbox')).length,
+    ).toBeGreaterThanOrEqual(2);
   });
 
   it('SLA: breached and warning work by area; nothing late shows "on track"', async () => {

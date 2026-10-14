@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { ZodValidationPipe } from 'nestjs-zod';
-import type { ApiEnv } from '@dealdash/config';
+import { stagingTestInboxEnabled, type ApiEnv } from '@dealdash/config';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { AuditModule } from './audit/audit.module';
 import { APP_ENV } from './common/env';
@@ -39,6 +39,7 @@ import { PartnersModule } from './partners/partners.module';
 import { OpsModule } from './ops/ops.module';
 import { BenefitsModule } from './benefits/benefits.module';
 import { CustomerAccountModule } from './customer-account/customer-account.module';
+import { StagingTestInboxModule } from './staging/test-inbox';
 
 @Global()
 @Module({})
@@ -88,6 +89,8 @@ export class AppModule implements NestModule {
         JobsModule,
         HealthModule,
         ...(env.NODE_ENV === 'production' ? [] : [DevModule]),
+        // launch readiness G-1: the staging test inbox is not even routed in any other tier
+        ...(stagingTestInboxEnabled(env) ? [StagingTestInboxModule] : []),
       ],
       providers: [
         { provide: APP_PIPE, useClass: ZodValidationPipe },
