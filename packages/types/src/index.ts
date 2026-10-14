@@ -801,6 +801,12 @@ export const ERROR_CODES = {
   LEGAL_HOLD_ACTIVE: 'LEGAL_HOLD_ACTIVE',
   // launch readiness: money in one currency is never priced, funded or moved with another's (no silent conversion)
   MARKET_CURRENCY_MISMATCH: 'MARKET_CURRENCY_MISMATCH',
+  // My benefits (customer eligibility: employer work email, added cards)
+  BENEFIT_EMAIL_DOMAIN: 'BENEFIT_EMAIL_DOMAIN',
+  BENEFIT_EMAIL_NOT_ALLOWED: 'BENEFIT_EMAIL_NOT_ALLOWED',
+  BENEFIT_EMAIL_IN_USE: 'BENEFIT_EMAIL_IN_USE',
+  BENEFIT_PROGRAM_UNAVAILABLE: 'BENEFIT_PROGRAM_UNAVAILABLE',
+  BENEFIT_CARD_LIMIT: 'BENEFIT_CARD_LIMIT',
   INTERNAL: 'INTERNAL',
 } as const;
 export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];

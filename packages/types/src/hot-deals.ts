@@ -155,6 +155,8 @@ export const NOTIFICATION_TYPES = [
   'CASE_UPDATED',
   /** Stage 8: a temporary restriction was placed on or lifted from the customer's account (issued rights are never removed). */
   'ACCOUNT_RESTRICTION',
+  /** My benefits: an employer verification was confirmed, is due for renewal, expired or was removed; a card was added / removed. */
+  'BENEFIT_UPDATED',
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 

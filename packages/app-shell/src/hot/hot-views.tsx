@@ -399,9 +399,6 @@ export function HotDetailView({
                   >
                     {t(`elig.unlock.${detail.eligibility.unlockAction}` as DictionaryKey)}
                   </button>
-                  {detail.eligibility.unlockAction !== 'SIGN_IN' ? (
-                    <span className="dd-caption">{t('elig.comingLater')}</span>
-                  ) : null}
                 </div>
               ) : embedded ? (
                 <div className="dd-caption">{t('elig.preview')}</div>

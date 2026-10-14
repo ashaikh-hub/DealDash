@@ -3754,6 +3754,124 @@ a.dd-pill {
   display: inline-flex;
   align-items: center;
 }
+/* ---- My benefits (Home card language: white rounded cards, soft accents, one clear action) */
+.dd-bencard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: var(--dd-shadow-card);
+}
+.dd-bencard__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.dd-bencard__title {
+  flex: 1;
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.dd-bencard__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 38px;
+  block-size: 38px;
+  border-radius: 12px;
+  color: #fff;
+}
+.dd-bencard__icon--employer {
+  background: linear-gradient(135deg, #7e4dff, #5b1afc);
+}
+.dd-bencard__icon--card {
+  background: linear-gradient(135deg, #2b1f7a, #0f0c42);
+}
+.dd-bencard__confirm {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--dd-danger-bg);
+  color: var(--dd-danger);
+  font-size: 13px;
+}
+.dd-benlist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.dd-benlist__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid var(--dd-line);
+  min-inline-size: 0;
+}
+.dd-bencard .dd-benlist__item {
+  background: var(--dd-bg);
+  border-color: transparent;
+}
+.dd-benlist__link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  inline-size: 100%;
+  color: inherit;
+  text-decoration: none;
+  min-inline-size: 0;
+}
+.dd-benlist__title {
+  display: block;
+  font-size: 14px;
+  line-height: 19px;
+  overflow-wrap: anywhere;
+}
+.dd-benvia {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: var(--dd-lilac);
+  color: var(--dd-purple);
+  font-size: 12px;
+  font-weight: 700;
+}
+/* sections: one sideways-scrolling row of tabs */
+.dd-bentabs {
+  overflow-x: auto;
+  margin-inline: -16px;
+  padding-inline: 16px;
+  scrollbar-width: none;
+}
+.dd-bentabs::-webkit-scrollbar {
+  display: none;
+}
+.dd-bentabs .dd-tabs {
+  display: flex;
+  inline-size: max-content;
+}
+.dd-bentabs .dd-tab {
+  white-space: nowrap;
+  min-height: 38px;
+}
+.dd-bentabs .dd-tab[aria-selected='true'] {
+  background: #fff;
+  color: var(--dd-purple);
+  box-shadow: var(--dd-shadow-flat);
+}
+
 /* language toggle: at least a 32px tap target at every width */
 .dd-topbar--customer .dd-lang a {
   display: inline-flex;

@@ -10180,6 +10180,166 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/app/benefits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerBenefitsController_overview_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/benefits/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerBenefitsController_options_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/benefits/offers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerBenefitsController_offers_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/benefits/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerBenefitsController_usage_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/benefits/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerBenefitsController_history_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/benefits/employer/code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CustomerBenefitsController_employerStart_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/benefits/employer/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CustomerBenefitsController_employerVerify_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/benefits/employer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["CustomerBenefitsController_employerRemove_v1"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/benefits/cards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CustomerBenefitsController_cardAdd_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/benefits/cards/{programId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["CustomerBenefitsController_cardRemove_v1"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/analytics/events": {
         parameters: {
             query?: never;
@@ -18496,7 +18656,7 @@ export interface components {
                     /** Format: uuid */
                     id: string;
                     /** @enum {string} */
-                    type: "RESERVATION_CONFIRMED" | "RESERVATION_EXPIRING" | "RESERVATION_EXPIRED" | "RESERVATION_CANCELLED" | "REDEMPTION_SUCCESS" | "PURCHASE_SUCCEEDED" | "PAYMENT_FAILED" | "VOUCHER_ISSUED" | "VOUCHER_EXPIRING" | "REFUND_UPDATED" | "VOUCHER_REDEEMED" | "REWARD_EARNED" | "REWARD_HELD" | "REWARD_RELEASED" | "REWARD_REVERSED" | "REWARD_EXPIRING" | "CAMPAIGN_COMPLETED" | "ALERT" | "CASE_UPDATED" | "ACCOUNT_RESTRICTION";
+                    type: "RESERVATION_CONFIRMED" | "RESERVATION_EXPIRING" | "RESERVATION_EXPIRED" | "RESERVATION_CANCELLED" | "REDEMPTION_SUCCESS" | "PURCHASE_SUCCEEDED" | "PAYMENT_FAILED" | "VOUCHER_ISSUED" | "VOUCHER_EXPIRING" | "REFUND_UPDATED" | "VOUCHER_REDEEMED" | "REWARD_EARNED" | "REWARD_HELD" | "REWARD_RELEASED" | "REWARD_REVERSED" | "REWARD_EXPIRING" | "CAMPAIGN_COMPLETED" | "ALERT" | "CASE_UPDATED" | "ACCOUNT_RESTRICTION" | "BENEFIT_UPDATED";
                     data: {
                         [key: string]: unknown;
                     };
@@ -27130,6 +27290,434 @@ export interface components {
                 nextCursor?: string | null;
             };
         };
+        OverviewResponse: {
+            data: {
+                cases: {
+                    [key: string]: number;
+                };
+                currency: string;
+                byCurrency: {
+                    currency: string;
+                    receivablesHalalas: number;
+                    fundsHeldHalalas: number;
+                    fundingUtilizedHalalas: number;
+                }[];
+                receivablesHalalas: number;
+                fundsHeldHalalas: number;
+                fundingUtilizedHalalas: number;
+                openHolds: number;
+                pendingCredit: number;
+                exceptions: number;
+                /** @enum {string} */
+                statutoryNote: "statutory_formats_validate_ksa";
+            };
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
+        };
+        OptionsResponse: {
+            data: {
+                employers: {
+                    /** Format: uuid */
+                    programId: string;
+                    name: {
+                        en: string;
+                        ar: string;
+                    };
+                    partner: {
+                        /** Format: uuid */
+                        id: string;
+                        name: {
+                            en: string;
+                            ar: string;
+                        };
+                    };
+                    domains: string[];
+                }[];
+                cards: {
+                    /** Format: uuid */
+                    programId: string;
+                    name: {
+                        en: string;
+                        ar: string;
+                    };
+                    issuer: {
+                        /** Format: uuid */
+                        id: string;
+                        name: {
+                            en: string;
+                            ar: string;
+                        };
+                    };
+                    scheme: string;
+                    tier: string;
+                }[];
+            };
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
+        };
+        OffersResponse: {
+            data: ({
+                /** @enum {string} */
+                product: "LIVE";
+                partners: {
+                    /** Format: uuid */
+                    id: string;
+                    name: {
+                        en: string;
+                        ar: string;
+                    };
+                }[];
+                card: {
+                    /** Format: uuid */
+                    id: string;
+                    /** Format: uuid */
+                    merchantId: string;
+                    merchantName: {
+                        en: string;
+                        ar: string;
+                    };
+                    merchantLogoUrl: string | null;
+                    title: {
+                        en: string;
+                        ar: string;
+                    };
+                    offerLabel: {
+                        en: string;
+                        ar: string;
+                    };
+                    shortDescription: {
+                        en: string;
+                        ar: string;
+                    };
+                    category: {
+                        code: string;
+                        name: {
+                            en: string;
+                            ar: string;
+                        };
+                    } | null;
+                    /** @enum {string|null} */
+                    mechanic: "PERCENTAGE_OFF" | "AMOUNT_OFF" | "BOGO" | "BUNDLE" | "MEAL_DEAL" | "SERVICE_OFFER" | "EVERYDAY_PROMOTION" | "OTHER" | null;
+                    imageUrl: string | null;
+                    imageAlt: {
+                        en: string;
+                        ar: string;
+                    };
+                    startsAt: string | null;
+                    endsAt: string | null;
+                    distanceMeters: number | null;
+                    nearestBranch: {
+                        /** Format: uuid */
+                        id: string;
+                        name: {
+                            en: string;
+                            ar: string;
+                        };
+                        area: {
+                            en: string;
+                            ar: string;
+                        };
+                        latitude: number;
+                        longitude: number;
+                    } | null;
+                    branchCount: number;
+                    eligibility: {
+                        /** @enum {string} */
+                        result: "ELIGIBLE" | "LOCKED_UNLOCKABLE" | "HIDDEN";
+                        /** @enum {string} */
+                        kind: "PUBLIC" | "GEOGRAPHY" | "EMPLOYER" | "BANK_CARD" | "SCHEME" | "COMPOSITE";
+                        message: {
+                            en: string;
+                            ar: string;
+                        } | null;
+                        /** @enum {string|null} */
+                        unlockAction: "SIGN_IN" | "VERIFY_EMPLOYER" | "ADD_BANK_BENEFIT" | "JOIN_SCHEME" | null;
+                    };
+                    saved: boolean;
+                    /**
+                     * @default AVAILABLE
+                     * @enum {string}
+                     */
+                    availability: "AVAILABLE" | "SCHEDULED" | "PAUSED" | "ENDED" | "UNAVAILABLE";
+                };
+            } | {
+                /** @enum {string} */
+                product: "HOT";
+                partners: {
+                    /** Format: uuid */
+                    id: string;
+                    name: {
+                        en: string;
+                        ar: string;
+                    };
+                }[];
+                card: {
+                    /** Format: uuid */
+                    id: string;
+                    /** Format: uuid */
+                    merchantId: string;
+                    merchantName: {
+                        en: string;
+                        ar: string;
+                    };
+                    merchantLogoUrl: string | null;
+                    title: {
+                        en: string;
+                        ar: string;
+                    };
+                    offerLabel: {
+                        en: string;
+                        ar: string;
+                    };
+                    shortDescription: {
+                        en: string;
+                        ar: string;
+                    };
+                    category: {
+                        code: string;
+                        name: {
+                            en: string;
+                            ar: string;
+                        };
+                    } | null;
+                    imageUrl: string | null;
+                    imageAlt: {
+                        en: string;
+                        ar: string;
+                    };
+                    /** @enum {string} */
+                    limitType: "TIME" | "QUANTITY" | "TIME_AND_QUANTITY";
+                    reservationsEnabled: boolean;
+                    startsAt: string | null;
+                    endsAt: string | null;
+                    remaining: number | null;
+                    remainingTotal: number | null;
+                    soldOut: boolean;
+                    distanceMeters: number | null;
+                    nearestBranch: {
+                        /** Format: uuid */
+                        id: string;
+                        name: {
+                            en: string;
+                            ar: string;
+                        };
+                        area: {
+                            en: string;
+                            ar: string;
+                        };
+                        latitude: number;
+                        longitude: number;
+                    } | null;
+                    branchCount: number;
+                    eligibility: {
+                        /** @enum {string} */
+                        result: "ELIGIBLE" | "LOCKED_UNLOCKABLE" | "HIDDEN";
+                        /** @enum {string} */
+                        kind: "PUBLIC" | "GEOGRAPHY" | "EMPLOYER" | "BANK_CARD" | "SCHEME" | "COMPOSITE";
+                        message: {
+                            en: string;
+                            ar: string;
+                        } | null;
+                        /** @enum {string|null} */
+                        unlockAction: "SIGN_IN" | "VERIFY_EMPLOYER" | "ADD_BANK_BENEFIT" | "JOIN_SCHEME" | null;
+                    };
+                    /** @enum {string} */
+                    availability: "AVAILABLE" | "SOLD_OUT" | "ENDED" | "PAUSED" | "UNAVAILABLE" | "SCHEDULED";
+                    serverNow: string;
+                };
+            } | {
+                /** @enum {string} */
+                product: "VOUCHER";
+                partners: {
+                    /** Format: uuid */
+                    id: string;
+                    name: {
+                        en: string;
+                        ar: string;
+                    };
+                }[];
+                card: {
+                    /** Format: uuid */
+                    id: string;
+                    /** Format: uuid */
+                    merchantId: string;
+                    merchantName: {
+                        en: string;
+                        ar: string;
+                    };
+                    merchantLogoUrl: string | null;
+                    title: {
+                        en: string;
+                        ar: string;
+                    };
+                    shortDescription: {
+                        en: string;
+                        ar: string;
+                    };
+                    category: {
+                        code: string;
+                        name: {
+                            en: string;
+                            ar: string;
+                        };
+                    } | null;
+                    imageUrl: string | null;
+                    imageAlt: {
+                        en: string;
+                        ar: string;
+                    };
+                    faceValueHalalas: number;
+                    sellingPriceHalalas: number;
+                    reportedSavingsHalalas: number;
+                    reportedSavingsPercent: number;
+                    currency: string;
+                    validity: {
+                        /**
+                         * @default DAYS_FROM_PURCHASE
+                         * @enum {string}
+                         */
+                        type: "FIXED_DATE" | "DAYS_FROM_PURCHASE";
+                        /** @default null */
+                        days: number | null;
+                        /**
+                         * Format: date-time
+                         * @default null
+                         */
+                        validUntil: string | null;
+                    };
+                    saleEndsAt: string | null;
+                    remaining: number | null;
+                    soldOut: boolean;
+                    distanceMeters: number | null;
+                    nearestBranch: {
+                        /** Format: uuid */
+                        id: string;
+                        name: {
+                            en: string;
+                            ar: string;
+                        };
+                        area: {
+                            en: string;
+                            ar: string;
+                        };
+                        latitude: number;
+                        longitude: number;
+                    } | null;
+                    branchCount: number;
+                    eligibility: {
+                        /** @enum {string} */
+                        result: "ELIGIBLE" | "LOCKED_UNLOCKABLE" | "HIDDEN";
+                        /** @enum {string} */
+                        kind: "PUBLIC" | "GEOGRAPHY" | "EMPLOYER" | "BANK_CARD" | "SCHEME" | "COMPOSITE";
+                        message: {
+                            en: string;
+                            ar: string;
+                        } | null;
+                        /** @enum {string|null} */
+                        unlockAction: "SIGN_IN" | "VERIFY_EMPLOYER" | "ADD_BANK_BENEFIT" | "JOIN_SCHEME" | null;
+                    };
+                    /** @enum {string} */
+                    availability: "AVAILABLE" | "SOLD_OUT" | "ENDED" | "PAUSED" | "UNAVAILABLE" | "SCHEDULED";
+                    serverNow: string;
+                };
+            })[];
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
+        };
+        UsageResponse: {
+            data: {
+                /** @enum {string} */
+                kind: "RESERVATION" | "VOUCHER";
+                /** Format: uuid */
+                id: string;
+                reference: string;
+                title: {
+                    en: string;
+                    ar: string;
+                };
+                merchantName: {
+                    en: string;
+                    ar: string;
+                };
+                partners: {
+                    /** Format: uuid */
+                    id: string;
+                    name: {
+                        en: string;
+                        ar: string;
+                    };
+                }[];
+                status: string;
+                validUntil: string | null;
+                redeemedAt: string | null;
+                createdAt: string;
+            }[];
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
+        };
+        HistoryResponse: {
+            data: {
+                /** @enum {string} */
+                event: "EMPLOYER_CODE_SENT" | "EMPLOYER_VERIFIED" | "EMPLOYER_RENEWAL_DUE" | "EMPLOYER_EXPIRED" | "EMPLOYER_REMOVED" | "CARD_ADDED" | "CARD_REMOVED";
+                name: {
+                    en: string;
+                    ar: string;
+                };
+                at: string;
+            }[];
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
+        };
+        EmployerStartDto: {
+            /** Format: uuid */
+            programId: string;
+            /** Format: email */
+            email: string;
+        };
+        StartResponse: {
+            data: {
+                maskedEmail: string;
+                expiresInSeconds: number;
+                resendAfterSeconds: number;
+            };
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
+        };
+        EmployerVerifyDto: {
+            /** Format: uuid */
+            programId: string;
+            /** Format: email */
+            email: string;
+            code: string;
+        };
+        CardAddDto: {
+            /** Format: uuid */
+            programId: string;
+        };
         AnalyticsBatchDto: {
             events: {
                 /** @enum {string} */
@@ -27503,34 +28091,6 @@ export interface components {
                 party: string | null;
                 detail: string | null;
             }[];
-            meta: {
-                requestId?: string;
-                /** @enum {string} */
-                locale?: "en" | "ar";
-                nextCursor?: string | null;
-            };
-        };
-        OverviewResponse: {
-            data: {
-                cases: {
-                    [key: string]: number;
-                };
-                currency: string;
-                byCurrency: {
-                    currency: string;
-                    receivablesHalalas: number;
-                    fundsHeldHalalas: number;
-                    fundingUtilizedHalalas: number;
-                }[];
-                receivablesHalalas: number;
-                fundsHeldHalalas: number;
-                fundingUtilizedHalalas: number;
-                openHolds: number;
-                pendingCredit: number;
-                exceptions: number;
-                /** @enum {string} */
-                statutoryNote: "statutory_formats_validate_ksa";
-            };
             meta: {
                 requestId?: string;
                 /** @enum {string} */
@@ -43306,6 +43866,221 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CustomerResponse"];
+                };
+            };
+        };
+    };
+    CustomerBenefitsController_overview_v1: {
+        parameters: {
+            query?: {
+                city?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OverviewResponse"];
+                };
+            };
+        };
+    };
+    CustomerBenefitsController_options_v1: {
+        parameters: {
+            query?: {
+                city?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OptionsResponse"];
+                };
+            };
+        };
+    };
+    CustomerBenefitsController_offers_v1: {
+        parameters: {
+            query?: {
+                tab?: "unlocked" | "available";
+                city?: string;
+                lat?: number;
+                lng?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OffersResponse"];
+                };
+            };
+        };
+    };
+    CustomerBenefitsController_usage_v1: {
+        parameters: {
+            query?: {
+                tab?: "active" | "used" | "expired";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsageResponse"];
+                };
+            };
+        };
+    };
+    CustomerBenefitsController_history_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HistoryResponse"];
+                };
+            };
+        };
+    };
+    CustomerBenefitsController_employerStart_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmployerStartDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StartResponse"];
+                };
+            };
+        };
+    };
+    CustomerBenefitsController_employerVerify_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmployerVerifyDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OverviewResponse"];
+                };
+            };
+        };
+    };
+    CustomerBenefitsController_employerRemove_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OverviewResponse"];
+                };
+            };
+        };
+    };
+    CustomerBenefitsController_cardAdd_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CardAddDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OverviewResponse"];
+                };
+            };
+        };
+    };
+    CustomerBenefitsController_cardRemove_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                programId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OverviewResponse"];
                 };
             };
         };

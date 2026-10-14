@@ -166,6 +166,7 @@ export function VoucherDetailView({
   onBack,
   onBuy,
   onSignIn,
+  onUnlock,
   onDirections,
   merchantHref,
 }: {
@@ -177,6 +178,8 @@ export function VoucherDetailView({
   /** Starts checkout. Returns a translated error to show, or null when the customer is being taken to checkout. */
   onBuy?: () => Promise<{ error: string | null }>;
   onSignIn?: () => void;
+  /** My benefits: a locked voucher offers the unlock step (verify the employer, add the card) when the app provides it. */
+  onUnlock?: (action: NonNullable<VoucherDetail['eligibility']['unlockAction']>) => void;
   onDirections?: (branchId: string) => void;
   merchantHref?: string;
 }) {
@@ -219,7 +222,19 @@ export function VoucherDetailView({
     else if (detail.blockedReason === 'LIMIT_REACHED')
       action = <Button disabled>{t('vch.limitReached')}</Button>;
     else if (detail.blockedReason === 'LOCKED')
-      action = <Button disabled>{t('vch.locked')}</Button>;
+      action =
+        onUnlock &&
+        detail.eligibility.unlockAction &&
+        detail.eligibility.unlockAction !== 'SIGN_IN' ? (
+          <Button
+            onClick={() => onUnlock(detail.eligibility.unlockAction!)}
+            data-testid="voucher-unlock"
+          >
+            {t(`elig.unlock.${detail.eligibility.unlockAction}` as DictionaryKey)}
+          </Button>
+        ) : (
+          <Button disabled>{t('vch.locked')}</Button>
+        );
     else
       action = (
         <Button onClick={() => void buy()} loading={busy} data-testid="voucher-buy">

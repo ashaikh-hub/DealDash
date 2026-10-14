@@ -262,6 +262,8 @@ export const CONFIG_KEYS = {
   PLATFORM_CONFLICT_POLICY: 'platform.conflict_policy',
   PLATFORM_INGEST: 'platform.ingest',
   PLATFORM_ELIGIBILITY: 'platform.eligibility',
+  /** Customer "My benefits": employer work-email verification and added cards (EM-02..EM-22, BC-01..BC-14, EL-10..EL-13). */
+  CUSTOMER_BENEFITS: 'customer.benefits',
   PLATFORM_DISPUTES: 'platform.disputes',
   PLATFORM_LOYALTY: 'platform.loyalty',
   PLATFORM_CONFLICTS: 'platform.conflicts',
@@ -675,6 +677,50 @@ export const CONFIG_DEFAULTS: Record<ConfigKey, unknown> = {
   'platform.eligibility': {
     /** Age and gender criteria stay OFF until the market's rules are validated (VALIDATE-KSA). DealDash does not collect them today. */
     sensitiveAttributesEnabled: false,
+  },
+  'customer.benefits': {
+    /**
+     * EM-20 / EL-11: a verified employer expires after this many days and the customer re-verifies by a new work-email code.
+     * PLACEHOLDER pending the founder's value (FDR-28 closed as "configurable"): change it here, never in code.
+     */
+    employerReverifyDays: 180,
+    /** The customer is told this many days before the employer verification expires (EM-20 grace / reminder window). */
+    reverifyNoticeDays: 14,
+    /** EM-03: work-email code lifetime, attempts, request limits and cool-down. */
+    emailOtpTtlSeconds: 600,
+    emailOtpMaxAttempts: 5,
+    emailOtpMaxPerHour: 5,
+    emailOtpCooldownSeconds: 60,
+    /** EM-02: subdomains of an approved domain are accepted (mail.company.com for company.com). */
+    allowSubdomains: true,
+    /** EM-07: generic / shared mailboxes and personal email domains are never accepted as a work email. */
+    blockedLocalParts: [
+      'info',
+      'hr',
+      'admin',
+      'support',
+      'contact',
+      'sales',
+      'hello',
+      'office',
+      'noreply',
+      'no-reply',
+    ],
+    blockedDomains: [
+      'gmail.com',
+      'googlemail.com',
+      'hotmail.com',
+      'outlook.com',
+      'live.com',
+      'yahoo.com',
+      'icloud.com',
+      'me.com',
+      'aol.com',
+      'proton.me',
+      'protonmail.com',
+    ],
+    /** BC-14: how many cards a customer may add. */
+    maxCardEntries: 5,
   },
   'platform.loyalty': {
     /** A rule cannot be activated without a ceiling at least this small (points). Null = any ceiling is accepted. */

@@ -282,6 +282,9 @@ export function VoucherPage({ id }: { id: string }) {
         onBack={back}
         onBuy={buy}
         onSignIn={() => router.push(href('/profile') + '?reason=buy')}
+        onUnlock={(a) =>
+          router.push(href('/benefits') + (a === 'VERIFY_EMPLOYER' ? '?add=employer' : '?add=card'))
+        }
         onDirections={(branchId) =>
           track({ type: 'DIRECTIONS_CLICK', dealId: id, branchId, product: 'VOUCHER' })
         }

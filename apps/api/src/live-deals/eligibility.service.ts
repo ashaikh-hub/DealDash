@@ -245,6 +245,63 @@ function evalNode(
   );
 }
 
+// ---------------------------------------------------------------- My benefits: which offers are partner benefits, and whose
+/** Attributes a customer obtains through My benefits (employer work email, added cards, schemes / memberships). */
+const BENEFIT_ATTRIBUTE_TYPES: readonly string[] = [
+  'EMPLOYER',
+  'CARD',
+  'CARD_PRODUCT',
+  'CARD_TIER',
+  'SCHEME',
+  'MEMBERSHIP',
+];
+
+/** The partner references a rule mentions: organisation ids (employer / issuer / scheme), card product codes and tiers. */
+export interface PartnerRefs {
+  organizationIds: string[];
+  productCodes: string[];
+  tiers: string[];
+}
+
+export function partnerRefsOf(
+  kind: EligibilityKind,
+  conditions: ReadonlyArray<{ attrType: string; valueRef: string }>,
+  expression?: unknown,
+): PartnerRefs {
+  const out: PartnerRefs = { organizationIds: [], productCodes: [], tiers: [] };
+  const add = (attr: string, value: string) => {
+    if (attr === 'CARD_PRODUCT') out.productCodes.push(value);
+    else if (attr === 'CARD_TIER') out.tiers.push(value.toLowerCase());
+    else if (BENEFIT_ATTRIBUTE_TYPES.includes(attr)) out.organizationIds.push(value);
+  };
+  if (kind === 'COMPOSITE' && expression) {
+    const walk = (n: EligibilityExpression) => {
+      if (n.op === 'ATTR') return n.values.forEach((v) => add(n.attr, v));
+      // a NOT branch never grants a benefit: it is not an attribution
+      if (n.op === 'NOT') return;
+      n.children.forEach(walk);
+    };
+    walk(expression as EligibilityExpression);
+  } else conditions.forEach((c) => add(c.attrType, c.valueRef));
+  const uniq = (xs: string[]) => [...new Set(xs)];
+  return {
+    organizationIds: uniq(out.organizationIds),
+    productCodes: uniq(out.productCodes),
+    tiers: uniq(out.tiers),
+  };
+}
+
+/** A partner benefit = an offer whose rule needs something the customer gets through My benefits (not public, not just a city). */
+export function isPartnerBenefitRule(
+  kind: EligibilityKind,
+  conditions: ReadonlyArray<{ attrType: string; valueRef: string }>,
+  expression?: unknown,
+): boolean {
+  if (kind === 'PUBLIC' || kind === 'GEOGRAPHY') return false;
+  const r = partnerRefsOf(kind, conditions, expression);
+  return r.organizationIds.length + r.productCodes.length + r.tiers.length > 0;
+}
+
 /** Pure evaluation of a nested rule into the same three outcomes every product already understands. */
 export function evaluateExpressionOutcome(
   expression: EligibilityExpression,

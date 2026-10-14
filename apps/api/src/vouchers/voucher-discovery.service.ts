@@ -4,7 +4,7 @@ import { Prisma } from '../generated/prisma/client';
 import { AppError } from '../common/errors';
 import { decodeCursor, encodeCursor, Page } from '../common/pagination';
 import type { CardContext } from '../live-deals/deal-presenter.service';
-import { DiscoveryService, searchTokens } from '../live-deals/discovery.service';
+import { benefitMatch, DiscoveryService, searchTokens } from '../live-deals/discovery.service';
 import {
   EligibilityService,
   evaluateEligibility,
@@ -24,6 +24,8 @@ export interface VoucherDiscoveryParams {
   radiusMeters?: number;
   sort?: 'newest' | 'price_low' | 'price_high' | 'savings' | 'nearest';
   eligibility?: 'all' | 'unlocked';
+  /** My benefits: only partner-benefit offers, already unlocked or still to unlock. Absent = every offer (unchanged). */
+  benefit?: 'unlocked' | 'locked';
   limit: number;
   cursor?: string;
 }
@@ -164,6 +166,7 @@ export class VoucherDiscoveryService {
         const outcome = this.outcomeOf(row, ctx);
         if (outcome.result === 'HIDDEN') continue;
         if (p.eligibility === 'unlocked' && outcome.result !== 'ELIGIBLE') continue;
+        if (p.benefit && !benefitMatch(row, outcome, p.benefit)) continue;
         kept.push({ row, cand, outcome });
         if (kept.length === p.limit) break;
       }

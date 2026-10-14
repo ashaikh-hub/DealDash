@@ -277,9 +277,6 @@ export function DealDetailView({
                   >
                     {t(`elig.unlock.${detail.eligibility.unlockAction}` as never)}
                   </button>
-                  {detail.eligibility.unlockAction !== 'SIGN_IN' ? (
-                    <span className="dd-caption">{t('elig.comingLater')}</span>
-                  ) : null}
                 </div>
               ) : embedded ? (
                 <div className="dd-caption">{t('elig.preview')}</div>

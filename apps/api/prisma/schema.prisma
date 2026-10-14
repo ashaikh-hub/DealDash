@@ -960,9 +960,19 @@ model EligibilityAttribute {
   /// with both (database CHECK); BIN metadata, customer selection or self-declaration alone is never "verified".
   verificationSource String?
   evidenceRef        String?
+  /// My benefits: the partner programme the customer chose (PartnerEmployerProgram for EMPLOYER, PartnerCardProgram for the
+  /// card's CARD_PRODUCT row). Lets one added card be removed without touching another card from the same issuer.
+  programId          String?  @db.Uuid
+  /// EM-05: the work email is kept only for re-verification and abuse control: an HMAC lookup (one active account per address,
+  /// EM-06), the value encrypted (restricted access) and a masked form the customer sees. Never shown in full, never shared.
+  contactHash        String?
+  contactEnc         String?
+  contactMasked      String?
+  updatedAt          DateTime @default(now()) @updatedAt
 
   @@unique([userId, attrType, valueRef])
   @@index([userId, status])
+  @@index([attrType, contactHash])
 }
 
 model LiveDeal {
@@ -1213,6 +1223,8 @@ enum NotificationType {
   /// Stage 8: a case about the customer changed; a restriction was placed / lifted
   CASE_UPDATED
   ACCOUNT_RESTRICTION
+  /// My benefits: employer verification confirmed / due / expired / removed; card added / removed
+  BENEFIT_UPDATED
 }
 
 /// Hot Deal: urgent, limited by time and/or quantity, free reservation (no payment in the MVP). Own lifecycle, own table.

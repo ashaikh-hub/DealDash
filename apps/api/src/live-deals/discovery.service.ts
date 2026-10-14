@@ -19,9 +19,11 @@ import {
   merchantDisplayName,
   type CardContext,
 } from './deal-presenter.service';
+import type { EligibilityKind } from '@dealdash/types';
 import {
   EligibilityService,
   evaluateEligibility,
+  isPartnerBenefitRule,
   type EligibilityContext,
   type EligibilityOutcome,
 } from './eligibility.service';
@@ -37,6 +39,8 @@ export interface DiscoveryParams {
   radiusMeters?: number;
   sort?: DiscoverySort;
   eligibility?: 'all' | 'unlocked';
+  /** My benefits: only partner-benefit offers, either already unlocked or still to unlock. Absent = every offer (unchanged). */
+  benefit?: 'unlocked' | 'locked';
   limit: number;
   cursor?: string;
   organizationId?: string;
@@ -50,6 +54,31 @@ interface Candidate {
 }
 
 const escapeLike = (s: string) => s.replace(/[\\%_]/g, (m) => `\\${m}`);
+
+/** My benefits filter shared by Live Deals, Exclusive Deals and Vouchers (the same engine outcome every list already computes). */
+export function benefitMatch(
+  row: {
+    eligibilityKind: EligibilityKind;
+    ruleSet?: {
+      conditions: Array<{ attrType: string; valueRef: string }>;
+      expression: unknown;
+    } | null;
+  },
+  outcome: EligibilityOutcome,
+  benefit: 'unlocked' | 'locked',
+): boolean {
+  if (
+    !isPartnerBenefitRule(
+      row.eligibilityKind,
+      row.ruleSet?.conditions ?? [],
+      row.ruleSet?.expression,
+    )
+  )
+    return false;
+  return benefit === 'unlocked'
+    ? outcome.result === 'ELIGIBLE'
+    : outcome.result === 'LOCKED_UNLOCKABLE';
+}
 
 /**
  * Search tokens: normalised the same way as the SQL function dd_norm_ar (alef forms, diacritics, teh marbuta, digits),
@@ -265,6 +294,7 @@ export class DiscoveryService {
         const outcome = this.outcomeOf(row, ctx);
         if (outcome.result === 'HIDDEN') continue;
         if (p.eligibility === 'unlocked' && outcome.result !== 'ELIGIBLE') continue;
+        if (p.benefit && !benefitMatch(row, outcome, p.benefit)) continue;
         kept.push({ row, cand, outcome });
         if (kept.length === p.limit) break;
       }

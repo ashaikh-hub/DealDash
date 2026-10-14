@@ -199,6 +199,8 @@ export function DealPage({ id }: { id: string }) {
     track({ type: 'DIRECTIONS_CLICK', dealId: id, branchId: b.id });
   const unlock = (a: UnlockAction) => {
     if (a === 'SIGN_IN') router.push(href('/profile') + '?reason=unlock');
+    // My benefits: verify the employer (work-email code) or add the card / membership the offer needs
+    else router.push(href('/benefits') + (a === 'VERIFY_EMPLOYER' ? '?add=employer' : '?add=card'));
   };
 
   if (state === 'loading')
@@ -586,6 +588,9 @@ export function ProfilePage() {
         <Card>
           <div className="dd-stack">
             <strong>{me?.displayName}</strong>
+            <Link className="dd-link" href={href('/benefits')} data-testid="my-benefits-link">
+              {t('profile.benefits')}
+            </Link>
             <Link className="dd-link" href={href('/saved')}>
               {t('profile.savedDeals')}
             </Link>

@@ -71,6 +71,7 @@ import { WalletService } from './wallet.service';
   ],
   exports: [
     VoucherLifecycleService,
+    VoucherDiscoveryService,
     PaymentsService,
     RefundsService,
     LedgerService,

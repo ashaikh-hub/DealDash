@@ -37,6 +37,7 @@ import { BillingModule } from './billing/billing.module';
 import { AiModule } from './ai/ai.module';
 import { PartnersModule } from './partners/partners.module';
 import { OpsModule } from './ops/ops.module';
+import { BenefitsModule } from './benefits/benefits.module';
 
 @Global()
 @Module({})
@@ -80,6 +81,7 @@ export class AppModule implements NestModule {
         PartnersModule,
         OpsModule,
         CustomersModule,
+        BenefitsModule,
         AnalyticsModule,
         JobsModule,
         HealthModule,

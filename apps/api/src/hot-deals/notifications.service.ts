@@ -48,6 +48,7 @@ const TITLES: Record<NotificationType, { en: string; ar: string }> = {
   },
   CASE_UPDATED: { en: 'Update on your support request', ar: 'تحديث على طلب الدعم الخاص بك' },
   ACCOUNT_RESTRICTION: { en: 'Your account status changed', ar: 'تغيّرت حالة حسابك' },
+  BENEFIT_UPDATED: { en: 'Your benefits were updated', ar: 'تم تحديث مزاياك' },
 };
 
 interface NotificationOpsConfig {

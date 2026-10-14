@@ -212,6 +212,8 @@ export function HotDealPage({ id }: { id: string }) {
   };
   const unlock = (a: UnlockAction) => {
     if (a === 'SIGN_IN') router.push(href('/profile') + '?reason=unlock');
+    // My benefits: verify the employer (work-email code) or add the card / membership the offer needs
+    else router.push(href('/benefits') + (a === 'VERIFY_EMPLOYER' ? '?add=employer' : '?add=card'));
   };
 
   if (state === 'loading')
@@ -287,7 +289,8 @@ interface NotificationItem {
     | 'CAMPAIGN_COMPLETED'
     | 'ALERT'
     | 'CASE_UPDATED'
-    | 'ACCOUNT_RESTRICTION';
+    | 'ACCOUNT_RESTRICTION'
+    | 'BENEFIT_UPDATED';
   data: Record<string, unknown>;
   createdAt: string;
   readAt: string | null;
@@ -471,15 +474,17 @@ function NotificationRow({ n }: { n: NotificationItem }) {
     ? href('/cases')
     : n.type === 'ACCOUNT_RESTRICTION'
       ? href('/profile')
-      : n.type.startsWith('REWARD_')
-        ? href('/rewards')
-        : d.instanceId
-          ? href(`/my-vouchers/${d.instanceId}`)
-          : d.orderId
-            ? href(`/orders/${d.orderId}`)
-            : d.reservationId
-              ? href(`/reservations/${d.reservationId}`)
-              : href('/');
+      : n.type === 'BENEFIT_UPDATED'
+        ? href('/benefits')
+        : n.type.startsWith('REWARD_')
+          ? href('/rewards')
+          : d.instanceId
+            ? href(`/my-vouchers/${d.instanceId}`)
+            : d.orderId
+              ? href(`/orders/${d.orderId}`)
+              : d.reservationId
+                ? href(`/reservations/${d.reservationId}`)
+                : href('/');
   return (
     <Link
       href={target}
@@ -502,7 +507,14 @@ function NotificationRow({ n }: { n: NotificationItem }) {
       </span>
       <div className="dd-grow">
         <strong>
-          {t(`notif.${n.type}` as DictionaryKey, { merchant: merchant ?? '', deal: deal ?? '' })}
+          {n.type === 'BENEFIT_UPDATED' && typeof n.data.event === 'string'
+            ? t(`ben.ev.${n.data.event}` as DictionaryKey, {
+                name:
+                  (n.data.name as { en?: string; ar?: string } | undefined)?.[locale] ??
+                  (n.data.name as { en?: string } | undefined)?.en ??
+                  '',
+              })
+            : t(`notif.${n.type}` as DictionaryKey, { merchant: merchant ?? '', deal: deal ?? '' })}
         </strong>
         <div className="dd-caption">
           {new Date(n.createdAt).toLocaleString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-GB', {
