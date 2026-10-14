@@ -124,6 +124,12 @@ export function BenefitsPage() {
   };
 
   const employer = overview?.employer ?? null;
+  // EM-20: renewal date (then the grace period runs to expiresAt); older verifications have no separate renewal date
+  const renewDue = employer ? (employer.renewDueAt ?? employer.expiresAt) : null;
+  const renewSoon =
+    employer?.status === 'VERIFIED' &&
+    !!employer.renewFrom &&
+    new Date(employer.renewFrom).getTime() <= Date.now();
   const counts = overview?.counts;
   const tabLabel = (s: Section) => {
     const n = counts && s !== 'history' ? counts[s] : null;
@@ -190,18 +196,27 @@ export function BenefitsPage() {
                     })}
                   </span>
                 ) : null}
-                {employer.expiresAt && employer.status === 'VERIFIED' ? (
+                {renewDue && employer.status === 'VERIFIED' ? (
                   <span className="dd-caption">
-                    {t('ben.employer.until', { date: formatDate(locale, employer.expiresAt) })}
+                    {t('ben.employer.renewBy', { date: formatDate(locale, renewDue) })}
                   </span>
                 ) : null}
-                {employer.status === 'REVERIFICATION_DUE' && employer.expiresAt ? (
-                  <span className="dd-help">
-                    {t('ben.employer.renewFrom', { date: formatDate(locale, employer.expiresAt) })}
+                {renewSoon && renewDue ? (
+                  <span className="dd-help" data-testid="employer-renew-soon">
+                    {t('ben.employer.renewFrom', { date: formatDate(locale, renewDue) })}
                   </span>
+                ) : null}
+                {/* EM-20 grace period: renewal is due but the offers keep working until the end date */}
+                {employer.status === 'REVERIFICATION_DUE' && employer.expiresAt ? (
+                  <span className="dd-help" data-testid="employer-grace">
+                    {t('ben.employer.grace', { date: formatDate(locale, employer.expiresAt) })}
+                  </span>
+                ) : null}
+                {employer.status === 'EXPIRED' ? (
+                  <span className="dd-help">{t('ben.employer.expiredHelp')}</span>
                 ) : null}
                 <div className="dd-row" style={{ marginBlockStart: 6 }}>
-                  {employer.status === 'VERIFIED' ? null : (
+                  {employer.status === 'VERIFIED' && !renewSoon ? null : (
                     <Button size="sm" onClick={() => setSheet('employer')}>
                       {employer.status === 'PENDING' || employer.status === 'FAILED'
                         ? t('ben.sheet.verify')

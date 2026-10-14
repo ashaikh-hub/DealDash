@@ -31,6 +31,18 @@ const mediaPath = (kind: string) =>
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
+/**
+ * Account-level answers any screen can receive (session ended, profile set-up or new Terms needed, under-age account). The call
+ * still returns its error to the screen; the app may also listen for this window event to show one account-level prompt.
+ */
+export const ACCOUNT_SIGNAL_EVENT = 'dd:account-signal';
+const ACCOUNT_SIGNALS = new Set([
+  'AUTH_REQUIRED',
+  'ONBOARDING_REQUIRED',
+  'CONSENT_REQUIRED',
+  'AGE_RESTRICTED',
+]);
+
 export interface UploadedFile {
   fileId: string;
   fileName: string;
@@ -73,11 +85,17 @@ export function useApi() {
         } catch {
           /* empty body */
         }
+        const errors = res.ok
+          ? []
+          : (json.errors ?? [{ code: 'INTERNAL', message: 'Request failed' }]);
+        const code = errors[0]?.code;
+        if (code && ACCOUNT_SIGNALS.has(code) && typeof window !== 'undefined')
+          window.dispatchEvent(new CustomEvent(ACCOUNT_SIGNAL_EVENT, { detail: code }));
         return {
           ok: res.ok,
           status: res.status,
           data: res.ok ? ((json.data ?? null) as T | null) : null,
-          errors: res.ok ? [] : (json.errors ?? [{ code: 'INTERNAL', message: 'Request failed' }]),
+          errors,
           nextCursor: json.meta?.nextCursor ?? null,
         };
       } catch {

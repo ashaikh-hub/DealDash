@@ -1,6 +1,11 @@
 import Link from 'next/link';
 import { useState, type ReactNode } from 'react';
-import { createTranslator, formatMoney, isolateLtr, type Locale } from '@dealdash/localization';
+import {
+  createTranslator,
+  formatMoney,
+  isolateLtr,
+  type UiLocale as Locale, // the interface language (en / ar / ur); content via pickText
+} from '@dealdash/localization';
 import type { UnlockAction } from '@dealdash/types';
 import type { DealCard, DealDetail, PublicBranch } from '@dealdash/validation';
 import { Icon } from './icons';

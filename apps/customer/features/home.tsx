@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Icon, categoryIcon, pickText, useApi, useAuth } from '@dealdash/app-shell';
 import { formatNumber, type DictionaryKey } from '@dealdash/localization';
 import type { DealCard, RewardSummary } from '@dealdash/validation';
+import { SetupBanner } from './account';
 import { useCustomer } from './customer-context';
 import { curate, presentCard } from './presentation';
 import { HotRail } from './hot';
@@ -172,6 +173,8 @@ export function HomePage() {
   return (
     <div className="dd-stack dd-home" data-testid="customer-home">
       <SearchBox />
+      {/* only for a signed-in customer whose profile set-up is unfinished ("Continue setting up") */}
+      <SetupBanner />
 
       {state === 'loading' ? (
         <>

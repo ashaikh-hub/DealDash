@@ -11,6 +11,7 @@ export { ShellHome } from './shell-home';
 export { PlaceholderPage } from './placeholder-page';
 export { PwaRegister } from './pwa';
 export {
+  ACCOUNT_SIGNAL_EVENT,
   useApi,
   useResource,
   type ApiResult,

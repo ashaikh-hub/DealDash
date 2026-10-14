@@ -6,7 +6,8 @@ import {
   formatMoney,
   formatNumber,
   type DictionaryKey,
-  type Locale,
+  // customer views take the INTERFACE language (en / ar / ur); content is picked through pickText
+  type UiLocale as Locale,
 } from '@dealdash/localization';
 import type { WatchStatus } from '@dealdash/types';
 import { Alert, Button, Card, StatusChip, type StatusTone } from '@dealdash/ui';

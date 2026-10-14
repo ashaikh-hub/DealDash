@@ -164,6 +164,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/app/me/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerAccountController_profile_v1"];
+        put: operations["CustomerAccountController_updateProfile_v1"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/me/consents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["CustomerAccountController_updateConsents_v1"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/me/notification-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerAccountController_notificationSettings_v1"];
+        put: operations["CustomerAccountController_updateNotificationSettings_v1"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/me/mobile/code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CustomerAccountController_mobileStart_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/me/mobile/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CustomerAccountController_mobileVerify_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/merchants/{orgId}": {
         parameters: {
             query?: never;
@@ -11136,6 +11216,122 @@ export interface components {
             /** Format: uuid */
             branchId?: string;
         };
+        ProfileResponse: {
+            data: {
+                firstName: string | null;
+                lastName: string | null;
+                email: string | null;
+                mobileMasked: string | null;
+                dateOfBirth: string | null;
+                ageVerified: boolean;
+                /** @enum {string|null} */
+                gender: "FEMALE" | "MALE" | "PREFER_NOT_TO_SAY" | null;
+                city: string | null;
+                interests: string[];
+                /** @enum {string} */
+                language: "en" | "ar" | "ur";
+                onboarding: {
+                    /** @enum {string} */
+                    state: "PHONE_VERIFIED" | "PROFILE_IN_PROGRESS" | "COMPLETE" | "AGE_BLOCKED";
+                    ready: boolean;
+                    missing: ("DETAILS" | "BIRTH_DATE" | "GENDER" | "CITY" | "INTERESTS" | "CONSENTS")[];
+                    /** @enum {string|null} */
+                    nextStep: "DETAILS" | "BIRTH_DATE" | "GENDER" | "CITY" | "INTERESTS" | "CONSENTS" | null;
+                    consentsOutdated: boolean;
+                    minimumAge: number;
+                };
+                consents: {
+                    /** @enum {string} */
+                    kind: "TERMS" | "PRIVACY" | "MARKETING_PUSH" | "MARKETING_EMAIL" | "LOCATION" | "NOTIFICATIONS";
+                    granted: boolean;
+                    version: string | null;
+                    at: string;
+                }[];
+                documents: {
+                    termsVersion: string;
+                    privacyVersion: string;
+                    termsUrl: string | null;
+                    privacyUrl: string | null;
+                };
+            };
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
+        };
+        ProfileUpdateDto: {
+            tradeNameEn?: string;
+            tradeNameAr?: string;
+            descriptionEn?: string;
+            descriptionAr?: string;
+            businessPhone?: string;
+            /** Format: email */
+            businessEmail?: string;
+            subCategory?: string;
+        };
+        ConsentsUpdateDto: {
+            items: {
+                /** @enum {string} */
+                kind: "TERMS" | "PRIVACY" | "MARKETING_PUSH" | "MARKETING_EMAIL" | "LOCATION" | "NOTIFICATIONS";
+                granted: boolean;
+            }[];
+            /**
+             * @default SETTINGS
+             * @enum {string}
+             */
+            source: "ONBOARDING" | "SETTINGS";
+        };
+        NotificationSettingsResponse: {
+            data: {
+                categories: {
+                    /** @enum {string} */
+                    category: "ORDERS" | "ACCOUNT" | "REWARDS" | "BENEFITS";
+                    required: boolean;
+                    push: boolean;
+                }[];
+                pushAllowed: boolean;
+                marketing: {
+                    push: boolean;
+                    email: boolean;
+                };
+            };
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
+        };
+        NotificationSettingsUpdateDto: {
+            /** @default [] */
+            categories: {
+                /** @enum {string} */
+                category: "REWARDS" | "BENEFITS";
+                push: boolean;
+            }[];
+        };
+        MobileStartDto: {
+            mobile: string;
+        };
+        MobileStartResponse: {
+            data: {
+                sent: boolean;
+                expiresInSeconds: number;
+                resendAfterSeconds: number;
+            };
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
+        };
+        MobileVerifyDto: {
+            mobile: string;
+            code: string;
+        };
         MerchantResponse: {
             data: {
                 /** Format: uuid */
@@ -11721,10 +11917,6 @@ export interface components {
                 nextCursor?: string | null;
             };
         };
-        MobileVerifyDto: {
-            mobile: string;
-            code: string;
-        };
         AgreementAcceptDto: {
             signatureName: string;
             /** @enum {boolean} */
@@ -11776,16 +11968,6 @@ export interface components {
                 locale?: "en" | "ar";
                 nextCursor?: string | null;
             };
-        };
-        ProfileUpdateDto: {
-            tradeNameEn?: string;
-            tradeNameAr?: string;
-            descriptionEn?: string;
-            descriptionAr?: string;
-            businessPhone?: string;
-            /** Format: email */
-            businessEmail?: string;
-            subCategory?: string;
         };
         OkResponse: {
             data: {
@@ -14946,6 +15128,10 @@ export interface components {
                     latitude: number | null;
                     longitude: number | null;
                 }[];
+                map?: {
+                    tileUrlTemplate: string | null;
+                    attribution: string | null;
+                };
             };
             meta: {
                 requestId?: string;
@@ -18656,7 +18842,7 @@ export interface components {
                     /** Format: uuid */
                     id: string;
                     /** @enum {string} */
-                    type: "RESERVATION_CONFIRMED" | "RESERVATION_EXPIRING" | "RESERVATION_EXPIRED" | "RESERVATION_CANCELLED" | "REDEMPTION_SUCCESS" | "PURCHASE_SUCCEEDED" | "PAYMENT_FAILED" | "VOUCHER_ISSUED" | "VOUCHER_EXPIRING" | "REFUND_UPDATED" | "VOUCHER_REDEEMED" | "REWARD_EARNED" | "REWARD_HELD" | "REWARD_RELEASED" | "REWARD_REVERSED" | "REWARD_EXPIRING" | "CAMPAIGN_COMPLETED" | "ALERT" | "CASE_UPDATED" | "ACCOUNT_RESTRICTION" | "BENEFIT_UPDATED";
+                    type: "RESERVATION_CONFIRMED" | "RESERVATION_EXPIRING" | "RESERVATION_EXPIRED" | "RESERVATION_CANCELLED" | "REDEMPTION_SUCCESS" | "PURCHASE_SUCCEEDED" | "PAYMENT_FAILED" | "VOUCHER_ISSUED" | "VOUCHER_EXPIRING" | "REFUND_UPDATED" | "VOUCHER_REDEEMED" | "REWARD_EARNED" | "REWARD_HELD" | "REWARD_RELEASED" | "REWARD_REVERSED" | "REWARD_EXPIRING" | "CAMPAIGN_COMPLETED" | "ALERT" | "CASE_UPDATED" | "ACCOUNT_RESTRICTION" | "BENEFIT_UPDATED" | "ACCOUNT_WELCOME";
                     data: {
                         [key: string]: unknown;
                     };
@@ -28615,6 +28801,159 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AcceptedResponse"];
+                };
+            };
+        };
+    };
+    CustomerAccountController_profile_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileResponse"];
+                };
+            };
+        };
+    };
+    CustomerAccountController_updateProfile_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProfileUpdateDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileResponse"];
+                };
+            };
+        };
+    };
+    CustomerAccountController_updateConsents_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConsentsUpdateDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileResponse"];
+                };
+            };
+        };
+    };
+    CustomerAccountController_notificationSettings_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationSettingsResponse"];
+                };
+            };
+        };
+    };
+    CustomerAccountController_updateNotificationSettings_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NotificationSettingsUpdateDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationSettingsResponse"];
+                };
+            };
+        };
+    };
+    CustomerAccountController_mobileStart_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MobileStartDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MobileStartResponse"];
+                };
+            };
+        };
+    };
+    CustomerAccountController_mobileVerify_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MobileVerifyDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileResponse"];
                 };
             };
         };

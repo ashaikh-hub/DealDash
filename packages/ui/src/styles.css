@@ -3906,3 +3906,261 @@ button.dd-rewardcard__cta {
   min-block-size: 44px;
   padding-inline: 20px;
 }
+
+/* ---- customer account: set-up prompt, wizard, settings, global states (same card language as Home) */
+.dd-offline {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-block-end: 12px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: var(--dd-navy);
+  color: #fff;
+  font-size: 13px;
+  line-height: 18px;
+}
+.dd-setupcard {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--dd-purple-50), #fff);
+  border: 1px solid var(--dd-lilac);
+}
+.dd-setupcard__icon,
+.dd-setupdone__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 40px;
+  block-size: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #7e4dff, #5b1afc);
+  color: #fff;
+  flex: none;
+}
+.dd-setupcard .dd-grow {
+  min-inline-size: 160px;
+}
+.dd-setup__progress {
+  block-size: 6px;
+  border-radius: 99px;
+  background: var(--dd-lilac);
+  overflow: hidden;
+}
+.dd-setup__progress > span {
+  display: block;
+  block-size: 100%;
+  border-radius: 99px;
+  background: var(--dd-purple);
+  transition: inline-size 0.2s ease;
+}
+.dd-setup__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block-start: 8px;
+}
+.dd-setupdone {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 24px 16px;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: var(--dd-shadow-card);
+  text-align: center;
+}
+.dd-setupdone__icon {
+  inline-size: 56px;
+  block-size: 56px;
+  border-radius: 18px;
+}
+.dd-consents {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.dd-state--full {
+  min-block-size: 50vh;
+  justify-content: center;
+}
+.dd-notifset {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.dd-notifset li {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--dd-bg);
+}
+.dd-notifset .dd-checkbox {
+  margin: 0;
+}
+
+/* ---- Explore: list / map switch */
+.dd-segment {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 99px;
+  background: var(--dd-slate-100);
+}
+.dd-segment button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 40px;
+  min-block-size: 36px;
+  border: 0;
+  border-radius: 99px;
+  background: transparent;
+  color: var(--dd-ink-2);
+  cursor: pointer;
+}
+.dd-segment button[aria-pressed='true'] {
+  background: #fff;
+  color: var(--dd-purple);
+  box-shadow: var(--dd-shadow-flat);
+}
+
+/* ---- Live Deals map (never mirrored: the container is dir="ltr") */
+.dd-map {
+  position: relative;
+  overflow: hidden;
+  block-size: min(62vh, 520px);
+  min-block-size: 320px;
+  border-radius: 22px;
+  background: #eef0f8;
+  box-shadow: var(--dd-shadow-card);
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+}
+.dd-map:focus-visible {
+  outline: none;
+  box-shadow: var(--dd-focus);
+}
+.dd-map--plain {
+  background-color: #f1f0fa;
+  background-image:
+    linear-gradient(rgba(91, 26, 252, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(91, 26, 252, 0.06) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+.dd-map__tile {
+  position: absolute;
+  inline-size: 256px;
+  block-size: 256px;
+  pointer-events: none;
+}
+.dd-map__rings {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.dd-map__rings circle {
+  fill: rgba(91, 26, 252, 0.04);
+  stroke: rgba(91, 26, 252, 0.35);
+  stroke-dasharray: 4 5;
+}
+.dd-map__rings text {
+  fill: var(--dd-ink-2);
+  font-size: 11px;
+  font-weight: 700;
+}
+.dd-map__me {
+  position: absolute;
+  inline-size: 16px;
+  block-size: 16px;
+  border-radius: 50%;
+  background: #2f80ff;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 6px rgba(47, 128, 255, 0.2);
+  transform: translate(-50%, -50%);
+}
+.dd-map__me--city {
+  background: var(--dd-navy);
+  box-shadow: 0 0 0 6px rgba(15, 12, 66, 0.15);
+}
+.dd-map__pin {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 34px;
+  block-size: 34px;
+  border-radius: 50% 50% 50% 4px;
+  border: 2px solid #fff;
+  background: var(--dd-purple);
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  box-shadow: 0 4px 10px rgba(15, 12, 66, 0.25);
+  transform: translate(-50%, -100%) rotate(-45deg);
+  cursor: pointer;
+}
+.dd-map__pin > span {
+  transform: rotate(45deg);
+}
+.dd-map__pin--cluster {
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--dd-navy);
+  inline-size: 38px;
+  block-size: 38px;
+}
+.dd-map__pin--active {
+  background: var(--dd-amber);
+  color: var(--dd-navy);
+  z-index: 2;
+}
+.dd-map__pin:focus-visible {
+  outline: none;
+  box-shadow: var(--dd-focus);
+}
+.dd-map__controls {
+  position: absolute;
+  inset-block-start: 12px;
+  inset-inline-end: 12px;
+  display: grid;
+  gap: 6px;
+}
+.dd-map__controls button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 40px;
+  block-size: 40px;
+  border: 0;
+  border-radius: 12px;
+  background: #fff;
+  color: var(--dd-navy);
+  box-shadow: var(--dd-shadow-flat);
+  cursor: pointer;
+}
+.dd-map__attribution {
+  position: absolute;
+  inset-block-end: 4px;
+  inset-inline-end: 6px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.85);
+  font-size: 10px;
+  color: var(--dd-ink-2);
+}

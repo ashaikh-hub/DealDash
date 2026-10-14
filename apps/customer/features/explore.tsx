@@ -8,6 +8,7 @@ import { withLocale } from '@dealdash/localization';
 import { Button } from '@dealdash/ui';
 import type { DealCard } from '@dealdash/validation';
 import { useCustomer } from './customer-context';
+import { DealsMap } from './map';
 import { CardSkeletons, CityBar, LoadError, NoDeals, SearchBox, TrackedCard, useT } from './parts';
 import { useDealList } from './use-deals';
 
@@ -35,6 +36,8 @@ export function ExplorePage() {
     (params.get('sort') as (typeof SORTS)[number] | null) ?? (approximate ? 'newest' : 'nearest');
   const radiusKm = params.get('radius') ?? '';
   const elig = params.get('eligibility') === 'unlocked' ? 'unlocked' : 'all';
+  const view = params.get('view') === 'map' ? 'map' : 'list';
+  const { mapConfig } = useCustomer();
 
   useEffect(() => {
     void call<Cat[]>('GET', '/v1/app/categories').then((r) => r.ok && setCats(r.data ?? []));
@@ -57,7 +60,8 @@ export function ExplorePage() {
     lat: approximate ? undefined : coords.lat,
     lng: approximate ? undefined : coords.lng,
     radiusMeters: radiusKm && !approximate ? Number(radiusKm) * 1000 : undefined,
-    limit: 12,
+    // the map shows a fuller set at once; the list pages
+    limit: view === 'map' ? 50 : 12,
   });
   void status;
   const activeFilters =
@@ -93,10 +97,43 @@ export function ExplorePage() {
         ))}
       </div>
       <div className="dd-row" style={{ justifyContent: 'space-between' }}>
-        <button type="button" className="dd-pill" onClick={() => setFilters(true)}>
-          <Icon name="sliders" size={16} /> {t('filter.open')}
-          {activeFilters ? ` (${activeFilters})` : ''}
-        </button>
+        <div className="dd-row" style={{ gap: 8 }}>
+          <button type="button" className="dd-pill" onClick={() => setFilters(true)}>
+            <Icon name="sliders" size={16} /> {t('filter.open')}
+            {activeFilters ? ` (${activeFilters})` : ''}
+          </button>
+          {/* Customer MVP §16: the "For my benefits" chip (offers the customer's benefits open now) */}
+          <button
+            type="button"
+            className={`dd-pill ${elig === 'unlocked' ? 'dd-pill--active' : ''}`}
+            aria-pressed={elig === 'unlocked'}
+            onClick={() => set({ eligibility: elig === 'unlocked' ? null : 'unlocked' })}
+            data-testid="for-my-benefits"
+          >
+            {t('explore.forMyBenefits')}
+          </button>
+        </div>
+        <div className="dd-segment" role="group" aria-label={t('map.title')}>
+          <button
+            type="button"
+            aria-pressed={view === 'list'}
+            aria-label={t('map.list')}
+            onClick={() => set({ view: null })}
+          >
+            <Icon name="list" size={16} />
+          </button>
+          <button
+            type="button"
+            aria-pressed={view === 'map'}
+            aria-label={t('map.map')}
+            onClick={() => set({ view: 'map' })}
+            data-testid="view-map"
+          >
+            <Icon name="map" size={16} />
+          </button>
+        </div>
+      </div>
+      <div className="dd-row" style={{ justifyContent: 'flex-end' }}>
         <label className="dd-caption dd-row" style={{ gap: 6 }}>
           {t('filter.sort')}
           <select
@@ -120,6 +157,13 @@ export function ExplorePage() {
         <LoadError onRetry={list.reload} />
       ) : list.items.length === 0 ? (
         <NoDeals />
+      ) : view === 'map' ? (
+        <DealsMap
+          deals={list.items}
+          centre={coords}
+          centreIsDevice={!approximate}
+          config={mapConfig}
+        />
       ) : (
         <div className="dd-cardgrid" aria-live="polite">
           {list.items.map((d: DealCard) => (

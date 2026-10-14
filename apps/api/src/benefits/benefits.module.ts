@@ -10,6 +10,7 @@ import {
   ParseUUIDPipe,
   Post,
   Query,
+  UseGuards,
   type OnModuleInit,
 } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
@@ -39,6 +40,7 @@ import {
   RequirePermissions,
 } from '../common/decorators';
 import type { Actor, RequestMeta } from '../common/request-context';
+import { CustomerAllowedGuard } from '../customer-account/customer-account.module';
 import { HotDealsModule } from '../hot-deals/hot-deals.module';
 import { JobsModule } from '../jobs/jobs.module';
 import { JobsService } from '../jobs/jobs.service';
@@ -108,6 +110,7 @@ export class CustomerBenefitsController {
   @Post('employer/code')
   @HttpCode(200)
   @RequirePermissions('customer.profile.write')
+  @UseGuards(CustomerAllowedGuard)
   @ApiOkResponse({ type: StartResponse })
   employerStart(
     @Body() b: EmployerStartDto,
@@ -120,6 +123,7 @@ export class CustomerBenefitsController {
   @Post('employer/verify')
   @HttpCode(200)
   @RequirePermissions('customer.profile.write')
+  @UseGuards(CustomerAllowedGuard)
   @ApiOkResponse({ type: OverviewResponse })
   employerVerify(
     @Body() b: EmployerVerifyDto,
@@ -140,6 +144,7 @@ export class CustomerBenefitsController {
   @Idempotent()
   @HttpCode(200)
   @RequirePermissions('customer.profile.write')
+  @UseGuards(CustomerAllowedGuard)
   @ApiOkResponse({ type: OverviewResponse })
   cardAdd(@Body() b: CardAddDto, @CurrentActor() actor: Actor, @Meta() meta: RequestMeta) {
     return this.benefits.cardAdd(actor, b.programId, meta);

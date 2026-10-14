@@ -307,37 +307,63 @@ describe.skipIf(!DB_READY)('Customer My benefits', () => {
     );
   });
 
-  it('expiry and renewal: reminder before expiry, expired after, offers lock (EM-20)', async () => {
+  it('renewal and grace: reminder before the renewal date, still usable in the grace period, then expired and locked (EM-20)', async () => {
+    const deal = await w.publish('A', {
+      title: { en: 'Employer grace lunch', ar: 'غداء فترة السماح' },
+      eligibility: { kind: 'EMPLOYER', valueRefs: [w.employer] },
+    });
     const c = await w.newCustomer();
     const addr = `renew.me@${domain}`;
     await b(c)
       .post('/v1/app/benefits/employer/code')
       .send({ programId: employerProgram, email: addr });
-    await b(c)
+    const ok = await b(c)
       .post('/v1/app/benefits/employer/verify')
       .send({ programId: employerProgram, email: addr, code: codeFor(addr) });
+    // renewal due after the verification period; the end date adds the configured grace period
+    const view = ok.body.data.employer;
+    expect(new Date(view.expiresAt).getTime() - new Date(view.renewDueAt).getTime()).toBe(
+      14 * 86_400_000,
+    );
     const attr = await t.prisma.eligibilityAttribute.findFirstOrThrow({
       where: { userId: c.me.id, attrType: 'EMPLOYER', status: 'VERIFIED' },
     });
     const svc = t.app.get(BenefitsService);
+    const day = 86_400_000;
+    const unlockedNow = async () =>
+      (await b(c).get(`/v1/app/live-deals/${deal.id}`)).body.data.eligibility.result;
 
+    // 1. renewal coming up: reminded once, still VERIFIED
     await t.prisma.eligibilityAttribute.update({
       where: { id: attr.id },
-      data: { expiresAt: new Date(Date.now() + 2 * 86_400_000) },
-    });
-    await svc.sweep();
-    const due = await b(c).get('/v1/app/benefits');
-    expect(due.body.data.employer.status).toBe('REVERIFICATION_DUE');
-    await svc.sweep(); // a second run never repeats the reminder
-    const reminders = await t.prisma.notification.count({
-      where: {
-        userId: c.me.id,
-        type: 'BENEFIT_UPDATED',
-        dedupeKey: { startsWith: 'benefit:employer:renew:' },
+      data: {
+        renewDueAt: new Date(Date.now() + 2 * day),
+        expiresAt: new Date(Date.now() + 16 * day),
       },
     });
-    expect(reminders).toBe(1);
+    await svc.sweep();
+    await svc.sweep(); // a second run never repeats the reminder
+    const soon = await b(c).get('/v1/app/benefits');
+    expect(soon.body.data.employer.status).toBe('VERIFIED');
+    const count = (prefix: string) =>
+      t.prisma.notification.count({
+        where: { userId: c.me.id, type: 'BENEFIT_UPDATED', dedupeKey: { startsWith: prefix } },
+      });
+    expect(await count('benefit:employer:renew:')).toBe(1);
 
+    // 2. renewal date passed: grace period, status REVERIFICATION_DUE, the benefit STILL works, one grace reminder
+    await t.prisma.eligibilityAttribute.update({
+      where: { id: attr.id },
+      data: { renewDueAt: new Date(Date.now() - 1000), expiresAt: new Date(Date.now() + 5 * day) },
+    });
+    await svc.sweep();
+    await svc.sweep();
+    const grace = await b(c).get('/v1/app/benefits');
+    expect(grace.body.data.employer.status).toBe('REVERIFICATION_DUE');
+    expect(await unlockedNow()).toBe('ELIGIBLE');
+    expect(await count('benefit:employer:grace:')).toBe(1);
+
+    // 3. grace over: expired, offers lock
     await t.prisma.eligibilityAttribute.update({
       where: { id: attr.id },
       data: { expiresAt: new Date(Date.now() - 1000) },
@@ -345,6 +371,7 @@ describe.skipIf(!DB_READY)('Customer My benefits', () => {
     await svc.sweep();
     const exp = await b(c).get('/v1/app/benefits');
     expect(exp.body.data.employer.status).toBe('EXPIRED');
+    expect(await unlockedNow()).not.toBe('ELIGIBLE');
     const hist = await b(c).get('/v1/app/benefits/history');
     expect(hist.body.data.map((h: { event: string }) => h.event)).toEqual(
       expect.arrayContaining(['EMPLOYER_RENEWAL_DUE', 'EMPLOYER_EXPIRED']),

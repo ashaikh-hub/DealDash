@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { CONFIG_KEYS } from '@dealdash/config';
 import { DEFAULT_CITY, RIYADH_CENTER } from '@dealdash/types';
 import {
   normalizeText,
@@ -11,6 +12,7 @@ import { AppError } from '../common/errors';
 import { decodeCursor, encodeCursor, Page } from '../common/pagination';
 import { FilesService } from '../files/files.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { SystemConfigService } from '../system-config/system-config.service';
 import { parseContent } from './deal-content';
 import { DEAL_INCLUDE, DealCoreService, type DealRow } from './deal-core.service';
 import { DealEventsService } from './deal-events.service';
@@ -103,6 +105,7 @@ export class DiscoveryService {
     private readonly eligibility: EligibilityService,
     private readonly events: DealEventsService,
     private readonly files: FilesService,
+    private readonly config: SystemConfigService,
   ) {}
 
   // ---------------------------------------------------------------- SQL
@@ -215,9 +218,12 @@ export class DiscoveryService {
   // ---------------------------------------------------------------- cities
   /** Public app configuration: the enabled cities (configuration, not code) with their centres. */
   async appConfig() {
-    const [enabled, centers] = await Promise.all([
+    const [enabled, centers, map] = await Promise.all([
       this.core.enabledCities(),
       this.core.cityCenters(),
+      this.config.get<{ tileUrlTemplate?: string | null; attribution?: string | null }>(
+        CONFIG_KEYS.CUSTOMER_MAP,
+      ),
     ]);
     return {
       defaultCity: enabled[0] ?? DEFAULT_CITY,
@@ -227,6 +233,11 @@ export class DiscoveryService {
         latitude: centers[name]?.latitude ?? null,
         longitude: centers[name]?.longitude ?? null,
       })),
+      // the map's base layer is a provider choice: with none configured the app draws pins on its own plain canvas
+      map: {
+        tileUrlTemplate: map?.tileUrlTemplate ?? null,
+        attribution: map?.attribution ?? null,
+      },
     };
   }
 

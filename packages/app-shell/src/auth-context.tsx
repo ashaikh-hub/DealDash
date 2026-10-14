@@ -11,7 +11,13 @@ import {
 import { BatchingAnalyticsClient } from '@dealdash/analytics';
 import { createApiClient, type ApiClient } from '@dealdash/api-client';
 import { setDisplayMarket } from '@dealdash/localization';
-import type { Audience, Locale, MeView } from '@dealdash/types';
+import {
+  contentLocaleOf,
+  type Audience,
+  type Locale,
+  type MeView,
+  type UiLocale,
+} from '@dealdash/types';
 
 /** The market the screens show money and time in when a value carries no currency / zone of its own (from the API). */
 export interface DisplayMarketView {
@@ -30,7 +36,10 @@ export interface AuthState {
 
 export interface AuthContextValue extends AuthState {
   audience: Audience;
+  /** The CONTENT language (English or Arabic): which column of bilingual records to show. */
   locale: Locale;
+  /** The INTERFACE language: equals `locale` in the business portals; the customer app adds Urdu (content then reads English). */
+  uiLocale: UiLocale;
   apiUrl: string;
   client: ApiClient;
   refresh: () => Promise<void>;
@@ -62,15 +71,17 @@ export function errorCodeOf(error: unknown): string {
 
 export function AuthProvider({
   audience,
-  locale,
+  locale: uiLocale,
   apiUrl,
   children,
 }: {
   audience: Audience;
-  locale: Locale;
+  /** The route's language (business portals: en / ar; customer app: en / ar / ur). */
+  locale: UiLocale;
   apiUrl: string;
   children: ReactNode;
 }) {
+  const locale = contentLocaleOf(uiLocale);
   const client = useMemo(() => createApiClient({ baseUrl: apiUrl, locale }), [apiUrl, locale]);
   const [state, setState] = useState<AuthState>({
     status: 'loading',
@@ -165,6 +176,7 @@ export function AuthProvider({
     ...state,
     audience,
     locale,
+    uiLocale,
     apiUrl,
     client,
     refresh,

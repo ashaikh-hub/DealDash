@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { notFound } from 'next/navigation';
 import type { ReactNode } from 'react';
-import { dirOf, isLocale } from '@dealdash/localization';
+import { dirOf, isUiLocale } from '@dealdash/localization';
 import '@dealdash/ui/fonts.css';
 import '@dealdash/ui/styles.css';
 import { Providers } from './providers';
@@ -19,7 +19,8 @@ export const viewport: Viewport = {
 };
 
 export function generateStaticParams() {
-  return [{ locale: 'en' }, { locale: 'ar' }];
+  // the customer interface also reads in Urdu (content stays English / Arabic)
+  return [{ locale: 'en' }, { locale: 'ar' }, { locale: 'ur' }];
 }
 
 export default async function RootLayout({
@@ -30,7 +31,7 @@ export default async function RootLayout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  if (!isLocale(locale)) notFound();
+  if (!isUiLocale(locale)) notFound();
   return (
     <html lang={locale} dir={dirOf(locale)}>
       <body>

@@ -8,6 +8,7 @@ import {
   ParseUUIDPipe,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { randomUUID } from 'node:crypto';
@@ -21,6 +22,7 @@ import {
 } from '../common/decorators';
 import { AppError } from '../common/errors';
 import type { Actor } from '../common/request-context';
+import { CustomerReadyGuard } from '../customer-account/customer-account.module';
 import { HomeQueryDto } from '../live-deals/dto';
 import {
   RewardActivityQueryDto,
@@ -80,6 +82,7 @@ export class CustomerWatchController {
   @Post('watch/views')
   @HttpCode(200)
   @RequirePermissions('customer.rewards.manage')
+  @UseGuards(CustomerReadyGuard)
   @ApiOkResponse({ type: WatchViewStartedResponse })
   start(@Body() body: WatchViewStartDto, @CurrentActor() actor: Actor) {
     return this.qualification.start(actor.userId, body);
@@ -146,6 +149,7 @@ export class CustomerWatchController {
   @HttpCode(200)
   @Idempotent()
   @RequirePermissions('customer.rewards.manage')
+  @UseGuards(CustomerReadyGuard)
   @ApiOkResponse({ type: RewardRedeemedResponse })
   redeem(
     @Body() body: RewardRedeemDto,

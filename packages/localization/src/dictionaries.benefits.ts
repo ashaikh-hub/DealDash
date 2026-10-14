@@ -33,13 +33,22 @@ const BEN = {
   ],
   'ben.employer.verifiedOn': ['Verified on {date}', 'تم التحقق في {date}'],
   'ben.employer.until': ['Valid until {date}', 'صالح حتى {date}'],
+  'ben.employer.renewBy': ['Renew by {date}', 'جدّد قبل {date}'],
   'ben.employer.renewFrom': [
     'Confirm your work email again before {date} to keep these offers.',
     'أكّد بريد العمل مجدداً قبل {date} لتحتفظ بهذه العروض.',
   ],
+  'ben.employer.grace': [
+    'Renewal is due. Your staff offers keep working until {date}. Confirm your work email to keep them.',
+    'حان موعد التجديد. تبقى عروض الموظفين متاحة لك حتى {date}. أكّد بريد العمل لتحتفظ بها.',
+  ],
+  'ben.employer.expiredHelp': [
+    'Confirm your work email again to unlock your staff offers.',
+    'أكّد بريد العمل مجدداً لفتح عروض الموظفين.',
+  ],
   'ben.status.PENDING': ['Waiting for your code', 'بانتظار الرمز'],
   'ben.status.VERIFIED': ['Verified employee', 'موظف موثّق'],
-  'ben.status.REVERIFICATION_DUE': ['Confirm again soon', 'يلزم التأكيد قريباً'],
+  'ben.status.REVERIFICATION_DUE': ['Renewal due', 'حان موعد التجديد'],
   'ben.status.EXPIRED': ['Expired', 'منتهي'],
   'ben.status.FAILED': ['Not confirmed', 'لم يتم التأكيد'],
   'ben.status.REVOKED': ['Removed', 'تمت الإزالة'],
@@ -101,8 +110,8 @@ const BEN = {
   'ben.ev.EMPLOYER_CODE_SENT': ['Code sent to confirm {name}', 'أُرسل رمز لتأكيد {name}'],
   'ben.ev.EMPLOYER_VERIFIED': ['{name} confirmed as your employer', 'تم تأكيد {name} كجهة عملك'],
   'ben.ev.EMPLOYER_RENEWAL_DUE': [
-    'Confirm your work email for {name} soon',
-    'أكّد بريد العمل لدى {name} قريباً',
+    'Renew your {name} staff benefits: confirm your work email',
+    'جدّد مزايا موظفي {name}: أكّد بريد العمل',
   ],
   'ben.ev.EMPLOYER_EXPIRED': [
     'Your {name} staff benefits have expired',

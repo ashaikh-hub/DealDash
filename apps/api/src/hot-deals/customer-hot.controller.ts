@@ -1,4 +1,14 @@
-import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import {
   Audiences,
@@ -10,6 +20,7 @@ import {
   RequirePermissions,
 } from '../common/decorators';
 import type { Actor, RequestMeta } from '../common/request-context';
+import { CustomerReadyGuard } from '../customer-account/customer-account.module';
 import { HomeQueryDto } from '../live-deals/dto';
 import {
   CustomerCancelDto,
@@ -67,6 +78,7 @@ export class CustomerHotController {
   @Idempotent()
   @HttpCode(201)
   @RequirePermissions('customer.reservations.manage')
+  @UseGuards(CustomerReadyGuard)
   @ApiOkResponse({ type: ReservationResponse })
   reserve(
     @Param('id', ParseUUIDPipe) id: string,

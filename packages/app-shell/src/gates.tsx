@@ -4,7 +4,8 @@ import {
   createTranslator,
   dictionaries,
   type DictionaryKey,
-  type Locale,
+  // the INTERFACE language (en / ar / ur)
+  type UiLocale as Locale,
 } from '@dealdash/localization';
 import type { ApiErrorItem, PermissionCode } from '@dealdash/types';
 import { Alert, Card, LoadingState } from '@dealdash/ui';
@@ -13,8 +14,8 @@ import { LoginPanel } from './login-panel';
 
 /** Shows the sign-in panel until the user is fully signed in (including the second factor when required). */
 export function RequireAuth({ children, footer }: { children: ReactNode; footer?: ReactNode }) {
-  const { status, needsMfa, locale } = useAuth();
-  const t = createTranslator(locale);
+  const { status, needsMfa, uiLocale } = useAuth();
+  const t = createTranslator(uiLocale);
   if (status === 'loading') return <LoadingState label={t('state.loading')} />;
   if (status === 'anonymous' || needsMfa) {
     return (
@@ -36,8 +37,8 @@ export function RequirePermission({
   any: readonly PermissionCode[];
   children: ReactNode;
 }) {
-  const { me, locale } = useAuth();
-  const t = createTranslator(locale);
+  const { me, uiLocale } = useAuth();
+  const t = createTranslator(uiLocale);
   if (!hasAnyPermission(me?.permissions ?? [], any)) {
     return (
       <Card>

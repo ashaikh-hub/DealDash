@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import type { ApiEnv } from '@dealdash/config';
+import { CONFIG_DEFAULTS, type ApiEnv } from '@dealdash/config';
 import { AUDIENCE_DEFINITIONS, type Audience, type RoleCode } from '@dealdash/types';
 import { createApp } from '../src/app.factory';
 import { encryptField, hashPassword } from '../src/common/crypto';
@@ -239,10 +239,41 @@ export async function passwordSession(
   return session;
 }
 
+/**
+ * Test fixture: a customer whose profile set-up is already finished (adult, details, current Terms / Privacy), so product
+ * tests can reserve / buy / earn. Written directly (no welcome notification) so inbox assertions stay unchanged. The set-up flow
+ * itself is tested end to end in customer-account.e2e.
+ */
+export async function completeCustomerOnboarding(prisma: PrismaService, userId: string) {
+  const cfg = CONFIG_DEFAULTS['customer.onboarding'] as {
+    termsVersion: string;
+    privacyVersion: string;
+  };
+  await prisma.customer.update({
+    where: { userId },
+    data: {
+      firstName: 'Test',
+      email: `customer-${uid()}@test.dd`,
+      dobEnc: encryptField('1990-01-15', FIELD_KEY),
+      ageVerifiedAt: new Date(),
+      // no profile city: the customer's city drives eligibility (GEOGRAPHY), product tests keep the browsing city
+      onboardingState: 'COMPLETE',
+      onboardedAt: new Date(),
+    },
+  });
+  await prisma.customerConsent.createMany({
+    data: [
+      { userId, kind: 'TERMS', granted: true, version: cfg.termsVersion, source: 'ONBOARDING' },
+      { userId, kind: 'PRIVACY', granted: true, version: cfg.privacyVersion, source: 'ONBOARDING' },
+    ],
+  });
+}
+
 export async function otpSession(
   t: TestApp,
   mobile: string,
   audience: 'customer' | 'staff',
+  opts: { onboarded?: boolean } = {},
 ): Promise<Session> {
   const req = await t.http.post('/v1/auth/otp/request').send({ mobile, audience });
   if (req.status !== 200)
@@ -253,6 +284,11 @@ export async function otpSession(
   const res = await t.http.post('/v1/auth/otp/verify').send({ mobile, code, audience });
   if (res.status !== 200)
     throw new Error(`otp verify failed: ${res.status} ${JSON.stringify(res.body)}`);
+  if (audience === 'customer' && opts.onboarded !== false) {
+    const c = await t.prisma.customer.findUnique({ where: { userId: res.body.data.me.id } });
+    if (c && c.onboardingState !== 'COMPLETE')
+      await completeCustomerOnboarding(t.prisma, res.body.data.me.id);
+  }
   return {
     cookie: parseSetCookie(res, AUDIENCE_DEFINITIONS[audience].cookieName),
     csrf: res.body.data.csrfToken,

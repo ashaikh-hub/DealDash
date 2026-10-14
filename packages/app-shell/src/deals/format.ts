@@ -1,16 +1,21 @@
 import {
+  contentLocaleOf,
   createTranslator,
   dictionaries,
   displayTimeZone,
   formatDate,
   formatNumber,
-  type Locale,
+  // the INTERFACE language (en / ar / ur); bilingual content is picked through pickText
+  type UiLocale as Locale,
 } from '@dealdash/localization';
 import type { BilingualText } from '@dealdash/types';
 
-/** Picks the visible language with a safe fallback (never shows an empty string when the other language exists). */
+/**
+ * Picks the visible language with a safe fallback (never shows an empty string when the other language exists). An interface
+ * language without its own content column (Urdu) reads the English content.
+ */
 export const pickText = (text: BilingualText | null | undefined, locale: Locale): string =>
-  text ? text[locale] || text.en || text.ar || '' : '';
+  text ? text[contentLocaleOf(locale)] || text.en || text.ar || '' : '';
 
 export function formatDistance(locale: Locale, meters: number | null | undefined): string | null {
   if (meters === null || meters === undefined) return null;

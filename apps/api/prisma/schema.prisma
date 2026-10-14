@@ -419,11 +419,36 @@ model Customer {
   lastName        String?
   email           String?
   city            String?
+  /// PHONE_VERIFIED | PROFILE_IN_PROGRESS | COMPLETE | AGE_BLOCKED (under the configured minimum age: nothing else is kept)
   onboardingState String   @default("PHONE_VERIFIED")
+  /// Date of birth, field-encrypted (restricted PII). Read-only once the age check passed (support can correct it).
+  dobEnc          String?
+  ageVerifiedAt   DateTime?
+  /// FEMALE | MALE | PREFER_NOT_TO_SAY, optional and never used for targeting (WE-04, VK-06)
+  gender          String?
+  /// Category codes the customer is interested in (CS-02 step 8)
+  interests       String[]  @default([])
+  onboardedAt     DateTime?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// CS-02 / CS-05 consents, append-only: the latest row per (customer, kind) is the current state. Terms and Privacy carry the
+/// document version accepted; marketing is separate per channel and always optional (NT-40, VK-23).
+model CustomerConsent {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  userId    String   @db.Uuid
+  /// TERMS | PRIVACY | MARKETING_PUSH | MARKETING_EMAIL | LOCATION | NOTIFICATIONS
+  kind      String
+  granted   Boolean
+  version   String?
+  /// ONBOARDING | SETTINGS
+  source    String
+  createdAt DateTime @default(now())
+
+  @@index([userId, kind, createdAt])
 }
 
 // ---------------------------------------------------------------- audit (append-only; enforced by DB triggers)
@@ -968,6 +993,8 @@ model EligibilityAttribute {
   contactHash        String?
   contactEnc         String?
   contactMasked      String?
+  /// EM-20: the employer verification is due for renewal from here; it keeps working through the grace period until `expiresAt`.
+  renewDueAt         DateTime?
   updatedAt          DateTime @default(now()) @updatedAt
 
   @@unique([userId, attrType, valueRef])
@@ -1225,6 +1252,8 @@ enum NotificationType {
   ACCOUNT_RESTRICTION
   /// My benefits: employer verification confirmed / due / expired / removed; card added / removed
   BENEFIT_UPDATED
+  /// NT-02: profile set-up finished (welcome)
+  ACCOUNT_WELCOME
 }
 
 /// Hot Deal: urgent, limited by time and/or quantity, free reservation (no payment in the MVP). Own lifecycle, own table.

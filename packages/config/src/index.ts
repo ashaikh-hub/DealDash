@@ -264,6 +264,10 @@ export const CONFIG_KEYS = {
   PLATFORM_ELIGIBILITY: 'platform.eligibility',
   /** Customer "My benefits": employer work-email verification and added cards (EM-02..EM-22, BC-01..BC-14, EL-10..EL-13). */
   CUSTOMER_BENEFITS: 'customer.benefits',
+  /** Customer profile set-up, minimum age and consent versions (Blueprint §5, CS-02 / CS-05, AU-31, NT-40). */
+  CUSTOMER_ONBOARDING: 'customer.onboarding',
+  /** Customer Live Deals map: the base-map tile provider (none = the app's own plain canvas with pins). */
+  CUSTOMER_MAP: 'customer.map',
   PLATFORM_DISPUTES: 'platform.disputes',
   PLATFORM_LOYALTY: 'platform.loyalty',
   PLATFORM_CONFLICTS: 'platform.conflicts',
@@ -684,7 +688,12 @@ export const CONFIG_DEFAULTS: Record<ConfigKey, unknown> = {
      * PLACEHOLDER pending the founder's value (FDR-28 closed as "configurable"): change it here, never in code.
      */
     employerReverifyDays: 180,
-    /** The customer is told this many days before the employer verification expires (EM-20 grace / reminder window). */
+    /**
+     * EM-20 "a grace period applies": after the renewal date the employer benefit KEEPS WORKING for this many days while the
+     * customer confirms the work email again; only then does it expire. PLACEHOLDER pending the founder's value (0 = no grace).
+     */
+    employerGraceDays: 14,
+    /** The customer is reminded this many days before the renewal date (and again when the grace period starts). */
     reverifyNoticeDays: 14,
     /** EM-03: work-email code lifetime, attempts, request limits and cool-down. */
     emailOtpTtlSeconds: 600,
@@ -721,6 +730,30 @@ export const CONFIG_DEFAULTS: Record<ConfigKey, unknown> = {
     ],
     /** BC-14: how many cards a customer may add. */
     maxCardEntries: 5,
+  },
+  'customer.onboarding': {
+    /** AU-31 / FD-03: customers under this age cannot sign up (date of birth at onboarding). Per-market review: VK-06 / VK-11. */
+    minimumAge: 18,
+    /**
+     * Reserving, buying, watching to earn and redeeming points need a completed profile (age checked, Terms and Privacy accepted).
+     * Browsing, saving and My benefits never do.
+     */
+    requireCompleteForActions: true,
+    /** The Terms and Privacy versions a customer must have accepted. Raising one asks every customer to accept again. */
+    termsVersion: '2026-10',
+    privacyVersion: '2026-10',
+    /** Where the published documents live (null until Legal publishes them: the app then says the final text is pending). */
+    termsUrl: null,
+    privacyUrl: null,
+  },
+  'customer.map': {
+    /**
+     * XYZ tile URL of the licensed base-map provider, for example "https://tiles.example.com/{z}/{x}/{y}.png" (a provider contract:
+     * external dependency). Null = no base map: pins, distance rings and "you are here" on a plain canvas.
+     */
+    tileUrlTemplate: null,
+    /** The provider's required attribution text, shown on the map. */
+    attribution: null,
   },
   'platform.loyalty': {
     /** A rule cannot be activated without a ceiling at least this small (points). Null = any ceiling is accepted. */

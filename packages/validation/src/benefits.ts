@@ -76,6 +76,11 @@ export const benefitEmployerViewSchema = z.object({
   expiresAt: z.string().nullable(),
   /** From this moment the customer may (and is reminded to) confirm the work email again. */
   renewFrom: z.string().nullable(),
+  /**
+   * EM-20: renewal is due from here. Between this and `expiresAt` (the grace period, status REVERIFICATION_DUE) the benefit still
+   * works; at `expiresAt` it expires.
+   */
+  renewDueAt: z.string().nullable(),
 });
 export type BenefitEmployerView = z.infer<typeof benefitEmployerViewSchema>;
 

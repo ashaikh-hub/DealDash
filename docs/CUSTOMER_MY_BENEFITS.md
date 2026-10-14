@@ -47,9 +47,23 @@
   - card added or removed.
 - An in-app `BENEFIT_UPDATED` notification goes out on verify, remove, card added or removed, renewal due and expiry. Push is tracked by the existing notification sweep.
 
-### Expiry
-- The hourly job `benefits.sweep` marks expired employer benefits `EXPIRED` and sends one renewal reminder per verification period.
-- The engine never uses an expired benefit, even before the sweep runs.
+### Renewal, grace period and expiry (EM-20)
+EM-20 says the verification expires after the configured period, the customer re-verifies by a new work-email code, and "a grace
+period applies". Implemented as follows:
+
+| When | Status shown | Offers | Customer sees |
+|---|---|---|---|
+| Verified, before `renewFrom` | Verified employee | Unlocked | "Renew by {renewal date}" |
+| From `renewFrom` (= renewal date − `reverifyNoticeDays`) | Verified employee | Unlocked | "Confirm your work email again before {renewal date}"; reminder 1 |
+| From `renewDueAt` (verified + `employerReverifyDays`) | **Renewal due** (`REVERIFICATION_DUE`) | **Still unlocked (grace)** | "Your staff offers keep working until {end}"; reminder 2 |
+| At `expiresAt` (= `renewDueAt` + `employerGraceDays`) | Expired | Locked | "Confirm your work email again to unlock" |
+
+- Confirming the work email at any point starts a new period.
+- The hourly job `benefits.sweep` marks expired employer benefits `EXPIRED` and sends at most one "coming up" and one "grace started"
+  reminder per verification period.
+- The engine never uses an expired benefit, even before the sweep runs (it compares `expiresAt` directly).
+- Verifications made before the grace period existed keep their end date as their renewal date (migration
+  `20270109000000_customer_account`); no grace is added to them retroactively.
 
 ## API (customer audience; signed-in customer only; keyed by the session)
 | Method | Path | Purpose |
@@ -77,7 +91,8 @@
 | Key | Default | Note |
 |---|---|---|
 | `employerReverifyDays` | 180 | **PLACEHOLDER: founder value pending** (FDR-28, closed as "configurable") |
-| `reverifyNoticeDays` | 14 | Reminder window before expiry (the EM-20 "grace") |
+| `employerGraceDays` | 14 | **PLACEHOLDER: founder value pending.** EM-20 grace after the renewal date (0 = none) |
+| `reverifyNoticeDays` | 14 | Reminder before the renewal date |
 | `emailOtpTtlSeconds` / `MaxAttempts` / `MaxPerHour` / `CooldownSeconds` | 600 / 5 / 5 / 60 | EM-03 |
 | `allowSubdomains` | true | EM-02 |
 | `blockedLocalParts` / `blockedDomains` | common shared and personal addresses | EM-07 |
@@ -85,7 +100,8 @@
 
 ## Flagged (not decided here)
 1. **FDR-28:** the re-verification period (180 days) is a placeholder.
-2. **EM-20 grace:** implemented as a reminder window *before* expiry. The benefit stays usable until it expires, so no offer locks early. Confirm, or choose a grace period after expiry.
+2. **EM-20 grace:** now a real grace period *after* the renewal date (the benefit keeps working, status "Renewal due"), then expiry.
+   The length (14 days) is a placeholder for the founder's value; 0 turns the grace off.
 3. **EM-22 / EM-06 risk flags:** a reused work email is audited as a risk event, but no fraud-queue case is opened automatically.
 4. **EM-21 email bounce signal:** not available until a real email provider with bounce callbacks is selected (provider P3).
 5. **Scheme / membership attributes (`SCHEME`, `MEMBERSHIP`):** customers cannot add these yet. Partner card programmes carry the scheme only as text, with no scheme-partner link. Offers whose rules need a scheme partner stay "To unlock".

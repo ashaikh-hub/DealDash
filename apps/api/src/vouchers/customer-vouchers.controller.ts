@@ -12,6 +12,7 @@ import {
   Post,
   Query,
   Req,
+  UseGuards,
   type RawBodyRequest,
 } from '@nestjs/common';
 import { ApiExcludeController, ApiOkResponse, ApiTags } from '@nestjs/swagger';
@@ -28,6 +29,7 @@ import {
 } from '../common/decorators';
 import { APP_ENV } from '../common/env';
 import type { Actor, RequestMeta } from '../common/request-context';
+import { CustomerReadyGuard } from '../customer-account/customer-account.module';
 import { HomeQueryDto } from '../live-deals/dto';
 import { PAYMENT_PROVIDER, type PaymentProvider } from '../providers/interfaces';
 import { MockPaymentProvider } from '../providers/mocks';
@@ -95,6 +97,7 @@ export class CustomerVouchersController {
   @Idempotent()
   @HttpCode(201)
   @RequirePermissions('customer.vouchers.manage')
+  @UseGuards(CustomerReadyGuard)
   @ApiOkResponse({ type: OrderResponse })
   checkout(
     @Body() body: CheckoutCreateDto,

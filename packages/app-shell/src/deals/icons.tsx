@@ -137,6 +137,16 @@ const ICONS: Record<string, ReactNode> = {
     </>
   ),
   chart: P('M4 20V10M10 20V4M16 20v-7M22 20H2'),
+  list: P('M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01'),
+  plus: P('M12 5v14M5 12h14'),
+  minus: P('M5 12h14'),
+  locate: (
+    <>
+      <circle cx="12" cy="12" r="7" />
+      <circle cx="12" cy="12" r="2.5" />
+      {P('M12 2v3M12 19v3M2 12h3M19 12h3')}
+    </>
+  ),
 };
 
 export type IconName = keyof typeof ICONS | (string & {});

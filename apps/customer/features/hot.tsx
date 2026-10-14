@@ -13,7 +13,7 @@ import {
   useAuth,
   type ReserveOutcome,
 } from '@dealdash/app-shell';
-import { createTranslator, displayTimeZone, type DictionaryKey } from '@dealdash/localization';
+import { createTranslator, formatDateTime, type DictionaryKey } from '@dealdash/localization';
 import type { UnlockAction } from '@dealdash/types';
 import { Button, EmptyState, LoadingState, Skeleton } from '@dealdash/ui';
 import type { HotDealCard, HotDealDetail, ReservationView } from '@dealdash/validation';
@@ -30,7 +30,7 @@ export function TrackedHotCard({
   deal: HotDealCard;
   variant: 'carousel' | 'list';
 }) {
-  const { locale } = useAuth();
+  const { uiLocale: locale } = useAuth();
   const href = useHref();
   const ref = useImpression(deal.id, deal.nearestBranch?.id, 'HOT');
   return (
@@ -290,7 +290,8 @@ interface NotificationItem {
     | 'ALERT'
     | 'CASE_UPDATED'
     | 'ACCOUNT_RESTRICTION'
-    | 'BENEFIT_UPDATED';
+    | 'BENEFIT_UPDATED'
+    | 'ACCOUNT_WELCOME';
   data: Record<string, unknown>;
   createdAt: string;
   readAt: string | null;
@@ -339,7 +340,7 @@ function ReservationRow({ r }: { r: ReservationView }) {
 }
 
 function usePick() {
-  const { locale } = useAuth();
+  const { locale } = useAuth(); // the content language (Urdu reads English content)
   return { pick: (x: { en: string; ar: string }) => x[locale] || x.en || x.ar };
 }
 
@@ -462,8 +463,9 @@ export function MyDealsPage() {
 }
 
 function NotificationRow({ n }: { n: NotificationItem }) {
-  const { locale } = useAuth();
-  const t = createTranslator(locale);
+  // interface text in the UI language; merchant / deal names in the content language
+  const { locale, uiLocale } = useAuth();
+  const t = createTranslator(uiLocale);
   const href = useHref();
   const d = n.data as Record<string, string>;
   const merchant = locale === 'ar' ? d.merchantNameAr : d.merchantNameEn;
@@ -474,7 +476,7 @@ function NotificationRow({ n }: { n: NotificationItem }) {
     ? href('/cases')
     : n.type === 'ACCOUNT_RESTRICTION'
       ? href('/profile')
-      : n.type === 'BENEFIT_UPDATED'
+      : n.type === 'BENEFIT_UPDATED' || n.type === 'ACCOUNT_WELCOME'
         ? href('/benefits')
         : n.type.startsWith('REWARD_')
           ? href('/rewards')
@@ -514,15 +516,13 @@ function NotificationRow({ n }: { n: NotificationItem }) {
                   (n.data.name as { en?: string } | undefined)?.en ??
                   '',
               })
-            : t(`notif.${n.type}` as DictionaryKey, { merchant: merchant ?? '', deal: deal ?? '' })}
+            : t(`notif.${n.type}` as DictionaryKey, {
+                merchant: merchant ?? '',
+                deal: deal ?? '',
+                firstName: d.firstName ?? '',
+              })}
         </strong>
-        <div className="dd-caption">
-          {new Date(n.createdAt).toLocaleString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-GB', {
-            dateStyle: 'medium',
-            timeStyle: 'short',
-            timeZone: displayTimeZone(),
-          })}
-        </div>
+        <div className="dd-caption">{formatDateTime(uiLocale, n.createdAt)}</div>
       </div>
     </Link>
   );

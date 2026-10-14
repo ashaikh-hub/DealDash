@@ -38,7 +38,7 @@ export function TrackedVoucherCard({
   voucher: VoucherCard;
   variant: 'carousel' | 'list';
 }) {
-  const { locale } = useAuth();
+  const { uiLocale: locale } = useAuth();
   const href = useHref();
   const ref = useImpression(voucher.id, voucher.nearestBranch?.id, 'VOUCHER');
   return (

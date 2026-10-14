@@ -3,19 +3,28 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { DealCardView, Icon, categoryIcon, useApi, useAuth } from '@dealdash/app-shell';
-import { createTranslator, stripLocale, withLocale, type Locale } from '@dealdash/localization';
+import {
+  createTranslator,
+  stripLocale,
+  withLocale,
+  type UiLocale as Locale,
+} from '@dealdash/localization';
 import { Button, EmptyState, ErrorState, Skeleton } from '@dealdash/ui';
 import type { DealCard } from '@dealdash/validation';
 import { useCustomer, useImpression } from './customer-context';
 import { presentCard } from './presentation';
 
+/**
+ * The customer's INTERFACE language (English, Arabic or Urdu). Screens pass it to the shared views, routes and formatters; bilingual
+ * content is always picked through pickText / pickLocalized (Urdu reads the English content).
+ */
 export const useT = () => {
-  const { locale } = useAuth();
+  const { uiLocale: locale } = useAuth();
   return { t: createTranslator(locale), locale };
 };
 
 export const useHref = () => {
-  const { locale } = useAuth();
+  const { uiLocale: locale } = useAuth();
   return useCallback((path: string) => withLocale(path, locale), [locale]);
 };
 
@@ -31,7 +40,7 @@ export function TrackedCard({
   onChange?: (next: DealCard) => void;
   from?: string;
 }) {
-  const { locale, status } = useAuth();
+  const { uiLocale: locale, status } = useAuth();
   const { call } = useApi();
   const router = useRouter();
   const href = useHref();

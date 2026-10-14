@@ -133,11 +133,14 @@ import {
   setDisplayMarket,
   startOfDayIn,
   negotiateLocale,
+  negotiateUiLocale,
   normalizeArabic,
   pickLocalized,
   stripLocale,
+  ur,
   withLocale,
 } from './index';
+import { urCustomer } from './dictionaries.ur';
 
 describe('localization', () => {
   it('has identical keys in English and Arabic', () => {
@@ -789,5 +792,72 @@ describe('dictionary layering', () => {
       const vars = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
       expect(vars(ar[key as keyof typeof ar]), key).toEqual(vars(value));
     }
+  });
+});
+
+describe('Urdu (customer interface language)', () => {
+  const vars = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
+
+  it('only translates existing keys, keeps every {placeholder}, is non-empty and written in Urdu script', () => {
+    expect(Object.keys(urCustomer).filter((k) => !(k in en))).toEqual([]);
+    for (const [key, value] of Object.entries(ur)) {
+      expect(value!.trim(), key).not.toBe('');
+      expect(vars(value!), key).toEqual(vars(en[key as keyof typeof en]));
+      // digits-only / placeholder-only strings are allowed; everything else carries Urdu letters
+      if (
+        /[A-Za-z]{3,}/.test(value!.replace(/\{\w+\}|QR|CVV|API|SMS|PKR|SAR|\/[\w/.-]+|X{2,}/g, ''))
+      )
+        expect.fail(`${key} still reads as English: ${value}`);
+    }
+  });
+
+  it('covers the customer journeys (home, discovery, Exclusive Deals, vouchers, Watch & Earn, benefits, account, map)', () => {
+    const prefixes = [
+      'nav.',
+      'home.',
+      'cust.',
+      'filter.',
+      'loc.',
+      'deal.',
+      'hot.',
+      'res.',
+      'vch.',
+      'ck.',
+      'ord.',
+      'wal.',
+      'wat.',
+      'rew.',
+      'ben.',
+      'acct.',
+      'map.',
+    ];
+    const customerKeys = Object.keys(en).filter((k) => prefixes.some((p) => k.startsWith(p)));
+    const covered = customerKeys.filter((k) => k in ur);
+    // a few business-only keys share these prefixes; the customer journeys must be at least 85% translated
+    expect(covered.length / customerKeys.length).toBeGreaterThan(0.85);
+    for (const k of [
+      'acct.setup.title',
+      'map.title',
+      'ben.employer.grace',
+      'hot.reserve',
+      'ck.pay',
+    ])
+      expect(ur, k).toHaveProperty([k]);
+  });
+
+  it('is right-to-left, falls back to English for missing keys, reads English content and routes /ur', () => {
+    expect(isRtl('ur')).toBe(true);
+    expect(dirOf('ur')).toBe('rtl');
+    expect(createTranslator('ur')('auth.signIn')).toBe('سائن اِن');
+    // a business-only key with no Urdu text falls back to English
+    expect(createTranslator('ur')('nav.finance')).toBe(en['nav.finance']);
+    expect(createTranslator('ur')('hot.endsIn', { time: '2:00' })).toContain('2:00');
+    expect(pickLocalized({ en: 'Pizza', ar: 'بيتزا' }, 'ur')).toBe('Pizza');
+    expect(withLocale('/en/explore', 'ur')).toBe('/ur/explore');
+    expect(stripLocale('/ur/benefits')).toBe('/benefits');
+    expect(negotiateUiLocale('ur-PK,ur;q=0.9,en;q=0.8')).toBe('ur');
+    expect(negotiateLocale('ur-PK,ur;q=0.9,en;q=0.8')).toBe('en'); // business portals stay EN / AR
+    expect(formatNumber('ur', 1234567)).not.toMatch(/[٠-٩۰-۹]/);
+    expect(formatAmount('ur', 499_900, 'PKR')).toBe('PKR 4,999.00');
   });
 });

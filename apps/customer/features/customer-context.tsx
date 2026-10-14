@@ -34,6 +34,8 @@ export interface CustomerContextValue {
   requestLocation: () => void;
   anonymousId: string;
   track: (event: TrackedEvent) => void;
+  /** Live Deals map base layer from server configuration (null template = plain canvas). */
+  mapConfig: { tileUrlTemplate: string | null; attribution: string | null } | null;
 }
 
 export interface TrackedEvent {
@@ -86,6 +88,7 @@ export function CustomerProvider({ children }: { children: ReactNode }) {
   const [cities, setCities] = useState<CityOption[]>([]);
   const [city, setCityState] = useState<string>(DEFAULT_CITY); // replaced by the configured default as soon as it loads
   const [status, setStatus] = useState<LocationStatus>('idle');
+  const [mapConfig, setMapConfig] = useState<CustomerContextValue['mapConfig']>(null);
   const [anonymousId, setAnonymousId] = useState('dev-pending-id');
   const queue = useRef<Array<TrackedEvent & { anonymousId: string }>>([]);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -121,7 +124,13 @@ export function CustomerProvider({ children }: { children: ReactNode }) {
     void (async () => {
       try {
         const res = await fetch(`${apiUrl}/v1/app/config`);
-        const body = (await res.json()) as { data?: { defaultCity: string; cities: CityOption[] } };
+        const body = (await res.json()) as {
+          data?: {
+            defaultCity: string;
+            cities: CityOption[];
+            map?: CustomerContextValue['mapConfig'];
+          };
+        };
         if (
           !alive ||
           !body.data ||
@@ -130,6 +139,7 @@ export function CustomerProvider({ children }: { children: ReactNode }) {
         )
           return;
         setCities(body.data.cities);
+        setMapConfig(body.data.map ?? null);
         const saved = safe.get('session', 'dd_city');
         const known = body.data.cities.some((c) => c.name === saved);
         setCityState(known && saved ? saved : body.data.defaultCity);
@@ -207,8 +217,9 @@ export function CustomerProvider({ children }: { children: ReactNode }) {
       requestLocation,
       anonymousId,
       track,
+      mapConfig,
     };
-  }, [device, status, requestLocation, anonymousId, track, city, cities, setCity]);
+  }, [device, status, requestLocation, anonymousId, track, city, cities, setCity, mapConfig]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

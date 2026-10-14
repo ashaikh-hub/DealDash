@@ -118,6 +118,28 @@ const mount = (locale: 'en' | 'ar' = 'en') =>
   );
 
 describe('Customer My benefits', () => {
+  it('grace period (EM-20): renewal due, the staff offers keep working until the end date', async () => {
+    stub({
+      '/v1/app/benefits': ok(
+        overview({
+          employer: {
+            ...overview().employer,
+            status: 'REVERIFICATION_DUE',
+            renewDueAt: '2027-03-30T09:00:00.000Z',
+            expiresAt: '2027-04-13T09:00:00.000Z',
+          },
+        }),
+      ),
+    });
+    mount();
+    const employer = await screen.findByTestId('benefit-employer');
+    expect(employer).toHaveTextContent('Renewal due');
+    expect(screen.getByTestId('employer-grace')).toHaveTextContent(
+      'Your staff offers keep working until 13 Apr 2027',
+    );
+    expect(within(employer).getByRole('button', { name: 'Confirm again' })).toBeInTheDocument();
+  });
+
   it('asks a guest to sign in', async () => {
     stub({}, false);
     mount();

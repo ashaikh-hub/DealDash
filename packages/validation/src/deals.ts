@@ -772,4 +772,8 @@ export const appConfigSchema = z.object({
       longitude: z.number().nullable(),
     }),
   ),
+  /** Live Deals map base layer (configuration); null template = the app's plain canvas. */
+  map: z
+    .object({ tileUrlTemplate: z.string().nullable(), attribution: z.string().nullable() })
+    .optional(),
 });

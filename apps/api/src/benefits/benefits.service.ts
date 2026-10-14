@@ -33,6 +33,7 @@ import { VoucherDiscoveryService } from '../vouchers/voucher-discovery.service';
 /** Configuration (customer.benefits); every value is configuration, never a decided policy in code. */
 export interface BenefitsConfig {
   employerReverifyDays: number;
+  employerGraceDays: number;
   reverifyNoticeDays: number;
   emailOtpTtlSeconds: number;
   emailOtpMaxAttempts: number;
@@ -45,6 +46,7 @@ export interface BenefitsConfig {
 }
 const DEFAULTS: BenefitsConfig = {
   employerReverifyDays: 180,
+  employerGraceDays: 14,
   reverifyNoticeDays: 14,
   emailOtpTtlSeconds: 600,
   emailOtpMaxAttempts: 5,
@@ -152,9 +154,15 @@ export class BenefitsService {
     });
   }
 
-  private async notify(userId: string, dedupeKey: string, event: BenefitHistoryEvent, name: Bi) {
+  private async notify(
+    userId: string,
+    dedupeKey: string,
+    event: BenefitHistoryEvent,
+    name: Bi,
+    extra: Record<string, string | boolean> = {},
+  ) {
     const r = await this.prisma.notification.createMany({
-      data: [{ userId, type: 'BENEFIT_UPDATED', dedupeKey, data: { event, name } }],
+      data: [{ userId, type: 'BENEFIT_UPDATED', dedupeKey, data: { event, name, ...extra } }],
       skipDuplicates: true,
     });
     return r.count > 0;
@@ -414,7 +422,9 @@ export class BenefitsService {
     await this.assertEmailFree(actor.userId, hash);
 
     const now = new Date();
-    const expiresAt = new Date(now.getTime() + cfg.employerReverifyDays * DAY);
+    // EM-20: due for renewal after the verification period; usable through the grace period; expired only after it
+    const renewDueAt = new Date(now.getTime() + cfg.employerReverifyDays * DAY);
+    const expiresAt = new Date(renewDueAt.getTime() + Math.max(0, cfg.employerGraceDays) * DAY);
     const attr = await this.prisma.$transaction(async (tx) => {
       await tx.otpChallenge.update({ where: { id: challenge.id }, data: { consumedAt: now } });
       // EM-08: one active verified employer at a time: a new employer replaces the current one
@@ -441,6 +451,7 @@ export class BenefitsService {
           status: 'VERIFIED',
           source: 'WORK_EMAIL_OTP',
           verifiedAt: now,
+          renewDueAt,
           expiresAt,
           programId: program.id,
           contactHash: hash,
@@ -455,6 +466,7 @@ export class BenefitsService {
           status: 'VERIFIED',
           source: 'WORK_EMAIL_OTP',
           verifiedAt: now,
+          renewDueAt,
           expiresAt,
           programId: program.id,
           contactHash: hash,
@@ -649,13 +661,16 @@ export class BenefitsService {
       : null;
     const names = await this.partnerNames([row.valueRef]);
     const expired = row.expiresAt !== null && row.expiresAt.getTime() <= now.getTime();
-    const renewFrom = row.expiresAt
-      ? new Date(row.expiresAt.getTime() - cfg.reverifyNoticeDays * DAY)
+    // verifications made before the grace period existed have their end date as their renewal date
+    const renewDueAt = row.renewDueAt ?? row.expiresAt;
+    const renewFrom = renewDueAt
+      ? new Date(renewDueAt.getTime() - cfg.reverifyNoticeDays * DAY)
       : null;
+    // REVERIFICATION_DUE = in the grace period: the benefit still works until expiresAt (EM-20)
     const status =
       row.status === 'VERIFIED' && expired
         ? 'EXPIRED'
-        : row.status === 'VERIFIED' && renewFrom && renewFrom.getTime() <= now.getTime()
+        : row.status === 'VERIFIED' && renewDueAt && renewDueAt.getTime() <= now.getTime()
           ? 'REVERIFICATION_DUE'
           : row.status;
     return {
@@ -669,6 +684,7 @@ export class BenefitsService {
       verifiedAt: row.verifiedAt?.toISOString() ?? null,
       expiresAt: row.expiresAt?.toISOString() ?? null,
       renewFrom: renewFrom?.toISOString() ?? null,
+      renewDueAt: renewDueAt?.toISOString() ?? null,
     };
   }
 
@@ -979,33 +995,46 @@ export class BenefitsService {
         name,
       );
     }
+    // still usable (not expired) and within the notice window of the renewal date, or already in the grace period
     const due = await this.prisma.eligibilityAttribute.findMany({
       where: {
         attrType: 'EMPLOYER',
         status: 'VERIFIED',
-        expiresAt: { gt: now, lte: new Date(now.getTime() + cfg.reverifyNoticeDays * DAY) },
+        expiresAt: { gt: now },
+        OR: [
+          { renewDueAt: { lte: new Date(now.getTime() + cfg.reverifyNoticeDays * DAY) } },
+          {
+            renewDueAt: null,
+            expiresAt: { lte: new Date(now.getTime() + cfg.reverifyNoticeDays * DAY) },
+          },
+        ],
       },
       take: 500,
     });
+    let reminded = 0;
     for (const a of due) {
+      const renewDueAt = a.renewDueAt ?? a.expiresAt!;
+      const inGrace = renewDueAt.getTime() <= now.getTime();
       const name = (await this.partnerNames([a.valueRef])).get(a.valueRef) ?? { en: '', ar: '' };
-      // one reminder per verification period (the dedupe key carries the expiry)
+      // one "coming up" reminder and one "grace started" reminder per verification period (the dedupe key carries the dates)
       const sent = await this.notify(
         a.userId,
-        `benefit:employer:renew:${a.id}:${a.expiresAt!.getTime()}`,
+        `benefit:employer:${inGrace ? 'grace' : 'renew'}:${a.id}:${renewDueAt.getTime()}`,
         'EMPLOYER_RENEWAL_DUE',
         name,
+        { renewBy: a.expiresAt!.toISOString(), inGrace },
       );
-      if (sent)
-        await this.record(
-          a.userId,
-          'benefit.employer.renewal_due',
-          name,
-          { partnerId: a.valueRef },
-          undefined,
-          true,
-        );
+      if (!sent) continue;
+      reminded++;
+      await this.record(
+        a.userId,
+        'benefit.employer.renewal_due',
+        name,
+        { partnerId: a.valueRef, inGrace, renewBy: a.expiresAt!.toISOString() },
+        undefined,
+        true,
+      );
     }
-    return { expired: expired.length, reminded: due.length };
+    return { expired: expired.length, reminded };
   }
 }

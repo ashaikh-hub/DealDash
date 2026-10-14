@@ -157,8 +157,47 @@ export const NOTIFICATION_TYPES = [
   'ACCOUNT_RESTRICTION',
   /** My benefits: an employer verification was confirmed, is due for renewal, expired or was removed; a card was added / removed. */
   'BENEFIT_UPDATED',
+  /** NT-02: the customer finished setting up their profile (welcome). */
+  'ACCOUNT_WELCOME',
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
+
+/**
+ * Customer notification categories (CS-06). Transactional categories cannot be turned off (NT-40): they always reach the inbox and
+ * push. Optional categories let the customer turn push off; the inbox keeps everything. Marketing is a separate opt-in consent.
+ */
+export const CUSTOMER_NOTIFICATION_CATEGORIES = {
+  ORDERS: { required: true },
+  ACCOUNT: { required: true },
+  REWARDS: { required: false },
+  BENEFITS: { required: false },
+} as const;
+export type CustomerNotificationCategory = keyof typeof CUSTOMER_NOTIFICATION_CATEGORIES;
+
+export const NOTIFICATION_CATEGORY_OF: Partial<
+  Record<NotificationType, CustomerNotificationCategory>
+> = {
+  RESERVATION_CONFIRMED: 'ORDERS',
+  RESERVATION_EXPIRING: 'ORDERS',
+  RESERVATION_EXPIRED: 'ORDERS',
+  RESERVATION_CANCELLED: 'ORDERS',
+  REDEMPTION_SUCCESS: 'ORDERS',
+  PURCHASE_SUCCEEDED: 'ORDERS',
+  PAYMENT_FAILED: 'ORDERS',
+  VOUCHER_ISSUED: 'ORDERS',
+  VOUCHER_EXPIRING: 'ORDERS',
+  REFUND_UPDATED: 'ORDERS',
+  VOUCHER_REDEEMED: 'ORDERS',
+  CASE_UPDATED: 'ACCOUNT',
+  ACCOUNT_RESTRICTION: 'ACCOUNT',
+  ACCOUNT_WELCOME: 'ACCOUNT',
+  REWARD_EARNED: 'REWARDS',
+  REWARD_HELD: 'REWARDS',
+  REWARD_RELEASED: 'REWARDS',
+  REWARD_REVERSED: 'REWARDS',
+  REWARD_EXPIRING: 'REWARDS',
+  BENEFIT_UPDATED: 'BENEFITS',
+};
 
 export const PRODUCT_TYPES = ['LIVE', 'HOT', 'VOUCHER', 'WATCH'] as const;
 export type ProductType = (typeof PRODUCT_TYPES)[number];

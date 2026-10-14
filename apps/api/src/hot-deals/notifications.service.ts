@@ -1,6 +1,10 @@
 import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { CONFIG_KEYS } from '@dealdash/config';
-import type { NotificationType } from '@dealdash/types';
+import {
+  CUSTOMER_NOTIFICATION_CATEGORIES,
+  NOTIFICATION_CATEGORY_OF,
+  type NotificationType,
+} from '@dealdash/types';
 import type { Prisma } from '../generated/prisma/client';
 import { AppError } from '../common/errors';
 import { PrismaService } from '../prisma/prisma.service';
@@ -49,6 +53,7 @@ const TITLES: Record<NotificationType, { en: string; ar: string }> = {
   CASE_UPDATED: { en: 'Update on your support request', ar: 'تحديث على طلب الدعم الخاص بك' },
   ACCOUNT_RESTRICTION: { en: 'Your account status changed', ar: 'تغيّرت حالة حسابك' },
   BENEFIT_UPDATED: { en: 'Your benefits were updated', ar: 'تم تحديث مزاياك' },
+  ACCOUNT_WELCOME: { en: 'Welcome to DealDash', ar: 'مرحباً بك في ديل داش' },
 };
 
 interface NotificationOpsConfig {
@@ -203,17 +208,24 @@ export class NotificationsService {
         })
       : null;
     const now = new Date();
+    const customerBlock = d.userId
+      ? await this.customerPushBlock(d.userId, (d.payload as { type?: NotificationType }).type)
+      : null;
     if (
       !user ||
       user.status !== 'ACTIVE' ||
       pref?.muted ||
-      (pref && !pref.channels.includes(d.channel))
+      (pref && !pref.channels.includes(d.channel)) ||
+      customerBlock
     ) {
       await this.prisma.notificationDelivery.update({
         where: { id: d.id },
         data: {
           status: 'SUPPRESSED',
-          suppressedReason: !user || user.status !== 'ACTIVE' ? 'ACCOUNT_NOT_ACTIVE' : 'PREFERENCE',
+          suppressedReason:
+            !user || user.status !== 'ACTIVE'
+              ? 'ACCOUNT_NOT_ACTIVE'
+              : (customerBlock ?? 'PREFERENCE'),
           consentChecked: true,
           lastAttemptAt: now,
           nextRetryAt: null,
@@ -252,7 +264,8 @@ export class NotificationsService {
     try {
       const res = await this.push.send({
         userId: d.userId!,
-        title: t.en,
+        // NT-43: the customer's language (Arabic or English; other languages fall back to English until templates exist)
+        title: user.locale === 'ar' ? t.ar : t.en,
         body: payload.body ?? '',
         data: { type, notificationId: d.notificationId ?? '' },
       });
@@ -290,6 +303,25 @@ export class NotificationsService {
       );
       if (failed) await this.fallback(d.id, cfg);
     }
+  }
+
+  /**
+   * Customer push choices (CS-06): a withdrawn notifications consent stops push; an optional category (rewards, benefits) with push
+   * turned off stops that category's push. Transactional categories are never muted (NT-40). The inbox always keeps the message.
+   */
+  private async customerPushBlock(userId: string, type: NotificationType | undefined) {
+    const consent = await this.prisma.customerConsent.findFirst({
+      where: { userId, kind: 'NOTIFICATIONS' },
+      orderBy: { createdAt: 'desc' },
+      select: { granted: true },
+    });
+    if (consent && !consent.granted) return 'CONSENT_WITHDRAWN';
+    const category = type ? NOTIFICATION_CATEGORY_OF[type] : undefined;
+    if (!category || CUSTOMER_NOTIFICATION_CATEGORIES[category].required) return null;
+    const pref = await this.prisma.notificationPreference.findUnique({
+      where: { userId_category: { userId, category: `CUSTOMER_${category}` } },
+    });
+    return pref && (pref.muted || !pref.channels.includes('PUSH')) ? 'PREFERENCE' : null;
   }
 
   /** Stage 9 (B3): when a channel finally fails, the approved fallback channel is tried once (none by default). */

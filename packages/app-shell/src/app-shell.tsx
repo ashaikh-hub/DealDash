@@ -8,7 +8,7 @@ import {
   withLocale,
   type DictionaryKey,
 } from '@dealdash/localization';
-import { AUDIENCE_DEFINITIONS, LOCALES, type Locale } from '@dealdash/types';
+import { AUDIENCE_DEFINITIONS, LOCALES, type UiLocale } from '@dealdash/types';
 import { Button, StatusChip, Wordmark } from '@dealdash/ui';
 import { Icon } from './deals/icons';
 import { useApi } from './api';
@@ -30,12 +30,19 @@ const TAB_ICON: Record<string, string> = {
   profile: 'user',
 };
 
-function LocaleSwitcher({ locale }: { locale: Locale }) {
+const LANGUAGE_LABEL: Record<UiLocale, string> = { en: 'EN', ar: 'عربي', ur: 'اردو' };
+
+/**
+ * The header keeps the approved EN / عربي toggle; a customer reading in Urdu also sees Urdu marked here (all three languages are
+ * offered in Profile > Language).
+ */
+function LocaleSwitcher({ locale }: { locale: UiLocale }) {
   const pathname = usePathname() ?? '/';
   const t = createTranslator(locale);
+  const shown: UiLocale[] = locale === 'ur' ? [...LOCALES, 'ur'] : [...LOCALES];
   return (
     <nav className="dd-lang" aria-label={t('shell.language')}>
-      {LOCALES.map((l) => (
+      {shown.map((l) => (
         <Link
           key={l}
           href={withLocale(pathname, l)}
@@ -43,7 +50,7 @@ function LocaleSwitcher({ locale }: { locale: Locale }) {
           lang={l}
           aria-current={l === locale ? 'true' : undefined}
         >
-          {l === 'en' ? 'EN' : 'عربي'}
+          {LANGUAGE_LABEL[l]}
         </Link>
       ))}
     </nav>
@@ -51,7 +58,7 @@ function LocaleSwitcher({ locale }: { locale: Locale }) {
 }
 
 /** My Deals entry in the customer header, with a dot while there are updates the customer has not seen. */
-function MyDealsLink({ locale }: { locale: Locale }) {
+function MyDealsLink({ locale }: { locale: UiLocale }) {
   const { status } = useAuth();
   const { call } = useApi();
   const pathname = usePathname() ?? '/';
@@ -98,7 +105,7 @@ export function AppShell({
   /** Customer header: an app-provided control beside the brand (the location selector on discovery screens). */
   headerAccessory?: ReactNode;
 }) {
-  const { audience, locale, me, status, signOut } = useAuth();
+  const { audience, locale: contentLocale, uiLocale: locale, me, status, signOut } = useAuth();
   const t = createTranslator(locale);
   const pathname = usePathname() ?? '/';
   const current = stripLocale(pathname);
@@ -175,7 +182,7 @@ export function AppShell({
       <div className="dd-row">
         <Wordmark />
         <span className="dd-caption">{t(APP_NAME_KEY[audience] ?? 'brand.name')}</span>
-        <StatusChip tone="info">{AUDIENCE_DEFINITIONS[audience].label[locale]}</StatusChip>
+        <StatusChip tone="info">{AUDIENCE_DEFINITIONS[audience].label[contentLocale]}</StatusChip>
       </div>
       <div className="dd-row">
         <LocaleSwitcher locale={locale} />

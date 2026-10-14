@@ -304,3 +304,4 @@ export * from './ai';
 export * from './markets';
 export * from './partners';
 export * from './benefits';
+export * from './customer-account';

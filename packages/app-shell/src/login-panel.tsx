@@ -16,8 +16,8 @@ type Step = 'credentials' | 'code' | 'mfa';
  */
 export function LoginPanel({ heading = 'h2' }: { heading?: 'h1' | 'h2' } = {}) {
   const Heading = heading;
-  const { audience, locale, apiUrl, client, setSession, track } = useAuth();
-  const t = createTranslator(locale);
+  const { audience, uiLocale, apiUrl, client, setSession, track } = useAuth();
+  const t = createTranslator(uiLocale);
   const method = AUDIENCE_DEFINITIONS[audience].loginMethod;
   const isDev = process.env.NODE_ENV !== 'production';
 

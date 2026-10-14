@@ -59,7 +59,7 @@ export function TrackedWatchCard({
   campaign: WatchCard;
   variant: 'carousel' | 'list';
 }) {
-  const { locale } = useAuth();
+  const { uiLocale: locale } = useAuth();
   const href = useHref();
   const ref = useImpression(campaign.id, undefined, 'WATCH');
   return (

@@ -9,6 +9,16 @@ export type Locale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = 'en';
 export const RTL_LOCALES: readonly Locale[] = ['ar'];
 
+/**
+ * Languages the CUSTOMER app's interface can be shown in. Content (merchant text, partner names) stays bilingual (`Locale`): a UI
+ * language without its own content column reads the English content. Urdu is customer-only; business portals stay EN / AR.
+ */
+export const UI_LOCALES = ['en', 'ar', 'ur'] as const;
+export type UiLocale = (typeof UI_LOCALES)[number];
+export const RTL_UI_LOCALES: readonly UiLocale[] = ['ar', 'ur'];
+/** The content language a UI language reads (Urdu UI reads English content until content has an Urdu column). */
+export const contentLocaleOf = (ui: UiLocale): Locale => (ui === 'ar' ? 'ar' : 'en');
+
 /** Bilingual customer-facing text (one row, two languages; never duplicate rows per language). */
 export interface BilingualText {
   en: string;
@@ -807,6 +817,14 @@ export const ERROR_CODES = {
   BENEFIT_EMAIL_IN_USE: 'BENEFIT_EMAIL_IN_USE',
   BENEFIT_PROGRAM_UNAVAILABLE: 'BENEFIT_PROGRAM_UNAVAILABLE',
   BENEFIT_CARD_LIMIT: 'BENEFIT_CARD_LIMIT',
+  /** Customer account: the profile set-up (age check, Terms and Privacy) must be finished before this action. */
+  ONBOARDING_REQUIRED: 'ONBOARDING_REQUIRED',
+  /** Customer account: Terms / Privacy changed and must be accepted again. */
+  CONSENT_REQUIRED: 'CONSENT_REQUIRED',
+  /** Customer account: under the minimum age (AU-31); the account cannot be used. */
+  AGE_RESTRICTED: 'AGE_RESTRICTED',
+  PROFILE_DOB_LOCKED: 'PROFILE_DOB_LOCKED',
+  MOBILE_IN_USE: 'MOBILE_IN_USE',
   INTERNAL: 'INTERNAL',
 } as const;
 export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];

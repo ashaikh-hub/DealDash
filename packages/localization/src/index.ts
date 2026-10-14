@@ -1,9 +1,12 @@
 import {
   DEFAULT_LOCALE,
   LOCALES,
-  RTL_LOCALES,
+  RTL_UI_LOCALES,
+  UI_LOCALES,
+  contentLocaleOf,
   type BilingualText,
   type Locale,
+  type UiLocale,
 } from '@dealdash/types';
 import { dictionaries, type DictionaryKey } from './dictionaries';
 
@@ -11,11 +14,13 @@ export {
   dictionaries,
   en,
   ar,
+  ur,
   arReviewStatus,
   type DictionaryKey,
   type Dictionary,
 } from './dictionaries';
-export { LOCALES, DEFAULT_LOCALE };
+export { LOCALES, DEFAULT_LOCALE, UI_LOCALES, contentLocaleOf };
+export type { UiLocale };
 export {
   endOfDayAfter,
   endOfDayIn,
@@ -33,41 +38,64 @@ export type { Locale, BilingualText };
 export const isLocale = (value: unknown): value is Locale =>
   typeof value === 'string' && (LOCALES as readonly string[]).includes(value);
 
-export const isRtl = (locale: Locale): boolean => RTL_LOCALES.includes(locale);
-export const dirOf = (locale: Locale): 'rtl' | 'ltr' => (isRtl(locale) ? 'rtl' : 'ltr');
+/** Customer app: any interface language (English, Arabic, Urdu). Business portals keep `isLocale`. */
+export const isUiLocale = (value: unknown): value is UiLocale =>
+  typeof value === 'string' && (UI_LOCALES as readonly string[]).includes(value);
+
+export const isRtl = (locale: UiLocale): boolean => RTL_UI_LOCALES.includes(locale);
+export const dirOf = (locale: UiLocale): 'rtl' | 'ltr' => (isRtl(locale) ? 'rtl' : 'ltr');
 
 // ------------------------------------------------------------------ translation
 export type TranslateVars = Record<string, string | number>;
 
-export function translate(locale: Locale, key: DictionaryKey, vars?: TranslateVars): string {
-  const raw = dictionaries[locale][key] ?? dictionaries[DEFAULT_LOCALE][key] ?? key;
+/** Interface text in the UI language; a key the language lacks (Urdu is partial) falls back to English. */
+export function translate(locale: UiLocale, key: DictionaryKey, vars?: TranslateVars): string {
+  const own = dictionaries[locale] as Partial<Record<DictionaryKey, string>>;
+  const raw = own[key] ?? dictionaries[DEFAULT_LOCALE][key] ?? key;
   if (!vars) return raw;
   return raw.replace(/\{(\w+)\}/g, (_, name: string) => String(vars[name] ?? `{${name}}`));
 }
 
 export const createTranslator =
-  (locale: Locale) =>
+  (locale: UiLocale) =>
   (key: DictionaryKey, vars?: TranslateVars): string =>
     translate(locale, key, vars);
 
-/** One row, two languages: pick the requested language with a safe fallback. */
-export function pickLocalized(text: BilingualText, locale: Locale): string {
-  return text[locale] || text[DEFAULT_LOCALE] || text.ar || '';
+/** One row, two languages: pick the requested language with a safe fallback (Urdu reads the English content). */
+export function pickLocalized(text: BilingualText, locale: UiLocale): string {
+  return text[contentLocaleOf(locale)] || text[DEFAULT_LOCALE] || text.ar || '';
 }
 
 // ------------------------------------------------------------------ routing
-export function localeFromPath(pathname: string): Locale | null {
+export function localeFromPath(pathname: string): UiLocale | null {
   const first = pathname.split('/').filter(Boolean)[0];
-  return isLocale(first) ? first : null;
+  return isUiLocale(first) ? first : null;
 }
 
 export function stripLocale(pathname: string): string {
   const parts = pathname.split('/').filter(Boolean);
-  if (parts.length && isLocale(parts[0])) parts.shift();
+  if (parts.length && isUiLocale(parts[0])) parts.shift();
   return '/' + parts.join('/');
 }
 
-export function withLocale(pathname: string, locale: Locale): string {
+/** Customer app: the best interface language from Accept-Language (Urdu included). */
+export function negotiateUiLocale(acceptLanguage: string | null | undefined): UiLocale {
+  if (!acceptLanguage) return DEFAULT_LOCALE;
+  const ranked = acceptLanguage
+    .split(',')
+    .map((part) => {
+      const [tag = '', q] = part.trim().split(';q=');
+      return { tag: tag.toLowerCase(), q: q ? Number(q) : 1 };
+    })
+    .sort((a, b) => b.q - a.q);
+  for (const { tag } of ranked) {
+    const base = tag.split('-')[0];
+    if (isUiLocale(base)) return base;
+  }
+  return DEFAULT_LOCALE;
+}
+
+export function withLocale(pathname: string, locale: UiLocale): string {
   const rest = stripLocale(pathname);
   return rest === '/' ? `/${locale}` : `/${locale}${rest}`;
 }
@@ -120,14 +148,15 @@ export function displayTimeZone(explicit?: string | null): string {
 }
 
 // ------------------------------------------------------------------ formatting (Western digits, Gregorian)
-const intlTag = (locale: Locale) => (locale === 'ar' ? 'ar-SA-u-nu-latn-ca-gregory' : 'en-GB');
+const intlTag = (locale: UiLocale) =>
+  locale === 'ar' ? 'ar-SA-u-nu-latn-ca-gregory' : locale === 'ur' ? 'ur-PK-u-nu-latn' : 'en-GB';
 
-export function formatNumber(locale: Locale, value: number): string {
+export function formatNumber(locale: UiLocale, value: number): string {
   return new Intl.NumberFormat(intlTag(locale), { numberingSystem: 'latn' }).format(value);
 }
 
 /** Western-digit amount with two decimals (money is stored in integer minor units). */
-function amountText(locale: Locale, minor: number) {
+function amountText(locale: UiLocale, minor: number) {
   return new Intl.NumberFormat(intlTag(locale), {
     numberingSystem: 'latn',
     minimumFractionDigits: 2,
@@ -139,7 +168,7 @@ function amountText(locale: Locale, minor: number) {
  * Money in any configured currency (integer minor units, two decimals). Western digits in both languages; SAR keeps its usual Arabic
  * symbol, every other currency shows its ISO code.
  */
-export function formatAmount(locale: Locale, minor: number, currency: string): string {
+export function formatAmount(locale: UiLocale, minor: number, currency: string): string {
   const n = amountText(locale, minor);
   if (currency === 'SAR') return locale === 'ar' ? `${n} ر.س` : `SAR ${n}`;
   return locale === 'ar' ? `${n} ${currency}` : `${currency} ${n}`;
@@ -149,13 +178,13 @@ export function formatAmount(locale: Locale, minor: number, currency: string): s
  * Money in its own currency when given (an order, a voucher, a statement), else the session market's currency. With neither known,
  * the bare amount is shown rather than a guessed currency.
  */
-export function formatMoney(locale: Locale, minor: number, currency?: string | null): string {
+export function formatMoney(locale: UiLocale, minor: number, currency?: string | null): string {
   const c = currency ?? display.currency;
   return c ? formatAmount(locale, minor, c) : amountText(locale, minor);
 }
 
 export function formatDate(
-  locale: Locale,
+  locale: UiLocale,
   date: Date | string | number,
   timeZone?: string | null,
 ): string {
@@ -168,7 +197,7 @@ export function formatDate(
 }
 
 export function formatDateTime(
-  locale: Locale,
+  locale: UiLocale,
   date: Date | string | number,
   timeZone?: string | null,
 ): string {

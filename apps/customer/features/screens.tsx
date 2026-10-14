@@ -14,10 +14,11 @@ import {
   useApi,
   useAuth,
 } from '@dealdash/app-shell';
-import { createTranslator, isolateLtr, withLocale } from '@dealdash/localization';
+import { createTranslator, isolateLtr } from '@dealdash/localization';
 import type { UnlockAction } from '@dealdash/types';
 import { Button, Card, EmptyState, ErrorState, LoadingState, Skeleton } from '@dealdash/ui';
 import type { DealCard, DealDetail, MerchantPage, PublicBranch } from '@dealdash/validation';
+import { LanguageCard, SetupBanner } from './account';
 import { MerchantReviews } from './care';
 import { useCustomer } from './customer-context';
 import {
@@ -469,7 +470,7 @@ export function MerchantPageView({ id }: { id: string }) {
 }
 
 function BranchCard({ b }: { b: PublicBranch }) {
-  const { locale } = useAuth();
+  const { uiLocale: locale } = useAuth();
   const t = createTranslator(locale);
   const st = openStatus(b.hours);
   const d = formatDistance(locale, b.distanceMeters);
@@ -588,8 +589,22 @@ export function ProfilePage() {
         <Card>
           <div className="dd-stack">
             <strong>{me?.displayName}</strong>
+            <SetupBanner />
+            <Link className="dd-link" href={href('/account')} data-testid="account-link">
+              {t('profile.account')}
+            </Link>
             <Link className="dd-link" href={href('/benefits')} data-testid="my-benefits-link">
               {t('profile.benefits')}
+            </Link>
+            <Link
+              className="dd-link"
+              href={`${href('/account')}#notifications`}
+              data-testid="notifications-link"
+            >
+              {t('profile.notifications')}
+            </Link>
+            <Link className="dd-link" href={`${href('/account')}#privacy`}>
+              {t('profile.privacy')}
             </Link>
             <Link className="dd-link" href={href('/saved')}>
               {t('profile.savedDeals')}
@@ -609,27 +624,7 @@ export function ProfilePage() {
           </div>
         </Card>
       )}
-      <Card flat>
-        <strong>{t('profile.language')}</strong>
-        <div className="dd-row" style={{ marginBlockStart: 8 }}>
-          <Link
-            className={`dd-pill ${locale === 'en' ? 'dd-pill--active' : ''}`}
-            href={withLocale('/profile', 'en')}
-            hrefLang="en"
-            aria-current={locale === 'en' ? 'true' : undefined}
-          >
-            English
-          </Link>
-          <Link
-            className={`dd-pill ${locale === 'ar' ? 'dd-pill--active' : ''}`}
-            href={withLocale('/profile', 'ar')}
-            hrefLang="ar"
-            aria-current={locale === 'ar' ? 'true' : undefined}
-          >
-            العربية
-          </Link>
-        </div>
-      </Card>
+      <LanguageCard current={locale} />
       <p className="dd-caption">{t('profile.laterStages')}</p>
       <span hidden>{locale}</span>
     </div>

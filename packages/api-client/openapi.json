@@ -356,6 +356,199 @@
         ]
       }
     },
+    "/v1/app/me/profile": {
+      "get": {
+        "operationId": "CustomerAccountController_profile_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-account"
+        ]
+      },
+      "put": {
+        "operationId": "CustomerAccountController_updateProfile_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileUpdateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-account"
+        ]
+      }
+    },
+    "/v1/app/me/consents": {
+      "put": {
+        "operationId": "CustomerAccountController_updateConsents_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConsentsUpdateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-account"
+        ]
+      }
+    },
+    "/v1/app/me/notification-settings": {
+      "get": {
+        "operationId": "CustomerAccountController_notificationSettings_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationSettingsResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-account"
+        ]
+      },
+      "put": {
+        "operationId": "CustomerAccountController_updateNotificationSettings_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationSettingsUpdateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationSettingsResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-account"
+        ]
+      }
+    },
+    "/v1/app/me/mobile/code": {
+      "post": {
+        "operationId": "CustomerAccountController_mobileStart_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MobileStartDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MobileStartResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-account"
+        ]
+      }
+    },
+    "/v1/app/me/mobile/verify": {
+      "post": {
+        "operationId": "CustomerAccountController_mobileVerify_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MobileVerifyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-account"
+        ]
+      }
+    },
     "/v1/merchants/{orgId}": {
       "get": {
         "operationId": "MerchantsController_profile_v1",
@@ -28231,6 +28424,525 @@
           "organizationId"
         ]
       },
+      "ProfileResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "firstName": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "lastName": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "email": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "mobileMasked": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "dateOfBirth": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "ageVerified": {
+                "type": "boolean"
+              },
+              "gender": {
+                "type": "string",
+                "enum": [
+                  "FEMALE",
+                  "MALE",
+                  "PREFER_NOT_TO_SAY",
+                  null
+                ],
+                "nullable": true
+              },
+              "city": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "interests": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "language": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "ar",
+                  "ur"
+                ]
+              },
+              "onboarding": {
+                "type": "object",
+                "properties": {
+                  "state": {
+                    "type": "string",
+                    "enum": [
+                      "PHONE_VERIFIED",
+                      "PROFILE_IN_PROGRESS",
+                      "COMPLETE",
+                      "AGE_BLOCKED"
+                    ]
+                  },
+                  "ready": {
+                    "type": "boolean"
+                  },
+                  "missing": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "DETAILS",
+                        "BIRTH_DATE",
+                        "GENDER",
+                        "CITY",
+                        "INTERESTS",
+                        "CONSENTS"
+                      ]
+                    }
+                  },
+                  "nextStep": {
+                    "type": "string",
+                    "enum": [
+                      "DETAILS",
+                      "BIRTH_DATE",
+                      "GENDER",
+                      "CITY",
+                      "INTERESTS",
+                      "CONSENTS",
+                      null
+                    ],
+                    "nullable": true
+                  },
+                  "consentsOutdated": {
+                    "type": "boolean"
+                  },
+                  "minimumAge": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "state",
+                  "ready",
+                  "missing",
+                  "nextStep",
+                  "consentsOutdated",
+                  "minimumAge"
+                ]
+              },
+              "consents": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "TERMS",
+                        "PRIVACY",
+                        "MARKETING_PUSH",
+                        "MARKETING_EMAIL",
+                        "LOCATION",
+                        "NOTIFICATIONS"
+                      ]
+                    },
+                    "granted": {
+                      "type": "boolean"
+                    },
+                    "version": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "at": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "granted",
+                    "version",
+                    "at"
+                  ]
+                }
+              },
+              "documents": {
+                "type": "object",
+                "properties": {
+                  "termsVersion": {
+                    "type": "string"
+                  },
+                  "privacyVersion": {
+                    "type": "string"
+                  },
+                  "termsUrl": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "privacyUrl": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "termsVersion",
+                  "privacyVersion",
+                  "termsUrl",
+                  "privacyUrl"
+                ]
+              }
+            },
+            "required": [
+              "firstName",
+              "lastName",
+              "email",
+              "mobileMasked",
+              "dateOfBirth",
+              "ageVerified",
+              "gender",
+              "city",
+              "interests",
+              "language",
+              "onboarding",
+              "consents",
+              "documents"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string"
+              },
+              "locale": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "ar"
+                ]
+              },
+              "nextCursor": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "ProfileUpdateDto": {
+        "type": "object",
+        "properties": {
+          "tradeNameEn": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "tradeNameAr": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "descriptionEn": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "descriptionAr": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "businessPhone": {
+            "type": "string",
+            "maxLength": 30
+          },
+          "businessEmail": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email",
+            "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          },
+          "subCategory": {
+            "type": "string",
+            "maxLength": 80
+          }
+        }
+      },
+      "ConsentsUpdateDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "minItems": 1,
+            "maxItems": 6,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "TERMS",
+                    "PRIVACY",
+                    "MARKETING_PUSH",
+                    "MARKETING_EMAIL",
+                    "LOCATION",
+                    "NOTIFICATIONS"
+                  ]
+                },
+                "granted": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "kind",
+                "granted"
+              ]
+            }
+          },
+          "source": {
+            "default": "SETTINGS",
+            "type": "string",
+            "enum": [
+              "ONBOARDING",
+              "SETTINGS"
+            ]
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "NotificationSettingsResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "categories": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "category": {
+                      "type": "string",
+                      "enum": [
+                        "ORDERS",
+                        "ACCOUNT",
+                        "REWARDS",
+                        "BENEFITS"
+                      ]
+                    },
+                    "required": {
+                      "type": "boolean"
+                    },
+                    "push": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "category",
+                    "required",
+                    "push"
+                  ]
+                }
+              },
+              "pushAllowed": {
+                "type": "boolean"
+              },
+              "marketing": {
+                "type": "object",
+                "properties": {
+                  "push": {
+                    "type": "boolean"
+                  },
+                  "email": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "push",
+                  "email"
+                ]
+              }
+            },
+            "required": [
+              "categories",
+              "pushAllowed",
+              "marketing"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string"
+              },
+              "locale": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "ar"
+                ]
+              },
+              "nextCursor": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "NotificationSettingsUpdateDto": {
+        "type": "object",
+        "properties": {
+          "categories": {
+            "default": [],
+            "maxItems": 2,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "category": {
+                  "type": "string",
+                  "enum": [
+                    "REWARDS",
+                    "BENEFITS"
+                  ]
+                },
+                "push": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "category",
+                "push"
+              ]
+            }
+          }
+        }
+      },
+      "MobileStartDto": {
+        "type": "object",
+        "properties": {
+          "mobile": {
+            "type": "string",
+            "pattern": "^\\+[1-9]\\d{7,14}$"
+          }
+        },
+        "required": [
+          "mobile"
+        ]
+      },
+      "MobileStartResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "sent": {
+                "type": "boolean"
+              },
+              "expiresInSeconds": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "resendAfterSeconds": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "sent",
+              "expiresInSeconds",
+              "resendAfterSeconds"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string"
+              },
+              "locale": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "ar"
+                ]
+              },
+              "nextCursor": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "MobileVerifyDto": {
+        "type": "object",
+        "properties": {
+          "mobile": {
+            "type": "string",
+            "pattern": "^\\+[1-9]\\d{7,14}$"
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^\\d{6}$"
+          }
+        },
+        "required": [
+          "mobile",
+          "code"
+        ]
+      },
       "MerchantResponse": {
         "type": "object",
         "properties": {
@@ -31101,23 +31813,6 @@
           "meta"
         ]
       },
-      "MobileVerifyDto": {
-        "type": "object",
-        "properties": {
-          "mobile": {
-            "type": "string",
-            "pattern": "^\\+[1-9]\\d{7,14}$"
-          },
-          "code": {
-            "type": "string",
-            "pattern": "^\\d{6}$"
-          }
-        },
-        "required": [
-          "mobile",
-          "code"
-        ]
-      },
       "AgreementAcceptDto": {
         "type": "object",
         "properties": {
@@ -31316,45 +32011,6 @@
           "data",
           "meta"
         ]
-      },
-      "ProfileUpdateDto": {
-        "type": "object",
-        "properties": {
-          "tradeNameEn": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 120
-          },
-          "tradeNameAr": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 120
-          },
-          "descriptionEn": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 1000
-          },
-          "descriptionAr": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 1000
-          },
-          "businessPhone": {
-            "type": "string",
-            "maxLength": 30
-          },
-          "businessEmail": {
-            "type": "string",
-            "maxLength": 254,
-            "format": "email",
-            "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
-          },
-          "subCategory": {
-            "type": "string",
-            "maxLength": 80
-          }
-        }
       },
       "OkResponse": {
         "type": "object",
@@ -42140,6 +42796,27 @@
                     "longitude"
                   ]
                 }
+              },
+              "map": {
+                "type": "object",
+                "properties": {
+                  "tileUrlTemplate": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "attribution": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "tileUrlTemplate",
+                  "attribution"
+                ]
               }
             },
             "required": [
@@ -55594,7 +56271,8 @@
                         "ALERT",
                         "CASE_UPDATED",
                         "ACCOUNT_RESTRICTION",
-                        "BENEFIT_UPDATED"
+                        "BENEFIT_UPDATED",
+                        "ACCOUNT_WELCOME"
                       ]
                     },
                     "data": {

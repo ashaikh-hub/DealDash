@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { createTranslator, formatNumber, type Locale } from '@dealdash/localization';
+import {
+  createTranslator,
+  formatNumber,
+  type UiLocale as Locale, // the interface language (en / ar / ur)
+} from '@dealdash/localization';
 
 /**
  * Countdowns follow the SERVER clock: the API sends `serverNow` with every Exclusive Deal and reservation, and the phone's own

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { createTranslator } from '@dealdash/localization';
-import type { Locale } from '@dealdash/types';
+import type { UiLocale as Locale } from '@dealdash/types';
 import { Button } from '@dealdash/ui';
 
 interface BeforeInstallPromptEvent extends Event {

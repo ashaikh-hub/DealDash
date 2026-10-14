@@ -38,6 +38,7 @@ import { AiModule } from './ai/ai.module';
 import { PartnersModule } from './partners/partners.module';
 import { OpsModule } from './ops/ops.module';
 import { BenefitsModule } from './benefits/benefits.module';
+import { CustomerAccountModule } from './customer-account/customer-account.module';
 
 @Global()
 @Module({})
@@ -64,6 +65,7 @@ export class AppModule implements NestModule {
         SystemConfigModule,
         ProvidersModule,
         IdentityModule,
+        CustomerAccountModule,
         OrganizationsModule,
         MerchantsModule,
         LiveDealsModule,
