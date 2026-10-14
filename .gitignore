@@ -16,6 +16,8 @@ apps/api/src/generated/
 .pgdata/
 test-results/
 playwright-report/
+# regenerable output of tooling/e2e/customer-visual.mjs (founder decision 2026-10-14: not kept in Git)
+docs/screenshots/customer-visual/
 # development file storage (uploaded documents)
 .storage/
 # Terraform: provider caches, local state and real variable files (state and tfvars can hold secrets / project ids)
