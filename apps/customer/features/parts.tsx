@@ -161,8 +161,8 @@ export function NoDeals({ cityOff }: { cityOff?: boolean }) {
 
 /** Bottom sheet that explains and requests the device location (never required). */
 export function LocationSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { t } = useT();
-  const { status, requestLocation, approximate, city, cities, setCity } = useCustomer();
+  const { t, locale } = useT();
+  const { status, requestLocation, approximate, city, cities, setCity, cityLabel } = useCustomer();
   if (!open) return null;
   const message =
     status === 'finding'
@@ -172,7 +172,7 @@ export function LocationSheet({ open, onClose }: { open: boolean; onClose: () =>
         : status === 'unavailable'
           ? t('loc.unavailable')
           : approximate
-            ? t('loc.usingCity', { city })
+            ? t('loc.usingCity', { city: cityLabel(city, locale) })
             : t('loc.usingMine');
   return (
     <div
@@ -196,7 +196,7 @@ export function LocationSheet({ open, onClose }: { open: boolean; onClose: () =>
                 aria-pressed={c.name === city}
                 onClick={() => setCity(c.name)}
               >
-                {c.name}
+                {cityLabel(c.name, locale)}
               </button>
             ))}
           </div>
@@ -215,8 +215,8 @@ export function LocationSheet({ open, onClose }: { open: boolean; onClose: () =>
 }
 
 export function CityBar() {
-  const { t } = useT();
-  const { city, approximate } = useCustomer();
+  const { t, locale } = useT();
+  const { city, approximate, cityLabel } = useCustomer();
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -229,7 +229,7 @@ export function CityBar() {
           aria-label={t('loc.title')}
         >
           <Icon name="pin" size={16} />
-          <span className="dd-loc__city">{city}</span>
+          <span className="dd-loc__city">{cityLabel(city, locale)}</span>
           <span className="dd-caption">{approximate ? '' : '•'}</span>
           <svg
             className="dd-loc__caret"
@@ -255,22 +255,23 @@ export function CityBar() {
 
 /** Location selector built into the customer header on Home (approved customer UI); other screens keep their own city bar. */
 export function HeaderCity() {
-  const { t } = useT();
-  const { city } = useCustomer();
+  const { t, locale } = useT();
+  const { city, cityLabel } = useCustomer();
   const [open, setOpen] = useState(false);
   const path = stripLocale(usePathname() ?? '/');
   if (path !== '/') return null;
+  const label = cityLabel(city, locale);
   return (
     <>
       <button
         type="button"
         className="dd-loc"
         onClick={() => setOpen(true)}
-        aria-label={`${t('loc.title')}: ${city}`}
+        aria-label={`${t('loc.title')}: ${label}`}
         data-testid="header-city"
       >
         <Icon name="pin" size={16} />
-        <span className="dd-loc__city">{city}</span>
+        <span className="dd-loc__city">{label}</span>
         <svg
           className="dd-loc__caret"
           viewBox="0 0 24 24"

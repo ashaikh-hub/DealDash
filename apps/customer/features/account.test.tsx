@@ -387,7 +387,8 @@ describe('Account settings and notifications (CS-05 / CS-06)', () => {
     expect(screen.getByText('Confirmed. Contact support to correct it.')).toBeInTheDocument();
     expect(screen.getByTestId('mobile-masked')).toHaveTextContent('+966 •••• 4567');
     // privacy: Terms / Privacy shown as accepted with their version, not withdrawable here
-    expect(screen.getByTestId('privacy-consents')).toHaveTextContent('Version 2026-10');
+    // the version is bidi-isolated so it never reverses inside Arabic / Urdu text
+    expect(screen.getByTestId('privacy-consents')).toHaveTextContent(/Version ⁦?2026-10⁩?/);
     // three interface languages
     expect(
       within(screen.getByTestId('language-choice')).getByRole('link', { name: 'اردو' }),

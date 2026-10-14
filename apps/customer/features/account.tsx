@@ -23,6 +23,7 @@ import {
 } from '@dealdash/app-shell';
 import {
   formatDate,
+  isolateLtr,
   stripLocale,
   withLocale,
   type DictionaryKey,
@@ -285,7 +286,7 @@ function Documents({ profile }: { profile: CustomerProfile }) {
       </a>
     ) : (
       <span className="dd-caption">
-        {label} · {t('acct.consents.version', { v: version })}
+        {label} · {t('acct.consents.version', { v: isolateLtr(version) })}
       </span>
     );
   return (
@@ -301,9 +302,9 @@ function Documents({ profile }: { profile: CustomerProfile }) {
 
 function CityPills({ value, onChange }: { value: string; onChange: (city: string) => void }) {
   const { t, locale } = useT();
-  const { cities } = useCustomer();
+  const { cities, cityLabel } = useCustomer();
   return (
-    <div className="dd-optrow" role="radiogroup" aria-label={t('acct.city.title')}>
+    <div className="dd-optrow dd-optrow--wrap" role="radiogroup" aria-label={t('acct.city.title')}>
       {cities.map((c) => (
         <button
           key={c.name}
@@ -313,7 +314,7 @@ function CityPills({ value, onChange }: { value: string; onChange: (city: string
           className={`dd-pill ${c.name === value ? 'dd-pill--active' : ''}`}
           onClick={() => onChange(c.name)}
         >
-          {pickText({ en: c.name, ar: c.nameAr }, locale)}
+          {cityLabel(c.name, locale)}
         </button>
       ))}
     </div>
@@ -330,7 +331,7 @@ function InterestPills({
   const { t, locale } = useT();
   const cats = useCategories();
   return (
-    <div className="dd-optrow" role="group" aria-label={t('acct.interests.title')}>
+    <div className="dd-optrow dd-optrow--wrap" role="group" aria-label={t('acct.interests.title')}>
       {cats.map((c) => {
         const on = value.includes(c.code);
         return (
@@ -358,7 +359,11 @@ function GenderPills({
 }) {
   const { t } = useT();
   return (
-    <div className="dd-optrow" role="radiogroup" aria-label={t('acct.gender.title')}>
+    <div
+      className="dd-optrow dd-optrow--wrap"
+      role="radiogroup"
+      aria-label={t('acct.gender.title')}
+    >
       {GENDERS.map((g) => (
         <button
           key={g}
@@ -872,9 +877,8 @@ function PersonalDetails({
           <span className="dd-label">{t('acct.dob')}</span>
           {profile.dateOfBirth ? (
             <>
-              <span className="dd-ltr">
-                {formatDate(locale, `${profile.dateOfBirth}T12:00:00Z`, 'UTC')}
-              </span>
+              {/* a localised date carries its own direction marks: never force it left-to-right */}
+              <span>{formatDate(locale, `${profile.dateOfBirth}T12:00:00Z`, 'UTC')}</span>
               <span className="dd-help">{t('acct.dobLocked')}</span>
             </>
           ) : (
@@ -1103,7 +1107,8 @@ function NotificationSettings() {
                     <StatusChip tone="neutral">{t('acct.notif.required')}</StatusChip>
                   ) : (
                     <Checkbox
-                      label={t('acct.notif.push')}
+                      label={t('acct.notif.pushShort')}
+                      aria-label={`${t(`acct.notif.cat.${c.category}` as DictionaryKey)}: ${t('acct.notif.push')}`}
                       checked={c.push && s.pushAllowed}
                       disabled={!s.pushAllowed}
                       onChange={(e) =>
@@ -1156,10 +1161,10 @@ function PrivacyCard({
           const c = consent(k);
           return (
             <div key={k} className="dd-stack" style={{ gap: 2 }}>
-              <strong>{t(`acct.consent.${k}` as DictionaryKey)}</strong>
+              <strong>{t(`acct.doc.${k}` as DictionaryKey)}</strong>
               <span className="dd-caption">
                 {c?.granted
-                  ? `${t('acct.consents.accepted', { date: formatDate(locale, c.at) })} · ${t('acct.consents.version', { v: c.version ?? '' })}`
+                  ? `${t('acct.consents.accepted', { date: formatDate(locale, c.at) })} · ${t('acct.consents.version', { v: isolateLtr(c.version ?? '') })}`
                   : t('acct.consents.required')}
               </span>
             </div>

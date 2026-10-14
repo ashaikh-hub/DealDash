@@ -1586,6 +1586,17 @@ html[lang='ar'] body,
   border-block-start: 1px solid var(--dd-line);
   z-index: 20;
 }
+/* a long action label (narrow phones, longer languages) wraps inside the button instead of leaving the screen */
+.dd-dd__bar > .dd-btn,
+.dd-dd__bar > a.dd-btn {
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  white-space: normal;
+  text-align: center;
+}
+.dd-dd__bar > div:first-child {
+  flex: none;
+}
 .dd-open {
   color: var(--dd-success);
   font-weight: 700;
@@ -3704,6 +3715,36 @@ button.dd-staffrow:focus-visible {
 .dd-main--customer .dd-optrow > * {
   flex: none;
 }
+/* merchant-written sentences take their own direction: English text inside an Arabic / Urdu page keeps its full stop at
+   the end (the equivalent of dir="auto"; interface text is unaffected) */
+.dd-dd .dd-pre,
+.dd-dd__sheet > p.dd-muted {
+  unicode-bidi: plaintext;
+}
+/* a link styled as a button never shows the link underline */
+a.dd-btn,
+a.dd-btn:hover {
+  text-decoration: none;
+}
+.dd-hero-skeleton {
+  border-radius: 24px;
+  overflow: hidden;
+}
+/* the centre tab's label stays on one line in every language (Urdu wrapped and broke the label baseline) */
+.dd-tabbar--customer .dd-tab--feature > span:last-child {
+  white-space: nowrap;
+  /* the label may use the space under the raised button instead of being cut with an ellipsis */
+  overflow: visible;
+  text-overflow: clip;
+  max-inline-size: none;
+}
+/* choices inside a form or card wrap onto more lines (every option stays visible) */
+.dd-main--customer .dd-optrow.dd-optrow--wrap {
+  flex-wrap: wrap;
+  overflow-x: visible;
+  margin-inline: 0;
+  padding-inline: 0;
+}
 /* list search fields look like the Home search */
 .dd-main--customer input.dd-input[type='search'] {
   min-block-size: 50px;
@@ -3896,6 +3937,15 @@ a.dd-pill {
 }
 .dd-rewardcard--stack .dd-rewardcard__cta {
   align-self: flex-start;
+}
+/* Rewards page summary: the balance, then the three totals, then the notes (never squeezed into one row) */
+.dd-rewardcard--stack {
+  gap: 12px;
+}
+.dd-rewardcard--stack .dd-rewardcard__row,
+.dd-rewardcard--stack > p {
+  margin: 0;
+  position: relative;
 }
 button.dd-rewardcard__cta {
   border: 0;

@@ -16,6 +16,7 @@ const MIN_ZOOM = 9;
 const MAX_ZOOM = 18;
 const CLUSTER_PX = 34;
 const RINGS_KM = [1, 3, 5];
+const MIN_RING_PX = 28;
 
 export interface MapConfig {
   tileUrlTemplate: string | null;
@@ -213,14 +214,19 @@ export function DealsMap({
         ))}
         {!config?.tileUrlTemplate ? (
           <svg className="dd-map__rings" width={size.w} height={size.h} aria-hidden="true">
-            {RINGS_KM.map((km) => (
-              <g key={km}>
-                <circle cx={me.x} cy={me.y} r={(km * 1000) / mpp} />
-                <text x={me.x + (km * 1000) / mpp + 4} y={me.y - 4}>
-                  {km} km
-                </text>
-              </g>
-            ))}
+            {RINGS_KM.map((km) => {
+              const r = (km * 1000) / mpp;
+              // a ring too small to read (zoomed far out) is left out; labels sit on top of each ring so they never overlap
+              if (r < MIN_RING_PX) return null;
+              return (
+                <g key={km}>
+                  <circle cx={me.x} cy={me.y} r={r} />
+                  <text x={me.x} y={me.y - r - 4} textAnchor="middle">
+                    {km} km
+                  </text>
+                </g>
+              );
+            })}
           </svg>
         ) : null}
         <span
@@ -278,7 +284,9 @@ export function DealsMap({
         ) : null}
       </div>
       {!config?.tileUrlTemplate && located.length ? (
-        <span className="dd-caption">{t('map.rings', { place })}</span>
+        <span className="dd-caption">
+          {centreIsDevice ? t('map.ringsYou') : t('map.ringsCity')}
+        </span>
       ) : null}
       {missing > 0 ? (
         <span className="dd-caption">{t('map.noLocation', { n: missing })}</span>

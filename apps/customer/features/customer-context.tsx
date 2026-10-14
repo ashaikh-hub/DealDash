@@ -36,6 +36,8 @@ export interface CustomerContextValue {
   track: (event: TrackedEvent) => void;
   /** Live Deals map base layer from server configuration (null template = plain canvas). */
   mapConfig: { tileUrlTemplate: string | null; attribution: string | null } | null;
+  /** A city's display name in the interface language (Arabic name in Arabic; the English name otherwise). */
+  cityLabel: (name: string, ui: string) => string;
 }
 
 export interface TrackedEvent {
@@ -218,6 +220,8 @@ export function CustomerProvider({ children }: { children: ReactNode }) {
       anonymousId,
       track,
       mapConfig,
+      cityLabel: (name: string, ui: string) =>
+        ui === 'ar' ? (cities.find((c) => c.name === name)?.nameAr ?? name) : name,
     };
   }, [device, status, requestLocation, anonymousId, track, city, cities, setCity, mapConfig]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

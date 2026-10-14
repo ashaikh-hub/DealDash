@@ -166,6 +166,9 @@ const ACCOUNT = {
   'acct.notif.cat.REWARDS': ['Rewards and points', 'المكافآت والنقاط'],
   'acct.notif.cat.BENEFITS': ['My benefits', 'مزاياي'],
   'acct.notif.required': ['Always on', 'مفعّلة دائماً'],
+  'acct.notif.pushShort': ['Push', 'فوري'],
+  'acct.doc.TERMS': ['Terms of Use', 'شروط الاستخدام'],
+  'acct.doc.PRIVACY': ['Privacy Policy', 'سياسة الخصوصية'],
   'acct.notif.push': ['Push notifications', 'الإشعارات الفورية'],
   'acct.notif.inbox': [
     'Everything also stays in Updates, even when push is off.',
@@ -198,7 +201,11 @@ const ACCOUNT = {
     '{n} عروض بلا موقع على الخريطة. تجدها في القائمة.',
   ],
   'map.empty': ['No deals to show on the map', 'لا توجد عروض لعرضها على الخريطة'],
-  'map.rings': ['Rings: 1, 3 and 5 km from {place}', 'الدوائر: 1 و3 و5 كم من {place}'],
+  'map.ringsYou': ['Rings show 1, 3 and 5 km from you', 'تُظهر الدوائر 1 و3 و5 كم من موقعك'],
+  'map.ringsCity': [
+    'Rings show 1, 3 and 5 km from the city centre',
+    'تُظهر الدوائر 1 و3 و5 كم من وسط المدينة',
+  ],
   'map.close': ['Close', 'إغلاق'],
   'map.label': [
     'Map of Live Deals. Use the list view for a text version.',

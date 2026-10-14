@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { Icon, categoryIcon, pickText, useApi, useAuth } from '@dealdash/app-shell';
 import { formatNumber, type DictionaryKey } from '@dealdash/localization';
+import { Skeleton } from '@dealdash/ui';
 import type { DealCard, RewardSummary } from '@dealdash/validation';
 import { SetupBanner } from './account';
 import { useCustomer } from './customer-context';
@@ -126,7 +127,7 @@ export function HomePage() {
   const { t, locale } = useT();
   const { call } = useApi();
   const href = useHref();
-  const { city, coords, approximate } = useCustomer();
+  const { city, coords, approximate, cityLabel } = useCustomer();
   const [feed, setFeed] = useState<HomeFeed | null>(null);
   const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading');
 
@@ -178,8 +179,11 @@ export function HomePage() {
 
       {state === 'loading' ? (
         <>
-          <CardSkeletons variant="carousel" />
-          <CardSkeletons />
+          {/* the loading shape follows the approved Home: the photo hero, then cards (inside the page gutter) */}
+          <div className="dd-hero-skeleton" aria-hidden="true">
+            <Skeleton height={196} />
+          </div>
+          <CardSkeletons n={2} />
         </>
       ) : state === 'error' || !feed ? (
         <LoadError onRetry={load} />
@@ -191,7 +195,8 @@ export function HomePage() {
             <img className="dd-hero__img" src="/brand/hero-dining.jpg" alt="" />
             <div className="dd-hero__top">
               <span className="dd-hero__place">
-                <Icon name="pin" size={14} /> {t('home.heroKicker', { city: feed.city })}
+                <Icon name="pin" size={14} />{' '}
+                {t('home.heroKicker', { city: cityLabel(feed.city, locale) })}
               </span>
               {total ? (
                 <span className="dd-hero__live">

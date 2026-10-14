@@ -307,7 +307,11 @@ export function WatchDetailView({
 export function RewardSummaryCard({ summary, locale }: { summary: RewardSummary; locale: Locale }) {
   const t = tr(locale);
   return (
-    <section className="dd-rewardcard" data-testid="reward-summary" aria-label={t('rew.title')}>
+    <section
+      className="dd-rewardcard dd-rewardcard--stack"
+      data-testid="reward-summary"
+      aria-label={t('rew.title')}
+    >
       <div className="dd-caption dd-rewardcard__label">{t('rew.available')}</div>
       <div className="dd-rewardcard__big" data-testid="reward-available">
         <span className="dd-ltr">{formatNumber(locale, summary.availableBalance)}</span>
