@@ -8,14 +8,18 @@ import {
   canTransitionReservation,
 } from '@dealdash/types';
 import {
+  commitmentIssues,
+  commitmentMethodOf,
   emptyHotDealContent,
   hotDealContentSchema,
   hotDealIssues,
   hotMaterialChanges,
   hotTranslationStatus,
+  type CommitmentPolicy,
 } from '@dealdash/validation';
 import {
   codeHint,
+  denormalizeHot,
   formatManualCode,
   hotStatusAfterApproval,
   hotStatusFromDates,
@@ -74,8 +78,143 @@ describe('reservation state machine', () => {
     expect(canTransitionReservation('CANCELLED', 'HELD')).toBe(false);
     expect(Object.keys(RESERVATION_TRANSITIONS).sort()).toEqual([...RESERVATION_STATUSES].sort());
   });
-  it('has no deposit or payment state: reservations are free', () => {
+  it('has no payment state yet: the commitment payment step is build phase 2 (money state lives in paymentStatus)', () => {
     expect(JSON.stringify(RESERVATION_STATUSES)).not.toMatch(/PAYMENT|DEPOSIT|PENDING_PAY/i);
+  });
+});
+
+describe('reservation commitment (founder decision 2026-10-15)', () => {
+  const policy: CommitmentPolicy = {
+    freeAllowed: false,
+    allowedMethods: ['FULL_PREPAYMENT', 'DEPOSIT'],
+    depositMinMinor: 500,
+    depositMaxMinor: 5_000,
+    nonRefundableDepositAllowed: false,
+    preauthMaxMinor: 10_000,
+    cutoffMinMinutes: 10,
+    cutoffMaxMinutes: 60,
+    prepaymentRefundMinPercent: 20,
+    prepaymentRefundMaxPercent: 80,
+  };
+  const withCommitment = (commitment: Record<string, unknown>, over = {}) =>
+    full({ commitment, holdMinutes: 90, ...over });
+  const codes = (c: ReturnType<typeof full>, p: CommitmentPolicy = policy) =>
+    commitmentIssues(c, p).map((i) => `${i.field}:${i.code}`);
+
+  it('legacy content without a method is FREE; walk-in deals have no method and nothing to check', () => {
+    expect(commitmentMethodOf(full())).toBe('FREE');
+    const walkIn = full({ limitType: 'TIME', reservationsEnabled: false, allocations: [] });
+    expect(commitmentMethodOf(walkIn)).toBeNull();
+    expect(commitmentIssues(walkIn, policy)).toEqual([]);
+  });
+
+  it('RC-05 / RC-21: FREE needs the policy; otherwise a method is required', () => {
+    expect(codes(full())).toEqual(['commitment.method:METHOD_REQUIRED']);
+    expect(codes(withCommitment({ method: 'FREE' }))).toEqual([
+      'commitment.method:METHOD_NOT_ALLOWED',
+    ]);
+    expect(codes(full(), { ...policy, freeAllowed: true })).toEqual([]);
+  });
+
+  it('accepts a complete paid commitment inside the policy', () => {
+    expect(
+      codes(
+        withCommitment({
+          method: 'DEPOSIT',
+          amountMinor: 1_000,
+          depositRefundable: true,
+          cancelCutoffMinutes: 30,
+        }),
+      ),
+    ).toEqual([]);
+    expect(
+      codes(
+        withCommitment({
+          method: 'FULL_PREPAYMENT',
+          amountMinor: 4_500,
+          cancelCutoffMinutes: 15,
+          noShowRefundPercent: 50,
+        }),
+      ),
+    ).toEqual([]);
+  });
+
+  it('refuses methods, amounts, cut-offs, refund shares and non-refundable deposits outside the policy', () => {
+    expect(
+      codes(withCommitment({ method: 'CARD_PREAUTH', amountMinor: 100, cancelCutoffMinutes: 30 })),
+    ).toEqual(['commitment.method:METHOD_NOT_ALLOWED']);
+    expect(codes(withCommitment({ method: 'DEPOSIT' }))).toEqual([
+      'commitment.amountMinor:REQUIRED',
+      'commitment.depositRefundable:REQUIRED',
+      'commitment.cancelCutoffMinutes:REQUIRED',
+    ]);
+    expect(
+      codes(
+        withCommitment({
+          method: 'DEPOSIT',
+          amountMinor: 9_999,
+          depositRefundable: false,
+          cancelCutoffMinutes: 5,
+        }),
+      ),
+    ).toEqual([
+      'commitment.amountMinor:AMOUNT_OUT_OF_RANGE',
+      'commitment.depositRefundable:NOT_ALLOWED',
+      'commitment.cancelCutoffMinutes:CUTOFF_OUT_OF_RANGE',
+    ]);
+    expect(
+      codes(
+        withCommitment({
+          method: 'FULL_PREPAYMENT',
+          amountMinor: 4_500,
+          cancelCutoffMinutes: 15,
+          noShowRefundPercent: 100,
+        }),
+      ),
+    ).toEqual(['commitment.noShowRefundPercent:REFUND_PERCENT_OUT_OF_RANGE']);
+    // the cut-off can never be longer than the hold itself
+    expect(
+      codes(
+        withCommitment(
+          { method: 'FULL_PREPAYMENT', amountMinor: 4_500, cancelCutoffMinutes: 50 },
+          { holdMinutes: 40 },
+        ),
+      ),
+    ).toEqual(['commitment.cancelCutoffMinutes:CUTOFF_OUT_OF_RANGE']);
+    const preauth = { ...policy, allowedMethods: ['CARD_PREAUTH'] };
+    expect(
+      codes(
+        withCommitment({ method: 'CARD_PREAUTH', amountMinor: 20_000, cancelCutoffMinutes: 30 }),
+        preauth,
+      ),
+    ).toEqual(['commitment.amountMinor:AMOUNT_OUT_OF_RANGE']);
+  });
+
+  it('a change to the commitment is material on a live deal; columns keep only what the method uses', () => {
+    const before = withCommitment({
+      method: 'DEPOSIT',
+      amountMinor: 1_000,
+      depositRefundable: true,
+      cancelCutoffMinutes: 30,
+      noShowRefundPercent: 40,
+    });
+    const after = withCommitment({ ...before.commitment, amountMinor: 1_500 });
+    expect(hotMaterialChanges(before, after)).toContain('commitment');
+    expect(hotMaterialChanges(before, before)).not.toContain('commitment');
+    const cols = denormalizeHot(before);
+    expect(cols).toMatchObject({
+      commitmentMethod: 'DEPOSIT',
+      commitmentAmountMinor: 1_000,
+      depositRefundable: true,
+      cancelCutoffMinutes: 30,
+      noShowRefundPercent: null, // only FULL_PREPAYMENT carries a refund share
+    });
+    expect(denormalizeHot(full())).toMatchObject({
+      commitmentMethod: 'FREE',
+      commitmentAmountMinor: null,
+    });
+    const walkIn = full({ limitType: 'TIME', reservationsEnabled: false, allocations: [] });
+    expect(denormalizeHot(walkIn).commitmentMethod).toBeNull();
   });
 });
 

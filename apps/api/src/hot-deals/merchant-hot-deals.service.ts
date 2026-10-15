@@ -373,6 +373,9 @@ export class MerchantHotDealsService {
     const issues = hotDealIssues(content, { now, limits: await this.core.limits() });
     if (issues.length) incomplete(issues);
     await this.core.validateReferences(organizationId, content);
+    // RC-21: a deal with reservations needs a commitment method the effective reservation policy allows
+    const commitment = await this.core.commitmentIssues(organizationId, content);
+    if (commitment.length) incomplete(commitment);
     await this.core.requireActiveBranch(
       organizationId,
       content.allocations.map((a) => a.branchId),

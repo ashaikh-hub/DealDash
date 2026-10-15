@@ -185,6 +185,49 @@ export class MerchantRedemptionListResponse extends createZodDto(
   envelope(z.array(redemptionRow)),
 ) {}
 export class SubStatusResponse extends createZodDto(envelope(sub)) {}
+
+// ---- reservation commitment model (founder decision 2026-10-15): effective policy and strike reset
+const level = z.enum(['MERCHANT', 'CATEGORY', 'MARKET', 'BASELINE']);
+const policyFields = z.object({
+  freeAllowed: z.boolean().nullable(),
+  allowedMethods: z.array(z.string()),
+  depositMinMinor: z.number().int(),
+  depositMaxMinor: z.number().int(),
+  nonRefundableDepositAllowed: z.boolean(),
+  preauthMaxMinor: z.number().int(),
+  cutoffMinMinutes: z.number().int(),
+  cutoffMaxMinutes: z.number().int(),
+  paymentWindowMinutes: z.number().int(),
+  prepaymentRefundMinPercent: z.number().int(),
+  prepaymentRefundMaxPercent: z.number().int(),
+  prepaymentRefundDefaultPercent: z.number().int(),
+});
+const effectivePolicy = z.object({
+  market: z.string(),
+  marketStatus: z.string().nullable(),
+  /** RC-05, decided for this environment and market. */
+  freeAllowed: z.boolean(),
+  fields: policyFields,
+  source: z.record(z.string(), level),
+  problems: z.array(z.string()),
+});
+export class EffectivePolicyQueryDto extends createZodDto(
+  z.object({
+    market: z
+      .string()
+      .regex(/^[A-Za-z]{2}$/)
+      .transform((v) => v.toUpperCase()),
+    categoryId: uuid.optional(),
+    organizationId: uuid.optional(),
+  }),
+) {}
+export class MerchantPolicyQueryDto extends createZodDto(
+  z.object({ categoryId: uuid.optional(), branchId: uuid.optional() }),
+) {}
+export class ReservationPolicyResponse extends createZodDto(envelope(effectivePolicy)) {}
+export class StrikeResetResponse extends createZodDto(
+  envelope(z.object({ reset: z.number().int(), reservationIds: z.array(uuid) })),
+) {}
 export class AdminHotListResponse extends createZodDto(envelope(z.array(adminHotRowSchema))) {}
 export class AdminHotDetailResponse extends createZodDto(envelope(adminHotDetailSchema)) {}
 export class AdminHotOverviewResponse extends createZodDto(envelope(overview)) {}

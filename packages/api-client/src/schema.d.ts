@@ -1684,6 +1684,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/merchants/{orgId}/hot-deal-reservation-policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["MerchantHotDealsController_reservationPolicy_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/merchants/{orgId}/hot-deal-choices": {
         parameters: {
             query?: never;
@@ -2212,6 +2228,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/reservations/customers/{userId}/strike-reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminReservationsController_resetCustomerStrikes_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/reservations/policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminReservationsController_policy_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/reservations/search": {
         parameters: {
             query?: never;
@@ -2238,6 +2286,22 @@ export interface paths {
         get: operations["AdminReservationsController_redemptions_v1"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/reservations/{id}/strike-reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminReservationsController_resetStrike_v1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -15962,6 +16026,37 @@ export interface components {
                 nextCursor?: string | null;
             };
         };
+        ReservationPolicyResponse: {
+            data: {
+                market: string;
+                marketStatus: string | null;
+                freeAllowed: boolean;
+                fields: {
+                    freeAllowed: boolean | null;
+                    allowedMethods: string[];
+                    depositMinMinor: number;
+                    depositMaxMinor: number;
+                    nonRefundableDepositAllowed: boolean;
+                    preauthMaxMinor: number;
+                    cutoffMinMinutes: number;
+                    cutoffMaxMinutes: number;
+                    paymentWindowMinutes: number;
+                    prepaymentRefundMinPercent: number;
+                    prepaymentRefundMaxPercent: number;
+                    prepaymentRefundDefaultPercent: number;
+                };
+                source: {
+                    [key: string]: "MERCHANT" | "CATEGORY" | "MARKET" | "BASELINE";
+                };
+                problems: string[];
+            };
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
+        };
         HotDealRowListResponse: {
             data: {
                 /** Format: uuid */
@@ -16054,6 +16149,13 @@ export interface components {
              *       "allocations": [],
              *       "perCustomerLimit": 1,
              *       "holdMinutes": null,
+             *       "commitment": {
+             *         "method": null,
+             *         "amountMinor": null,
+             *         "depositRefundable": null,
+             *         "cancelCutoffMinutes": null,
+             *         "noShowRefundPercent": null
+             *       },
              *       "startAt": null,
              *       "endAt": null,
              *       "eligibility": {
@@ -16174,6 +16276,30 @@ export interface components {
                 perCustomerLimit: number;
                 /** @default null */
                 holdMinutes: number | null;
+                /**
+                 * @default {
+                 *       "method": null,
+                 *       "amountMinor": null,
+                 *       "depositRefundable": null,
+                 *       "cancelCutoffMinutes": null,
+                 *       "noShowRefundPercent": null
+                 *     }
+                 */
+                commitment: {
+                    /**
+                     * @default null
+                     * @enum {string|null}
+                     */
+                    method: "FREE" | "FULL_PREPAYMENT" | "DEPOSIT" | "CARD_PREAUTH" | null;
+                    /** @default null */
+                    amountMinor: number | null;
+                    /** @default null */
+                    depositRefundable: boolean | null;
+                    /** @default null */
+                    cancelCutoffMinutes: number | null;
+                    /** @default null */
+                    noShowRefundPercent: number | null;
+                };
                 /**
                  * Format: date-time
                  * @default null
@@ -16409,6 +16535,30 @@ export interface components {
                     perCustomerLimit: number;
                     /** @default null */
                     holdMinutes: number | null;
+                    /**
+                     * @default {
+                     *       "method": null,
+                     *       "amountMinor": null,
+                     *       "depositRefundable": null,
+                     *       "cancelCutoffMinutes": null,
+                     *       "noShowRefundPercent": null
+                     *     }
+                     */
+                    commitment: {
+                        /**
+                         * @default null
+                         * @enum {string|null}
+                         */
+                        method: "FREE" | "FULL_PREPAYMENT" | "DEPOSIT" | "CARD_PREAUTH" | null;
+                        /** @default null */
+                        amountMinor: number | null;
+                        /** @default null */
+                        depositRefundable: boolean | null;
+                        /** @default null */
+                        cancelCutoffMinutes: number | null;
+                        /** @default null */
+                        noShowRefundPercent: number | null;
+                    };
                     /**
                      * Format: date-time
                      * @default null
@@ -16717,6 +16867,30 @@ export interface components {
                 /** @default null */
                 holdMinutes: number | null;
                 /**
+                 * @default {
+                 *       "method": null,
+                 *       "amountMinor": null,
+                 *       "depositRefundable": null,
+                 *       "cancelCutoffMinutes": null,
+                 *       "noShowRefundPercent": null
+                 *     }
+                 */
+                commitment: {
+                    /**
+                     * @default null
+                     * @enum {string|null}
+                     */
+                    method: "FREE" | "FULL_PREPAYMENT" | "DEPOSIT" | "CARD_PREAUTH" | null;
+                    /** @default null */
+                    amountMinor: number | null;
+                    /** @default null */
+                    depositRefundable: boolean | null;
+                    /** @default null */
+                    cancelCutoffMinutes: number | null;
+                    /** @default null */
+                    noShowRefundPercent: number | null;
+                };
+                /**
                  * Format: date-time
                  * @default null
                  */
@@ -16953,6 +17127,30 @@ export interface components {
                         perCustomerLimit: number;
                         /** @default null */
                         holdMinutes: number | null;
+                        /**
+                         * @default {
+                         *       "method": null,
+                         *       "amountMinor": null,
+                         *       "depositRefundable": null,
+                         *       "cancelCutoffMinutes": null,
+                         *       "noShowRefundPercent": null
+                         *     }
+                         */
+                        commitment: {
+                            /**
+                             * @default null
+                             * @enum {string|null}
+                             */
+                            method: "FREE" | "FULL_PREPAYMENT" | "DEPOSIT" | "CARD_PREAUTH" | null;
+                            /** @default null */
+                            amountMinor: number | null;
+                            /** @default null */
+                            depositRefundable: boolean | null;
+                            /** @default null */
+                            cancelCutoffMinutes: number | null;
+                            /** @default null */
+                            noShowRefundPercent: number | null;
+                        };
                         /**
                          * Format: date-time
                          * @default null
@@ -17272,6 +17470,30 @@ export interface components {
                         perCustomerLimit: number;
                         /** @default null */
                         holdMinutes: number | null;
+                        /**
+                         * @default {
+                         *       "method": null,
+                         *       "amountMinor": null,
+                         *       "depositRefundable": null,
+                         *       "cancelCutoffMinutes": null,
+                         *       "noShowRefundPercent": null
+                         *     }
+                         */
+                        commitment: {
+                            /**
+                             * @default null
+                             * @enum {string|null}
+                             */
+                            method: "FREE" | "FULL_PREPAYMENT" | "DEPOSIT" | "CARD_PREAUTH" | null;
+                            /** @default null */
+                            amountMinor: number | null;
+                            /** @default null */
+                            depositRefundable: boolean | null;
+                            /** @default null */
+                            cancelCutoffMinutes: number | null;
+                            /** @default null */
+                            noShowRefundPercent: number | null;
+                        };
                         /**
                          * Format: date-time
                          * @default null
@@ -18059,6 +18281,30 @@ export interface components {
                     /** @default null */
                     holdMinutes: number | null;
                     /**
+                     * @default {
+                     *       "method": null,
+                     *       "amountMinor": null,
+                     *       "depositRefundable": null,
+                     *       "cancelCutoffMinutes": null,
+                     *       "noShowRefundPercent": null
+                     *     }
+                     */
+                    commitment: {
+                        /**
+                         * @default null
+                         * @enum {string|null}
+                         */
+                        method: "FREE" | "FULL_PREPAYMENT" | "DEPOSIT" | "CARD_PREAUTH" | null;
+                        /** @default null */
+                        amountMinor: number | null;
+                        /** @default null */
+                        depositRefundable: boolean | null;
+                        /** @default null */
+                        cancelCutoffMinutes: number | null;
+                        /** @default null */
+                        noShowRefundPercent: number | null;
+                    };
+                    /**
                      * Format: date-time
                      * @default null
                      */
@@ -18474,6 +18720,18 @@ export interface components {
         };
         RestrictionLiftDto: {
             reason: string;
+        };
+        StrikeResetResponse: {
+            data: {
+                reset: number;
+                reservationIds: string[];
+            };
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
         };
         AdminReservationSearchResponse: {
             data: {
@@ -31225,6 +31483,30 @@ export interface operations {
             };
         };
     };
+    MerchantHotDealsController_reservationPolicy_v1: {
+        parameters: {
+            query?: {
+                categoryId?: string;
+                branchId?: string;
+            };
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReservationPolicyResponse"];
+                };
+            };
+        };
+    };
     MerchantHotDealsController_choices_v1: {
         parameters: {
             query?: never;
@@ -32062,6 +32344,54 @@ export interface operations {
             };
         };
     };
+    AdminReservationsController_resetCustomerStrikes_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RestrictionLiftDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StrikeResetResponse"];
+                };
+            };
+        };
+    };
+    AdminReservationsController_policy_v1: {
+        parameters: {
+            query: {
+                market: string;
+                categoryId?: string;
+                organizationId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReservationPolicyResponse"];
+                };
+            };
+        };
+    };
     AdminReservationsController_search_v1: {
         parameters: {
             query: {
@@ -32101,6 +32431,31 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdminRedemptionsResponse"];
+                };
+            };
+        };
+    };
+    AdminReservationsController_resetStrike_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RestrictionLiftDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StrikeResetResponse"];
                 };
             };
         };

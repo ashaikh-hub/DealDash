@@ -1194,6 +1194,30 @@ enum ReservationEventType {
   NO_SHOW_COUNTED
   REDEEMED
   REDEMPTION_REVERSED
+  /// RC-52: DealDash reset a counted no-show strike (reason in `note`)
+  STRIKE_RESET
+}
+
+/// Reservation commitment model (founder decision 2026-10-15, RC-04/05). FREE only where the effective reservation policy allows it.
+enum ReservationCommitment {
+  FREE
+  FULL_PREPAYMENT
+  DEPOSIT
+  CARD_PREAUTH
+}
+
+/// Money state of a reservation's commitment (RC-30, RC-43, RC-51). FREE reservations are NOT_REQUIRED.
+enum ReservationPaymentStatus {
+  NOT_REQUIRED
+  PENDING
+  PAID
+  AUTHORISED
+  CAPTURED
+  VOIDED
+  FAILED
+  PARTIALLY_REFUNDED
+  REFUNDED
+  FORFEITED
 }
 
 enum RestrictionStatus {
@@ -1256,7 +1280,8 @@ enum NotificationType {
   ACCOUNT_WELCOME
 }
 
-/// Hot Deal: urgent, limited by time and/or quantity, free reservation (no payment in the MVP). Own lifecycle, own table.
+/// Hot Deal: urgent, limited by time and/or quantity. Reservation is optional (default off) and, when on, carries a commitment
+/// (prepayment / deposit / card hold; FREE only by policy) — founder decision 2026-10-15. Own lifecycle, own table.
 model HotDeal {
   id                     String            @id @default(uuid(7)) @db.Uuid
   organizationId         String            @db.Uuid
@@ -1272,10 +1297,21 @@ model HotDeal {
   titleEn                String            @default("")
   titleAr                String            @default("")
   limitType              HotDealLimitType  @default(QUANTITY)
-  reservationsEnabled    Boolean           @default(true)
+  reservationsEnabled    Boolean           @default(false)
   perCustomerLimit       Int               @default(1)
   /// Minutes a reservation is held; null uses the platform default (configuration).
   holdMinutes            Int?
+  /// Commitment (derived from content; null = reservations off). Undeclared legacy content with reservations = FREE.
+  commitmentMethod       ReservationCommitment?
+  /// Per unit, minor units of the market currency: price (FULL_PREPAYMENT), deposit, or card hold.
+  commitmentAmountMinor  Int?
+  depositRefundable      Boolean?
+  /// Minutes before the hold ends after which a cancellation no longer returns refundable amounts.
+  cancelCutoffMinutes    Int?
+  /// FULL_PREPAYMENT: % refunded on a late cancellation or no-show (null = the policy default).
+  noShowRefundPercent    Int?
+  /// The effective reservation policy when the deal went live (RC-12): later policy changes never alter it.
+  reservationPolicy      Json?
   startAt                DateTime?
   endAt                  DateTime?
   eligibilityKind        EligibilityKind   @default(PUBLIC)
@@ -1365,6 +1401,25 @@ model Reservation {
   /// A reservation that expired unredeemed is counted once toward the no-show foundation.
   noShowCounted        Boolean           @default(false)
   expiringNoticeSentAt DateTime?
+  // ---- commitment snapshot at creation (founder decision 2026-10-15, RC-12 / RC-32); existing rows were backfilled as FREE
+  commitmentMethod     ReservationCommitment
+  /// Per unit, minor units of `currency` (null for FREE).
+  amountMinor          Int?
+  currency             String?
+  depositRefundable    Boolean?
+  /// The moment after which a customer cancellation no longer returns refundable amounts (RC-40/41).
+  cancelCutoffAt       DateTime?
+  noShowRefundPercent  Int?
+  /// The terms the customer accepted (method, amount, cut-off, refund / forfeit terms, no-show consequence, policy snapshot).
+  termsSnapshot        Json?
+  paymentStatus        ReservationPaymentStatus
+  /// Paid methods: units are released if payment is not completed by then (RC-31, build phase 2).
+  paymentDueAt         DateTime?
+  confirmedAt          DateTime?
+  /// RC-52: a counted no-show strike reset by DealDash (noShowCounted is then false).
+  strikeResetAt        DateTime?
+  strikeResetByUserId  String?           @db.Uuid
+  strikeResetReason    String?
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
 

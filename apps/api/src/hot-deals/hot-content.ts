@@ -1,5 +1,9 @@
 import { randomInt, randomBytes } from 'node:crypto';
-import { hotDealContentSchema, type HotDealContent } from '@dealdash/validation';
+import {
+  commitmentMethodOf,
+  hotDealContentSchema,
+  type HotDealContent,
+} from '@dealdash/validation';
 import { QR_PREFIX } from '@dealdash/types';
 import { AppError } from '../common/errors';
 
@@ -11,7 +15,15 @@ export const parseHotContent = (raw: unknown): HotDealContent =>
  * Query columns derived from `content`. The ONLY place that maps content to columns, so the two can never drift apart.
  */
 export function denormalizeHot(c: HotDealContent) {
+  const method = commitmentMethodOf(c);
+  const paid = method !== null && method !== 'FREE';
   return {
+    // reservation commitment (2026-10-15): only the values that apply to the chosen method are kept
+    commitmentMethod: method,
+    commitmentAmountMinor: paid ? c.commitment.amountMinor : null,
+    depositRefundable: method === 'DEPOSIT' ? c.commitment.depositRefundable : null,
+    cancelCutoffMinutes: paid ? c.commitment.cancelCutoffMinutes : null,
+    noShowRefundPercent: method === 'FULL_PREPAYMENT' ? c.commitment.noShowRefundPercent : null,
     categoryId: c.categoryId,
     mechanic: c.mechanic,
     titleEn: c.title.en,

@@ -47,7 +47,10 @@ import {
   ReservationsQueryDto,
   ReverseRedemptionDto,
   SubStatusResponse,
+  MerchantPolicyQueryDto,
+  ReservationPolicyResponse,
 } from './dto';
+import { MarketService } from '../platform/markets/market.service';
 import { HotCoreService } from './hot-core.service';
 import { MerchantHotDealsService } from './merchant-hot-deals.service';
 import { RedemptionService } from './redemption.service';
@@ -69,6 +72,7 @@ export class MerchantHotDealsController {
     private readonly categories: CategoriesService,
     private readonly eligibility: EligibilityService,
     private readonly redemptions: RedemptionService,
+    private readonly markets: MarketService,
   ) {}
 
   @Get('hot-deal-options')
@@ -81,6 +85,29 @@ export class MerchantHotDealsController {
       defaultHoldMinutes: await this.core.holdMinutes({ holdMinutes: null }),
       maxActiveReservations: await this.core.maxActiveReservations(),
     };
+  }
+
+  /**
+   * RC-20: the reservation policy this business works within (market of the chosen branch, else the business's market; optional
+   * category). Read-only: policies are set by DealDash Admin through governed configuration.
+   */
+  @Get('hot-deal-reservation-policy')
+  @RequirePermissions('merchant.deals.read')
+  @ApiOkResponse({ type: ReservationPolicyResponse })
+  async reservationPolicy(
+    @Param('orgId', ParseUUIDPipe) orgId: string,
+    @Query() q: MerchantPolicyQueryDto,
+    @CurrentActor() actor: Actor,
+  ) {
+    this.core.requireMerchantScope(actor, orgId);
+    const market = await this.markets.marketOfCampaign(orgId, {
+      allocations: q.branchId ? [{ branchId: q.branchId }] : [],
+    });
+    return this.core.reservationPolicy.effective({
+      market,
+      categoryId: q.categoryId ?? null,
+      organizationId: orgId,
+    });
   }
 
   /** Same categories and eligibility choices as Live Deals (one framework). */

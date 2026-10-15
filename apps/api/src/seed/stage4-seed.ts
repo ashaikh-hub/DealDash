@@ -675,6 +675,10 @@ export async function seedStage4(input: Stage4SeedInput) {
           cancelledBy: s.status === 'CANCELLED' ? 'CUSTOMER' : null,
           noShowCounted: s.status === 'EXPIRED',
           createdAt,
+          // development seed: FREE reservations (allowed on development machines only, RC-05)
+          commitmentMethod: 'FREE',
+          paymentStatus: 'NOT_REQUIRED',
+          confirmedAt: createdAt,
         },
       });
       const ev: Prisma.ReservationEventUncheckedCreateInput[] = [

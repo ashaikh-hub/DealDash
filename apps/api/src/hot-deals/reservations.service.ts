@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { CancelledBy, ReservationStatus } from '@dealdash/types';
 import {
+  commitmentMethodOf,
   type MyReservationBrief,
   type ReservationView,
   type HotDealContent,
@@ -22,6 +23,7 @@ import {
 } from './hot-content';
 import { HotCoreService } from './hot-core.service';
 import { NotificationsService, type NotificationInput } from './notifications.service';
+import { ReservationPolicyService } from './reservation-policy.service';
 
 const RES_INCLUDE = {
   deal: { include: { organization: { include: { merchant: true } } } },
@@ -66,6 +68,7 @@ export class ReservationsService {
     private readonly eligibility: EligibilityService,
     private readonly notifications: NotificationsService,
     private readonly files: FilesService,
+    private readonly policy: ReservationPolicyService,
   ) {}
 
   private get prisma() {
@@ -263,6 +266,23 @@ export class ReservationsService {
         'This offer does not use reservations. Just visit the branch.',
         409,
       );
+    // Reservation commitment model (2026-10-15). FREE only where the CURRENT effective policy allows it (RC-05, RC-22: a legacy free
+    // deal takes no new free reservations elsewhere); paid methods need the payment step, which is build phase 2.
+    const dealContent = parseHotContent(deal.content);
+    const method = commitmentMethodOf(dealContent) ?? 'FREE';
+    const effectivePolicy = await this.policy.forDeal(deal.organizationId, dealContent);
+    if (method === 'FREE' && !effectivePolicy.freeAllowed)
+      throw new AppError(
+        'RESERVATION_METHOD_REQUIRED',
+        'This offer cannot be reserved right now.',
+        409,
+      );
+    if (method !== 'FREE')
+      throw new AppError(
+        'RESERVATION_PAYMENT_UNAVAILABLE',
+        'Reserving this offer needs a payment, which is not available yet.',
+        409,
+      );
 
     const branch = await this.prisma.merchantBranch.findFirst({
       where: { id: input.branchId, organizationId: deal.organizationId },
@@ -365,6 +385,16 @@ export class ReservationsService {
           expiresAt: new Date(now.getTime() + holdMinutes * MS_MINUTE),
           qrToken: newQrToken(),
           manualCode: newManualCode(),
+          // RC-12 / RC-32: the commitment and the policy in force are kept on the reservation (FREE: no money, confirmed at creation)
+          commitmentMethod: 'FREE',
+          paymentStatus: 'NOT_REQUIRED',
+          confirmedAt: now,
+          termsSnapshot: {
+            method: 'FREE',
+            holdMinutes,
+            noShow: 'A reservation not used before it ends counts as a no-show (RC-50, RC-52).',
+            policy: this.policy.snapshot(effectivePolicy, now),
+          } as Prisma.InputJsonValue,
         },
         include: RES_INCLUDE,
       });

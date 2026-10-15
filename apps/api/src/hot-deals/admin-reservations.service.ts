@@ -95,6 +95,80 @@ export class AdminReservationsService {
     return { id, status: 'LIFTED' as const };
   }
 
+  /**
+   * RC-52: DealDash resets counted no-show strikes — of one reservation, or every counted strike of a customer — with a reason. Each reset
+   * is a reservation event and an audit record; the no-show itself stays in the history. An active restriction is lifted separately.
+   */
+  async resetStrikes(
+    actor: Actor,
+    scope: { reservationId: string } | { userId: string },
+    reason: string,
+    meta: RequestMeta,
+    now = new Date(),
+  ) {
+    const rows = await this.prisma.reservation.findMany({
+      where: {
+        status: 'EXPIRED',
+        noShowCounted: true,
+        ...('reservationId' in scope ? { id: scope.reservationId } : { userId: scope.userId }),
+      },
+      select: { id: true, userId: true, organizationId: true },
+    });
+    if (!rows.length) {
+      if ('reservationId' in scope) {
+        const exists = await this.prisma.reservation.count({ where: { id: scope.reservationId } });
+        if (!exists) throw AppError.notFound();
+      }
+      throw new AppError('INVALID_STATE', 'There is no counted no-show to reset', 409);
+    }
+    const reset = await this.prisma.$transaction(async (tx) => {
+      const ids: string[] = [];
+      for (const r of rows) {
+        const res = await tx.reservation.updateMany({
+          where: { id: r.id, status: 'EXPIRED', noShowCounted: true },
+          data: {
+            noShowCounted: false,
+            strikeResetAt: now,
+            strikeResetByUserId: actor.userId,
+            strikeResetReason: reason,
+          },
+        });
+        if (res.count !== 1) continue; // reset by someone else meanwhile
+        ids.push(r.id);
+        await tx.reservationEvent.create({
+          data: {
+            reservationId: r.id,
+            type: 'STRIKE_RESET',
+            actorUserId: actor.userId,
+            actorRole: actor.membership?.roleCode ?? 'DEALDASH',
+            note: reason,
+          },
+        });
+        await this.core.audit.record(
+          {
+            action: 'reservation.strike_reset',
+            entityType: 'Reservation',
+            entityId: r.id,
+            reason,
+            actor,
+            subjectOrganizationId: r.organizationId,
+            previousState: { noShowCounted: true },
+            newState: { noShowCounted: false },
+            meta,
+          },
+          tx,
+        );
+      }
+      return ids;
+    });
+    return { reset: reset.length, reservationIds: reset };
+  }
+
+  /** The effective reservation policy for a market / category / business, with where each value comes from (RC-11). */
+  effectivePolicy(q: { market: string; categoryId?: string; organizationId?: string }) {
+    return this.core.reservationPolicy.effective(q);
+  }
+
   // ---------------------------------------------------------------- reservations
   /** Find by the customer's reference (DD-XXXXXX) or the last characters of the manual code. */
   async search(q: { q: string; limit: number }) {

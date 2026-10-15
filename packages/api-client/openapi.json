@@ -4647,6 +4647,56 @@
         ]
       }
     },
+    "/v1/merchants/{orgId}/hot-deal-reservation-policy": {
+      "get": {
+        "operationId": "MerchantHotDealsController_reservationPolicy_v1",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "categoryId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "branchId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationPolicyResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "merchant-hot-deals"
+        ]
+      }
+    },
     "/v1/merchants/{orgId}/hot-deal-choices": {
       "get": {
         "operationId": "MerchantHotDealsController_choices_v1",
@@ -6208,6 +6258,97 @@
         ]
       }
     },
+    "/v1/admin/reservations/customers/{userId}/strike-reset": {
+      "post": {
+        "operationId": "AdminReservationsController_resetCustomerStrikes_v1",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestrictionLiftDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StrikeResetResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "admin-reservations"
+        ]
+      }
+    },
+    "/v1/admin/reservations/policy": {
+      "get": {
+        "operationId": "AdminReservationsController_policy_v1",
+        "parameters": [
+          {
+            "name": "market",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "pattern": "^[A-Za-z]{2}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "categoryId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "organizationId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationPolicyResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "admin-reservations"
+        ]
+      }
+    },
     "/v1/admin/reservations/search": {
       "get": {
         "operationId": "AdminReservationsController_search_v1",
@@ -6271,6 +6412,46 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AdminRedemptionsResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "admin-reservations"
+        ]
+      }
+    },
+    "/v1/admin/reservations/{id}/strike-reset": {
+      "post": {
+        "operationId": "AdminReservationsController_resetStrike_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestrictionLiftDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StrikeResetResponse"
                 }
               }
             }
@@ -46355,6 +46536,158 @@
           "meta"
         ]
       },
+      "ReservationPolicyResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "market": {
+                "type": "string"
+              },
+              "marketStatus": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "freeAllowed": {
+                "type": "boolean"
+              },
+              "fields": {
+                "type": "object",
+                "properties": {
+                  "freeAllowed": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
+                  "allowedMethods": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "depositMinMinor": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "depositMaxMinor": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "nonRefundableDepositAllowed": {
+                    "type": "boolean"
+                  },
+                  "preauthMaxMinor": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "cutoffMinMinutes": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "cutoffMaxMinutes": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "paymentWindowMinutes": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "prepaymentRefundMinPercent": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "prepaymentRefundMaxPercent": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "prepaymentRefundDefaultPercent": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "freeAllowed",
+                  "allowedMethods",
+                  "depositMinMinor",
+                  "depositMaxMinor",
+                  "nonRefundableDepositAllowed",
+                  "preauthMaxMinor",
+                  "cutoffMinMinutes",
+                  "cutoffMaxMinutes",
+                  "paymentWindowMinutes",
+                  "prepaymentRefundMinPercent",
+                  "prepaymentRefundMaxPercent",
+                  "prepaymentRefundDefaultPercent"
+                ]
+              },
+              "source": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string",
+                  "enum": [
+                    "MERCHANT",
+                    "CATEGORY",
+                    "MARKET",
+                    "BASELINE"
+                  ]
+                }
+              },
+              "problems": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "market",
+              "marketStatus",
+              "freeAllowed",
+              "fields",
+              "source",
+              "problems"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string"
+              },
+              "locale": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "ar"
+                ]
+              },
+              "nextCursor": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
       "HotDealRowListResponse": {
         "type": "object",
         "properties": {
@@ -46689,6 +47022,13 @@
               "allocations": [],
               "perCustomerLimit": 1,
               "holdMinutes": null,
+              "commitment": {
+                "method": null,
+                "amountMinor": null,
+                "depositRefundable": null,
+                "cancelCutoffMinutes": null,
+                "noShowRefundPercent": null
+              },
               "startAt": null,
               "endAt": null,
               "eligibility": {
@@ -46905,6 +47245,58 @@
                 "maximum": 1440,
                 "default": null,
                 "nullable": true
+              },
+              "commitment": {
+                "default": {
+                  "method": null,
+                  "amountMinor": null,
+                  "depositRefundable": null,
+                  "cancelCutoffMinutes": null,
+                  "noShowRefundPercent": null
+                },
+                "type": "object",
+                "properties": {
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "FREE",
+                      "FULL_PREPAYMENT",
+                      "DEPOSIT",
+                      "CARD_PREAUTH",
+                      null
+                    ],
+                    "default": null,
+                    "nullable": true
+                  },
+                  "amountMinor": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100000000,
+                    "default": null,
+                    "nullable": true
+                  },
+                  "depositRefundable": {
+                    "default": null,
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
+                  "cancelCutoffMinutes": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1440,
+                    "default": null,
+                    "nullable": true
+                  },
+                  "noShowRefundPercent": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "default": null,
+                    "nullable": true
+                  }
+                }
               },
               "startAt": {
                 "type": "string",
@@ -47472,6 +47864,58 @@
                     "maximum": 1440,
                     "default": null,
                     "nullable": true
+                  },
+                  "commitment": {
+                    "default": {
+                      "method": null,
+                      "amountMinor": null,
+                      "depositRefundable": null,
+                      "cancelCutoffMinutes": null,
+                      "noShowRefundPercent": null
+                    },
+                    "type": "object",
+                    "properties": {
+                      "method": {
+                        "type": "string",
+                        "enum": [
+                          "FREE",
+                          "FULL_PREPAYMENT",
+                          "DEPOSIT",
+                          "CARD_PREAUTH",
+                          null
+                        ],
+                        "default": null,
+                        "nullable": true
+                      },
+                      "amountMinor": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 100000000,
+                        "default": null,
+                        "nullable": true
+                      },
+                      "depositRefundable": {
+                        "default": null,
+                        "type": [
+                          "boolean",
+                          "null"
+                        ]
+                      },
+                      "cancelCutoffMinutes": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1440,
+                        "default": null,
+                        "nullable": true
+                      },
+                      "noShowRefundPercent": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 100,
+                        "default": null,
+                        "nullable": true
+                      }
+                    }
                   },
                   "startAt": {
                     "type": "string",
@@ -48411,6 +48855,58 @@
                 "default": null,
                 "nullable": true
               },
+              "commitment": {
+                "default": {
+                  "method": null,
+                  "amountMinor": null,
+                  "depositRefundable": null,
+                  "cancelCutoffMinutes": null,
+                  "noShowRefundPercent": null
+                },
+                "type": "object",
+                "properties": {
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "FREE",
+                      "FULL_PREPAYMENT",
+                      "DEPOSIT",
+                      "CARD_PREAUTH",
+                      null
+                    ],
+                    "default": null,
+                    "nullable": true
+                  },
+                  "amountMinor": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100000000,
+                    "default": null,
+                    "nullable": true
+                  },
+                  "depositRefundable": {
+                    "default": null,
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
+                  "cancelCutoffMinutes": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1440,
+                    "default": null,
+                    "nullable": true
+                  },
+                  "noShowRefundPercent": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "default": null,
+                    "nullable": true
+                  }
+                }
+              },
               "startAt": {
                 "type": "string",
                 "format": "date-time",
@@ -48988,6 +49484,58 @@
                         "maximum": 1440,
                         "default": null,
                         "nullable": true
+                      },
+                      "commitment": {
+                        "default": {
+                          "method": null,
+                          "amountMinor": null,
+                          "depositRefundable": null,
+                          "cancelCutoffMinutes": null,
+                          "noShowRefundPercent": null
+                        },
+                        "type": "object",
+                        "properties": {
+                          "method": {
+                            "type": "string",
+                            "enum": [
+                              "FREE",
+                              "FULL_PREPAYMENT",
+                              "DEPOSIT",
+                              "CARD_PREAUTH",
+                              null
+                            ],
+                            "default": null,
+                            "nullable": true
+                          },
+                          "amountMinor": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 100000000,
+                            "default": null,
+                            "nullable": true
+                          },
+                          "depositRefundable": {
+                            "default": null,
+                            "type": [
+                              "boolean",
+                              "null"
+                            ]
+                          },
+                          "cancelCutoffMinutes": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1440,
+                            "default": null,
+                            "nullable": true
+                          },
+                          "noShowRefundPercent": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 100,
+                            "default": null,
+                            "nullable": true
+                          }
+                        }
                       },
                       "startAt": {
                         "type": "string",
@@ -49976,6 +50524,58 @@
                         "maximum": 1440,
                         "default": null,
                         "nullable": true
+                      },
+                      "commitment": {
+                        "default": {
+                          "method": null,
+                          "amountMinor": null,
+                          "depositRefundable": null,
+                          "cancelCutoffMinutes": null,
+                          "noShowRefundPercent": null
+                        },
+                        "type": "object",
+                        "properties": {
+                          "method": {
+                            "type": "string",
+                            "enum": [
+                              "FREE",
+                              "FULL_PREPAYMENT",
+                              "DEPOSIT",
+                              "CARD_PREAUTH",
+                              null
+                            ],
+                            "default": null,
+                            "nullable": true
+                          },
+                          "amountMinor": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 100000000,
+                            "default": null,
+                            "nullable": true
+                          },
+                          "depositRefundable": {
+                            "default": null,
+                            "type": [
+                              "boolean",
+                              "null"
+                            ]
+                          },
+                          "cancelCutoffMinutes": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1440,
+                            "default": null,
+                            "nullable": true
+                          },
+                          "noShowRefundPercent": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 100,
+                            "default": null,
+                            "nullable": true
+                          }
+                        }
                       },
                       "startAt": {
                         "type": "string",
@@ -53026,6 +53626,58 @@
                     "default": null,
                     "nullable": true
                   },
+                  "commitment": {
+                    "default": {
+                      "method": null,
+                      "amountMinor": null,
+                      "depositRefundable": null,
+                      "cancelCutoffMinutes": null,
+                      "noShowRefundPercent": null
+                    },
+                    "type": "object",
+                    "properties": {
+                      "method": {
+                        "type": "string",
+                        "enum": [
+                          "FREE",
+                          "FULL_PREPAYMENT",
+                          "DEPOSIT",
+                          "CARD_PREAUTH",
+                          null
+                        ],
+                        "default": null,
+                        "nullable": true
+                      },
+                      "amountMinor": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 100000000,
+                        "default": null,
+                        "nullable": true
+                      },
+                      "depositRefundable": {
+                        "default": null,
+                        "type": [
+                          "boolean",
+                          "null"
+                        ]
+                      },
+                      "cancelCutoffMinutes": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1440,
+                        "default": null,
+                        "nullable": true
+                      },
+                      "noShowRefundPercent": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 100,
+                        "default": null,
+                        "nullable": true
+                      }
+                    }
+                  },
                   "startAt": {
                     "type": "string",
                     "format": "date-time",
@@ -54677,6 +55329,58 @@
         },
         "required": [
           "reason"
+        ]
+      },
+      "StrikeResetResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "reset": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "reservationIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                }
+              }
+            },
+            "required": [
+              "reset",
+              "reservationIds"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string"
+              },
+              "locale": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "ar"
+                ]
+              },
+              "nextCursor": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
         ]
       },
       "AdminReservationSearchResponse": {

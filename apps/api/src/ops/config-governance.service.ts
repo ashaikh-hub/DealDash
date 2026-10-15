@@ -7,6 +7,7 @@ import {
   LAUNCH_ACTIONS,
   launchControlsSchema,
   operationsConfigSchema,
+  reservationPolicySchema,
   type LaunchAction,
   type LaunchControls,
 } from '@dealdash/config';
@@ -35,6 +36,8 @@ function schemaFor(key: string): z.ZodTypeAny | null {
   if (key === CONFIG_KEYS.OPERATIONS) return operationsConfigSchema;
   if (key === CONFIG_KEYS.LAUNCH_CONTROLS) return launchControlsSchema;
   if (key === CONFIG_KEYS.REWARDS_RULES) return rewardsRulesSchema;
+  // 2026-10-15 reservation commitment model: baseline and market / category / merchant overrides (RC-10..RC-12)
+  if (key === CONFIG_KEYS.RESERVATION_POLICY) return reservationPolicySchema;
   const s = (GOVERNED_SCALARS as Record<string, { min: number; max: number }>)[key];
   return s ? z.number().int().min(s.min).max(s.max) : null;
 }
@@ -42,6 +45,7 @@ export const GOVERNED_KEYS = [
   CONFIG_KEYS.OPERATIONS,
   CONFIG_KEYS.LAUNCH_CONTROLS,
   CONFIG_KEYS.REWARDS_RULES,
+  CONFIG_KEYS.RESERVATION_POLICY,
   ...Object.keys(GOVERNED_SCALARS),
 ];
 

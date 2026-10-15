@@ -1,9 +1,11 @@
 import { z } from 'zod';
 import { DEFAULT_LAUNCH_CONTROLS } from './launch';
 import { DEFAULT_OPERATIONS_CONFIG } from './operations';
+import { DEFAULT_RESERVATION_POLICY } from './reservation-policy';
 
 export * from './launch';
 export * from './operations';
+export * from './reservation-policy';
 
 const providerSchema = z.enum(['mock']).default('mock'); // real vendors are added when selected
 const csv = (v: string) =>
@@ -333,6 +335,8 @@ export const CONFIG_KEYS = {
   RESERVATION_MAX_ACTIVE: 'reservation.max_active',
   RESERVATION_EXPIRING_NOTICE_MINUTES: 'reservation.expiring_notice_minutes',
   RESERVATION_NOSHOW: 'reservation.noshow',
+  /** 2026-10-15 reservation commitment model: baseline + market / category / merchant overrides (governed, RC-10..RC-12). */
+  RESERVATION_POLICY: 'reservation.policy',
   REDEMPTION_RECHECK_ELIGIBILITY: 'redemption.recheck_eligibility',
   REDEMPTION_MANUAL_PER_MINUTE: 'redemption.manual_attempts_per_minute',
   REDEMPTION_REVERSAL_WINDOW_HOURS: 'redemption.reversal_window_hours',
@@ -536,6 +540,7 @@ export const CONFIG_DEFAULTS: Record<ConfigKey, unknown> = {
   'reservation.expiring_notice_minutes': 10,
   // initial product default (FDR-39 closed): 3 confirmed no-shows then a temporary restriction, never an automatic permanent ban
   'reservation.noshow': { threshold: 3, windowDays: 30, blockDays: 7 },
+  'reservation.policy': DEFAULT_RESERVATION_POLICY,
   'redemption.recheck_eligibility': true,
   'redemption.manual_attempts_per_minute': 5,
   'redemption.reversal_window_hours': 24,

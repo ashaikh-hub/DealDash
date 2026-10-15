@@ -23,6 +23,9 @@ import {
   RestrictionListQueryDto,
   ReverseRedemptionDto,
   SubStatusResponse,
+  EffectivePolicyQueryDto,
+  ReservationPolicyResponse,
+  StrikeResetResponse,
 } from './dto';
 import { HotReviewService } from './hot-review.service';
 
@@ -211,6 +214,28 @@ export class AdminReservationsController {
     return this.tools.lift(actor, id, body.reason, meta);
   }
 
+  /** RC-52: reset every counted no-show strike of a customer (reason required, audited). */
+  @Post('customers/:userId/strike-reset')
+  @HttpCode(200)
+  @RequirePermissions('admin.reservations.manage')
+  @ApiOkResponse({ type: StrikeResetResponse })
+  resetCustomerStrikes(
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @Body() body: RestrictionLiftDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
+    return this.tools.resetStrikes(actor, { userId }, body.reason, meta);
+  }
+
+  /** RC-10 / RC-11: the effective reservation policy for a market (and optionally a category and a business), with sources. */
+  @Get('policy')
+  @RequirePermissions('admin.reservations.manage')
+  @ApiOkResponse({ type: ReservationPolicyResponse })
+  policy(@Query() q: EffectivePolicyQueryDto) {
+    return this.tools.effectivePolicy(q);
+  }
+
   @Get('search')
   @RequirePermissions('admin.reservations.manage')
   @ApiOkResponse({ type: AdminReservationSearchResponse })
@@ -223,6 +248,20 @@ export class AdminReservationsController {
   @ApiOkResponse({ type: AdminRedemptionsResponse })
   redemptions(@Param('id', ParseUUIDPipe) id: string) {
     return this.tools.redemptionsFor(id);
+  }
+
+  /** RC-52: reset the counted no-show strike of one reservation (reason required, audited). */
+  @Post(':id/strike-reset')
+  @HttpCode(200)
+  @RequirePermissions('admin.reservations.manage')
+  @ApiOkResponse({ type: StrikeResetResponse })
+  resetStrike(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: RestrictionLiftDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
+    return this.tools.resetStrikes(actor, { reservationId: id }, body.reason, meta);
   }
 
   @Post(':id/cancel')

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { enStage2 } from './dictionaries.stage2';
 import { enStage3 } from './dictionaries.stage3';
+import { arReservation, enReservation } from './dictionaries.reservation';
 import { arStage4, enStage4 } from './dictionaries.stage4';
 import { arStage5, enStage5 } from './dictionaries.stage5';
 import { arCommercial, enCommercial } from './dictionaries.commercial';
@@ -258,6 +259,18 @@ describe('dictionary layering', () => {
       expect(`${e} ${a}`, key).not.toMatch(
         /no-show|noshow|penalt|blacklist|banned|\bban\b|deposit/i,
       );
+    }
+  });
+
+  it('reservation commitment copy (2026-10-15): non-empty, Arabic is Arabic, neutral wording (no no-show / penalty)', () => {
+    for (const key of Object.keys(enReservation)) {
+      const e = enReservation[key as keyof typeof enReservation];
+      const a = arReservation[key as keyof typeof arReservation];
+      expect(e.trim(), key).not.toBe('');
+      expect(a.trim(), key).not.toBe('');
+      expect(/[؀-ۿ]/.test(a), key).toBe(true);
+      expect(`${e} ${a}`, key).not.toMatch(/no-show|noshow|penalt|blacklist|banned|\bban\b/i);
+      expect(en[key as keyof typeof en], key).toBe(e);
     }
   });
 

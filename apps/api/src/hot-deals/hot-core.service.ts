@@ -3,8 +3,10 @@ import { CONFIG_KEYS } from '@dealdash/config';
 import { canTransitionHotDeal, type HotDealAction, type HotDealStatus } from '@dealdash/types';
 import {
   DEFAULT_HOT_LIMITS,
+  commitmentIssues,
   needsInventory,
   type HotDealContent,
+  type HotDealIssue,
   type HotDealLimits,
 } from '@dealdash/validation';
 import type { Prisma } from '../generated/prisma/client';
@@ -20,7 +22,8 @@ import { DealCoreService } from '../live-deals/deal-core.service';
 import { EligibilityService } from '../live-deals/eligibility.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SystemConfigService } from '../system-config/system-config.service';
-import { denormalizeHot, hotStatusAfterApproval } from './hot-content';
+import { denormalizeHot, hotStatusAfterApproval, parseHotContent } from './hot-content';
+import { ReservationPolicyService } from './reservation-policy.service';
 
 export const HOT_INCLUDE = {
   category: true,
@@ -74,7 +77,16 @@ export class HotCoreService {
     private readonly eligibility: EligibilityService,
     private readonly liveCore: DealCoreService,
     readonly access: AccessScopeService,
+    readonly reservationPolicy: ReservationPolicyService,
   ) {}
+
+  // ---------------------------------------------------------------- reservation commitment (founder decision 2026-10-15)
+  /** RC-04 / RC-05 / RC-20 / RC-21: the deal's commitment checked against its effective reservation policy. */
+  async commitmentIssues(organizationId: string, c: HotDealContent): Promise<HotDealIssue[]> {
+    if (!c.reservationsEnabled) return [];
+    const policy = await this.reservationPolicy.forDeal(organizationId, c);
+    return commitmentIssues(c, policy.commitment);
+  }
 
   // ---------------------------------------------------------------- tenant scope
   /** Merchant routes: own organisation only (404 otherwise) and never for branch staff. Scoped members are checked per record by AccessScopeService. */
@@ -344,9 +356,21 @@ export class HotCoreService {
     now = new Date(),
   ) {
     const to = hotStatusAfterApproval(deal.startAt, deal.endAt, now);
+    // RC-12: the reservation policy in force when the deal goes live is kept on it; later policy changes never alter it
+    const content = parseHotContent(deal.content);
+    const policy = content.reservationsEnabled
+      ? this.reservationPolicy.snapshot(
+          await this.reservationPolicy.forDeal(deal.organizationId, content),
+          now,
+        )
+      : null;
     await this.transition(tx, deal, to, {
       ...e,
-      data: { publishedAt: deal.publishedAt ?? now, pausedBy: null },
+      data: {
+        publishedAt: deal.publishedAt ?? now,
+        pausedBy: null,
+        ...(policy ? { reservationPolicy: policy as Prisma.InputJsonValue } : {}),
+      },
     });
     await this.commercial.earnUpfront('EXCLUSIVE', deal.id, tx);
     await this.versions.recordLive(tx, {

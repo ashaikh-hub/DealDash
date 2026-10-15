@@ -121,7 +121,11 @@ export class HotViewService {
     const urls = await this.files.signedUrls(content.media.map((m) => m.fileId));
     const trust = await this.core.merchantTrust(deal.organizationId);
     const limits = await this.core.limits();
-    const issues = hotDealIssues(content, { now, limits });
+    // the merchant sees the reservation-commitment problems before submitting (RC-21), with the same codes as the refusal
+    const issues = [
+      ...hotDealIssues(content, { now, limits }),
+      ...(await this.core.commitmentIssues(deal.organizationId, content)),
+    ];
     return {
       id: deal.id,
       organizationId: deal.organizationId,

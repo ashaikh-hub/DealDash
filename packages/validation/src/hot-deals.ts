@@ -2,6 +2,8 @@ import { z } from 'zod';
 import { commercialInputSchema } from './commercial';
 import {
   CANCELLED_BY,
+  COMMITMENT_METHODS,
+  type CommitmentMethod,
   ELIGIBILITY_KINDS,
   HOT_DEAL_ACTIONS,
   HOT_DEAL_LIMIT_TYPES,
@@ -40,6 +42,28 @@ export const hotDealAllocationSchema = z.object({
   units: z.number().int().min(0).max(1_000_000).default(0),
 });
 
+/**
+ * How a customer commits to a reservation (founder decision 2026-10-15). `method` null = not declared: content saved before the
+ * commitment model, treated as FREE, which only the effective reservation policy can allow (RC-05, RC-21, RC-22).
+ */
+export const hotDealCommitmentSchema = z.object({
+  method: z.enum(COMMITMENT_METHODS).nullable().default(null),
+  /** Per unit, in minor units of the market currency: the price (FULL_PREPAYMENT), the deposit (DEPOSIT) or the card hold (CARD_PREAUTH). */
+  amountMinor: z.number().int().min(0).max(100_000_000).nullable().default(null),
+  /** DEPOSIT only: false = kept even when the customer cancels before the cut-off (only where the policy allows it). */
+  depositRefundable: z.boolean().nullable().default(null),
+  /** Minutes before the hold ends after which a cancellation no longer returns refundable amounts. */
+  cancelCutoffMinutes: z.number().int().min(0).max(1440).nullable().default(null),
+  /** FULL_PREPAYMENT only: share refunded on a late cancellation or no-show; null = the policy default. */
+  noShowRefundPercent: z.number().int().min(0).max(100).nullable().default(null),
+});
+export type HotDealCommitment = z.infer<typeof hotDealCommitmentSchema>;
+
+/** The method a deal's reservations use: null when reservations are off; an undeclared method is FREE (legacy content). */
+export const commitmentMethodOf = (
+  c: Pick<HotDealContent, 'reservationsEnabled' | 'commitment'>,
+): CommitmentMethod | null => (c.reservationsEnabled ? (c.commitment.method ?? 'FREE') : null);
+
 export const hotDealContentSchema = z.object({
   categoryId: uuid.nullable().default(null),
   mechanic: z.enum(LIVE_DEAL_MECHANICS).nullable().default(null),
@@ -56,6 +80,8 @@ export const hotDealContentSchema = z.object({
   perCustomerLimit: z.number().int().min(1).max(100).default(1),
   /** Minutes a reservation is held; null uses the platform default (configuration, initial value 30). */
   holdMinutes: z.number().int().min(1).max(1440).nullable().default(null),
+  /** Reservation commitment (2026-10-15, RC-04 / RC-20). Ignored when reservations are off. */
+  commitment: hotDealCommitmentSchema.default(() => hotDealCommitmentSchema.parse({})),
   startAt: isoDate.nullable().default(null),
   endAt: isoDate.nullable().default(null),
   eligibility: dealEligibilitySchema.default({ kind: 'PUBLIC', valueRefs: [], expression: null }),
@@ -103,7 +129,79 @@ export interface HotDealIssue {
     | 'UNITS_TOO_HIGH'
     | 'HOLD_OUT_OF_RANGE'
     | 'TYPE_MISMATCH'
-    | 'LIMIT_REQUIRED';
+    | 'LIMIT_REQUIRED'
+    | 'METHOD_REQUIRED'
+    | 'METHOD_NOT_ALLOWED'
+    | 'AMOUNT_OUT_OF_RANGE'
+    | 'CUTOFF_OUT_OF_RANGE'
+    | 'REFUND_PERCENT_OUT_OF_RANGE'
+    | 'NOT_ALLOWED';
+}
+
+/** The effective reservation policy as the commitment check needs it (resolved by the API, RC-10 / RC-11). */
+export interface CommitmentPolicy {
+  /** Already decided for this environment and market (RC-05). */
+  freeAllowed: boolean;
+  allowedMethods: readonly string[];
+  depositMinMinor: number;
+  depositMaxMinor: number;
+  nonRefundableDepositAllowed: boolean;
+  preauthMaxMinor: number;
+  cutoffMinMinutes: number;
+  cutoffMaxMinutes: number;
+  prepaymentRefundMinPercent: number;
+  prepaymentRefundMaxPercent: number;
+}
+
+/**
+ * RC-04 / RC-05 / RC-20 / RC-21: a deal with reservations must state a commitment method the policy allows, with values inside the
+ * policy's ranges. Walk-in deals (reservations off) have nothing to check.
+ */
+export function commitmentIssues(c: HotDealContent, policy: CommitmentPolicy): HotDealIssue[] {
+  const method = commitmentMethodOf(c);
+  if (!method) return [];
+  const out: HotDealIssue[] = [];
+  const m = c.commitment;
+  if (method === 'FREE') {
+    if (!policy.freeAllowed)
+      out.push({
+        field: 'commitment.method',
+        code: m.method ? 'METHOD_NOT_ALLOWED' : 'METHOD_REQUIRED',
+      });
+    return out;
+  }
+  if (!policy.allowedMethods.includes(method))
+    out.push({ field: 'commitment.method', code: 'METHOD_NOT_ALLOWED' });
+  if (m.amountMinor === null || m.amountMinor < 1)
+    out.push({ field: 'commitment.amountMinor', code: 'REQUIRED' });
+  else if (
+    (method === 'DEPOSIT' &&
+      (m.amountMinor < policy.depositMinMinor || m.amountMinor > policy.depositMaxMinor)) ||
+    (method === 'CARD_PREAUTH' && m.amountMinor > policy.preauthMaxMinor)
+  )
+    out.push({ field: 'commitment.amountMinor', code: 'AMOUNT_OUT_OF_RANGE' });
+  if (method === 'DEPOSIT') {
+    if (m.depositRefundable === null)
+      out.push({ field: 'commitment.depositRefundable', code: 'REQUIRED' });
+    else if (!m.depositRefundable && !policy.nonRefundableDepositAllowed)
+      out.push({ field: 'commitment.depositRefundable', code: 'NOT_ALLOWED' });
+  }
+  if (m.cancelCutoffMinutes === null)
+    out.push({ field: 'commitment.cancelCutoffMinutes', code: 'REQUIRED' });
+  else if (
+    m.cancelCutoffMinutes < policy.cutoffMinMinutes ||
+    m.cancelCutoffMinutes > policy.cutoffMaxMinutes ||
+    (c.holdMinutes !== null && m.cancelCutoffMinutes > c.holdMinutes)
+  )
+    out.push({ field: 'commitment.cancelCutoffMinutes', code: 'CUTOFF_OUT_OF_RANGE' });
+  if (
+    method === 'FULL_PREPAYMENT' &&
+    m.noShowRefundPercent !== null &&
+    (m.noShowRefundPercent < policy.prepaymentRefundMinPercent ||
+      m.noShowRefundPercent > policy.prepaymentRefundMaxPercent)
+  )
+    out.push({ field: 'commitment.noShowRefundPercent', code: 'REFUND_PERCENT_OUT_OF_RANGE' });
+  return out;
 }
 
 /** Whether the deal needs stock (quantity limit and/or reservations). */
@@ -229,6 +327,12 @@ export function hotMaterialChanges(before: HotDealContent, after: HotDealContent
     m.push('branches');
   if (before.perCustomerLimit !== after.perCustomerLimit) m.push('perCustomerLimit');
   if (before.holdMinutes !== after.holdMinutes) m.push('holdMinutes');
+  // what a customer pays, may get back or forfeits is material (RC-20)
+  if (
+    commitmentMethodOf(before) !== commitmentMethodOf(after) ||
+    !same(before.commitment, after.commitment)
+  )
+    m.push('commitment');
   const inst = (v: string | null) => (v ? new Date(v).getTime() : null);
   if (inst(before.startAt) !== inst(after.startAt)) m.push('startAt');
   if (inst(before.endAt) !== inst(after.endAt)) m.push('endAt');

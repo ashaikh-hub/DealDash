@@ -241,7 +241,11 @@ export class HotReviewService {
     if (deal.organization.status !== 'ACTIVE')
       throw new AppError('ORG_NOT_ACTIVE', 'The merchant account is not active', 409);
     const content = parseHotContent(deal.content);
-    const issues = hotDealIssues(content, { now, limits: await this.core.limits() });
+    const issues = [
+      ...hotDealIssues(content, { now, limits: await this.core.limits() }),
+      // RC-21: the commitment is checked again at approval (the policy may have changed since submission)
+      ...(await this.core.commitmentIssues(deal.organizationId, content)),
+    ];
     if (issues.length)
       throw new AppError(
         'DEAL_INCOMPLETE',

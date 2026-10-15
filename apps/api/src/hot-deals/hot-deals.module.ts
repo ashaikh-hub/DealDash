@@ -18,11 +18,13 @@ import { MerchantHotDealsController } from './merchant-hot-deals.controller';
 import { MerchantHotDealsService } from './merchant-hot-deals.service';
 import { NotificationsService } from './notifications.service';
 import { RedemptionService } from './redemption.service';
+import { ReservationPolicyService } from './reservation-policy.service';
 import { ReservationsService } from './reservations.service';
 import { StaffController } from './staff.controller';
 
 /**
- * Stage 4: Exclusive Deals (own lifecycle), per-branch inventory, free reservations, merchant staff redemption,
+ * Stage 4: Exclusive Deals (own lifecycle), per-branch inventory, reservations (commitment model 2026-10-15: FREE only by policy),
+ * merchant staff redemption,
  * no-show foundation and the in-app notification foundation. Reuses the Stage 3 kernel (eligibility, guardrails,
  * categories, media, audit); touches no payment, voucher, Watch & Earn, Rewards or Partner code.
  */
@@ -37,6 +39,7 @@ import { StaffController } from './staff.controller';
   ],
   providers: [
     HotCommercialAdapter,
+    ReservationPolicyService,
     HotCoreService,
     HotViewService,
     NotificationsService,
@@ -49,6 +52,7 @@ import { StaffController } from './staff.controller';
     HotLifecycleService,
   ],
   exports: [
+    ReservationPolicyService,
     ReservationsService,
     HotDiscoveryService,
     HotLifecycleService,

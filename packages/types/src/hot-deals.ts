@@ -70,7 +70,8 @@ export const HOT_DEAL_PUBLIC_STATUSES: readonly HotDealStatus[] = ['LIVE', 'SOLD
 
 // ---------------------------------------------------------------- reservations
 /**
- * Free reservation (MVP): creation equals confirmation, the units are held until `expiresAt`.
+ * FREE reservations (policy-allowed only, RC-05): creation equals confirmation, the units are held until `expiresAt`. Paid commitments
+ * add a payment step before confirmation (build phase 2).
  * EXPIRED means the hold elapsed unredeemed; customers and staff see the neutral wording "Reservation not completed".
  */
 export const RESERVATION_STATUSES = ['HELD', 'REDEEMED', 'EXPIRED', 'CANCELLED'] as const;
@@ -97,8 +98,34 @@ export const RESERVATION_EVENT_TYPES = [
   'NO_SHOW_COUNTED',
   'REDEEMED',
   'REDEMPTION_REVERSED',
+  /** RC-52: DealDash reset a counted no-show strike (reason in the note). */
+  'STRIKE_RESET',
 ] as const;
 export type ReservationEventType = (typeof RESERVATION_EVENT_TYPES)[number];
+
+/**
+ * Reservation commitment model (founder decision 2026-10-15, RC-03..RC-05): a reservation is not a free hold by default. The merchant
+ * picks one paid method; FREE exists only where the effective reservation policy allows it (development / testing).
+ */
+export const COMMITMENT_METHODS = ['FREE', 'FULL_PREPAYMENT', 'DEPOSIT', 'CARD_PREAUTH'] as const;
+export type CommitmentMethod = (typeof COMMITMENT_METHODS)[number];
+export const PAID_COMMITMENT_METHODS = ['FULL_PREPAYMENT', 'DEPOSIT', 'CARD_PREAUTH'] as const;
+export type PaidCommitmentMethod = (typeof PAID_COMMITMENT_METHODS)[number];
+
+/** Money state of a reservation's commitment (RC-30, RC-43, RC-51). FREE reservations are NOT_REQUIRED. */
+export const RESERVATION_PAYMENT_STATUSES = [
+  'NOT_REQUIRED',
+  'PENDING',
+  'PAID',
+  'AUTHORISED',
+  'CAPTURED',
+  'VOIDED',
+  'FAILED',
+  'PARTIALLY_REFUNDED',
+  'REFUNDED',
+  'FORFEITED',
+] as const;
+export type ReservationPaymentStatus = (typeof RESERVATION_PAYMENT_STATUSES)[number];
 
 export const RESTRICTION_STATUSES = ['ACTIVE', 'LIFTED', 'ENDED'] as const;
 export type RestrictionStatus = (typeof RESTRICTION_STATUSES)[number];
