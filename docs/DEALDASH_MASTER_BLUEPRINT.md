@@ -1,13 +1,25 @@
 # DEALDASH MASTER FUNCTIONAL BLUEPRINT
 
-Version 0.2.2 · 2026-10-07
+Version 0.2.2 · 2026-10-07 · **amended 2026-10-15 (founder): reservation commitment model**
 Status: **APPROVED by founder as the current master functional blueprint (v0.2, with the clarifications below).** No application code exists yet.
+
+## Founder decision 2026-10-15 — reservation commitment model (supersedes free-only reservation) — APPROVED 2026-10-15
+
+A reservation is **not a free inventory hold by default**. Live Deals: no reservation. Vouchers: paid in app before issuance. Hot / Exclusive
+Deals: reservation is optional per deal (default off); when on, the merchant chooses one commitment method — **full prepayment**,
+**deposit** (refundable or non-refundable) or **card pre-authorisation** (logic + mock provider now; real provider deferred). **Free
+reservation** only where admin policy explicitly allows it (development / testing). Policy: market default → category override → merchant
+override (merchant > category > market). Money is collected for the merchant; DealDash keeps only its agreed commission / fee. Strikes
+(3 no-shows / 30 days → 7-day block) apply to all reservations; admin can lift / reset. Existing free reservations stay valid until they
+expire. Full rules: `DEALDASH_BUSINESS_RULES.md`, addendum "Reservation commitment model" (RC-01 to RC-90). VK-02 and the Pakistan legal /
+payment validation remain **go-live conditions**. Build order: (1) admin policy + merchant configuration, (2) deposit / prepayment +
+refunds, (3) pre-authorisation mock flow, (4) customer / merchant / staff screens (Phase-2 "Pay and reserve" design as the visual reference).
 
 ## Founder decisions applied (v0.2.2) — these supersede any conflicting older text in this document
 
 Full detail and rule-level effects are in `DEALDASH_BUSINESS_RULES.md` v0.2 (table at its top). Alignment summary:
 
-1. **Exclusive Deals:** MVP free reservation only; deposit/partial payment Phase 2 (C-10, M-05b, section 23 unchanged); inventory **per branch** in MVP; pooled multi-branch inventory Phase 2.
+1. **Exclusive Deals:** ~~MVP free reservation only; deposit/partial payment Phase 2~~ **superseded 2026-10-15 (commitment model above; C-10, M-05b and section 23 updated)**; inventory **per branch** in MVP; pooled multi-branch inventory Phase 2.
 2. **Vouchers:** sale recorded immediately; merchant amount settlement-eligible on successful redemption (MVP), ledger kept flexible (FD-41 closed for MVP, still VALIDATE-KSA); full refund before redemption supported, window configurable + VALIDATE-KSA; partial redemption and partial refund Phase 2 (FD-25 closed as P2); expired-value treatment undecided, configurable + VALIDATE-KSA (FD-46).
 3. **Watch & Earn:** pre-funded campaigns; hard cap at funded budget; merchant CPV and customer reward economics are separate configurable concepts, nothing hard-coded (FD-50/51 remain founder settings); qualifying-view thresholds, still-watching checks and caps configurable; unused budget separately identifiable in the ledger, final treatment VALIDATE-KSA (FD-54).
 4. **Rewards:** non-cash, non-withdrawable, non-transferable; no fixed SAR per point; catalogue, valuation and expiry are configurable founder settings (FD-21/62/63).
@@ -21,7 +33,7 @@ Full detail and rule-level effects are in `DEALDASH_BUSINESS_RULES.md` v0.2 (tab
 12. **Reviews:** in MVP with report/moderation controls; advanced reputation management Phase 2.
 13. **Age:** Riyadh pilot is 18+, enforced via date of birth (FD-03 closed); youth proposition outside MVP.
 14. **Live Deals:** unchanged (frictionless by default).
-15. **Design conflicts for UX Architecture:** Exclusive Deal SAR 15 deposit screen → free reservation; card UI first 6 + last 4 → approved model; gift checkout and Play & Win remain Phase 2 and their designs are preserved as future-phase references.
+15. **Design conflicts for UX Architecture:** Exclusive Deal SAR 15 deposit screen → ~~free reservation~~ **visual reference for the commitment model (2026-10-15)**; card UI first 6 + last 4 → approved model; gift checkout and Play & Win remain Phase 2 and their designs are preserved as future-phase references.
 
 All Saudi regulatory, VAT, Merchant-of-Record, voucher-fund, privacy, payment-licensing, data-retention and advertising conclusions remain VALIDATE-KSA.
 
@@ -36,7 +48,7 @@ All Saudi regulatory, VAT, Merchant-of-Record, voucher-fund, privacy, payment-li
 1. Domain model split: Offer (Live/Hot) vs Voucher vs Watch & Earn Campaign. Shared base services only where useful (section 18).
 2. All four products remain in the controlled commercial MVP (built sequentially, shipped together). Play & Win remains Phase 2.
 3. Live Deal rule clarified: no claim/QR by default; discovery metrics tracked incl. directions clicks and merchant page visits.
-4. Exclusive Deal: free reservation in MVP; deposit/partial payment architecturally supported, Phase 2 unless a pilot needs it.
+4. Exclusive Deal: free reservation in MVP; deposit/partial payment architecturally supported, Phase 2 unless a pilot needs it. *(Superseded 2026-10-15: commitment model, see top.)*
 5. Watch & Earn principles clarified (merchant vs DealDash control; merchant-stricter frequency rules).
 6. Launch market set: Saudi Arabia, Riyadh pilot, SAR, Arabic + English. No regulatory/tax conclusions made (VALIDATION REQUIRED).
 7. Payments: marketplace on a regulated PSP; Merchant of Record, voucher-fund treatment, settlement structure, licensing all open pending legal validation.
@@ -73,7 +85,7 @@ It is **not** a coupon app. It is a multi-sided platform whose differentiators a
 | Product | One-line definition | Needs payment? | Needs code/QR? |
 |---|---|---|---|
 | Live Deals | Ongoing/regular merchant offers; discover and visit | No | No for general/unlimited deals; optional for controlled deals |
-| Exclusive Deals | Short-time and/or limited-quantity offers | No in MVP (deposit = Phase 2, architecture ready) | Reservation code when reserved (free reservation) |
+| Exclusive Deals | Short-time and/or limited-quantity offers | Only when the deal uses reservation: full prepayment, deposit or card pre-authorisation (2026-10-15); free only by admin policy | Reservation code once the reservation is confirmed |
 | Vouchers | Pre-purchased, redeemed later | Yes | Yes (code + QR) |
 | Watch & Earn | Merchant-paid video advertising/engagement campaign; customer earns DealDash rewards | No (merchant pays) | No (rewards ledger) |
 | Play & Win | Games (wheel, scratch, etc.) | — | — | **Phase 2**, separate from Watch & Earn |
@@ -304,8 +316,8 @@ Same skeleton as bank, plus: scheme profile, participating issuers list, geograp
 | C-06 | Merchant page (branches, hours, active offers) | MVP |
 | C-07 | Offer detail with terms, validity, branches, eligibility status ("You qualify" / "Requires X") | MVP |
 | C-08 | Live Deal view (no claim/reservation/QR by default; discover and visit); directions/call/website actions; optional controlled-redemption rules | MVP |
-| C-09 | Exclusive Deal: countdown, remaining quantity, free reservation, hold timer, cancel | MVP |
-| C-10 | Exclusive Deal deposit / partial payment | Phase 2 (architecture supported in MVP; MVP only if a specific pilot requires, FD-20) |
+| C-09 | Exclusive Deal: countdown, remaining quantity, reservation with commitment (terms before paying, payment status, expiry timer), cancel with refund / forfeit terms | MVP |
+| C-10 | Exclusive Deal reservation commitment: full prepayment, deposit, card pre-authorisation (mock provider; real provider deferred) | MVP (2026-10-15; previously Phase 2) |
 | C-11 | Voucher purchase, payment, wallet, code/QR, expiry reminders | MVP |
 | C-12 | Voucher refund request / auto-refund per policy | MVP |
 | C-13 | Watch & Earn: video feed, qualifying view tracking, reward credit, prize inventory | MVP |
@@ -331,8 +343,8 @@ Same skeleton as bank, plus: scheme profile, participating issuers list, geograp
 | M-02 | Business profile, branding, locations, branches, hours, categories, contacts | MVP |
 | M-03 | Staff & users: invite, roles, branch access, deactivate | MVP |
 | M-04 | Live Deals: create/edit/schedule/draft/submit/pause/expire; branch assignment; eligibility; terms | MVP |
-| M-05 | Exclusive Deals: time-limited, quantity-limited or both, countdown, inventory, free reservation settings, per-customer limits | MVP |
-| M-05b | Exclusive Deal deposit / partial payment (where approved) | Phase 2 (architecture ready) |
+| M-05 | Exclusive Deals: time-limited, quantity-limited or both, countdown, inventory, reservation on / off (default off), per-customer limits | MVP |
+| M-05b | Exclusive Deal reservation commitment: method, amount, refundable deposit, cancellation cut-off, hold length, no-show refundable portion — within the effective admin policy; reservation list with payment / refund status | MVP (2026-10-15; previously Phase 2) |
 | M-06 | Vouchers: face value, selling price, quantity, validity, sales status, redemption, expiry, refunds | MVP |
 | M-07 | Watch & Earn: upload/reference video, budget, paid-view quantity, targeting, geography, timing, prize inventory, status, analytics | MVP |
 | M-08 | Redemption console: verify code, history, statuses, reversal where permitted | MVP |
@@ -485,9 +497,9 @@ Product-specific structures:
 | Mechanic | percentage, fixed amount, BOGO, bundle, meal deal, service offer, everyday promotion | same mechanic types, plus urgency settings |
 | Timing | schedule / recurring availability windows | short window (e.g. next 2 hours) and/or limited quantity |
 | Inventory | none for general/unlimited deals | quantity cap; remaining count; concurrency-safe |
-| Customer action | discover and visit; **no reservation, no claim, no QR/barcode** by default | **free reservation** (MVP) with hold timer; code on reservation |
+| Customer action | discover and visit; **no reservation, no claim, no QR/barcode** by default | optional reservation (default off) with a commitment — prepayment / deposit / card pre-authorisation; free only by admin policy (2026-10-15); hold timer; code on confirmation |
 | Controlled mode | optional "controlled" rules: redemption code, per-customer limit, or claim where required | n/a (reservation inherent where inventory control is needed) |
-| Deposit | none | deposit/partial payment: **architecture supports, Phase 2** |
+| Deposit | none | deposit / prepayment / card hold: **MVP (2026-10-15)**, RC rules |
 | Lifecycle | section 21A | section 23 |
 
 `Reservation` is a child entity of Exclusive Deal (and of controlled Live Deals if enabled), with its own state machine (section 23).
@@ -568,7 +580,7 @@ Post-publish monitoring: automated anomaly checks (e.g. sudden discount change, 
 ## 20. Major financial workflows
 
 1. **Voucher purchase:** customer pays via PSP → payment confirmed → voucher issued → merchant payable event recorded (accrual timing — on sale vs on redemption — is FOUNDER DECISION REQUIRED, FD-41; ledger supports both).
-2. **Exclusive Deal deposit (Phase 2):** architecture reserved: deposit captured → applied to bill / forfeited on no-show / refunded on cancel (policy FD-42). Not active in MVP unless a pilot requires it.
+2. **Exclusive Deal reservation commitment (MVP since 2026-10-15):** prepayment / deposit captured, or card hold authorised → confirmed → redeemed (prepayment used; deposit credited to the bill; card hold released unless terms say captured) / cancelled before the cut-off (refundable amounts returned, hold voided) / cancelled after the cut-off or no-show (deposit forfeitable; prepayment refundable portion per policy; hold captured up to the no-show charge) / cancelled by merchant or DealDash (full refund / void). Collected for the merchant; DealDash keeps only its agreed fee. Rules RC-30 to RC-72.
 3. **Refund:** customer/support-initiated → eligibility per policy → payment provider refund → ledger reversal → notification.
 4. **Settlement:** accrual → fees/commissions/deductions → statement → payout → reconciliation. Cycle (weekly/biweekly): FD-29.
 5. **Watch & Earn funding:** merchant budget commit/prepay → reserved → consumed per qualified view → rewards cost accrued → unused budget handling (section 24).
@@ -626,17 +638,21 @@ LIVE → SUSPENDED (DealDash) | CANCELLED (merchant)
 
 Exclusive Deals are designed for immediate demand, so they are the first candidate for **auto-publish within guardrails** (section 19.2); the pilot may initially route more to manual review. Supported limits: time-limited, quantity-limited, or both.
 
-Customer reservation instance (free reservation in MVP):
+Customer reservation instance (commitment model, 2026-10-15; RC rules):
 
 ```
-RESERVED (stock held, hold timer, code issued)
-   → REDEEMED (at venue, code/QR validated)
-   → EXPIRED / NO-SHOW (stock released)
-   → CANCELLED by customer (stock released)
-[Phase 2, architecture ready: RESERVED → CONFIRMED (deposit paid) before REDEEMED; deposit applied / forfeited / refunded]
+PENDING PAYMENT (stock held for the payment window; no code yet)
+   → PAYMENT FAILED / ABANDONED / WINDOW ELAPSED (stock released; card hold voided; no strike)
+   → CONFIRMED (prepayment / deposit paid or card hold authorised; code issued; hold timer starts)
+        → REDEEMED (at venue; prepayment used / deposit credited / card hold released)
+        → EXPIRED = NO-SHOW (stock released; strike; deposit forfeitable / prepayment refundable portion / hold captured up to no-show charge)
+        → CANCELLED by customer before cut-off (stock released; refundable amounts returned; hold voided)
+        → CANCELLED by customer after cut-off (stock released; forfeit rules; not a strike)
+        → CANCELLED by merchant / DealDash (stock released; full refund / void)
+FREE (only where admin policy allows): CONFIRMED on creation.
 ```
 
-Rules to define: hold duration (FD-47), cancellation window, per-customer cap, no-show strike policy (FD-48). Inventory must be concurrency-safe (no over-reservation).
+Rules: hold duration (bounded by policy), cancellation cut-off (merchant, within admin limits), per-customer cap, no-show strikes (3 / 30 days → 7-day block, admin lift / reset). Inventory must be concurrency-safe (no over-reservation).
 
 ## 24. Watch & Earn lifecycle
 
@@ -812,7 +828,7 @@ Rules: preferences & consent per channel; marketing vs transactional split; quie
 
 **All four core products are in the MVP:** Live Deals, Exclusive Deals, Vouchers, Watch & Earn. They may be built sequentially (section 36) but all are available for the controlled commercial pilot. Play & Win is Phase 2.
 
-**Customer:** onboarding (mobile OTP, profile, consents), Arabic/English with RTL, discovery/search/nearby, Live Deals (discovery metrics incl. directions clicks and merchant page visits), Exclusive Deals (countdown, stock, **free reservation**), Vouchers (buy via PSP, wallet, QR, refund), Watch & Earn (watch, earn non-cash rewards, wallet), employer verification, issuer/card selection eligibility, notifications, support, account deletion.
+**Customer:** onboarding (mobile OTP, profile, consents), Arabic/English with RTL, discovery/search/nearby, Live Deals (discovery metrics incl. directions clicks and merchant page visits), Exclusive Deals (countdown, stock, **reservation with prepayment / deposit / card pre-authorisation**, free only by admin policy — 2026-10-15), Vouchers (buy via PSP, wallet, QR, refund), Watch & Earn (watch, earn non-cash rewards, wallet), employer verification, issuer/card selection eligibility, notifications, support, account deletion.
 **Merchant Portal:** onboarding + approval, profile/branches/hours, staff & roles, Live/Hot/Voucher/Watch&Earn creation, redemption history, core analytics, statements/settlement view.
 **Staff interface:** full scan → validate → redeem flow.
 **Partner Portal (one architecture):** onboarding, profile, users, eligibility config, partner-specific offers, basic reporting; Bank (products/tiers/BINs), Scheme (profile, eligibility), Employer (domains, employee-only offers).
@@ -821,7 +837,7 @@ Rules: preferences & consent per channel; marketing vs transactional split; quie
 
 ### Phase 2
 
-Exclusive Deal deposits / partial payment (architecture ready in MVP); Play & Win; partner-funded campaign self-serve; merchant subscription billing; auto-reconciliation and automated payouts; gifting/transfer of vouchers; referrals; membership tiers; partial redemption and bill amount; check-in/visit verification; richer fraud (device attestation, graph); staff reversal-request workflow; bulk tools; advanced analytics; CSAT; multi-language expansion.
+~~Exclusive Deal deposits / partial payment~~ (moved to MVP 2026-10-15; real card-hold provider deferred); Play & Win; partner-funded campaign self-serve; merchant subscription billing; auto-reconciliation and automated payouts; gifting/transfer of vouchers; referrals; membership tiers; partial redemption and bill amount; check-in/visit verification; richer fraud (device attestation, graph); staff reversal-request workflow; bulk tools; advanced analytics; CSAT; multi-language expansion.
 
 ### Phase 3
 
@@ -837,7 +853,7 @@ Orgs + Docs ─► Merchant/Partner onboarding ─► Admin approval ─► Acti
 Merchant activation ─► Offer Engine ─► Approval workflow ─► Search/Geo ─► Customer discovery
 Customer profile ─► Eligibility Engine ─► Offer visibility/claims
 Payment Engine ─► Voucher Engine ─► Redemption Engine ─► Settlement
-Offer domain (Live/Hot) + Inventory ─► Reservation Engine (Exclusive Deals) ─► Redemption   [deposit via Payment = Phase 2]
+Offer domain (Live/Hot) + Inventory ─► Reservation Engine (Exclusive Deals) ─► Redemption   [prepayment / deposit / card hold via Payment = MVP, 2026-10-15]
 Watch & Earn Campaign domain ─► View ledger ─► Fraud rules ─► Rewards Engine ─► Rewards ledger
 Guardrails service ─► (Offer | Voucher | W&E) publish decisions
 Everything ─► Audit, Notification, Analytics events
@@ -856,7 +872,7 @@ Critical path: **Identity/RBAC → Orgs → Offer + Eligibility → Payments + V
 | 3 | Offer domain (Live Deals) + guardrails service + Search/Geo + Customer app discovery (AR/EN, RTL) | Browsable marketplace |
 | 4 | Eligibility Engine + Partner Portal (employer first, then bank/scheme) | Targeted offers |
 | 5 | PSP integration + Voucher domain + Redemption + Staff interface | First revenue flow |
-| 6 | Exclusive Deals (inventory, free reservation; deposit hooks only) | Real-time demand tool |
+| 6 | Exclusive Deals (inventory, reservation; commitment model added 2026-10-15 in four build phases) | Real-time demand tool |
 | 7 | Rewards Engine + Watch & Earn Campaign domain + Fraud rules | Engagement product |
 | 8 | Settlement, reporting, support, notifications hardening | Operational completeness |
 | 9 | Security review, load/pen testing, Saudi legal/payment/privacy validation sign-off, pilot readiness, runbooks | Pilot launch (all four products) |
@@ -919,7 +935,7 @@ Each stage ends with a demo, acceptance criteria, and updating this blueprint.
 - FD-30 Whether merchant Admin role can edit bank details or Owner only.
 
 **Offers, campaigns, approvals**
-- ~~FD-20~~ RESOLVED v0.2: deposits are Phase 2 (architecture-ready) unless a specific pilot requires them.
+- ~~FD-20~~ RESOLVED v0.2: deposits are Phase 2 (architecture-ready) unless a specific pilot requires them. **RE-DECIDED 2026-10-15: deposits / prepayment / card pre-authorisation are MVP (RC rules).**
 - ~~FD-24~~ **CLOSED** (founder-approved architecture, Oct 2026): merchant, bank, scheme and corporate subscriptions / licences are
   Contracts of a commercial kind on the Business Account, driven by versioned plan templates and the one entitlement model; current
   Pakistan configuration (Starter PKR 0, Growth PKR 4,999 / month, Business PKR 14,999 / month, Enterprise negotiated; bank, scheme and
@@ -944,7 +960,7 @@ Each stage ends with a demo, acceptance criteria, and updating this blueprint.
 - FD-46 Refund and expired-voucher policy (legal by jurisdiction).
 - FD-47 Exclusive Deal hold duration.
 - FD-48 No-show penalties, strike system.
-- FD-42 Deposit capture/forfeit/refund rules.
+- ~~FD-42~~ DECIDED 2026-10-15: deposit capture / forfeit / refund rules = RC-40 to RC-72 (values are admin policy).
 - FD-56 Redemption reversal window and who may reverse.
 
 **Watch & Earn & rewards**

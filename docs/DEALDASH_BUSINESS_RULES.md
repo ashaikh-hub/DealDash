@@ -1,13 +1,13 @@
 # DEALDASH BUSINESS RULES CATALOGUE
 
-Version 0.2 (founder decisions applied; draft for approval) · 2026-10-07
-Source of truth: `DEALDASH_MASTER_BLUEPRINT.md` v0.2.2 (approved v0.2.1 + founder decisions below). No approved decision is reopened here.
+Version 0.2 (founder decisions applied; draft for approval) · 2026-10-07 · **2026-10-15: reservation commitment model (addendum at the end) supersedes free-only reservation**
+Source of truth: `DEALDASH_MASTER_BLUEPRINT.md` v0.2.2 (approved v0.2.1 + founder decisions below). No approved decision is reopened here, except by an explicit dated founder decision.
 
 ## FOUNDER DECISIONS APPLIED IN v0.2 (these supersede any older wording below)
 
 | # | Decision | Effect |
 |---|---|---|
-| 1 | **Exclusive Deals:** MVP = free reservation only; paid deposit/partial payment = Phase 2; inventory is **per branch** in MVP; pooled multi-branch inventory = Phase 2. | HD-07, HD-20/21, RS-04, RD-55 updated; FDR-05, FDR-06 closed |
+| 1 | **Exclusive Deals:** ~~MVP = free reservation only; paid deposit/partial payment = Phase 2~~ **superseded 2026-10-15 by the reservation commitment model (RC rules, addendum at the end)**; inventory is **per branch** in MVP; pooled multi-branch inventory = Phase 2. | HD-07, HD-20/21, RS-04, RD-55 updated; FDR-05 closed; FDR-06 re-decided 2026-10-15 |
 | 2 | **Vouchers:** sale recorded immediately; merchant amount becomes **settlement-eligible on successful redemption** (MVP); ledger stays flexible for later change after Saudi legal/PSP validation; **full refund before redemption** supported, window configurable + VALIDATE-KSA; partial redemption and partial refund = Phase 2; treatment of **expired voucher value not decided** (configurable + VALIDATE-KSA). | VC-32/33/36/40, ST-02, PY-09 updated; FDR-11, FDR-15 closed; FDR-12/13 reclassified |
 | 3 | **Watch & Earn:** campaigns **pre-funded**; cannot consume more paid qualifying views than funded; merchant CPV charge and customer reward economics are **separate configurable concepts** (no CPV/margin hard-coded); DealDash controls reward economics; qualified view = completion under platform rules + fraud checks; thresholds, still-watching checks, frequency caps configurable; unused budget **separately identifiable in the ledger**; final refund/credit of unused budget = VALIDATE-KSA. | WE-02/13/21/30/51/54 updated; FDR-20, FDR-21–23, FDR-25 closed; FDR-26 deferred to VK-08 |
 | 4 | **Rewards:** non-cash, non-withdrawable, non-transferable; **no fixed SAR value per point**; catalogue, valuation and expiry are configurable founder settings. | RW-06/07/08 updated; FDR-52/53/54 become configuration |
@@ -21,7 +21,7 @@ Source of truth: `DEALDASH_MASTER_BLUEPRINT.md` v0.2.2 (approved v0.2.1 + founde
 | 12 | **Reviews:** remain in MVP (already designed) with **report/moderation controls**; advanced reputation management = Phase 2. | MR-52 updated; FDR-65 closed |
 | 13 | **Age:** Riyadh pilot is **18+**; date of birth enforces it; any minor/youth proposition is outside MVP and needs separate legal/product review. | New rule AU-31; FDR-27 closed; C-19 resolved |
 | 14 | **Live Deals:** public/unlimited remain frictionless (no claim/reservation/QR by default); controlled redemption optional, never defaulted for attribution. | Already LD-02/03; reaffirmed |
-| 15 | **Design conflicts recorded for UX Architecture:** Exclusive Deal SAR 15 deposit screen → free reservation for MVP; card UI first 6 + last 4 → revise to approved model; gift checkout stays Phase 2; Play & Win stays Phase 2; existing Play & Win and gifting designs are **preserved as future-phase references, not deleted**. | Section 23 C-01..C-05 marked resolved-pending-UX; new section 23A |
+| 15 | **Design conflicts recorded for UX Architecture:** Exclusive Deal SAR 15 deposit screen → free reservation for MVP (**superseded 2026-10-15: the "Pay and reserve" design is now the visual reference, extended per RC rules**); card UI first 6 + last 4 → revise to approved model; gift checkout stays Phase 2; Play & Win stays Phase 2; existing Play & Win and gifting designs are **preserved as future-phase references, not deleted**. | Section 23 C-01..C-05 marked resolved-pending-UX; new section 23A |
 
 **v0.2.3 additions (UX decisions):** employee pass QR Phase 2 (EM-26); Boost Phase 2; student eligibility Phase 2 (engine extensible); streaks/milestones Phase 2; staff = mobile-first PWA with OTP login, assigned to merchant and branch; reversal by Merchant Manager/DealDash Admin only, never frontline staff (RD-40/41/50); eligibility recheck only where offer rules require, paid vouchers stay valid (RD-30). Closes FDR-26, 40, 41, 62.
 
@@ -138,11 +138,11 @@ An Exclusive Deal is a promotion in the Offer domain intended to create immediat
 | HD-08 | **Customer limit:** per-customer cap per deal (design shows "up to 2 per customer"); merchant sets within platform max `[CFG: hot_deal_max_per_customer]`. Enforced at reservation. | MVP |
 | HD-09 | **Eligibility:** same engine as section 5; Public by default. | MVP |
 
-### 2.2 Reservation behaviour (free reservation in MVP)
+### 2.2 Reservation behaviour (commitment model, RC rules)
 
 | ID | Rule | Phase |
 |---|---|---|
-| HD-10 | **Free reservation is supported in MVP.** A reservation holds one or more units for the customer without payment. | MVP |
+| HD-10 | ~~Free reservation is supported in MVP.~~ **Superseded 2026-10-15 (RC-03 to RC-05):** reservation is optional per deal (default off); when on, it needs a commitment method (full prepayment, deposit or card pre-authorisation). Free reservation only where admin policy allows it. | MVP |
 | HD-11 | **Inventory blocking:** on reservation creation, units are decremented from available stock atomically (no over-reservation under concurrency). | MVP |
 | HD-12 | A reservation produces a one-time code/QR used at the venue (Redemption, section 9). | MVP |
 | HD-13 | Reservation hold period, expiry, cancellation, no-show: see section 8. | MVP |
@@ -152,10 +152,10 @@ An Exclusive Deal is a promotion in the Offer domain intended to create immediat
 
 | ID | Rule | Phase |
 |---|---|---|
-| HD-20 | Deposit / partial payment on reservation is **Phase 2** unless specifically approved for MVP for a given pilot. The data model, ledger and payment hooks must allow a reservation to carry an optional payment (architecture-ready). | P2 |
-| HD-21 | When enabled (Phase 2), deposit amount, application to the bill, forfeiture on no-show, and refund on cancellation follow `PY-` rules; deposit rule values and legal nature remain **FOUNDER DECISION REQUIRED (P2)** and **VALIDATE-KSA (VK-02)**. | P2 |
+| HD-20 | ~~Deposit / partial payment on reservation is Phase 2.~~ **Superseded 2026-10-15:** deposit and full prepayment are **MVP** (RC-04); card pre-authorisation is MVP logic + mock provider, real provider deferred (RC-90). | MVP |
+| HD-21 | Deposit amount, application to the bill, forfeiture, no-show treatment and refunds follow the **RC rules** (addendum) and `PY-` rules. Policy values are admin configuration (RC-10/11). The legal nature of deposits / forfeits remains **VALIDATE-KSA (VK-02)** and the Pakistan equivalent: **go-live conditions**. | MVP |
 
-> **DECIDED (founder, v0.2):** MVP reservation is **free only**. The designed Hot screens (20 "Hot limited reserve", 26 "Reserve sheet") show "Pay SAR 15 and reserve" (SAR 15 token credited to the bill). That screen **must be changed to free reservation for MVP** during UX Architecture; the paid-token design is preserved as a Phase 2 reference. See section 23A.
+> ~~DECIDED (founder, v0.2): MVP reservation is free only.~~ **Re-decided by the founder 2026-10-15:** the designed "Pay SAR 15 and reserve" Hot screens (20, 26) are the **visual reference**, extended for full prepayment, deposit, card pre-authorisation, cancellation / refund terms, no-show consequence, expiry timer and payment status. See the RC addendum and section 23A.
 
 ### 2.4 Lifecycle, ending, pause
 
@@ -434,24 +434,24 @@ MVP method (Blueprint 5.2): issuer/card selection and limited BIN/IIN metadata; 
 
 ## 8. RESERVATIONS
 
-A Reservation is a child of an Exclusive Deal (and of controlled Live Deals if enabled). Free in MVP.
+A Reservation is a child of an Exclusive Deal (and of controlled Live Deals if enabled). **2026-10-15:** a reservation carries a commitment (full prepayment, deposit or card pre-authorisation; free only where policy allows) — the **RC rules** (addendum at the end) govern confirmation, cancellation, refunds, no-show money and audit; RS rules below apply where they do not conflict.
 
 | ID | Rule | Phase |
 |---|---|---|
 | RS-01 | **Creation:** a verified customer may reserve 1…N units (≤ per-customer limit HD-08) at a selected eligible branch while the deal is Live and stock is available. | MVP |
 | RS-02 | Creation is atomic: stock check, decrement, record and code issue happen as one operation; failure leaves no partial state. | MVP |
 | RS-03 | **Hold:** the reservation is `Reserved`; units remain blocked during the hold period `[CFG: reservation_hold_minutes]`. Design shows "valid for 1 hour once confirmed". Hold length (default and merchant-adjustable range): **FDR-38**. | MVP |
-| RS-04 | **Confirmation:** in the free MVP flow creation = confirmation (the customer taps "Reserve"). Where a deposit is enabled (P2), a reservation is `Pending Payment` until paid, then `Confirmed`. | MVP / P2 |
+| RS-04 | **Confirmation (2026-10-15, RC-30 to RC-33):** a reservation is `Pending Payment` until the PSP confirms payment or the card hold, then `Confirmed`; the hold timer starts at confirmation. FREE (only where policy allows) confirms on creation. | MVP |
 | RS-05 | **Expiry:** at hold end, an unredeemed reservation becomes `Expired`; units return to available stock if the deal is still Live and not ended. | MVP |
-| RS-06 | **Cancellation by customer:** allowed until redeemed; stock released immediately; no penalty in MVP free flow beyond strike rules (RS-10). Cancellation cut-off `[CFG]`. | MVP |
-| RS-07 | **Cancellation by merchant/DealDash:** merchant may cancel individual reservations with reason (e.g. stock/closed) → customer notified; frequent cancellations affect trust (HD-34). | MVP |
+| RS-06 | **Cancellation by customer:** allowed until redeemed; stock released immediately. Money follows the merchant's cut-off (set within admin limits): before it, refundable amounts are returned; after it, the deposit may be forfeited and prepayment follows the policy's refundable portion (RC-40, RC-41). | MVP |
+| RS-07 | **Cancellation by merchant/DealDash:** merchant may cancel individual reservations with reason (e.g. stock/closed) → customer notified and **fully refunded / card hold voided** (RC-42); frequent cancellations affect trust (HD-34). | MVP |
 | RS-08 | **Extension** of hold: not supported in MVP. | P2 |
-| RS-10 | **No-show:** a reservation that expires without redemption is marked `No-show` against the customer. Consequences (strike system, temporary reservation block, thresholds): **FDR-39**. Structure: `[CFG: noshow_strikes_threshold, noshow_block_days]`. | MVP structure |
+| RS-10 | **No-show:** a confirmed reservation that expires without redemption is marked `No-show` against the customer. **2026-10-15:** strikes apply to **all** reservations including paid ones (3 in 30 days → 7-day block `[CFG: noshow_strikes_threshold, noshow_block_days]`); admin can lift restrictions and reset strikes with reason (RC-52); no-show money per RC-51. | MVP |
 | RS-11 | **Merchant inventory release:** units return to stock on expiry/cancel/no-show; stock cannot exceed original total; released stock after the deal end is discarded. | MVP |
 | RS-12 | **Branch binding:** a reservation is valid at its chosen branch only (wrong-branch redemption is rejected, RD-20). | MVP |
 | RS-13 | **Customer history:** customer sees active, redeemed, expired, cancelled reservations with times and branch. | MVP |
 | RS-14 | **Merchant history:** merchant sees reservations for own branches: counts, status, code reference, redeemed time; **no customer personal data beyond first name/masked identifier** needed for service `[CFG]`. | MVP |
-| RS-15 | **Audit events:** created, confirmed, extended (P2), cancelled (by whom), expired, no-show marked, redeemed, reversed, stock release, admin override. | MVP |
+| RS-15 | **Audit events:** created, confirmed, extended (P2), cancelled (by whom), expired, no-show marked, redeemed, reversed, stock release, admin override; **plus the payment, card-hold, refund, forfeit and strike events in RC-82**. | MVP |
 | RS-16 | One customer may hold at most `[CFG: max_active_reservations]` concurrent active reservations across deals (anti-hoarding). | MVP |
 | RS-17 | Reservation requires the same eligibility as the deal at action time (EL-24). | MVP |
 
@@ -482,7 +482,7 @@ Applies to Vouchers, Exclusive Deal reservations, controlled Live Deals, and Wat
 | RD-52 | Redemption history is retained and visible to merchant/customer per role. Retention periods: **VK-15**. | MVP |
 | RD-53 | Partial redemption/bill amount entry: **FDR-11**. | P2 |
 | RD-54 | Offline/queued redemption when staff device has no connection: not supported at MVP. | P3 |
-| RD-55 | Token credit: for reservations where a token is credited to the bill, the staff screen shall show the credited amount (design shows "token, credited to your bill"). Only relevant if deposits are enabled (conflict C-01). | P2 / FDR-06 |
+| RD-55 | Token credit: for reservations where a deposit is credited to the bill, the staff screen shall show the credited amount (design shows "token, credited to your bill"). **2026-10-15: MVP** — the staff screen shows the commitment and payment status for every reservation (RC-60, RC-61). | MVP |
 
 ---
 
@@ -493,14 +493,14 @@ Architecture: marketplace/platform using a **regulated payment service provider 
 | ID | Rule | Phase |
 |---|---|---|
 | PY-01 | Payments are processed only by the PSP; DealDash never handles raw card data (hosted fields/redirect/SDK). | MVP |
-| PY-02 | **Initiation:** payment is created for an order (voucher purchase; later deposits) in `Initiated` with amount in SAR halalas, order id, idempotency key, PSP reference once returned. | MVP |
+| PY-02 | **Initiation:** payment is created for an order (voucher purchase) **or a reservation commitment (prepayment, deposit, card hold — 2026-10-15)** in `Initiated` with amount in the market currency's minor units, order / reservation id, idempotency key, PSP reference once returned. A card hold is initiated as authorise-only and later captured or voided (PY-10). | MVP |
 | PY-03 | **Success:** only a verified PSP confirmation (webhook/server-verified) changes an order to `Paid`; client-side success callbacks are not trusted. | MVP |
 | PY-04 | **Pending:** where the PSP reports pending/authorising/3-D Secure, the order is `Pending`; inventory hold continues up to the hold limit `[CFG]`; final status is set by PSP result or reconciliation. | MVP |
 | PY-05 | **Failure:** failed/declined → order `Failed`; hold released; customer can retry. | MVP |
 | PY-06 | **Retry:** customer may retry with the same or another method up to `[CFG: payment_retry_limit]` within the hold; each attempt has a unique PSP reference and idempotency key; duplicate captures are prevented. | MVP |
 | PY-07 | **Cancellation:** customer cancels before payment completes → order `Cancelled`, hold released. Authorised-not-captured amounts are voided. | MVP |
 | PY-08 | **Refund:** full refund to the original method via PSP; status `Refund Pending` → `Refunded`/`Refund Failed`. Failed refund: manual finance exception queue. | MVP |
-| PY-09 | **Partial refund is Phase 2.** The payment/ledger model records refunds with an amount (so partial refunds need no redesign), but MVP exposes full refund only. | P2 |
+| PY-09 | **Partial refund is Phase 2** for vouchers. The payment/ledger model records refunds with an amount (so partial refunds need no redesign), but MVP exposes full voucher refunds only. **Exception (2026-10-15):** reservation commitments may be refunded partially by rule (RC-41, RC-43, RC-51). | P2 / MVP (reservations) |
 | PY-10 | **Reversal:** void/reversal of an uncaptured authorisation; and ledger reversal entries for any posted financial event. | MVP |
 | PY-11 | **PSP reference:** every payment/refund stores PSP transaction ids; DealDash order id is sent to the PSP as merchant reference. | MVP |
 | PY-12 | **Reconciliation:** daily comparison of PSP reports to ledger by PSP reference/amount/status; mismatches create exceptions assigned to Finance; no silent auto-correction of money. | MVP (manual-assisted) / P2 (automated) |
@@ -862,8 +862,8 @@ Each record: event id, timestamp (UTC), actor type (customer/merchant user/staff
 
 Sections 1 to 19 above are the catalogue (about 330 rules, each phase-tagged). Index of scope by phase:
 
-- **MVP:** all four products (Live, Hot with free reservation, Vouchers, Watch & Earn), eligibility (public, geography, issuer/card selection, limited BIN, employer, segment), reservation/redemption, PSP-backed payments, ledgers, settlement structure, rewards (non-cash), guardrails-based approval, merchant/partner/admin governance, fraud controls, notifications, support, audit.
-- **P2:** Exclusive Deal deposits, gifting/transfer, partial redemption, promo codes (if confirmed), partner-funded campaigns and invoicing, automated reconciliation/payout, visit verification, reversal-request workflow, rotating QR, marketing notifications, extended reservation holds, Play & Win rewards sources.
+- **MVP:** all four products (Live, Hot with commitment-based reservation — prepayment / deposit / card pre-authorisation, free only by policy (2026-10-15), Vouchers, Watch & Earn), eligibility (public, geography, issuer/card selection, limited BIN, employer, segment), reservation/redemption, PSP-backed payments, ledgers, settlement structure, rewards (non-cash), guardrails-based approval, merchant/partner/admin governance, fraud controls, notifications, support, audit.
+- **P2:** ~~Exclusive Deal deposits~~ (moved to MVP 2026-10-15), gifting/transfer, partial redemption, promo codes (if confirmed), partner-funded campaigns and invoicing, automated reconciliation/payout, visit verification, reversal-request workflow, rotating QR, marketing notifications, extended reservation holds, Play & Win rewards sources.
 - **P3:** issuer/token card verification, card-linked offers, offline redemption, advanced fraud graph, POS integration.
 
 ## 22. State / status models
@@ -871,7 +871,7 @@ Sections 1 to 19 above are the catalogue (about 330 rules, each phase-tagged). I
 **Live Deal:** Draft → Submitted → (Under Review ↔ Changes Requested) → Approved/Scheduled → Live ↔ Paused → Expired | Cancelled | Suspended → Archived. Controlled mode adds Claim states: Claimed → Redeemed | Expired | Cancelled.
 
 **Exclusive Deal:** Draft → (Auto-publish | Under Review) → Live ↔ Paused → Sold Out | Expired | Cancelled | Suspended → Archived.
-**Reservation:** Reserved → Redeemed | Expired(No-show) | Cancelled(customer) | Cancelled(merchant/DealDash). P2: Pending Payment → Confirmed → …; Refunded/Forfeited.
+**Reservation (2026-10-15, RC-30):** Pending Payment → Confirmed → Redeemed | Expired(No-show) | Cancelled(customer, before / after cut-off) | Cancelled(merchant/DealDash); Pending Payment → Payment Failed (stock released). FREE (policy only): Confirmed on creation. Commitment money status alongside: Not required | Pending | Paid | Authorised (card hold) → Captured | Voided; Paid → Partially Refunded | Refunded | Forfeited.
 
 **Voucher product:** Draft → Submitted → (Under Review) → On Sale ↔ Paused → Sold Out | Ended | Suspended → Archived.
 **Voucher instance:** Pending Payment → Active → Redeemed | Expired | Refunded | Voided; Active → Reversed-to-Active (redemption reversal). P2: Gifted/Transferred.
@@ -900,7 +900,7 @@ Sections 1 to 19 above are the catalogue (about 330 rules, each phase-tagged). I
 
 | # | Screen(s) | Required change / handling |
 |---|---|---|
-| UX-01 | 20 Deal - Hot limited reserve; 26 Deal - Reserve sheet; (also 31 reservation code if it shows a token) | Change **"Pay SAR 15 and reserve"** / SAR 15 token credited to the bill into a **free reservation** for MVP. Preserve the paid-token version as a **Phase 2 reference**, not deleted. |
+| UX-01 | 20 Deal - Hot limited reserve; 26 Deal - Reserve sheet; (also 31 reservation code if it shows a token) | ~~Change "Pay SAR 15 and reserve" into a free reservation for MVP.~~ **2026-10-15:** the "Pay and reserve" design is the **visual reference**, extended for full prepayment, deposit, card pre-authorisation, cancellation / refund terms, no-show consequence, expiry timer and payment status, in the existing DealDash visual language (merchant, staff and customer screens: build phase 4). |
 | UX-02 | 56 Profile - add card sheet; 57 verify card sheet; any "verified card" labels | Remove **First 6 + Last 4** entry; replace with issuer/card-product selection plus limited BIN/IIN metadata only where needed. Replace "verify card" wording with non-verification language (BC-04). |
 | UX-03 | 28–30 Checkout (gift with promo, gift voucher card) | **Gift checkout stays Phase 2**; hide from MVP navigation; preserve designs as future reference. Promo field scope open (FDR-10). |
 | UX-04 | 38 Play and Win; 42–47 games | **Play & Win stays Phase 2**; preserve designs as future reference. |
@@ -914,7 +914,7 @@ Sections 1 to 19 above are the catalogue (about 330 rules, each phase-tagged). I
 
 | # | Conflict / gap | Detail | Needed |
 |---|---|---|---|
-| C-01 | **Designed Exclusive Deal flow includes a paid deposit.** Screens 20 and 26 show "Reserve for SAR 15", "Pay SAR 15 and reserve", SAR 15 token credited to the bill, valid 1 hour, up to 2 per customer, 120 left. Approved scope: free reservation MVP, deposit P2. | Either (a) change the design to free reservation for MVP, (b) approve deposits for the pilot (then PY/RS/ST/VK-02 move to MVP), or (c) ship both modes with deposit off by default. | FDR-06 |
+| C-01 | **Designed Exclusive Deal flow includes a paid deposit.** Screens 20 and 26 show "Reserve for SAR 15", "Pay SAR 15 and reserve", SAR 15 token credited to the bill, valid 1 hour, up to 2 per customer, 120 left. Approved scope: free reservation MVP, deposit P2. | Either (a) change the design to free reservation for MVP, (b) approve deposits for the pilot (then PY/RS/ST/VK-02 move to MVP), or (c) ship both modes with deposit off by default. **Resolved 2026-10-15: (b), extended — commitment model (RC rules); free only by admin policy.** | FDR-06 |
 | C-02 | **Gift checkout designed (screens 29–30)** but gifting/transfer is P2 (VC-13). | Hide or defer; wording on promo/gift in checkout. | FDR-09, FDR-10 |
 | C-03 | **Play & Win screens 38, 42–47** are designed but P2. Reward sources in MVP are only Watch & Earn. | Exclude from MVP build; keep navigation consistent. | confirm P2 |
 | C-04 | **mada** is shown as a card scheme in the design but the approved blueprint names Visa/Mastercard/Amex. | Add mada as a first-class scheme; PSP and partner scheme implications. | FDR-35, VK-14 |
@@ -922,7 +922,7 @@ Sections 1 to 19 above are the catalogue (about 330 rules, each phase-tagged). I
 | C-06 | **Offline card-use proof**: design implies cards are "verified" (screen 57 "verify card"); Blueprint forbids claiming proof. | Verify-card wording must say matching to offers, not proving use. | UX stage |
 | C-07 | **Signed in with Google** shown on profile; blueprint onboarding is mobile OTP. | Decide sign-in methods (Google/Apple/phone) and how mobile verification is enforced. | FDR-72 |
 | C-08 | **Orange/amber** in hot-gradient and instant badge vs design principle "avoid orange-heavy". | Visual only; settle in UX stage. | UX stage |
-| C-09 | **Exclusive Deal "token credited to bill"** needs merchant till-level crediting that DealDash cannot verify; reliance on staff. | Applies only if deposits are enabled. | FDR-06 |
+| C-09 | **Exclusive Deal "token credited to bill"** needs merchant till-level crediting that DealDash cannot verify; reliance on staff. | Applies to DEPOSIT reservations (MVP since 2026-10-15): staff confirm the credit at redemption (RC-61); DealDash records it but cannot verify the till. | FDR-06 |
 | C-10 | **Controlled Live Deal vs per-customer limits**: General deals cannot enforce limits; merchants may expect limits. | Communicate in merchant UI; offer Controlled when limits are needed. | wording |
 | C-11 | **Live Deal ROI** remains discovery-only for General deals; merchant success metrics must be set honestly. | Merchant reporting language and expectations. | UX/commercial |
 | C-12 | **Reward value vs W&E pricing:** card shows "+15 pts" and "Watch to earn up to 20 points" without economics. | CPV, point value and margin undecided. | FDR-17, FDR-53 |
@@ -942,7 +942,7 @@ Sections 1 to 19 above are the catalogue (about 330 rules, each phase-tagged). I
 Grouped; **bold = blocks technical architecture or the next stage (see section 27).**
 
 **Commerce & money**
-- ~~FDR-06~~ CLOSED v0.2: free reservation only in MVP; deposit = Phase 2.
+- ~~FDR-06~~ CLOSED v0.2: free reservation only in MVP; deposit = Phase 2. **RE-DECIDED 2026-10-15:** reservation commitment model (prepayment / deposit / card pre-authorisation; free only by policy) — RC rules. VK-02 and the Pakistan validation stay open as go-live conditions.
 - ~~FDR-15~~ CLOSED v0.2: settlement-eligible on redemption (MVP); ledger flexible.
 - ~~FDR-16~~ STRUCTURE CLOSED v0.2.1: fees configurable and versioned (LG-01); values remain founder settings.
 - ~~FDR-47~~ STRUCTURE CLOSED v0.2.1: payout schedule configurable (LG-10); values remain founder settings.
@@ -1030,7 +1030,7 @@ Grouped; **bold = blocks technical architecture or the next stage (see section 2
 | ID | Topic | Related rules |
 |---|---|---|
 | VK-01 | Price/savings claim and advertising truthfulness rules | LD-18 |
-| VK-02 | Legal nature of deposits/tokens on reservations (if enabled) | HD-21 |
+| VK-02 | Legal nature of deposits/tokens, forfeits and no-show charges on reservations (MVP since 2026-10-15; **go-live condition**, also for Pakistan) | HD-21, RC-40 to RC-71 |
 | VK-03 | VAT treatment, tax invoice/e-invoicing format, tax on fees/vouchers/campaign spend, receipts | VC-02, VC-16, PY-17, ST-08, ST-14 |
 | VK-04 | Voucher validity minimums, expiry, refund and consumer protection rights | VC-04, VC-33, VC-36 |
 | VK-05 | Treatment and holding of voucher funds (escrow/segregation), payment-licensing implications | VC-42, ST-13 |
@@ -1271,3 +1271,101 @@ not authorized. Still open: hosting / production environment, production databas
 and payout production setup, SMS / OTP / email / push providers, penetration testing, native Arabic review, physical device testing,
 formal UAT, backup retention, RPO / RTO, manual payout process (if used), GitHub production reviewers, VALIDATE-KSA items, final go-live
 checklist (NOT READY). No Stage 10.
+
+## Addendum (2026-10-15) — Reservation commitment model (FOUNDER APPROVED; supersedes free-only reservation)
+
+**Founder decision 2026-10-15; rules, the three filled-in points (RC-40 non-refundable deposit kept before the cut-off, RC-41 late
+cancellation is not a strike, RC-61 card hold released at redemption unless terms say captured) and the database plan APPROVED
+2026-10-15.** Replaces the reservation part of v0.2 decision 1, **FDR-06** and **HD-10**: a reservation is **not a free
+inventory hold by default**. Deposit / prepayment is part of the MVP reservation flow; card pre-authorisation is built as logic + mock
+provider now. Where this addendum and older wording differ, **this addendum wins** (the older rules are marked "superseded").
+
+**Go-live conditions that stay open:** VK-02 (legal nature of deposits, forfeits and no-show charges), the Pakistan legal / payment
+validation (VALIDATE-PAKISTAN), a production PSP for prepayments / deposits / refunds in each market, and a PSP that supports card holds
+before CARD_PREAUTH is offered in a market (RC-90).
+
+**Not changed:** Live Deals stay frictionless (LD-02/03, v0.2 decision 14); vouchers are paid in app before issuance (section 3); per-branch
+inventory and atomic stock (HD-07, HD-11, RS-02); per-customer limit (HD-08), max active reservations (RS-16), eligibility at action time
+(RS-17), branch binding (RS-12), redemption rules (section 9) and every other approved rule.
+
+### RC-A Products
+
+| ID | Rule | Phase |
+|---|---|---|
+| RC-01 | **Live Deals:** no reservation. The customer redeems directly, subject to availability (reaffirms LD-02/03). | MVP |
+| RC-02 | **Vouchers:** paid in app before the voucher is issued (reaffirms section 3). The short stock hold during voucher checkout is a payment window, not a reservation. | MVP |
+| RC-03 | **Hot / Exclusive Deals:** reservation is optional and chosen by the merchant per deal. **Default: off** (walk-in deal, HD-14). | MVP |
+| RC-04 | When reservation is on, the merchant chooses **exactly one commitment method**: **FULL_PREPAYMENT**, **DEPOSIT** (refundable or non-refundable) or **CARD_PREAUTH**. | MVP |
+| RC-05 | **FREE** reservation exists only where the effective policy (RC-11) explicitly allows it. Default: **not allowed**. Admin may allow it for development / testing; allowing it in a live market is a governed configuration change (S9-6) with a reason. | MVP |
+
+### RC-B Reservation policy (admin)
+
+| ID | Rule | Phase |
+|---|---|---|
+| RC-10 | **Policy fields:** free reservation allowed; allowed methods; deposit minimum / maximum per unit; card-hold maximum per unit; cancellation cut-off range (minimum / maximum minutes before the hold ends); payment window (minutes); hold length range (existing RS-03 bounds); FULL_PREPAYMENT **no-show refundable portion** (range and default, %); whether a non-refundable deposit may be offered; no-show strike threshold / window / block days (existing RS-10 values 3 / 30 / 7). Amounts are in the market currency's minor units. | MVP |
+| RC-11 | **Levels and precedence:** market default → category override → merchant override. Effective value = **merchant override > category override > market default**, resolved **field by field** (an override sets only the fields it names; the rest are inherited). | MVP |
+| RC-12 | Policy changes use governed configuration (S9-6: reason, a different approver, versioned, restorable) and are audited. The effective policy is **snapshotted** onto the deal when it is saved and onto each reservation when it is created; a later policy change never alters an existing reservation. | MVP |
+
+### RC-C Merchant configuration (per Hot Deal)
+
+| ID | Rule | Phase |
+|---|---|---|
+| RC-20 | With reservation on, the merchant sets within the effective policy: method; amount per unit (FULL_PREPAYMENT = the deal price; DEPOSIT and CARD_PREAUTH = an amount within the policy range); deposit refundable yes / no (where allowed); cancellation cut-off; hold length; for FULL_PREPAYMENT the no-show refundable portion. | MVP |
+| RC-21 | A **new** Hot Deal, and any **edit** of an existing one, that has reservation on must carry a commitment method. FREE can be saved only where the effective policy allows it (RC-05). Material-change and approval rules (section 13) apply unchanged. | MVP |
+| RC-22 | **Existing free reservations** stay valid until they are redeemed, cancelled or expire. They are never converted, charged or extended. Free reservation is not honoured beyond that for new reservations unless policy allows FREE. | MVP |
+
+### RC-D Lifecycle, confirmation, expiry
+
+| ID | Rule | Phase |
+|---|---|---|
+| RC-30 | **States:** PENDING_PAYMENT → CONFIRMED (held) → REDEEMED \| CANCELLED \| EXPIRED (= no-show); PENDING_PAYMENT → PAYMENT_FAILED (failed, abandoned or payment window elapsed). FREE goes straight to CONFIRMED. | MVP |
+| RC-31 | **Reserve:** stock is taken atomically at creation (HD-11). The reservation waits in PENDING_PAYMENT for the payment window `[CFG]`. No redemption code is shown before confirmation. | MVP |
+| RC-32 | **Confirmation** happens only on a verified PSP result (PY-03): payment captured (FULL_PREPAYMENT, DEPOSIT) or card hold authorised (CARD_PREAUTH). The code is then issued, the **hold timer starts at confirmation**, and the customer receives a confirmation with the terms snapshot (method, amount, cut-off time, refund / forfeit terms, no-show consequence, expiry). | MVP |
+| RC-33 | **Payment failed / abandoned / window elapsed:** stock is released automatically; no charge, no strike; any card hold is voided. | MVP |
+| RC-34 | **Expiry:** the hold ends at confirmation + hold length; the "expiring soon" notice is kept (existing). | MVP |
+
+### RC-E Cancellation and refunds
+
+| ID | Rule | Phase |
+|---|---|---|
+| RC-40 | **Customer cancels before the cut-off:** refundable amounts are returned in full — FULL_PREPAYMENT refunded, refundable DEPOSIT refunded, card hold voided. A **non-refundable** deposit is kept only because the customer accepted that term before paying (shown in the terms snapshot). Stock is released immediately. Not a no-show. | MVP |
+| RC-41 | **Customer cancels after the cut-off:** the deposit may be forfeited (per the deal's terms); FULL_PREPAYMENT: the policy's no-show refundable portion is refunded, the rest is kept; CARD_PREAUTH: the hold is captured up to the deal's no-show charge and the remainder released. Stock is released immediately. A late cancellation is **not** counted as a no-show strike. | MVP |
+| RC-42 | **Merchant or DealDash cancels** (any reason, including deal cancellation or suspension resolution): always a **full** refund / full void; no charge and no strike for the customer. | MVP |
+| RC-43 | Refunds go to the original method through the PSP (PY-08), are idempotent, and may be **partial** for reservation commitments (exception to PY-09). A failed refund goes to the finance exception queue. Refund status is visible to the customer and the merchant. | MVP |
+
+### RC-F No-show and strikes
+
+| ID | Rule | Phase |
+|---|---|---|
+| RC-50 | A CONFIRMED reservation not redeemed when its hold ends becomes **EXPIRED (no-show)**: stock is released automatically, the customer is notified, and a strike is counted. | MVP |
+| RC-51 | **Money on no-show:** DEPOSIT forfeited per the deal's terms; FULL_PREPAYMENT: the configured refundable portion is refunded and the rest kept (never 100 % kept automatically unless the policy and the deal terms say so); CARD_PREAUTH: captured up to the deal's no-show charge, remainder released. | MVP |
+| RC-52 | **Strikes apply to all reservations, free and paid:** 3 no-shows in 30 days → new reservations blocked for 7 days `[CFG]` (RS-10 values). Admin can **lift** a restriction and **reset** individual strikes, with a reason, audited. | MVP |
+
+### RC-G Redemption
+
+| ID | Rule | Phase |
+|---|---|---|
+| RC-60 | Only CONFIRMED reservations redeem. The staff screen shows the commitment and its status: "Paid in full", "Deposit X — credit to the bill" (RD-55, now MVP), "Card hold X". | MVP |
+| RC-61 | At redemption: FULL_PREPAYMENT → the paid value is used; DEPOSIT → credited to the bill by staff (DealDash cannot verify the till, C-09); CARD_PREAUTH → the hold is **released** and the customer pays at the till, unless the deal's terms say the hold is captured as part payment. | MVP |
+
+### RC-H Money and commission
+
+| ID | Rule | Phase |
+|---|---|---|
+| RC-70 | Prepayments, deposits, forfeits and captured no-show charges are **collected for the merchant**. They are held for the merchant until redemption, forfeiture or no-show, then become settlement-eligible (section 11, LG rules). | MVP |
+| RC-71 | DealDash keeps **only its agreed commission / fee** from the merchant's commercial agreement. DealDash never keeps the whole deposit or no-show amount unless the commercial agreement explicitly says so. | MVP |
+| RC-72 | Refunds and voids reverse the related postings (LG-05). Amounts and currency follow the market (cross-market currency correction). | MVP |
+
+### RC-I Visibility, confirmation, audit
+
+| ID | Rule | Phase |
+|---|---|---|
+| RC-80 | **Merchant:** reservation list and detail show method, amount, payment status, refund / forfeit status, cut-off and expiry; reports aggregate commitments, refunds, forfeits and no-shows. No card data, ever (PY-18); customer data limited per RS-14. | MVP |
+| RC-81 | **Customer:** before paying, sees method, amount, cut-off time, refund terms, no-show consequence and hold length, and accepts them (terms snapshot). After paying: confirmation with code, expiry timer and payment status; history shows refunds and forfeits. | MVP |
+| RC-82 | **Audit trail:** every transition is a reservation event and an audit record — created, payment pending, payment succeeded / failed, confirmed, card hold authorised / captured / voided, cancelled (by whom; before or after the cut-off), refund requested / succeeded / failed, deposit forfeited, no-show, strike counted / reset, restriction lifted, redeemed, reversed — with the policy snapshot. | MVP |
+
+### RC-J Card pre-authorisation
+
+| ID | Rule | Phase |
+|---|---|---|
+| RC-90 | Pre-authorisation logic and the **mock provider** flow are built now. Real provider integration is deferred until a provider that supports card holds in the relevant market is chosen. A market without such a provider cannot offer CARD_PREAUTH (RC-10 allowed methods). The hold length may never exceed the provider's authorisation validity `[CFG]`. | MVP (logic, mock) / go-live condition (real PSP) |
