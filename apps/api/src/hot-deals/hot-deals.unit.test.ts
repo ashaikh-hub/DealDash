@@ -78,8 +78,14 @@ describe('reservation state machine', () => {
     expect(canTransitionReservation('CANCELLED', 'HELD')).toBe(false);
     expect(Object.keys(RESERVATION_TRANSITIONS).sort()).toEqual([...RESERVATION_STATUSES].sort());
   });
-  it('has no payment state yet: the commitment payment step is build phase 2 (money state lives in paymentStatus)', () => {
-    expect(JSON.stringify(RESERVATION_STATUSES)).not.toMatch(/PAYMENT|DEPOSIT|PENDING_PAY/i);
+  it('paid reservations (phase 2): waiting for payment confirms or fails; a failed payment is terminal', () => {
+    expect(canTransitionReservation('PENDING_PAYMENT', 'HELD')).toBe(true);
+    expect(canTransitionReservation('PENDING_PAYMENT', 'PAYMENT_FAILED')).toBe(true);
+    expect(canTransitionReservation('PENDING_PAYMENT', 'CANCELLED')).toBe(true);
+    expect(canTransitionReservation('PENDING_PAYMENT', 'REDEEMED')).toBe(false);
+    expect(RESERVATION_TRANSITIONS.PAYMENT_FAILED).toEqual([]);
+    // money words live in the payment status, never in the reservation status names customers see
+    expect(JSON.stringify(RESERVATION_STATUSES)).not.toMatch(/DEPOSIT|FORFEIT|REFUND/i);
   });
 });
 

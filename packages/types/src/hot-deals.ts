@@ -70,19 +70,29 @@ export const HOT_DEAL_PUBLIC_STATUSES: readonly HotDealStatus[] = ['LIVE', 'SOLD
 
 // ---------------------------------------------------------------- reservations
 /**
- * FREE reservations (policy-allowed only, RC-05): creation equals confirmation, the units are held until `expiresAt`. Paid commitments
- * add a payment step before confirmation (build phase 2).
+ * FREE reservations (policy-allowed only, RC-05): creation equals confirmation (HELD), the units are held until `expiresAt`.
+ * Paid commitments (RC-30): PENDING_PAYMENT holds the units for the payment window (no code yet), then HELD once the provider confirms
+ * the payment, or PAYMENT_FAILED (units released, no charge, no strike).
  * EXPIRED means the hold elapsed unredeemed; customers and staff see the neutral wording "Reservation not completed".
  */
-export const RESERVATION_STATUSES = ['HELD', 'REDEEMED', 'EXPIRED', 'CANCELLED'] as const;
+export const RESERVATION_STATUSES = [
+  'HELD',
+  'REDEEMED',
+  'EXPIRED',
+  'CANCELLED',
+  'PENDING_PAYMENT',
+  'PAYMENT_FAILED',
+] as const;
 export type ReservationStatus = (typeof RESERVATION_STATUSES)[number];
 
 export const RESERVATION_TRANSITIONS: Record<ReservationStatus, readonly ReservationStatus[]> = {
+  PENDING_PAYMENT: ['HELD', 'PAYMENT_FAILED', 'CANCELLED'],
   HELD: ['REDEEMED', 'EXPIRED', 'CANCELLED'],
   // a manager/DealDash reversal gives the customer a fresh hold (HELD), or cancels it when the campaign is no longer available
   REDEEMED: ['HELD', 'CANCELLED'],
   EXPIRED: [],
   CANCELLED: [],
+  PAYMENT_FAILED: [],
 };
 export const canTransitionReservation = (from: ReservationStatus, to: ReservationStatus): boolean =>
   RESERVATION_TRANSITIONS[from].includes(to);
@@ -100,6 +110,15 @@ export const RESERVATION_EVENT_TYPES = [
   'REDEMPTION_REVERSED',
   /** RC-52: DealDash reset a counted no-show strike (reason in the note). */
   'STRIKE_RESET',
+  // phase 2 money events (RC-82)
+  'PAYMENT_PENDING',
+  'PAYMENT_SUCCEEDED',
+  'PAYMENT_FAILED',
+  'REFUND_REQUESTED',
+  'REFUNDED',
+  'REFUND_FAILED',
+  'FORFEITED',
+  'SETTLED_TO_MERCHANT',
 ] as const;
 export type ReservationEventType = (typeof RESERVATION_EVENT_TYPES)[number];
 
@@ -186,6 +205,10 @@ export const NOTIFICATION_TYPES = [
   'BENEFIT_UPDATED',
   /** NT-02: the customer finished setting up their profile (welcome). */
   'ACCOUNT_WELCOME',
+  /** Reservation commitment (2026-10-15): a payment did not go through; a refund was made / failed; an amount was kept per the terms. */
+  'RESERVATION_PAYMENT_FAILED',
+  'RESERVATION_REFUND_UPDATED',
+  'RESERVATION_FORFEITED',
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
@@ -208,6 +231,9 @@ export const NOTIFICATION_CATEGORY_OF: Partial<
   RESERVATION_EXPIRING: 'ORDERS',
   RESERVATION_EXPIRED: 'ORDERS',
   RESERVATION_CANCELLED: 'ORDERS',
+  RESERVATION_PAYMENT_FAILED: 'ORDERS',
+  RESERVATION_REFUND_UPDATED: 'ORDERS',
+  RESERVATION_FORFEITED: 'ORDERS',
   REDEMPTION_SUCCESS: 'ORDERS',
   PURCHASE_SUCCEEDED: 'ORDERS',
   PAYMENT_FAILED: 'ORDERS',

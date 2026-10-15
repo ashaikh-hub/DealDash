@@ -10,7 +10,10 @@ import {
   HOT_DEAL_STATUSES,
   LIVE_DEAL_MECHANICS,
   NOTIFICATION_TYPES,
+  PAID_COMMITMENT_METHODS,
   REDEMPTION_RESULTS,
+  REFUND_STATUSES,
+  RESERVATION_PAYMENT_STATUSES,
   RESERVATION_STATUSES,
 } from '@dealdash/types';
 import {
@@ -498,18 +501,53 @@ export const hotDealDetailSchema = hotDealCardSchema.extend({
 });
 export type HotDealDetail = z.infer<typeof hotDealDetailSchema>;
 
+export const reservationPaymentViewSchema = z.object({
+  method: z.enum(PAID_COMMITMENT_METHODS),
+  status: z.enum(RESERVATION_PAYMENT_STATUSES),
+  /** All units, minor units of `currency`. */
+  amountMinor: z.number().int(),
+  currency: z.string(),
+  /** While waiting for payment: when the units are released if it is not completed. */
+  dueAt: z.string().nullable(),
+  /** The provider's payment page for the open attempt. */
+  redirectUrl: z.string().nullable(),
+  canRetry: z.boolean(),
+  /** After this moment a customer cancellation no longer returns the refundable amounts (RC-40 / RC-41). */
+  cancelCutoffAt: z.string().nullable(),
+  depositRefundable: z.boolean().nullable(),
+  noShowRefundPercent: z.number().int().nullable(),
+  /** Amount kept for the merchant under the terms (redeemed, forfeited or the kept part). */
+  keptMinor: z.number().int().nullable(),
+  refunds: z.array(
+    z.object({
+      reference: z.string(),
+      amountMinor: z.number().int(),
+      status: z.enum(REFUND_STATUSES),
+      reasonCode: z.string(),
+      refundedAt: z.string().nullable(),
+    }),
+  ),
+});
+
 export const reservationViewSchema = z.object({
   id: uuid,
   publicRef: z.string(),
   status: z.enum(RESERVATION_STATUSES),
-  /** Customer-facing state with neutral wording: HELD, REDEEMED, NOT_COMPLETED, CANCELLED_BY_YOU, CANCELLED_BY_MERCHANT. */
+  /**
+   * Customer-facing state with neutral wording: HELD, REDEEMED, NOT_COMPLETED, CANCELLED_BY_YOU, CANCELLED_BY_MERCHANT; paid
+   * reservations add PAYMENT_PENDING (waiting for the payment, no code yet) and PAYMENT_FAILED (not paid in time; nothing charged).
+   */
   displayState: z.enum([
     'HELD',
     'REDEEMED',
     'NOT_COMPLETED',
     'CANCELLED_BY_YOU',
     'CANCELLED_BY_MERCHANT',
+    'PAYMENT_PENDING',
+    'PAYMENT_FAILED',
   ]),
+  /** Paid reservations only (RC-81): what was paid, the terms that apply, and refunds. Absent for FREE reservations. */
+  payment: reservationPaymentViewSchema.optional(),
   quantity: z.number().int(),
   holdMinutes: z.number().int(),
   createdAt: z.string(),
@@ -647,6 +685,20 @@ export const merchantReservationRowSchema = z.object({
   redeemedAt: z.string().nullable(),
   canCancel: z.boolean(),
   canReverse: z.boolean(),
+  /** RC-80: the merchant's financial view of a paid reservation (absent for FREE reservations). */
+  money: z
+    .object({
+      method: z.enum(COMMITMENT_METHODS),
+      paymentStatus: z.enum(RESERVATION_PAYMENT_STATUSES),
+      amountMinor: z.number().int(),
+      currency: z.string(),
+      refundedMinor: z.number().int(),
+      refundPendingMinor: z.number().int(),
+      keptMinor: z.number().int().nullable(),
+      feeMinor: z.number().int().nullable(),
+      netToMerchantMinor: z.number().int().nullable(),
+    })
+    .optional(),
 });
 
 export const hotMonitorSchema = z.object({

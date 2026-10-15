@@ -26,7 +26,7 @@ const DEPOSIT = {
 /**
  * Reservation commitment model, build phase 1 (founder decision 2026-10-15, RC-01..RC-90): policy hierarchy through governed
  * configuration, merchant-side commitment validation, the reservation snapshot and backfill shape, the FREE gate, admin strike reset.
- * No payment exists yet: paid methods are refused at reservation time with RESERVATION_PAYMENT_UNAVAILABLE.
+ * Paid methods take payment since phase 2 (reservation-payments.e2e.test.ts); card pre-authorisation is still refused (phase 3).
  */
 describe.skipIf(!DB_READY)('Reservation commitment model (phase 1)', () => {
   let t: TestApp;
@@ -154,7 +154,7 @@ describe.skipIf(!DB_READY)('Reservation commitment model (phase 1)', () => {
     }
   });
 
-  it('a valid deposit deal publishes with its policy snapshot; reserving waits for the payment step (phase 2)', async () => {
+  it('a valid deposit deal publishes with its policy snapshot; reserving it waits for payment; card holds wait for phase 3', async () => {
     await setMerchantOverride({ freeAllowed: false, depositMaxMinor: 2_000 });
     try {
       const deal = await w.publishHot('A', 4, { commitment: DEPOSIT });
@@ -175,14 +175,22 @@ describe.skipIf(!DB_READY)('Reservation commitment model (phase 1)', () => {
           cutoffMaxMinutes: 'BASELINE',
         },
       });
+      // phase 2: a deposit reservation waits for its payment (units held, no code yet)
       const c = await w.newCustomer();
       const res = await w.reserve(c, deal.id, w.A.branchIds[0]!);
-      expect(res.status).toBe(409);
-      expect(res.body.errors[0].code).toBe('RESERVATION_PAYMENT_UNAVAILABLE');
+      expect(res.status, JSON.stringify(res.body)).toBe(201);
+      expect(res.body.data).toMatchObject({ status: 'PENDING_PAYMENT', code: null });
       const inv = await t.prisma.hotDealInventory.findUniqueOrThrow({
         where: { dealId_branchId: { dealId: deal.id, branchId: w.A.branchIds[0]! } },
       });
-      expect(inv.reserved).toBe(0);
+      expect(inv.reserved).toBe(1);
+      // card pre-authorisation is build phase 3: still refused, nothing held
+      const preauth = await w.publishHot('A', 4, {
+        commitment: { method: 'CARD_PREAUTH', amountMinor: 1_000, cancelCutoffMinutes: 15 },
+      });
+      const pa = await w.reserve(await w.newCustomer(), preauth.id, w.A.branchIds[0]!);
+      expect(pa.status).toBe(409);
+      expect(pa.body.errors[0].code).toBe('RESERVATION_PAYMENT_UNAVAILABLE');
       // the commitment is material: it cannot change on a live deal
       const edit = await w
         .api(w.ownerA)

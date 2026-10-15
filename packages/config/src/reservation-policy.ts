@@ -37,6 +37,11 @@ const policyFieldShape = {
   prepaymentRefundMinPercent: percent,
   prepaymentRefundMaxPercent: percent,
   prepaymentRefundDefaultPercent: percent,
+  /**
+   * RC-71: DealDash's agreed commission on reservation money kept for the merchant (redeemed, forfeited, kept part), in basis points.
+   * A merchant override is that merchant's agreed rate. Default 0: DealDash keeps nothing unless a rate is agreed.
+   */
+  commissionBps: z.number().int().min(0).max(10_000),
 };
 
 export const reservationPolicyFieldsSchema = z.object(policyFieldShape).strict();
@@ -66,7 +71,10 @@ const uuid = z.string().uuid();
 
 export const reservationPolicySchema = z
   .object({
-    baseline: reservationPolicyFieldsSchema,
+    // a baseline stored before the commission field existed reads as 0 (overrides never get a default: they inherit)
+    baseline: reservationPolicyFieldsSchema.extend({
+      commissionBps: z.number().int().min(0).max(10_000).default(0),
+    }),
     market: z.record(marketCode, reservationPolicyOverrideSchema).default({}),
     category: z.record(uuid, reservationPolicyOverrideSchema).default({}),
     merchant: z.record(uuid, reservationPolicyOverrideSchema).default({}),
@@ -92,6 +100,7 @@ export const DEFAULT_RESERVATION_POLICY: ReservationPolicyConfig = {
     prepaymentRefundMinPercent: 0,
     prepaymentRefundMaxPercent: 100,
     prepaymentRefundDefaultPercent: 50,
+    commissionBps: 0,
   },
   market: {},
   category: {},

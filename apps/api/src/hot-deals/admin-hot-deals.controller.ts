@@ -25,8 +25,11 @@ import {
   SubStatusResponse,
   EffectivePolicyQueryDto,
   ReservationPolicyResponse,
+  ReservationRefundListResponse,
+  ReservationRefundResponse,
   StrikeResetResponse,
 } from './dto';
+import { ReservationPaymentsService } from './reservation-payments.service';
 import { HotReviewService } from './hot-review.service';
 
 /**
@@ -187,12 +190,43 @@ export class AdminHotDealsController {
   }
 }
 
+const refundRow = (f: {
+  id: string;
+  reference: string;
+  reservationId: string;
+  organizationId: string;
+  amountMinor: number;
+  currency: string;
+  status: string;
+  reasonCode: string;
+  failureCode: string | null;
+  attempts: number;
+  createdAt: Date;
+  refundedAt: Date | null;
+}) => ({
+  id: f.id,
+  reference: f.reference,
+  reservationId: f.reservationId,
+  organizationId: f.organizationId,
+  amountMinor: f.amountMinor,
+  currency: f.currency,
+  status: f.status,
+  reasonCode: f.reasonCode,
+  failureCode: f.failureCode,
+  attempts: f.attempts,
+  createdAt: f.createdAt.toISOString(),
+  refundedAt: f.refundedAt?.toISOString() ?? null,
+});
+
 /** Reservation tools for DealDash Operations and Support (restrictions, lookup, cancel, reverse a redemption). */
 @ApiTags('admin-reservations')
 @Controller('admin/reservations')
 @Audiences('admin')
 export class AdminReservationsController {
-  constructor(private readonly tools: AdminReservationsService) {}
+  constructor(
+    private readonly tools: AdminReservationsService,
+    private readonly money: ReservationPaymentsService,
+  ) {}
 
   @Get('restrictions')
   @RequirePermissions('admin.reservations.manage')
@@ -226,6 +260,27 @@ export class AdminReservationsController {
     @Meta() meta: RequestMeta,
   ) {
     return this.tools.resetStrikes(actor, { userId }, body.reason, meta);
+  }
+
+  /** RC-43: reservation refunds the provider refused (finance exception queue). */
+  @Get('refunds/failed')
+  @RequirePermissions('admin.reservations.manage')
+  @ApiOkResponse({ type: ReservationRefundListResponse })
+  async failedRefunds() {
+    return (await this.money.failedRefunds()).map(refundRow);
+  }
+
+  /** Retry a failed reservation refund (same provider idempotency key: never refunded twice). */
+  @Post('refunds/:refundId/retry')
+  @HttpCode(200)
+  @RequirePermissions('admin.reservations.manage')
+  @ApiOkResponse({ type: ReservationRefundResponse })
+  async retryRefund(
+    @Param('refundId', ParseUUIDPipe) refundId: string,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
+    return refundRow(await this.money.retryRefund(actor, refundId, meta));
   }
 
   /** RC-10 / RC-11: the effective reservation policy for a market (and optionally a category and a business), with sources. */

@@ -2244,6 +2244,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/reservations/refunds/failed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminReservationsController_failedRefunds_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/reservations/refunds/{refundId}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminReservationsController_retryRefund_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/reservations/policy": {
         parameters: {
             query?: never;
@@ -2414,6 +2446,22 @@ export interface paths {
         get: operations["CustomerHotController_one_v1"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/reservations/{id}/pay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CustomerHotController_pay_v1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -16044,6 +16092,7 @@ export interface components {
                     prepaymentRefundMinPercent: number;
                     prepaymentRefundMaxPercent: number;
                     prepaymentRefundDefaultPercent: number;
+                    commissionBps: number;
                 };
                 source: {
                     [key: string]: "MERCHANT" | "CATEGORY" | "MARKET" | "BASELINE";
@@ -17847,7 +17896,7 @@ export interface components {
                     /** Format: uuid */
                     id: string;
                     /** @enum {string} */
-                    status: "HELD" | "REDEEMED" | "EXPIRED" | "CANCELLED";
+                    status: "HELD" | "REDEEMED" | "EXPIRED" | "CANCELLED" | "PENDING_PAYMENT" | "PAYMENT_FAILED";
                     quantity: number;
                     /** Format: uuid */
                     branchId: string;
@@ -17953,7 +18002,7 @@ export interface components {
                     ar: string;
                 };
                 /** @enum {string} */
-                status: "HELD" | "REDEEMED" | "EXPIRED" | "CANCELLED";
+                status: "HELD" | "REDEEMED" | "EXPIRED" | "CANCELLED" | "PENDING_PAYMENT" | "PAYMENT_FAILED";
                 /** @enum {string|null} */
                 cancelledBy: "CUSTOMER" | "MERCHANT" | "DEALDASH" | "SYSTEM" | null;
                 expiresAt: string;
@@ -17961,6 +18010,19 @@ export interface components {
                 redeemedAt: string | null;
                 canCancel: boolean;
                 canReverse: boolean;
+                money?: {
+                    /** @enum {string} */
+                    method: "FREE" | "FULL_PREPAYMENT" | "DEPOSIT" | "CARD_PREAUTH";
+                    /** @enum {string} */
+                    paymentStatus: "NOT_REQUIRED" | "PENDING" | "PAID" | "AUTHORISED" | "CAPTURED" | "VOIDED" | "FAILED" | "PARTIALLY_REFUNDED" | "REFUNDED" | "FORFEITED";
+                    amountMinor: number;
+                    currency: string;
+                    refundedMinor: number;
+                    refundPendingMinor: number;
+                    keptMinor: number | null;
+                    feeMinor: number | null;
+                    netToMerchantMinor: number | null;
+                };
             }[];
             meta: {
                 requestId?: string;
@@ -17978,9 +18040,32 @@ export interface components {
                 id: string;
                 publicRef: string;
                 /** @enum {string} */
-                status: "HELD" | "REDEEMED" | "EXPIRED" | "CANCELLED";
+                status: "HELD" | "REDEEMED" | "EXPIRED" | "CANCELLED" | "PENDING_PAYMENT" | "PAYMENT_FAILED";
                 /** @enum {string} */
-                displayState: "HELD" | "REDEEMED" | "NOT_COMPLETED" | "CANCELLED_BY_YOU" | "CANCELLED_BY_MERCHANT";
+                displayState: "HELD" | "REDEEMED" | "NOT_COMPLETED" | "CANCELLED_BY_YOU" | "CANCELLED_BY_MERCHANT" | "PAYMENT_PENDING" | "PAYMENT_FAILED";
+                payment?: {
+                    /** @enum {string} */
+                    method: "FULL_PREPAYMENT" | "DEPOSIT" | "CARD_PREAUTH";
+                    /** @enum {string} */
+                    status: "NOT_REQUIRED" | "PENDING" | "PAID" | "AUTHORISED" | "CAPTURED" | "VOIDED" | "FAILED" | "PARTIALLY_REFUNDED" | "REFUNDED" | "FORFEITED";
+                    amountMinor: number;
+                    currency: string;
+                    dueAt: string | null;
+                    redirectUrl: string | null;
+                    canRetry: boolean;
+                    cancelCutoffAt: string | null;
+                    depositRefundable: boolean | null;
+                    noShowRefundPercent: number | null;
+                    keptMinor: number | null;
+                    refunds: {
+                        reference: string;
+                        amountMinor: number;
+                        /** @enum {string} */
+                        status: "REQUESTED" | "UNDER_REVIEW" | "APPROVED" | "REJECTED" | "PROCESSING" | "REFUNDED" | "FAILED";
+                        reasonCode: string;
+                        refundedAt: string | null;
+                    }[];
+                };
                 quantity: number;
                 holdMinutes: number;
                 createdAt: string;
@@ -18659,7 +18744,7 @@ export interface components {
                         /** Format: uuid */
                         id: string;
                         /** @enum {string} */
-                        status: "HELD" | "REDEEMED" | "EXPIRED" | "CANCELLED";
+                        status: "HELD" | "REDEEMED" | "EXPIRED" | "CANCELLED" | "PENDING_PAYMENT" | "PAYMENT_FAILED";
                         quantity: number;
                         /** Format: uuid */
                         branchId: string;
@@ -18725,6 +18810,56 @@ export interface components {
             data: {
                 reset: number;
                 reservationIds: string[];
+            };
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
+        };
+        ReservationRefundListResponse: {
+            data: {
+                /** Format: uuid */
+                id: string;
+                reference: string;
+                /** Format: uuid */
+                reservationId: string;
+                /** Format: uuid */
+                organizationId: string;
+                amountMinor: number;
+                currency: string;
+                status: string;
+                reasonCode: string;
+                failureCode: string | null;
+                attempts: number;
+                createdAt: string;
+                refundedAt: string | null;
+            }[];
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
+        };
+        ReservationRefundResponse: {
+            data: {
+                /** Format: uuid */
+                id: string;
+                reference: string;
+                /** Format: uuid */
+                reservationId: string;
+                /** Format: uuid */
+                organizationId: string;
+                amountMinor: number;
+                currency: string;
+                status: string;
+                reasonCode: string;
+                failureCode: string | null;
+                attempts: number;
+                createdAt: string;
+                refundedAt: string | null;
             };
             meta: {
                 requestId?: string;
@@ -19002,7 +19137,7 @@ export interface components {
                     /** Format: uuid */
                     id: string;
                     /** @enum {string} */
-                    status: "HELD" | "REDEEMED" | "EXPIRED" | "CANCELLED";
+                    status: "HELD" | "REDEEMED" | "EXPIRED" | "CANCELLED" | "PENDING_PAYMENT" | "PAYMENT_FAILED";
                     quantity: number;
                     /** Format: uuid */
                     branchId: string;
@@ -19031,9 +19166,32 @@ export interface components {
                 id: string;
                 publicRef: string;
                 /** @enum {string} */
-                status: "HELD" | "REDEEMED" | "EXPIRED" | "CANCELLED";
+                status: "HELD" | "REDEEMED" | "EXPIRED" | "CANCELLED" | "PENDING_PAYMENT" | "PAYMENT_FAILED";
                 /** @enum {string} */
-                displayState: "HELD" | "REDEEMED" | "NOT_COMPLETED" | "CANCELLED_BY_YOU" | "CANCELLED_BY_MERCHANT";
+                displayState: "HELD" | "REDEEMED" | "NOT_COMPLETED" | "CANCELLED_BY_YOU" | "CANCELLED_BY_MERCHANT" | "PAYMENT_PENDING" | "PAYMENT_FAILED";
+                payment?: {
+                    /** @enum {string} */
+                    method: "FULL_PREPAYMENT" | "DEPOSIT" | "CARD_PREAUTH";
+                    /** @enum {string} */
+                    status: "NOT_REQUIRED" | "PENDING" | "PAID" | "AUTHORISED" | "CAPTURED" | "VOIDED" | "FAILED" | "PARTIALLY_REFUNDED" | "REFUNDED" | "FORFEITED";
+                    amountMinor: number;
+                    currency: string;
+                    dueAt: string | null;
+                    redirectUrl: string | null;
+                    canRetry: boolean;
+                    cancelCutoffAt: string | null;
+                    depositRefundable: boolean | null;
+                    noShowRefundPercent: number | null;
+                    keptMinor: number | null;
+                    refunds: {
+                        reference: string;
+                        amountMinor: number;
+                        /** @enum {string} */
+                        status: "REQUESTED" | "UNDER_REVIEW" | "APPROVED" | "REJECTED" | "PROCESSING" | "REFUNDED" | "FAILED";
+                        reasonCode: string;
+                        refundedAt: string | null;
+                    }[];
+                };
                 quantity: number;
                 holdMinutes: number;
                 createdAt: string;
@@ -19100,7 +19258,7 @@ export interface components {
                     /** Format: uuid */
                     id: string;
                     /** @enum {string} */
-                    type: "RESERVATION_CONFIRMED" | "RESERVATION_EXPIRING" | "RESERVATION_EXPIRED" | "RESERVATION_CANCELLED" | "REDEMPTION_SUCCESS" | "PURCHASE_SUCCEEDED" | "PAYMENT_FAILED" | "VOUCHER_ISSUED" | "VOUCHER_EXPIRING" | "REFUND_UPDATED" | "VOUCHER_REDEEMED" | "REWARD_EARNED" | "REWARD_HELD" | "REWARD_RELEASED" | "REWARD_REVERSED" | "REWARD_EXPIRING" | "CAMPAIGN_COMPLETED" | "ALERT" | "CASE_UPDATED" | "ACCOUNT_RESTRICTION" | "BENEFIT_UPDATED" | "ACCOUNT_WELCOME";
+                    type: "RESERVATION_CONFIRMED" | "RESERVATION_EXPIRING" | "RESERVATION_EXPIRED" | "RESERVATION_CANCELLED" | "REDEMPTION_SUCCESS" | "PURCHASE_SUCCEEDED" | "PAYMENT_FAILED" | "VOUCHER_ISSUED" | "VOUCHER_EXPIRING" | "REFUND_UPDATED" | "VOUCHER_REDEEMED" | "REWARD_EARNED" | "REWARD_HELD" | "REWARD_RELEASED" | "REWARD_REVERSED" | "REWARD_EXPIRING" | "CAMPAIGN_COMPLETED" | "ALERT" | "CASE_UPDATED" | "ACCOUNT_RESTRICTION" | "BENEFIT_UPDATED" | "ACCOUNT_WELCOME" | "RESERVATION_PAYMENT_FAILED" | "RESERVATION_REFUND_UPDATED" | "RESERVATION_FORFEITED";
                     data: {
                         [key: string]: unknown;
                     };
@@ -31863,7 +32021,7 @@ export interface operations {
             query?: {
                 limit?: number;
                 cursor?: string;
-                status?: "HELD" | "REDEEMED" | "EXPIRED" | "CANCELLED";
+                status?: "HELD" | "REDEEMED" | "EXPIRED" | "CANCELLED" | "PENDING_PAYMENT" | "PAYMENT_FAILED";
                 branchId?: string;
                 q?: string;
             };
@@ -32369,6 +32527,46 @@ export interface operations {
             };
         };
     };
+    AdminReservationsController_failedRefunds_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReservationRefundListResponse"];
+                };
+            };
+        };
+    };
+    AdminReservationsController_retryRefund_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                refundId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReservationRefundResponse"];
+                };
+            };
+        };
+    };
     AdminReservationsController_policy_v1: {
         parameters: {
             query: {
@@ -32613,6 +32811,27 @@ export interface operations {
         };
     };
     CustomerHotController_one_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReservationResponse"];
+                };
+            };
+        };
+    };
+    CustomerHotController_pay_v1: {
         parameters: {
             query?: never;
             header?: never;

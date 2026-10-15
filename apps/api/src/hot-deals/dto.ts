@@ -201,6 +201,7 @@ const policyFields = z.object({
   prepaymentRefundMinPercent: z.number().int(),
   prepaymentRefundMaxPercent: z.number().int(),
   prepaymentRefundDefaultPercent: z.number().int(),
+  commissionBps: z.number().int(),
 });
 const effectivePolicy = z.object({
   market: z.string(),
@@ -225,6 +226,24 @@ export class MerchantPolicyQueryDto extends createZodDto(
   z.object({ categoryId: uuid.optional(), branchId: uuid.optional() }),
 ) {}
 export class ReservationPolicyResponse extends createZodDto(envelope(effectivePolicy)) {}
+const reservationRefundRow = z.object({
+  id: uuid,
+  reference: z.string(),
+  reservationId: uuid,
+  organizationId: uuid,
+  amountMinor: z.number().int(),
+  currency: z.string(),
+  status: z.string(),
+  reasonCode: z.string(),
+  failureCode: z.string().nullable(),
+  attempts: z.number().int(),
+  createdAt: z.string(),
+  refundedAt: z.string().nullable(),
+});
+export class ReservationRefundResponse extends createZodDto(envelope(reservationRefundRow)) {}
+export class ReservationRefundListResponse extends createZodDto(
+  envelope(z.array(reservationRefundRow)),
+) {}
 export class StrikeResetResponse extends createZodDto(
   envelope(z.object({ reset: z.number().int(), reservationIds: z.array(uuid) })),
 ) {}

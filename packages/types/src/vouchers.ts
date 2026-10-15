@@ -215,6 +215,10 @@ export const LEDGER_JOURNAL_TYPES = [
   // Stage 8: recorded merchant settlement payouts and their reversal
   'SETTLEMENT_PAYOUT',
   'SETTLEMENT_REVERSAL',
+  // Reservation commitment (2026-10-15): money received, amount kept for the merchant net of fee, refund
+  'RESERVATION_PAYMENT',
+  'RESERVATION_SETTLEMENT',
+  'RESERVATION_REFUND',
 ] as const;
 export type LedgerJournalType = (typeof LEDGER_JOURNAL_TYPES)[number];
 

@@ -18,6 +18,7 @@ import { RestrictionCheckService } from '../operations/restriction-check.service
 import { LoyaltyIssuanceService } from '../loyalty/loyalty-issuance.service';
 import { HotCoreService } from './hot-core.service';
 import { NotificationsService, type NotificationInput } from './notifications.service';
+import { ReservationPaymentsService, type PostCommit } from './reservation-payments.service';
 import { ReservationsService } from './reservations.service';
 
 const RES_INCLUDE = {
@@ -110,6 +111,7 @@ export class RedemptionService {
     private readonly eligibility: EligibilityService,
     private readonly notifications: NotificationsService,
     private readonly config: SystemConfigService,
+    private readonly money: ReservationPaymentsService,
     @Optional() private readonly loyalty?: LoyaltyIssuanceService,
     @Optional() private readonly usage?: UsageService,
     @Optional() private readonly restrictions?: RestrictionCheckService,
@@ -464,6 +466,11 @@ export class RedemptionService {
             note: input.source,
           },
         });
+        // RC-61: a paid reservation's amount is used / credited to the bill: kept for the merchant, net of the agreed commission
+        await this.money.settleOnEnd(tx, target.id, 'REDEEMED', now, [], {
+          redemptionId: created.id,
+          actor,
+        });
         await tx.dealEvent.create({
           data: {
             type: 'RESERVATION_REDEEMED',
@@ -750,7 +757,8 @@ export class RedemptionService {
     const q = red.reservation.quantity;
     const cancelled = red.reservation.deal.status === 'CANCELLED';
     const hold = await this.core.holdMinutes(red.reservation.deal);
-    await this.prisma.$transaction(async (tx) => {
+    const post: PostCommit[] = [];
+    const moneyNotices = await this.prisma.$transaction(async (tx) => {
       const claimed = await tx.redemption.updateMany({
         where: { id: red.id, status: 'REDEEMED' },
         data: {
@@ -824,7 +832,24 @@ export class RedemptionService {
         tx,
       );
       await this.reservations.syncAvailability(tx, red.dealId, now);
+      // a paid reservation: the amount kept at redemption is held for the merchant again; a cancelled campaign refunds it in full
+      await this.money.unsettleRedemption(tx, red.reservationId, red.id, actor);
+      return cancelled
+        ? this.notifications.emit(
+            tx,
+            await this.money.settleOnEnd(
+              tx,
+              red.reservationId,
+              scope.byDealDash ? 'DEALDASH_CANCELLED' : 'MERCHANT_CANCELLED',
+              now,
+              post,
+              { actor },
+            ),
+          )
+        : [];
     });
+    await this.notifications.dispatch(moneyNotices);
+    for (const fn of post) await Promise.resolve(fn()).catch(() => undefined);
     return { id: red.id, status: 'REVERSED' as const };
   }
 }

@@ -18,6 +18,7 @@ import { MerchantHotDealsController } from './merchant-hot-deals.controller';
 import { MerchantHotDealsService } from './merchant-hot-deals.service';
 import { NotificationsService } from './notifications.service';
 import { RedemptionService } from './redemption.service';
+import { ReservationPaymentsService } from './reservation-payments.service';
 import { ReservationPolicyService } from './reservation-policy.service';
 import { ReservationsService } from './reservations.service';
 import { StaffController } from './staff.controller';
@@ -40,6 +41,7 @@ import { StaffController } from './staff.controller';
   providers: [
     HotCommercialAdapter,
     ReservationPolicyService,
+    ReservationPaymentsService,
     HotCoreService,
     HotViewService,
     NotificationsService,
@@ -53,6 +55,7 @@ import { StaffController } from './staff.controller';
   ],
   exports: [
     ReservationPolicyService,
+    ReservationPaymentsService,
     ReservationsService,
     HotDiscoveryService,
     HotLifecycleService,

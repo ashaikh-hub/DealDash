@@ -1177,6 +1177,10 @@ enum ReservationStatus {
   REDEEMED
   EXPIRED
   CANCELLED
+  /// Paid methods (2026-10-15, RC-31): units held for the payment window, no code yet
+  PENDING_PAYMENT
+  /// Paid methods: payment failed, was abandoned or the window elapsed; units released, no charge, no strike (RC-33)
+  PAYMENT_FAILED
 }
 
 enum CancelledBy {
@@ -1196,6 +1200,15 @@ enum ReservationEventType {
   REDEMPTION_REVERSED
   /// RC-52: DealDash reset a counted no-show strike (reason in `note`)
   STRIKE_RESET
+  /// Phase 2 money events (RC-82)
+  PAYMENT_PENDING
+  PAYMENT_SUCCEEDED
+  PAYMENT_FAILED
+  REFUND_REQUESTED
+  REFUNDED
+  REFUND_FAILED
+  FORFEITED
+  SETTLED_TO_MERCHANT
 }
 
 /// Reservation commitment model (founder decision 2026-10-15, RC-04/05). FREE only where the effective reservation policy allows it.
@@ -1278,6 +1291,10 @@ enum NotificationType {
   BENEFIT_UPDATED
   /// NT-02: profile set-up finished (welcome)
   ACCOUNT_WELCOME
+  /// Reservation commitment (2026-10-15): payment failed / refund done or failed / amount kept per the accepted terms
+  RESERVATION_PAYMENT_FAILED
+  RESERVATION_REFUND_UPDATED
+  RESERVATION_FORFEITED
 }
 
 /// Hot Deal: urgent, limited by time and/or quantity. Reservation is optional (default off) and, when on, carries a commitment
@@ -1420,6 +1437,15 @@ model Reservation {
   strikeResetAt        DateTime?
   strikeResetByUserId  String?           @db.Uuid
   strikeResetReason    String?
+  // ---- phase 2: what happened to the money (RC-40..RC-72). Refunds are the ReservationRefund rows.
+  /// DealDash commission rate in force when the reservation was made (basis points; from the reservation policy).
+  commissionBps        Int?
+  /// Amount kept for the merchant (redeemed, forfeited or the kept part of a late cancellation / no-show), and the fee taken from it.
+  keptMinor            Int?
+  feeMinor             Int?
+  settledAt            DateTime?
+  payments             ReservationPayment[]
+  refunds              ReservationRefund[]
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
 
@@ -1434,6 +1460,61 @@ model Reservation {
   @@index([dealId, status])
   @@index([branchId, status, expiresAt])
   @@index([status, expiresAt])
+  @@index([organizationId, createdAt])
+}
+
+/// One row per payment attempt for a reservation commitment (2026-10-15, phase 2). No card data, ever. Kept apart from voucher
+/// `Payment` rows so the voucher engine is untouched; the provider webhook is routed here by provider reference.
+model ReservationPayment {
+  id                String        @id @default(uuid(7)) @db.Uuid
+  reservationId     String        @db.Uuid
+  provider          String
+  providerReference String?       @unique
+  status            PaymentStatus @default(CREATED)
+  amountMinor       Int
+  currency          String
+  attemptNo         Int           @default(1)
+  idempotencyKey    String        @unique
+  redirectUrl       String?
+  failureCode       String?
+  methodType        String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  completedAt       DateTime?
+
+  reservation Reservation         @relation(fields: [reservationId], references: [id])
+  refunds     ReservationRefund[]
+  events      PaymentEvent[]
+
+  @@index([reservationId, createdAt])
+  @@index([status, createdAt])
+}
+
+/// A refund of reservation money (RC-40..RC-43, RC-51). Partial amounts are allowed for reservations (PY-09 exception).
+model ReservationRefund {
+  id                      String       @id @default(uuid(7)) @db.Uuid
+  reference               String       @unique
+  reservationId           String       @db.Uuid
+  paymentId               String       @db.Uuid
+  organizationId          String       @db.Uuid
+  amountMinor             Int
+  currency                String
+  status                  RefundStatus @default(PROCESSING)
+  /// CUSTOMER_CANCELLED_IN_TIME | CUSTOMER_CANCELLED_LATE | NO_SHOW | MERCHANT_CANCELLED | DEALDASH_CANCELLED | LATE_PAYMENT | ...
+  reasonCode              String
+  providerRefundReference String?      @unique
+  idempotencyKey          String       @unique
+  failureCode             String?
+  attempts                Int          @default(0)
+  createdAt               DateTime     @default(now())
+  updatedAt               DateTime     @updatedAt
+  refundedAt              DateTime?
+
+  reservation Reservation        @relation(fields: [reservationId], references: [id])
+  payment     ReservationPayment @relation(fields: [paymentId], references: [id])
+
+  @@index([status, createdAt])
+  @@index([reservationId])
   @@index([organizationId, createdAt])
 }
 
@@ -1664,6 +1745,10 @@ enum LedgerJournalType {
   /// Stage 8: a recorded merchant settlement payout and its reversal
   SETTLEMENT_PAYOUT
   SETTLEMENT_REVERSAL
+  /// Reservation commitment (2026-10-15): money received, amount kept for the merchant (redeemed / forfeited) net of fee, refund
+  RESERVATION_PAYMENT
+  RESERVATION_SETTLEMENT
+  RESERVATION_REFUND
 }
 
 enum PayableEventType {
@@ -1854,10 +1939,14 @@ model PaymentEvent {
   note              String?
   occurredAt        DateTime?
   receivedAt        DateTime            @default(now())
+  /// Reservation commitment payments (2026-10-15): the same provider webhook, routed to a reservation payment attempt.
+  reservationPaymentId String?         @db.Uuid
 
-  payment Payment? @relation(fields: [paymentId], references: [id])
+  payment            Payment?            @relation(fields: [paymentId], references: [id])
+  reservationPayment ReservationPayment? @relation(fields: [reservationPaymentId], references: [id])
 
   @@index([paymentId, receivedAt])
+  @@index([reservationPaymentId, receivedAt])
 }
 
 model Refund {

@@ -5381,7 +5381,9 @@
                 "HELD",
                 "REDEEMED",
                 "EXPIRED",
-                "CANCELLED"
+                "CANCELLED",
+                "PENDING_PAYMENT",
+                "PAYMENT_FAILED"
               ]
             }
           },
@@ -6298,6 +6300,57 @@
         ]
       }
     },
+    "/v1/admin/reservations/refunds/failed": {
+      "get": {
+        "operationId": "AdminReservationsController_failedRefunds_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationRefundListResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "admin-reservations"
+        ]
+      }
+    },
+    "/v1/admin/reservations/refunds/{refundId}/retry": {
+      "post": {
+        "operationId": "AdminReservationsController_retryRefund_v1",
+        "parameters": [
+          {
+            "name": "refundId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationRefundResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "admin-reservations"
+        ]
+      }
+    },
     "/v1/admin/reservations/policy": {
       "get": {
         "operationId": "AdminReservationsController_policy_v1",
@@ -6815,6 +6868,36 @@
     "/v1/app/reservations/{id}": {
       "get": {
         "operationId": "CustomerHotController_one_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-hot-deals"
+        ]
+      }
+    },
+    "/v1/app/reservations/{id}/pay": {
+      "post": {
+        "operationId": "CustomerHotController_pay_v1",
         "parameters": [
           {
             "name": "id",
@@ -46616,6 +46699,11 @@
                     "type": "integer",
                     "minimum": -9007199254740991,
                     "maximum": 9007199254740991
+                  },
+                  "commissionBps": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
                   }
                 },
                 "required": [
@@ -46630,7 +46718,8 @@
                   "paymentWindowMinutes",
                   "prepaymentRefundMinPercent",
                   "prepaymentRefundMaxPercent",
-                  "prepaymentRefundDefaultPercent"
+                  "prepaymentRefundDefaultPercent",
+                  "commissionBps"
                 ]
               },
               "source": {
@@ -51862,7 +51951,9 @@
                         "HELD",
                         "REDEEMED",
                         "EXPIRED",
-                        "CANCELLED"
+                        "CANCELLED",
+                        "PENDING_PAYMENT",
+                        "PAYMENT_FAILED"
                       ]
                     },
                     "quantity": {
@@ -52386,7 +52477,9 @@
                     "HELD",
                     "REDEEMED",
                     "EXPIRED",
-                    "CANCELLED"
+                    "CANCELLED",
+                    "PENDING_PAYMENT",
+                    "PAYMENT_FAILED"
                   ]
                 },
                 "cancelledBy": {
@@ -52417,6 +52510,82 @@
                 },
                 "canReverse": {
                   "type": "boolean"
+                },
+                "money": {
+                  "type": "object",
+                  "properties": {
+                    "method": {
+                      "type": "string",
+                      "enum": [
+                        "FREE",
+                        "FULL_PREPAYMENT",
+                        "DEPOSIT",
+                        "CARD_PREAUTH"
+                      ]
+                    },
+                    "paymentStatus": {
+                      "type": "string",
+                      "enum": [
+                        "NOT_REQUIRED",
+                        "PENDING",
+                        "PAID",
+                        "AUTHORISED",
+                        "CAPTURED",
+                        "VOIDED",
+                        "FAILED",
+                        "PARTIALLY_REFUNDED",
+                        "REFUNDED",
+                        "FORFEITED"
+                      ]
+                    },
+                    "amountMinor": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "currency": {
+                      "type": "string"
+                    },
+                    "refundedMinor": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "refundPendingMinor": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "keptMinor": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991,
+                      "nullable": true
+                    },
+                    "feeMinor": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991,
+                      "nullable": true
+                    },
+                    "netToMerchantMinor": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991,
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "method",
+                    "paymentStatus",
+                    "amountMinor",
+                    "currency",
+                    "refundedMinor",
+                    "refundPendingMinor",
+                    "keptMinor",
+                    "feeMinor",
+                    "netToMerchantMinor"
+                  ]
                 }
               },
               "required": [
@@ -52495,7 +52664,9 @@
                   "HELD",
                   "REDEEMED",
                   "EXPIRED",
-                  "CANCELLED"
+                  "CANCELLED",
+                  "PENDING_PAYMENT",
+                  "PAYMENT_FAILED"
                 ]
               },
               "displayState": {
@@ -52505,7 +52676,142 @@
                   "REDEEMED",
                   "NOT_COMPLETED",
                   "CANCELLED_BY_YOU",
-                  "CANCELLED_BY_MERCHANT"
+                  "CANCELLED_BY_MERCHANT",
+                  "PAYMENT_PENDING",
+                  "PAYMENT_FAILED"
+                ]
+              },
+              "payment": {
+                "type": "object",
+                "properties": {
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "FULL_PREPAYMENT",
+                      "DEPOSIT",
+                      "CARD_PREAUTH"
+                    ]
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "NOT_REQUIRED",
+                      "PENDING",
+                      "PAID",
+                      "AUTHORISED",
+                      "CAPTURED",
+                      "VOIDED",
+                      "FAILED",
+                      "PARTIALLY_REFUNDED",
+                      "REFUNDED",
+                      "FORFEITED"
+                    ]
+                  },
+                  "amountMinor": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "currency": {
+                    "type": "string"
+                  },
+                  "dueAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "redirectUrl": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "canRetry": {
+                    "type": "boolean"
+                  },
+                  "cancelCutoffAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "depositRefundable": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
+                  "noShowRefundPercent": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991,
+                    "nullable": true
+                  },
+                  "keptMinor": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991,
+                    "nullable": true
+                  },
+                  "refunds": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "reference": {
+                          "type": "string"
+                        },
+                        "amountMinor": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "REQUESTED",
+                            "UNDER_REVIEW",
+                            "APPROVED",
+                            "REJECTED",
+                            "PROCESSING",
+                            "REFUNDED",
+                            "FAILED"
+                          ]
+                        },
+                        "reasonCode": {
+                          "type": "string"
+                        },
+                        "refundedAt": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "reference",
+                        "amountMinor",
+                        "status",
+                        "reasonCode",
+                        "refundedAt"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "method",
+                  "status",
+                  "amountMinor",
+                  "currency",
+                  "dueAt",
+                  "redirectUrl",
+                  "canRetry",
+                  "cancelCutoffAt",
+                  "depositRefundable",
+                  "noShowRefundPercent",
+                  "keptMinor",
+                  "refunds"
                 ]
               },
               "quantity": {
@@ -55002,7 +55308,9 @@
                             "HELD",
                             "REDEEMED",
                             "EXPIRED",
-                            "CANCELLED"
+                            "CANCELLED",
+                            "PENDING_PAYMENT",
+                            "PAYMENT_FAILED"
                           ]
                         },
                         "quantity": {
@@ -55354,6 +55662,211 @@
             "required": [
               "reset",
               "reservationIds"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string"
+              },
+              "locale": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "ar"
+                ]
+              },
+              "nextCursor": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "ReservationRefundListResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "reference": {
+                  "type": "string"
+                },
+                "reservationId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "organizationId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "amountMinor": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "currency": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string"
+                },
+                "reasonCode": {
+                  "type": "string"
+                },
+                "failureCode": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "attempts": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "createdAt": {
+                  "type": "string"
+                },
+                "refundedAt": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "reference",
+                "reservationId",
+                "organizationId",
+                "amountMinor",
+                "currency",
+                "status",
+                "reasonCode",
+                "failureCode",
+                "attempts",
+                "createdAt",
+                "refundedAt"
+              ]
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string"
+              },
+              "locale": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "ar"
+                ]
+              },
+              "nextCursor": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "ReservationRefundResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "reference": {
+                "type": "string"
+              },
+              "reservationId": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "organizationId": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "amountMinor": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "currency": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "reasonCode": {
+                "type": "string"
+              },
+              "failureCode": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "attempts": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "createdAt": {
+                "type": "string"
+              },
+              "refundedAt": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "reference",
+              "reservationId",
+              "organizationId",
+              "amountMinor",
+              "currency",
+              "status",
+              "reasonCode",
+              "failureCode",
+              "attempts",
+              "createdAt",
+              "refundedAt"
             ]
           },
           "meta": {
@@ -56520,7 +57033,9 @@
                         "HELD",
                         "REDEEMED",
                         "EXPIRED",
-                        "CANCELLED"
+                        "CANCELLED",
+                        "PENDING_PAYMENT",
+                        "PAYMENT_FAILED"
                       ]
                     },
                     "quantity": {
@@ -56662,7 +57177,9 @@
                     "HELD",
                     "REDEEMED",
                     "EXPIRED",
-                    "CANCELLED"
+                    "CANCELLED",
+                    "PENDING_PAYMENT",
+                    "PAYMENT_FAILED"
                   ]
                 },
                 "displayState": {
@@ -56672,7 +57189,142 @@
                     "REDEEMED",
                     "NOT_COMPLETED",
                     "CANCELLED_BY_YOU",
-                    "CANCELLED_BY_MERCHANT"
+                    "CANCELLED_BY_MERCHANT",
+                    "PAYMENT_PENDING",
+                    "PAYMENT_FAILED"
+                  ]
+                },
+                "payment": {
+                  "type": "object",
+                  "properties": {
+                    "method": {
+                      "type": "string",
+                      "enum": [
+                        "FULL_PREPAYMENT",
+                        "DEPOSIT",
+                        "CARD_PREAUTH"
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "NOT_REQUIRED",
+                        "PENDING",
+                        "PAID",
+                        "AUTHORISED",
+                        "CAPTURED",
+                        "VOIDED",
+                        "FAILED",
+                        "PARTIALLY_REFUNDED",
+                        "REFUNDED",
+                        "FORFEITED"
+                      ]
+                    },
+                    "amountMinor": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "currency": {
+                      "type": "string"
+                    },
+                    "dueAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "redirectUrl": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "canRetry": {
+                      "type": "boolean"
+                    },
+                    "cancelCutoffAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "depositRefundable": {
+                      "type": [
+                        "boolean",
+                        "null"
+                      ]
+                    },
+                    "noShowRefundPercent": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991,
+                      "nullable": true
+                    },
+                    "keptMinor": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991,
+                      "nullable": true
+                    },
+                    "refunds": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "reference": {
+                            "type": "string"
+                          },
+                          "amountMinor": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "REQUESTED",
+                              "UNDER_REVIEW",
+                              "APPROVED",
+                              "REJECTED",
+                              "PROCESSING",
+                              "REFUNDED",
+                              "FAILED"
+                            ]
+                          },
+                          "reasonCode": {
+                            "type": "string"
+                          },
+                          "refundedAt": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "reference",
+                          "amountMinor",
+                          "status",
+                          "reasonCode",
+                          "refundedAt"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "method",
+                    "status",
+                    "amountMinor",
+                    "currency",
+                    "dueAt",
+                    "redirectUrl",
+                    "canRetry",
+                    "cancelCutoffAt",
+                    "depositRefundable",
+                    "noShowRefundPercent",
+                    "keptMinor",
+                    "refunds"
                   ]
                 },
                 "quantity": {
@@ -56976,7 +57628,10 @@
                         "CASE_UPDATED",
                         "ACCOUNT_RESTRICTION",
                         "BENEFIT_UPDATED",
-                        "ACCOUNT_WELCOME"
+                        "ACCOUNT_WELCOME",
+                        "RESERVATION_PAYMENT_FAILED",
+                        "RESERVATION_REFUND_UPDATED",
+                        "RESERVATION_FORFEITED"
                       ]
                     },
                     "data": {

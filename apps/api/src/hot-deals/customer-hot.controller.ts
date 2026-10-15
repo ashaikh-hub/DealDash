@@ -103,6 +103,19 @@ export class CustomerHotController {
     return this.reservations.getMine(actor.userId, id);
   }
 
+  /** Paid reservations (2026-10-15, RC-31): another payment attempt inside the payment window. */
+  @Post('reservations/:id/pay')
+  @HttpCode(200)
+  @RequirePermissions('customer.reservations.manage')
+  @ApiOkResponse({ type: ReservationResponse })
+  pay(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
+    return this.reservations.retryPayment(actor, id, meta);
+  }
+
   @Post('reservations/:id/cancel')
   @HttpCode(200)
   @RequirePermissions('customer.reservations.manage')

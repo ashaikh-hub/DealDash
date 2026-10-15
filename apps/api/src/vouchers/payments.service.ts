@@ -13,6 +13,7 @@ import { AppError } from '../common/errors';
 import { APP_ENV } from '../common/env';
 import type { Actor, RequestMeta } from '../common/request-context';
 import { NotificationsService, type NotificationInput } from '../hot-deals/notifications.service';
+import { ReservationPaymentsService } from '../hot-deals/reservation-payments.service';
 import { merchantDisplayName } from '../live-deals/deal-presenter.service';
 import { EligibilityService, evaluateEligibility } from '../live-deals/eligibility.service';
 import {
@@ -83,6 +84,7 @@ export class PaymentsService {
     @Inject(PAYMENT_PROVIDER) private readonly provider: PaymentProvider,
     @Inject(APP_ENV) private readonly env: ApiEnv,
     @Optional() private readonly loyalty?: LoyaltyIssuanceService,
+    @Optional() private readonly reservationPayments?: ReservationPaymentsService,
   ) {}
 
   private get prisma() {
@@ -610,6 +612,10 @@ export class PaymentsService {
     }
 
     try {
+      // Reservation commitment payments (2026-10-15) share this provider webhook: their events are routed to the reservation engine
+      // (after the same signature, freshness and duplicate checks); voucher events continue below unchanged.
+      if (this.reservationPayments && (await this.reservationPayments.owns(event)))
+        return { outcome: await this.reservationPayments.handleEvent(event, incoming) };
       if (event.kind === 'REFUND') {
         const r = await this.refunds.applyProviderRefund(
           event,

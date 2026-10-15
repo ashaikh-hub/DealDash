@@ -33,6 +33,22 @@ const RESERVATION = {
     'Refund if cancelled late or not completed',
     'الاسترداد عند الإلغاء المتأخر أو عدم إكمال الحجز',
   ],
+  // phase 2 customer reservation states
+  'res.state.PAYMENT_PENDING': ['Waiting for payment', 'بانتظار الدفع'],
+  'res.state.PAYMENT_FAILED': ['Not paid, nothing charged', 'لم يتم الدفع، لم يُخصم أي مبلغ'],
+  // phase 2 customer notifications (payment success is the reservation confirmation)
+  'notif.RESERVATION_PAYMENT_FAILED': [
+    'Your reservation payment at {merchant} did not go through',
+    'لم تتم عملية الدفع لحجزك لدى {merchant}',
+  ],
+  'notif.RESERVATION_REFUND_UPDATED': [
+    'Refund update for your reservation at {merchant}',
+    'تحديث استرداد مبلغ حجزك لدى {merchant}',
+  ],
+  'notif.RESERVATION_FORFEITED': [
+    'Your reservation amount at {merchant} was kept under the terms you accepted',
+    'تم الاحتفاظ بمبلغ حجزك لدى {merchant} وفق الشروط التي وافقت عليها',
+  ],
   'error.RESERVATION_METHOD_REQUIRED': [
     'This offer cannot be reserved right now.',
     'لا يمكن حجز هذا العرض الآن.',

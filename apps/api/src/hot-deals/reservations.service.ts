@@ -22,13 +22,26 @@ import {
   qrText,
 } from './hot-content';
 import { HotCoreService } from './hot-core.service';
+import { MarketService } from '../platform/markets/market.service';
 import { NotificationsService, type NotificationInput } from './notifications.service';
+import type { EndSituation } from './reservation-money';
+import {
+  MAX_PAYMENT_ATTEMPTS,
+  ReservationPaymentsService,
+  type PostCommit,
+} from './reservation-payments.service';
 import { ReservationPolicyService } from './reservation-policy.service';
 
 const RES_INCLUDE = {
   deal: { include: { organization: { include: { merchant: true } } } },
   branch: true,
+  // phase 2: the latest payment attempt (pay link) and the refunds the customer / merchant see
+  payments: { orderBy: { attemptNo: 'desc' as const }, take: 1 },
+  refunds: { orderBy: { createdAt: 'asc' as const } },
 } satisfies Prisma.ReservationInclude;
+
+/** Statuses that hold units and count toward the customer's limits (a reservation waiting for payment holds its units). */
+const LIVE_STATUSES = ['HELD', 'PENDING_PAYMENT'] as const;
 export type ResRow = Prisma.ReservationGetPayload<{ include: typeof RES_INCLUDE }>;
 
 const MS_MINUTE = 60_000;
@@ -45,7 +58,9 @@ interface Releasable {
 }
 
 /**
- * Free reservations and the per-branch stock behind them.
+ * Reservations and the per-branch stock behind them. FREE reservations confirm on creation (policy-allowed only); paid commitments
+ * (full prepayment, deposit) wait in PENDING_PAYMENT for the payment window and confirm when the provider confirms the payment
+ * (ReservationPaymentsService owns the money: payments, refunds, forfeits, ledger).
  *
  * Concurrency design (PostgreSQL, READ COMMITTED):
  *  - Stock moves ONLY through single conditional UPDATE statements on the HotDealInventory row
@@ -69,7 +84,15 @@ export class ReservationsService {
     private readonly notifications: NotificationsService,
     private readonly files: FilesService,
     private readonly policy: ReservationPolicyService,
+    private readonly money: ReservationPaymentsService,
+    private readonly markets: MarketService,
   ) {}
+
+  /** Runs provider calls queued during a committed transaction (refunds, attempt cancellations); failures never fail the action. */
+  private async runPost(post: PostCommit[]) {
+    for (const fn of post)
+      await Promise.resolve(fn()).catch((e: Error) => this.logger.warn(e.message));
+  }
 
   private get prisma() {
     return this.core.prisma;
@@ -267,7 +290,8 @@ export class ReservationsService {
         409,
       );
     // Reservation commitment model (2026-10-15). FREE only where the CURRENT effective policy allows it (RC-05, RC-22: a legacy free
-    // deal takes no new free reservations elsewhere); paid methods need the payment step, which is build phase 2.
+    // deal takes no new free reservations elsewhere). Full prepayment and deposit go through the payment step (phase 2); card
+    // pre-authorisation is build phase 3.
     const dealContent = parseHotContent(deal.content);
     const method = commitmentMethodOf(dealContent) ?? 'FREE';
     const effectivePolicy = await this.policy.forDeal(deal.organizationId, dealContent);
@@ -277,12 +301,24 @@ export class ReservationsService {
         'This offer cannot be reserved right now.',
         409,
       );
-    if (method !== 'FREE')
+    if (method === 'CARD_PREAUTH')
       throw new AppError(
         'RESERVATION_PAYMENT_UNAVAILABLE',
         'Reserving this offer needs a payment, which is not available yet.',
         409,
       );
+    const paid = method !== 'FREE';
+    const unitAmount = dealContent.commitment.amountMinor;
+    if (paid && (!unitAmount || unitAmount < 1))
+      throw new AppError('OFFER_UNAVAILABLE', 'This offer cannot be reserved right now.', 409);
+    // money is in the deal's market currency (never a fixed country)
+    const currency = paid ? (await this.markets.profile(effectivePolicy.market)).currency : null;
+    const noShowRefundPercent =
+      method === 'FULL_PREPAYMENT'
+        ? (dealContent.commitment.noShowRefundPercent ??
+          effectivePolicy.fields.prepaymentRefundDefaultPercent)
+        : null;
+    const paymentWindowMinutes = effectivePolicy.fields.paymentWindowMinutes;
 
     const branch = await this.prisma.merchantBranch.findFirst({
       where: { id: input.branchId, organizationId: deal.organizationId },
@@ -329,7 +365,7 @@ export class ReservationsService {
         throw AppError.notFound();
 
       const mine = await tx.reservation.findMany({
-        where: { userId, status: { in: ['HELD', 'REDEEMED'] } },
+        where: { userId, status: { in: [...LIVE_STATUSES, 'REDEEMED'] } },
         select: { dealId: true, status: true, quantity: true, expiresAt: true },
       });
       const forDeal = mine
@@ -348,7 +384,7 @@ export class ReservationsService {
           409,
         );
       const active = mine.filter(
-        (m) => m.status === 'HELD' && m.expiresAt.getTime() > now.getTime(),
+        (m) => m.status !== 'REDEEMED' && m.expiresAt.getTime() > now.getTime(),
       ).length;
       if (active >= maxActive)
         throw new AppError(
@@ -382,16 +418,47 @@ export class ReservationsService {
           quantity: input.quantity,
           holdMinutes,
           createdAt: now,
-          expiresAt: new Date(now.getTime() + holdMinutes * MS_MINUTE),
+          // paid: the units wait for the payment window; the hold timer starts only when the payment is confirmed (RC-31, RC-32)
+          expiresAt: paid
+            ? new Date(now.getTime() + paymentWindowMinutes * MS_MINUTE)
+            : new Date(now.getTime() + holdMinutes * MS_MINUTE),
           qrToken: newQrToken(),
           manualCode: newManualCode(),
-          // RC-12 / RC-32: the commitment and the policy in force are kept on the reservation (FREE: no money, confirmed at creation)
-          commitmentMethod: 'FREE',
-          paymentStatus: 'NOT_REQUIRED',
-          confirmedAt: now,
+          // RC-12 / RC-32: the commitment and the policy in force are kept on the reservation
+          ...(paid
+            ? {
+                status: 'PENDING_PAYMENT' as const,
+                commitmentMethod: method,
+                paymentStatus: 'PENDING' as const,
+                paymentDueAt: new Date(now.getTime() + paymentWindowMinutes * MS_MINUTE),
+                amountMinor: unitAmount,
+                currency,
+                depositRefundable:
+                  method === 'DEPOSIT' ? dealContent.commitment.depositRefundable : null,
+                noShowRefundPercent,
+                commissionBps: effectivePolicy.fields.commissionBps,
+              }
+            : {
+                commitmentMethod: 'FREE' as const,
+                paymentStatus: 'NOT_REQUIRED' as const,
+                confirmedAt: now,
+              }),
           termsSnapshot: {
-            method: 'FREE',
+            method,
             holdMinutes,
+            ...(paid
+              ? {
+                  amountMinorPerUnit: unitAmount,
+                  totalMinor: unitAmount! * input.quantity,
+                  currency,
+                  depositRefundable:
+                    method === 'DEPOSIT' ? dealContent.commitment.depositRefundable : null,
+                  cancelCutoffMinutes: dealContent.commitment.cancelCutoffMinutes,
+                  noShowRefundPercent,
+                  paymentWindowMinutes,
+                  commissionBps: effectivePolicy.fields.commissionBps,
+                }
+              : {}),
             noShow: 'A reservation not used before it ends counts as a no-show (RC-50, RC-52).',
             policy: this.policy.snapshot(effectivePolicy, now),
           } as Prisma.InputJsonValue,
@@ -402,11 +469,12 @@ export class ReservationsService {
         data: {
           reservationId: created.id,
           type: 'CREATED',
-          toStatus: 'HELD',
+          toStatus: paid ? 'PENDING_PAYMENT' : 'HELD',
           actorUserId: userId,
           actorRole: 'CUSTOMER',
         },
       });
+      const paymentId = paid ? await this.money.openAttempt(tx, created, actor, meta) : null;
       await this.event(tx, 'RESERVATION_CREATED', created);
       await this.core.audit.record(
         {
@@ -420,13 +488,27 @@ export class ReservationsService {
         tx,
       );
       await this.syncAvailability(tx, dealId, now);
-      const sent = await this.notifications.emit(tx, [
-        this.notice('RESERVATION_CONFIRMED', created, 'confirmed'),
-      ]);
-      return { created, sent: [...lazyNotices, ...sent] };
+      // a paid reservation is confirmed (and notified) when the provider confirms the payment, not here (RC-32)
+      const sent = paid
+        ? []
+        : await this.notifications.emit(tx, [
+            this.notice('RESERVATION_CONFIRMED', created, 'confirmed'),
+          ]);
+      return { created, paymentId, sent: [...lazyNotices, ...sent] };
     });
     await this.notifications.dispatch(out.sent);
-    return (await this.views([out.created], now))[0]!;
+    if (out.paymentId) await this.money.initiate(out.paymentId);
+    const fresh = await this.prisma.reservation.findUniqueOrThrow({
+      where: { id: out.created.id },
+      include: RES_INCLUDE,
+    });
+    return (await this.views([fresh], now))[0]!;
+  }
+
+  /** Customer: another payment attempt inside the payment window (the previous one failed or was abandoned). */
+  async retryPayment(actor: Actor, id: string, meta: RequestMeta, now = new Date()) {
+    await this.money.retry(actor, id, meta, now);
+    return this.getMine(actor.userId, id, now);
   }
 
   /** Expires holds of one branch that are past their time (used when a customer finds the branch "full"). */
@@ -476,10 +558,12 @@ export class ReservationsService {
       include: RES_INCLUDE,
     });
     if (!row) throw AppError.notFound();
+    const post: PostCommit[] = [];
     const sent = await this.prisma.$transaction((tx) =>
-      this.cancelInTx(tx, row, by, actor, reason, meta, now),
+      this.cancelInTx(tx, row, by, actor, reason, meta, now, post),
     );
     await this.notifications.dispatch(sent);
+    await this.runPost(post);
     const fresh = await this.prisma.reservation.findUniqueOrThrow({
       where: { id },
       include: RES_INCLUDE,
@@ -495,19 +579,28 @@ export class ReservationsService {
     reason: string | null,
     meta: RequestMeta | null,
     now: Date,
+    /** Provider calls to make after commit (refunds). Without it, refunds are sent by the next sweep. */
+    post?: PostCommit[],
   ) {
+    // lock the row first: a payment callback confirming it at the same moment (it locks the same row) is serialised with this cancel
+    await tx.$queryRaw`SELECT "id" FROM "Reservation" WHERE "id" = ${row.id}::uuid FOR UPDATE`;
+    const current = await tx.reservation.findUniqueOrThrow({
+      where: { id: row.id },
+      select: { status: true, cancelCutoffAt: true },
+    });
+    const from = current.status;
     const res = await tx.reservation.updateMany({
       where: {
         id: row.id,
-        status: 'HELD',
+        status: { in: [...LIVE_STATUSES] },
         ...(by === 'CUSTOMER' ? { expiresAt: { gt: now } } : {}),
       },
       data: { status: 'CANCELLED', cancelledAt: now, cancelledBy: by, cancelReason: reason },
     });
-    if (res.count !== 1)
+    if (res.count !== 1 || (from !== 'HELD' && from !== 'PENDING_PAYMENT'))
       throw new AppError(
         'RESERVATION_NOT_CANCELLABLE',
-        row.status === 'REDEEMED'
+        from === 'REDEEMED'
           ? 'This reservation was already used.'
           : 'This reservation can no longer be cancelled.',
         409,
@@ -517,13 +610,30 @@ export class ReservationsService {
       data: {
         reservationId: row.id,
         type: 'CANCELLED',
-        fromStatus: 'HELD',
+        fromStatus: from,
         toStatus: 'CANCELLED',
         actorUserId: actor?.userId ?? null,
         actorRole: actor?.membership?.roleCode ?? (by === 'CUSTOMER' ? 'CUSTOMER' : 'SYSTEM'),
         note: reason,
       },
     });
+    // money (RC-40..RC-43): never paid -> attempts cancelled, nothing charged; paid -> kept and / or refunded under the terms
+    const queue = post ?? [];
+    let moneyNotices: NotificationInput[] = [];
+    if (from === 'PENDING_PAYMENT') await this.money.markUnpaid(tx, row.id, now, queue);
+    else {
+      const situation: EndSituation =
+        by === 'CUSTOMER'
+          ? current.cancelCutoffAt && now.getTime() >= current.cancelCutoffAt.getTime()
+            ? 'CUSTOMER_LATE'
+            : 'CUSTOMER_IN_TIME'
+          : by === 'MERCHANT'
+            ? 'MERCHANT_CANCELLED'
+            : by === 'DEALDASH'
+              ? 'DEALDASH_CANCELLED'
+              : 'SYSTEM_CANCELLED';
+      moneyNotices = await this.money.settleOnEnd(tx, row.id, situation, now, queue, { actor });
+    }
     await this.event(tx, 'RESERVATION_CANCELLED', row);
     await this.core.audit.record(
       {
@@ -539,13 +649,18 @@ export class ReservationsService {
       tx,
     );
     await this.syncAvailability(tx, row.dealId, now);
-    // The customer cancelled it themselves: no notification needed for that, but a merchant/DealDash/system cancel tells them.
-    return by === 'CUSTOMER'
-      ? []
-      : await this.notifications.emit(tx, [this.notice('RESERVATION_CANCELLED', row, 'cancelled')]);
+    // The customer cancelled it themselves: no cancellation notice for that, but a merchant/DealDash/system cancel tells them.
+    // Money notices (amount kept) go out either way; refund notices follow when the provider confirms.
+    return this.notifications.emit(tx, [
+      ...(by === 'CUSTOMER' ? [] : [this.notice('RESERVATION_CANCELLED', row, 'cancelled')]),
+      ...moneyNotices,
+    ]);
   }
 
-  /** Every held reservation of a deal is cancelled (campaign cancelled by the merchant or DealDash). */
+  /**
+   * Every held (or awaiting payment) reservation of a deal is cancelled (campaign cancelled by the merchant or DealDash). Paid ones are
+   * refunded in full (RC-42); the refunds are sent to the provider by the next sweep (this runs inside the caller's transaction).
+   */
   async cancelAllHeld(
     tx: Tx,
     dealId: string,
@@ -556,7 +671,7 @@ export class ReservationsService {
     now = new Date(),
   ) {
     const held = await tx.reservation.findMany({
-      where: { dealId, status: 'HELD' },
+      where: { dealId, status: { in: [...LIVE_STATUSES] } },
       include: RES_INCLUDE,
     });
     const sent: Array<NotificationInput & { id: string }> = [];
@@ -571,6 +686,7 @@ export class ReservationsService {
     tx: Tx,
     r: ResRow,
     now: Date,
+    post?: PostCommit[],
   ): Promise<Array<NotificationInput & { id: string }> | null> {
     const res = await tx.reservation.updateMany({
       where: { id: r.id, status: 'HELD', expiresAt: { lte: now } },
@@ -592,12 +708,70 @@ export class ReservationsService {
     });
     await this.event(tx, 'RESERVATION_EXPIRED', r);
     await this.syncAvailability(tx, r.dealId, now);
-    return this.notifications.emit(tx, [this.notice('RESERVATION_EXPIRED', r, 'expired')]);
+    // RC-50 / RC-51: a paid no-show keeps the deposit / the non-refundable share of a prepayment for the merchant
+    const moneyNotices = await this.money.settleOnEnd(tx, r.id, 'NO_SHOW', now, post ?? []);
+    return this.notifications.emit(tx, [
+      this.notice('RESERVATION_EXPIRED', r, 'expired'),
+      ...moneyNotices,
+    ]);
   }
 
-  async sweep(
-    now = new Date(),
-  ): Promise<{ expired: number; notified: number; restrictions: number }> {
+  /**
+   * RC-31 / RC-33: a reservation whose payment window ended unpaid releases its units (no charge, no strike). The provider is asked
+   * first: a payment completed a moment before the window ended confirms the reservation instead.
+   */
+  private async releaseUnpaid(r: ResRow, now: Date): Promise<boolean> {
+    if ((await this.money.reconcileOpen(r.id)) === 'PAID') return false;
+    const post: PostCommit[] = [];
+    const sent = await this.prisma.$transaction(async (tx) => {
+      const res = await tx.reservation.updateMany({
+        where: { id: r.id, status: 'PENDING_PAYMENT', paymentDueAt: { lte: now } },
+        data: { status: 'PAYMENT_FAILED' },
+      });
+      if (res.count !== 1) return null;
+      await this.giveBackStock(tx, r);
+      await this.money.markUnpaid(tx, r.id, now, post);
+      await tx.reservationEvent.create({
+        data: {
+          reservationId: r.id,
+          type: 'PAYMENT_FAILED',
+          fromStatus: 'PENDING_PAYMENT',
+          toStatus: 'PAYMENT_FAILED',
+          actorRole: 'SYSTEM',
+          note: 'payment window ended unpaid; units released',
+        },
+      });
+      await this.core.audit.record(
+        {
+          action: 'reservation.payment_window_ended',
+          entityType: 'Reservation',
+          entityId: r.id,
+          actorRole: 'SYSTEM',
+          subjectOrganizationId: r.organizationId,
+        },
+        tx,
+      );
+      await this.syncAvailability(tx, r.dealId, now);
+      return this.notifications.emit(tx, [
+        {
+          ...this.notice('RESERVATION_PAYMENT_FAILED', r, 'unpaid'),
+          data: { ...this.notice('RESERVATION_PAYMENT_FAILED', r, 'unpaid').data, canRetry: false },
+        },
+      ]);
+    });
+    if (!sent) return false;
+    await this.notifications.dispatch(sent);
+    await this.runPost(post);
+    return true;
+  }
+
+  async sweep(now = new Date()): Promise<{
+    expired: number;
+    notified: number;
+    restrictions: number;
+    unpaid: number;
+    refundsSent: number;
+  }> {
     let expired = 0;
     const users = new Set<string>();
     const due = await this.prisma.reservation.findMany({
@@ -608,16 +782,36 @@ export class ReservationsService {
     });
     for (const r of due) {
       try {
-        const done = await this.prisma.$transaction((tx) => this.expireInTx(tx, r, now));
+        const post: PostCommit[] = [];
+        const done = await this.prisma.$transaction((tx) => this.expireInTx(tx, r, now, post));
         if (done) {
           expired++;
           users.add(r.userId);
           await this.notifications.dispatch(done);
+          await this.runPost(post);
         }
       } catch (e) {
         this.logger.warn(`Could not expire reservation ${r.id}: ${(e as Error).message}`);
       }
     }
+
+    // Paid reservations whose payment window ended unpaid release their units (RC-33).
+    let unpaid = 0;
+    const unpaidDue = await this.prisma.reservation.findMany({
+      where: { status: 'PENDING_PAYMENT', paymentDueAt: { lte: now } },
+      include: RES_INCLUDE,
+      orderBy: { paymentDueAt: 'asc' },
+      take: 500,
+    });
+    for (const r of unpaidDue) {
+      try {
+        if (await this.releaseUnpaid(r, now)) unpaid++;
+      } catch (e) {
+        this.logger.warn(`Could not release unpaid reservation ${r.id}: ${(e as Error).message}`);
+      }
+    }
+    // Refunds created inside other transactions (deal cancelled, lazy expiry) are sent to the provider here.
+    const refundsSent = await this.money.sendUnsentRefunds();
 
     // "Expiring soon" notices, once per reservation.
     let notified = 0;
@@ -662,11 +856,11 @@ export class ReservationsService {
     });
     let restrictions = 0;
     for (const userId of users) restrictions += (await this.applyStrikes(userId, now)) ? 1 : 0;
-    if (expired || notified || restrictions)
+    if (expired || notified || restrictions || unpaid || refundsSent)
       this.logger.log(
-        `Sweep: ${expired} expired, ${notified} notices, ${restrictions} restrictions`,
+        `Sweep: ${expired} expired, ${notified} notices, ${restrictions} restrictions, ${unpaid} unpaid released, ${refundsSent} refunds sent`,
       );
-    return { expired, notified, restrictions };
+    return { expired, notified, restrictions, unpaid, refundsSent };
   }
 
   /**
@@ -726,8 +920,46 @@ export class ReservationsService {
     if (r.status === 'REDEEMED') return 'REDEEMED';
     if (r.status === 'CANCELLED')
       return r.cancelledBy === 'CUSTOMER' ? 'CANCELLED_BY_YOU' : 'CANCELLED_BY_MERCHANT';
+    if (r.status === 'PAYMENT_FAILED') return 'PAYMENT_FAILED';
+    if (r.status === 'PENDING_PAYMENT')
+      return r.expiresAt.getTime() <= now.getTime() ? 'PAYMENT_FAILED' : 'PAYMENT_PENDING';
     if (r.status === 'EXPIRED' || r.expiresAt.getTime() <= now.getTime()) return 'NOT_COMPLETED';
     return 'HELD';
+  }
+
+  /** Customer payment status of a paid reservation (RC-81); FREE reservations carry no payment block at all. */
+  private paymentView(r: ResRow, now: Date): ReservationView['payment'] {
+    if (r.commitmentMethod === 'FREE' || !r.amountMinor || !r.currency) return undefined;
+    const attempt = r.payments[0] ?? null;
+    const open =
+      r.status === 'PENDING_PAYMENT' &&
+      attempt &&
+      (attempt.status === 'CREATED' || attempt.status === 'PENDING') &&
+      (r.paymentDueAt?.getTime() ?? 0) > now.getTime();
+    return {
+      method: r.commitmentMethod as NonNullable<ReservationView['payment']>['method'],
+      status: r.paymentStatus,
+      amountMinor: r.amountMinor * r.quantity,
+      currency: r.currency,
+      dueAt: r.status === 'PENDING_PAYMENT' ? (r.paymentDueAt?.toISOString() ?? null) : null,
+      redirectUrl: open ? (attempt.redirectUrl ?? null) : null,
+      canRetry:
+        r.status === 'PENDING_PAYMENT' &&
+        !open &&
+        (r.paymentDueAt?.getTime() ?? 0) > now.getTime() &&
+        (attempt?.attemptNo ?? 0) < MAX_PAYMENT_ATTEMPTS,
+      cancelCutoffAt: r.cancelCutoffAt?.toISOString() ?? null,
+      depositRefundable: r.depositRefundable,
+      noShowRefundPercent: r.noShowRefundPercent,
+      keptMinor: r.keptMinor,
+      refunds: r.refunds.map((f) => ({
+        reference: f.reference,
+        amountMinor: f.amountMinor,
+        status: f.status,
+        reasonCode: f.reasonCode,
+        refundedAt: f.refundedAt?.toISOString() ?? null,
+      })),
+    };
   }
 
   async views(rows: ResRow[], now = new Date()): Promise<ReservationView[]> {
@@ -740,7 +972,9 @@ export class ReservationsService {
       const live = state === 'HELD';
       const first = c.media[0];
       const m = merchantDisplayName(r.deal.organization);
+      const payment = this.paymentView(r, now);
       return {
+        ...(payment ? { payment } : {}),
         id: r.id,
         publicRef: r.reference,
         status: r.status,
@@ -753,7 +987,7 @@ export class ReservationsService {
         cancelledAt: r.cancelledAt ? r.cancelledAt.toISOString() : null,
         cancelledBy: r.cancelledBy,
         serverNow: now.toISOString(),
-        canCancel: live,
+        canCancel: live || state === 'PAYMENT_PENDING',
         deal: {
           id: r.dealId,
           title: c.title,
@@ -785,8 +1019,8 @@ export class ReservationsService {
     const rows = await this.prisma.reservation.findMany({
       where:
         tab === 'active'
-          ? { userId, status: 'HELD', expiresAt: { gt: now } }
-          : { userId, NOT: { status: 'HELD', expiresAt: { gt: now } } },
+          ? { userId, status: { in: [...LIVE_STATUSES] }, expiresAt: { gt: now } }
+          : { userId, NOT: { status: { in: [...LIVE_STATUSES] }, expiresAt: { gt: now } } },
       include: RES_INCLUDE,
       orderBy: tab === 'active' ? { expiresAt: 'asc' } : { createdAt: 'desc' },
       take: limit,
@@ -810,7 +1044,7 @@ export class ReservationsService {
     now = new Date(),
   ): Promise<MyReservationBrief[]> {
     const rows = await this.prisma.reservation.findMany({
-      where: { userId, dealId, status: 'HELD', expiresAt: { gt: now } },
+      where: { userId, dealId, status: { in: [...LIVE_STATUSES] }, expiresAt: { gt: now } },
       orderBy: { expiresAt: 'asc' },
     });
     return rows.map((r) => ({
@@ -857,7 +1091,7 @@ export class ReservationsService {
     };
     const page = await keysetPage({
       findMany: (query) =>
-        this.prisma.reservation.findMany({ ...query, include: { branch: true } }),
+        this.prisma.reservation.findMany({ ...query, include: { branch: true, refunds: true } }),
       baseWhere: where as Record<string, unknown>,
       sort: { field: 'createdAt', dir: 'desc' },
       limit: q.limit,
@@ -877,8 +1111,30 @@ export class ReservationsService {
         createdAt: r.createdAt.toISOString(),
         redeemedAt: r.redeemedAt ? r.redeemedAt.toISOString() : null,
         canCancel:
-          capabilities.canCancel && r.status === 'HELD' && r.expiresAt.getTime() > now.getTime(),
+          capabilities.canCancel &&
+          (r.status === 'HELD' || r.status === 'PENDING_PAYMENT') &&
+          r.expiresAt.getTime() > now.getTime(),
         canReverse: capabilities.canReverse && r.status === 'REDEEMED',
+        // RC-80: the merchant's financial view of a paid reservation (FREE reservations carry none)
+        ...(r.commitmentMethod !== 'FREE' && r.amountMinor && r.currency
+          ? {
+              money: {
+                method: r.commitmentMethod,
+                paymentStatus: r.paymentStatus,
+                amountMinor: r.amountMinor * r.quantity,
+                currency: r.currency,
+                refundedMinor: r.refunds
+                  .filter((f) => f.status === 'REFUNDED')
+                  .reduce((n, f) => n + f.amountMinor, 0),
+                refundPendingMinor: r.refunds
+                  .filter((f) => f.status === 'PROCESSING' || f.status === 'FAILED')
+                  .reduce((n, f) => n + f.amountMinor, 0),
+                keptMinor: r.keptMinor,
+                feeMinor: r.feeMinor,
+                netToMerchantMinor: r.keptMinor === null ? null : r.keptMinor - (r.feeMinor ?? 0),
+              },
+            }
+          : {}),
       })),
       page.nextCursor,
     );

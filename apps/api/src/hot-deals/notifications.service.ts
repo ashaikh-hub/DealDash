@@ -54,6 +54,16 @@ const TITLES: Record<NotificationType, { en: string; ar: string }> = {
   ACCOUNT_RESTRICTION: { en: 'Your account status changed', ar: 'تغيّرت حالة حسابك' },
   BENEFIT_UPDATED: { en: 'Your benefits were updated', ar: 'تم تحديث مزاياك' },
   ACCOUNT_WELCOME: { en: 'Welcome to DealDash', ar: 'مرحباً بك في ديل داش' },
+  // reservation commitment (2026-10-15): payment success is the confirmation above (RESERVATION_CONFIRMED)
+  RESERVATION_PAYMENT_FAILED: {
+    en: 'Your reservation payment did not go through',
+    ar: 'لم تتم عملية الدفع لحجزك',
+  },
+  RESERVATION_REFUND_UPDATED: { en: 'Reservation refund update', ar: 'تحديث استرداد مبلغ الحجز' },
+  RESERVATION_FORFEITED: {
+    en: 'Your reservation amount was kept under the terms you accepted',
+    ar: 'تم الاحتفاظ بمبلغ حجزك وفق الشروط التي وافقت عليها',
+  },
 };
 
 interface NotificationOpsConfig {
