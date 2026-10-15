@@ -32,9 +32,11 @@ export default async function RootLayout({
 }) {
   const { locale } = await params;
   if (!isUiLocale(locale)) notFound();
+  // suppressHydrationWarning: phone browsers (translate, extensions, forced dark mode) add attributes to <html> / <body>
+  // before React hydrates. It covers only these two elements' own attributes; mismatches inside the app still warn.
   return (
-    <html lang={locale} dir={dirOf(locale)}>
-      <body>
+    <html lang={locale} dir={dirOf(locale)} suppressHydrationWarning>
+      <body suppressHydrationWarning>
         <Providers locale={locale}>{children}</Providers>
       </body>
     </html>
