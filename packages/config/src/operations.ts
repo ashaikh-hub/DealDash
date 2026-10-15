@@ -334,6 +334,8 @@ export const DEFAULT_OPERATIONS_CONFIG: OperationsConfig = {
       RESERVATION_PAYMENT_FAILED: { version: 1, channels: ['IN_APP', 'PUSH'] },
       RESERVATION_REFUND_UPDATED: { version: 1, channels: ['IN_APP', 'PUSH'] },
       RESERVATION_FORFEITED: { version: 1, channels: ['IN_APP', 'PUSH'] },
+      RESERVATION_HOLD_RELEASED: { version: 1, channels: ['IN_APP', 'PUSH'] },
+      RESERVATION_HOLD_CAPTURED: { version: 1, channels: ['IN_APP', 'PUSH'] },
       REDEMPTION_SUCCESS: { version: 1, channels: ['IN_APP', 'PUSH'] },
       PURCHASE_SUCCEEDED: { version: 1, channels: ['IN_APP', 'PUSH'] },
       PAYMENT_FAILED: { version: 1, channels: ['IN_APP', 'PUSH'] },

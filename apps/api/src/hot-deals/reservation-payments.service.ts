@@ -15,6 +15,9 @@ import { merchantDisplayName } from '../live-deals/deal-presenter.service';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   PAYMENT_PROVIDER,
+  supportsCardHolds,
+  type CardHoldProvider,
+  type CardHoldStatus,
   type PaymentProvider,
   type PaymentWebhookEvent,
 } from '../providers/interfaces';
@@ -23,6 +26,7 @@ import { parseHotContent } from './hot-content';
 import { NotificationsService, type NotificationInput } from './notifications.service';
 import {
   commissionOn,
+  holdCaptureOnEnd,
   refundReasonOf,
   splitOnEnd,
   type EndSituation,
@@ -44,9 +48,23 @@ type MoneyRow = Prisma.ReservationGetPayload<{ include: typeof MONEY_INCLUDE }>;
 
 export interface IncomingEvent {
   eventId: string;
-  kind: 'PAYMENT' | 'REFUND';
+  kind: 'PAYMENT' | 'REFUND' | 'AUTHORISATION';
   payloadHash: string;
   occurredAt: Date | null;
+}
+
+/** The reservation policy in force when the reservation was made (RC-12 snapshot): the card-hold rules that apply to it. */
+export function policyOf(r: { termsSnapshot: Prisma.JsonValue | null }): {
+  preauthImmediateCapture: boolean;
+  preauthOnRedemption: 'RELEASE' | 'CAPTURE';
+} {
+  const f =
+    (r.termsSnapshot as { policy?: { fields?: Record<string, unknown> } } | null)?.policy?.fields ??
+    {};
+  return {
+    preauthImmediateCapture: f.preauthImmediateCapture === true,
+    preauthOnRedemption: f.preauthOnRedemption === 'CAPTURE' ? 'CAPTURE' : 'RELEASE',
+  };
 }
 
 /** Customer / finance facing refund reference: random, never sequential. */
@@ -119,7 +137,13 @@ export class ReservationPaymentsService {
       | 'REFUNDED'
       | 'REFUND_FAILED'
       | 'FORFEITED'
-      | 'SETTLED_TO_MERCHANT',
+      | 'SETTLED_TO_MERCHANT'
+      | 'AUTHORISATION_REQUESTED'
+      | 'AUTHORISED'
+      | 'AUTHORISATION_FAILED'
+      | 'AUTHORISATION_EXPIRED'
+      | 'HOLD_RELEASED'
+      | 'HOLD_CAPTURED',
     note: string | null,
     actor: { userId: string | null; role: string } | null = null,
     status?: {
@@ -261,6 +285,22 @@ export class ReservationPaymentsService {
       r.paymentDueAt.getTime() <= now.getTime()
     )
       throw new AppError('ORDER_NOT_PAYABLE', 'This reservation can no longer be paid', 409);
+    if (r.commitmentMethod === 'CARD_PREAUTH') {
+      // phase 3: a new card hold request (the previous one was declined)
+      const openHold = await this.prisma.reservationAuthorisation.findFirst({
+        where: { reservationId, status: { in: ['REQUESTED', 'AUTHORISED'] } },
+      });
+      if (openHold) return;
+      let authId: string;
+      try {
+        authId = await this.prisma.$transaction((tx) => this.openAuthorisation(tx, r, actor, meta));
+      } catch (e) {
+        if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') return;
+        throw e;
+      }
+      await this.requestAuthorisation(authId);
+      return;
+    }
     const open = await this.prisma.reservationPayment.findFirst({
       where: { reservationId, status: { in: ['CREATED', 'PENDING'] } },
     });
@@ -278,6 +318,13 @@ export class ReservationPaymentsService {
   // ================================================================ provider outcomes (webhook, reconciliation, sync)
   /** Does this provider event belong to a reservation payment or refund? (The shared webhook routes on this.) */
   async owns(event: PaymentWebhookEvent): Promise<boolean> {
+    if (event.kind === 'AUTHORISATION') {
+      const a = await this.prisma.reservationAuthorisation.findUnique({
+        where: { providerReference: event.providerReference },
+        select: { id: true },
+      });
+      return !!a;
+    }
     if (event.kind === 'REFUND') {
       const r = await this.prisma.reservationRefund.findUnique({
         where: { providerRefundReference: event.refundReference },
@@ -321,6 +368,18 @@ export class ReservationPaymentsService {
     incoming: IncomingEvent,
   ): Promise<PaymentEventOutcome> {
     if (event.kind === 'REFUND') return this.applyRefundEvent(event, incoming);
+    if (event.kind === 'AUTHORISATION')
+      return (
+        await this.applyHoldOutcome({
+          providerReference: event.providerReference,
+          status: event.status,
+          capturedMinor: event.capturedMinor,
+          captureReference: event.captureReference,
+          failureCode: event.failureCode,
+          source: 'WEBHOOK',
+          event: incoming,
+        })
+      ).outcome;
     const r = await this.applyPaymentOutcome({
       providerReference: event.providerReference,
       status: event.status,
@@ -542,7 +601,11 @@ export class ReservationPaymentsService {
   }
 
   /** RC-32: the hold timer starts at confirmation; the cancellation cut-off is measured back from the end of the hold. */
-  private confirmation(r: MoneyRow, now: Date): Prisma.ReservationUpdateManyMutationInput {
+  private confirmation(
+    r: MoneyRow,
+    now: Date,
+    paymentStatus: 'PAID' | 'AUTHORISED' = 'PAID',
+  ): Prisma.ReservationUpdateManyMutationInput {
     const expiresAt = new Date(now.getTime() + r.holdMinutes * 60_000);
     const terms = (r.termsSnapshot ?? {}) as { cancelCutoffMinutes?: number | null };
     const cutoffMin = terms.cancelCutoffMinutes ?? null;
@@ -552,7 +615,7 @@ export class ReservationPaymentsService {
         : new Date(Math.max(now.getTime(), expiresAt.getTime() - cutoffMin * 60_000));
     return {
       status: 'HELD',
-      paymentStatus: 'PAID',
+      paymentStatus,
       confirmedAt: now,
       expiresAt,
       cancelCutoffAt: cutoff,
@@ -562,6 +625,28 @@ export class ReservationPaymentsService {
 
   /** Reconciliation when the payment window ends: did the customer actually pay a moment ago? Then confirm instead of releasing. */
   async reconcileOpen(reservationId: string): Promise<'PAID' | 'UNPAID'> {
+    // phase 3: a card hold the customer completed a moment before the window ended confirms the reservation
+    const hold = await this.prisma.reservationAuthorisation.findFirst({
+      where: { reservationId, status: 'REQUESTED' },
+    });
+    const holds = this.holdProvider();
+    if (hold?.providerReference && holds) {
+      const status = await holds
+        .getHoldStatus(hold.providerReference)
+        .catch(() => 'PENDING' as const);
+      if (status === 'AUTHORISED') {
+        await this.applyHoldOutcome({
+          providerReference: hold.providerReference,
+          status,
+          source: 'RECONCILE',
+        });
+        const r = await this.prisma.reservation.findUnique({
+          where: { id: reservationId },
+          select: { status: true },
+        });
+        return r?.status === 'HELD' ? 'PAID' : 'UNPAID';
+      }
+    }
     const open = await this.prisma.reservationPayment.findFirst({
       where: { reservationId, status: { in: ['CREATED', 'PENDING'] } },
     });
@@ -603,6 +688,22 @@ export class ReservationPaymentsService {
         post.push(() => this.provider.cancel(providerRef).catch(() => undefined));
       }
     }
+    // phase 3: an open card hold request is cancelled (and voided at the provider, in case it completes later)
+    const openHolds = await tx.reservationAuthorisation.findMany({
+      where: { reservationId, status: 'REQUESTED' },
+    });
+    for (const h of openHolds) {
+      await tx.reservationAuthorisation.update({
+        where: { id: h.id },
+        data: { status: 'CANCELLED', releasedAt: now, releaseReason: 'NOT_COMPLETED' },
+      });
+      await this.event(tx, reservationId, 'AUTHORISATION_FAILED', 'hold request cancelled');
+      const holds = this.holdProvider();
+      if (h.providerReference && holds) {
+        const providerRef = h.providerReference;
+        post.push(() => holds.release(providerRef).catch(() => undefined));
+      }
+    }
     await tx.reservation.updateMany({
       where: { id: reservationId, paymentStatus: 'PENDING' },
       data: { paymentStatus: 'FAILED' },
@@ -636,6 +737,9 @@ export class ReservationPaymentsService {
       where: { id: reservationId },
       include: MONEY_INCLUDE,
     });
+    // phase 3: an AUTHORISED card hold (not captured up front) is captured in part / in full or released
+    if (r.commitmentMethod === 'CARD_PREAUTH' && r.paymentStatus === 'AUTHORISED')
+      return this.settleHoldOnEnd(tx, r, situation, now, post, opts);
     if (r.commitmentMethod === 'FREE' || r.paymentStatus !== 'PAID') return [];
     const pay = await tx.reservationPayment.findFirst({
       where: { reservationId, status: 'SUCCEEDED' },
@@ -1044,5 +1148,724 @@ export class ReservationPaymentsService {
       orderBy: { createdAt: 'asc' },
       take: limit,
     });
+  }
+
+  // ================================================================ card pre-authorisation (phase 3, RC-90..RC-95)
+  /** The configured provider's card-hold capability, or null (then no market can offer CARD_PREAUTH). */
+  holdProvider(): (PaymentProvider & CardHoldProvider) | null {
+    return supportsCardHolds(this.provider) ? this.provider : null;
+  }
+
+  /** Opens a hold request inside the caller's transaction; the provider is asked after commit (`requestAuthorisation`). */
+  async openAuthorisation(
+    tx: Tx,
+    r: {
+      id: string;
+      organizationId: string;
+      amountMinor: number | null;
+      quantity: number;
+      currency: string | null;
+    },
+    actor: Actor | null,
+    meta: RequestMeta | null,
+  ): Promise<string> {
+    if (!r.amountMinor || !r.currency)
+      throw new AppError('INVALID_STATE', 'This reservation has no amount to hold', 409);
+    const attempts = await tx.reservationAuthorisation.count({ where: { reservationId: r.id } });
+    if (attempts >= MAX_PAYMENT_ATTEMPTS)
+      throw new AppError(
+        'PAYMENT_RETRY_LIMIT',
+        'Too many card hold attempts for this reservation',
+        409,
+      );
+    const attemptNo = attempts + 1;
+    const a = await tx.reservationAuthorisation.create({
+      data: {
+        reservationId: r.id,
+        provider: this.provider.name,
+        amountMinor: r.amountMinor * r.quantity,
+        currency: r.currency,
+        attemptNo,
+        idempotencyKey: `rauth:${r.id}:${attemptNo}`,
+      },
+    });
+    await this.event(
+      tx,
+      r.id,
+      'AUTHORISATION_REQUESTED',
+      `attempt ${attemptNo}: hold ${a.amountMinor} ${a.currency}`,
+      actor ? { userId: actor.userId, role: 'CUSTOMER' } : null,
+    );
+    await this.audit.record(
+      {
+        action: 'reservation.authorisation_requested',
+        entityType: 'ReservationAuthorisation',
+        entityId: a.id,
+        actor,
+        actorRole: actor ? undefined : 'SYSTEM',
+        subjectOrganizationId: r.organizationId,
+        newState: {
+          reservationId: r.id,
+          attemptNo,
+          amountMinor: a.amountMinor,
+          currency: a.currency,
+        },
+        meta,
+      },
+      tx,
+    );
+    return a.id;
+  }
+
+  /** Sends a hold request to the provider (after commit). A provider error fails the request; the customer may retry. */
+  async requestAuthorisation(authId: string) {
+    const holds = this.holdProvider();
+    const a = await this.prisma.reservationAuthorisation.findUniqueOrThrow({
+      where: { id: authId },
+      include: { reservation: { select: { reference: true } } },
+    });
+    try {
+      if (!holds) throw new Error('the payment provider does not support card holds');
+      const res = await holds.authorise({
+        orderId: a.reservation.reference,
+        amountMinor: a.amountMinor,
+        currency: a.currency,
+        idempotencyKey: a.idempotencyKey,
+        returnUrl: this.returnUrl(a.reservationId),
+      });
+      await this.prisma.reservationAuthorisation.updateMany({
+        where: { id: a.id, status: 'REQUESTED' },
+        data: { providerReference: res.providerReference, redirectUrl: res.redirectUrl ?? null },
+      });
+      if (res.status !== 'PENDING')
+        await this.applyHoldOutcome({
+          providerReference: res.providerReference,
+          status: res.status,
+          source: 'SYNC',
+        });
+    } catch (e) {
+      this.logger.warn(`Card hold request ${a.id} failed: ${(e as Error).message}`);
+      await this.prisma.reservationAuthorisation.updateMany({
+        where: { id: a.id, status: 'REQUESTED' },
+        data: { status: 'FAILED', failureCode: 'PROVIDER_ERROR' },
+      });
+    }
+  }
+
+  private storeHoldEvent(
+    db: Tx | PrismaService,
+    e: IncomingEvent,
+    authId: string | null,
+    status: string,
+    outcome: PaymentEventOutcome,
+    note: string | null,
+  ) {
+    return db.paymentEvent.create({
+      data: {
+        reservationAuthorisationId: authId,
+        providerEventId: e.eventId,
+        kind: e.kind,
+        status,
+        payloadHash: e.payloadHash,
+        signatureVerified: true,
+        outcome,
+        note,
+        occurredAt: e.occurredAt,
+      },
+    });
+  }
+
+  /**
+   * The state machine of a card hold, driven by the provider (webhook, reconciliation or a synchronous answer). Every change is a
+   * reservation event and an audit record; the reservation is confirmed only once the hold is AUTHORISED (RC-32).
+   */
+  async applyHoldOutcome(input: {
+    providerReference: string;
+    status: CardHoldStatus;
+    capturedMinor?: number;
+    captureReference?: string;
+    failureCode?: string;
+    source: 'WEBHOOK' | 'RECONCILE' | 'SYNC';
+    event?: IncomingEvent;
+    now?: Date;
+  }): Promise<{ outcome: PaymentEventOutcome; note: string | null }> {
+    const now = input.now ?? new Date();
+    const found = await this.prisma.reservationAuthorisation.findUnique({
+      where: { providerReference: input.providerReference },
+      select: { id: true, reservationId: true },
+    });
+    if (!found) {
+      if (input.event)
+        await this.storeHoldEvent(
+          this.prisma,
+          input.event,
+          null,
+          input.status,
+          'IGNORED',
+          'UNKNOWN_HOLD',
+        );
+      return { outcome: 'IGNORED', note: 'UNKNOWN_HOLD' };
+    }
+    // captures and releases confirmed asynchronously by the provider complete through their own paths
+    if (input.status === 'CAPTURED' || input.status === 'PARTIALLY_CAPTURED') {
+      const done = await this.completeCapture(
+        found.id,
+        input.capturedMinor ?? null,
+        input.captureReference ?? `${input.providerReference}:capture`,
+        input.source,
+      );
+      if (input.event)
+        await this.storeHoldEvent(
+          this.prisma,
+          input.event,
+          found.id,
+          input.status,
+          done ? 'APPLIED' : 'DUPLICATE',
+          null,
+        );
+      return { outcome: done ? 'APPLIED' : 'DUPLICATE', note: null };
+    }
+    if (input.status === 'RELEASED') {
+      const done = await this.completeRelease(found.id, input.source);
+      if (input.event)
+        await this.storeHoldEvent(
+          this.prisma,
+          input.event,
+          found.id,
+          input.status,
+          done ? 'APPLIED' : 'DUPLICATE',
+          null,
+        );
+      return { outcome: done ? 'APPLIED' : 'DUPLICATE', note: null };
+    }
+    const sent: Sent = [];
+    const post: PostCommit[] = [];
+    const result = await this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT "id" FROM "ReservationAuthorisation" WHERE "id" = ${found.id}::uuid FOR UPDATE`;
+      await tx.$queryRaw`SELECT "id" FROM "Reservation" WHERE "id" = ${found.reservationId}::uuid FOR UPDATE`;
+      const a = await tx.reservationAuthorisation.findUniqueOrThrow({ where: { id: found.id } });
+      const r = await tx.reservation.findUniqueOrThrow({
+        where: { id: found.reservationId },
+        include: MONEY_INCLUDE,
+      });
+      const role = input.source === 'WEBHOOK' ? 'PROVIDER' : 'SYSTEM';
+      let outcome: PaymentEventOutcome = 'APPLIED';
+      let note: string | null = null;
+
+      if (input.status === 'AUTHORISED') {
+        if (a.status === 'CANCELLED' || a.status === 'FAILED') {
+          // the provider placed a hold for a request we already closed: void it at the provider, nothing is charged
+          outcome = 'LATE_SUCCESS';
+          note = `Hold request was ${a.status}; released at the provider`;
+          const holds = this.holdProvider();
+          if (holds && a.providerReference) {
+            const providerRef = a.providerReference;
+            post.push(() => holds.release(providerRef).catch(() => undefined));
+          }
+        } else if (a.status !== 'REQUESTED') outcome = 'DUPLICATE';
+        else {
+          const validity = this.holdProvider()?.holdCapabilities.authValidityMinutes ?? 0;
+          await tx.reservationAuthorisation.update({
+            where: { id: a.id },
+            data: {
+              status: 'AUTHORISED',
+              authorisedAt: now,
+              authExpiresAt: new Date(now.getTime() + validity * 60_000),
+              failureCode: null,
+            },
+          });
+          const confirmed =
+            r.status === 'PENDING_PAYMENT'
+              ? await tx.reservation.updateMany({
+                  where: { id: r.id, status: 'PENDING_PAYMENT' },
+                  data: this.confirmation(r, now, 'AUTHORISED'),
+                })
+              : { count: 0 };
+          await this.event(
+            tx,
+            r.id,
+            'AUTHORISED',
+            `hold ${a.amountMinor} ${a.currency}${confirmed.count === 1 ? ': confirmed' : ': reservation already ended'}`,
+            { userId: null, role },
+            confirmed.count === 1 ? { from: 'PENDING_PAYMENT', to: 'HELD' } : undefined,
+          );
+          if (confirmed.count === 1) {
+            const fresh = await tx.reservation.findUniqueOrThrow({
+              where: { id: r.id },
+              include: MONEY_INCLUDE,
+            });
+            sent.push(
+              ...(await this.notifications.emit(tx, [
+                this.notice('RESERVATION_CONFIRMED', fresh, 'confirmed', {
+                  expiresAt: fresh.expiresAt.toISOString(),
+                  holdMinor: a.amountMinor,
+                  method: 'CARD_PREAUTH',
+                }),
+              ])),
+            );
+            // RC-92: "immediate capture" policy: the whole hold is captured now and then behaves like a full prepayment
+            if (policyOf(r).preauthImmediateCapture) {
+              await tx.reservationAuthorisation.update({
+                where: { id: a.id },
+                data: { pendingCaptureMinor: a.amountMinor, captureReason: 'IMMEDIATE' },
+              });
+              post.push(() => this.executeCapture(a.id));
+            }
+          } else {
+            // authorised after the reservation ended (released / cancelled / another hold): void it straight away
+            outcome = 'LATE_SUCCESS';
+            note = `Reservation was ${r.status}; hold released automatically`;
+            await tx.reservationAuthorisation.update({
+              where: { id: a.id },
+              data: { releaseRequestedAt: now, releaseReason: 'LATE_AUTHORISATION' },
+            });
+            post.push(() => this.executeRelease(a.id));
+          }
+        }
+      } else if (input.status === 'FAILED') {
+        if (a.status === 'REQUESTED') {
+          await tx.reservationAuthorisation.update({
+            where: { id: a.id },
+            data: { status: 'FAILED', failureCode: input.failureCode ?? 'DECLINED' },
+          });
+          await this.event(tx, r.id, 'AUTHORISATION_FAILED', input.failureCode ?? 'DECLINED', {
+            userId: null,
+            role,
+          });
+          sent.push(
+            ...(await this.notifications.emit(tx, [
+              this.notice('RESERVATION_PAYMENT_FAILED', r, `hold:${a.id}:failed`, {
+                method: 'CARD_PREAUTH',
+                canRetry: r.status === 'PENDING_PAYMENT' && a.attemptNo < MAX_PAYMENT_ATTEMPTS,
+                dueAt: r.paymentDueAt?.toISOString() ?? null,
+              }),
+            ])),
+          );
+          // the units stay held for a retry until the payment window ends (released by the sweep)
+        } else {
+          outcome = 'IGNORED';
+          note = `Hold already ${a.status}`;
+        }
+      } else if (input.status === 'EXPIRED') {
+        if (a.status === 'AUTHORISED') {
+          // the reservation it guaranteed is cancelled by the sweep (units released, customer told; not a strike)
+          await tx.reservationAuthorisation.update({
+            where: { id: a.id },
+            data: { authExpiresAt: now },
+          });
+          note = 'hold lapsed at the provider; the reservation ends at the next sweep';
+        } else outcome = 'IGNORED';
+      } else outcome = 'IGNORED';
+      if (outcome === 'APPLIED' || outcome === 'LATE_SUCCESS')
+        await this.audit.record(
+          {
+            action: `reservation.authorisation_${input.status.toLowerCase()}`,
+            entityType: 'ReservationAuthorisation',
+            entityId: a.id,
+            actorRole: role,
+            subjectOrganizationId: r.organizationId,
+            previousState: { status: a.status, reservationStatus: r.status },
+            newState: { status: input.status, source: input.source, outcome },
+          },
+          tx,
+        );
+      if (input.event)
+        await this.storeHoldEvent(tx, input.event, a.id, input.status, outcome, note);
+      return { outcome, note };
+    });
+    await this.notifications.dispatch(sent);
+    for (const fn of post)
+      await Promise.resolve(fn()).catch((e: Error) => this.logger.warn(e.message));
+    return result;
+  }
+
+  /**
+   * RC-92 / RC-61: an AUTHORISED hold at the end of the reservation. Late cancellation / no-show: captured minus the released share;
+   * redeemed: released or captured per policy; otherwise released in full. Captures and releases go to the provider after commit;
+   * money is posted only when the capture is confirmed (no revenue at authorisation).
+   */
+  private async settleHoldOnEnd(
+    tx: Tx,
+    r: MoneyRow,
+    situation: EndSituation,
+    now: Date,
+    post: PostCommit[],
+    opts: { redemptionId?: string; actor?: Actor | null },
+  ): Promise<NotificationInput[]> {
+    const a = await tx.reservationAuthorisation.findFirst({
+      where: { reservationId: r.id, status: 'AUTHORISED' },
+    });
+    if (!a) return [];
+    const capture = holdCaptureOnEnd(
+      a.amountMinor,
+      r.noShowRefundPercent,
+      situation,
+      policyOf(r).preauthOnRedemption,
+    );
+    if (capture > 0) {
+      await tx.reservationAuthorisation.update({
+        where: { id: a.id },
+        data: {
+          pendingCaptureMinor: capture,
+          captureReason: opts.redemptionId ? `REDEEMED:${opts.redemptionId}` : situation,
+        },
+      });
+      post.push(() => this.executeCapture(a.id));
+    } else {
+      await tx.reservationAuthorisation.update({
+        where: { id: a.id },
+        data: { releaseRequestedAt: now, releaseReason: situation },
+      });
+      post.push(() => this.executeRelease(a.id));
+    }
+    await this.audit.record(
+      {
+        action: 'reservation.hold_decided',
+        entityType: 'ReservationAuthorisation',
+        entityId: a.id,
+        actor: opts.actor ?? null,
+        actorRole: opts.actor ? undefined : 'SYSTEM',
+        subjectOrganizationId: r.organizationId,
+        newState: {
+          situation,
+          holdMinor: a.amountMinor,
+          captureMinor: capture,
+          releaseMinor: a.amountMinor - capture,
+        },
+      },
+      tx,
+    );
+    // the customer is told when the provider confirms the capture / release
+    return [];
+  }
+
+  /** Sends a decided capture to the provider (after commit). A refusal stays pending for the sweep (or ends the hold if expired). */
+  async executeCapture(authId: string) {
+    const holds = this.holdProvider();
+    const a = await this.prisma.reservationAuthorisation.findUnique({ where: { id: authId } });
+    if (!holds || !a || a.status !== 'AUTHORISED' || !a.pendingCaptureMinor || !a.providerReference)
+      return;
+    // a refused capture moved no money, so the next try is a new provider request; the key is derived from the recorded refusals
+    // (the same for concurrent senders, so a capture can never be sent twice under different keys at once)
+    const refusals = await this.prisma.auditLog.count({
+      where: { action: 'reservation.capture_failed', entityId: a.id },
+    });
+    const res = await holds
+      .capture({
+        providerReference: a.providerReference,
+        amountMinor: a.pendingCaptureMinor,
+        idempotencyKey: `${a.idempotencyKey}:capture${refusals ? `:retry${refusals}` : ''}`,
+      })
+      .catch((e: Error) => ({
+        captureReference: '',
+        status: 'FAILED' as const,
+        failureCode: `PROVIDER_ERROR: ${e.message}`.slice(0, 120),
+      }));
+    if (res.status === 'SUCCEEDED') {
+      await this.completeCapture(a.id, a.pendingCaptureMinor, res.captureReference, 'SYNC');
+      return;
+    }
+    await this.prisma.reservationAuthorisation.update({
+      where: { id: a.id },
+      data: { failureCode: res.failureCode ?? 'CAPTURE_REFUSED' },
+    });
+    await this.audit.record({
+      action: 'reservation.capture_failed',
+      entityType: 'ReservationAuthorisation',
+      entityId: a.id,
+      actorRole: 'SYSTEM',
+      newState: {
+        pendingCaptureMinor: a.pendingCaptureMinor,
+        failureCode: res.failureCode ?? null,
+      },
+    });
+  }
+
+  /**
+   * A confirmed capture: the captured amount becomes a SUCCEEDED reservation payment (money received, held for the merchant). An
+   * IMMEDIATE capture stays held (the reservation is then PAID and settles at its end like a prepayment); a capture at the end of
+   * the reservation is settled at once: kept for the merchant net of DealDash's agreed commission (one fee, RC-73).
+   */
+  private async completeCapture(
+    authId: string,
+    capturedMinor: number | null,
+    captureReference: string,
+    source: string,
+  ): Promise<boolean> {
+    const sent: Sent = [];
+    const done = await this.prisma.$transaction(async (tx) => {
+      const a = await tx.reservationAuthorisation.findUniqueOrThrow({ where: { id: authId } });
+      const amount = capturedMinor ?? a.pendingCaptureMinor ?? a.amountMinor;
+      const claimed = await tx.reservationAuthorisation.updateMany({
+        where: { id: authId, status: 'AUTHORISED' },
+        data: {
+          status: amount >= a.amountMinor ? 'CAPTURED' : 'PARTIALLY_CAPTURED',
+          capturedMinor: amount,
+          capturedAt: new Date(),
+          pendingCaptureMinor: null,
+          failureCode: null,
+        },
+      });
+      if (claimed.count !== 1) return false;
+      const r = await tx.reservation.findUniqueOrThrow({
+        where: { id: a.reservationId },
+        include: MONEY_INCLUDE,
+      });
+      const attempts = await tx.reservationPayment.count({ where: { reservationId: r.id } });
+      const pay = await tx.reservationPayment.create({
+        data: {
+          reservationId: r.id,
+          provider: a.provider,
+          providerReference: captureReference || null,
+          status: 'SUCCEEDED',
+          amountMinor: amount,
+          currency: a.currency,
+          attemptNo: attempts + 1,
+          idempotencyKey: `rcapture:${a.id}`,
+          methodType: 'card_hold_capture',
+          completedAt: new Date(),
+        },
+      });
+      // money received only now (never at authorisation): held for the merchant
+      await this.ledger.post(tx, {
+        type: 'RESERVATION_PAYMENT',
+        sourceType: 'ReservationPayment',
+        sourceId: pay.id,
+        idempotencyKey: `rpay-in:${pay.id}`,
+        currency: a.currency,
+        memo: `Reservation ${r.reference} card hold captured (${a.captureReason ?? 'capture'})`,
+        lines: [
+          { family: 'PSP_CLEARING', amountHalalas: amount, memo: captureReference || undefined },
+          { family: 'MERCHANT_HELD', organizationId: r.organizationId, amountHalalas: -amount },
+        ],
+      });
+      const role = source === 'WEBHOOK' ? 'PROVIDER' : 'SYSTEM';
+      await this.event(
+        tx,
+        r.id,
+        'HOLD_CAPTURED',
+        `${amount} of ${a.amountMinor} captured (${a.captureReason ?? 'capture'}); ${a.amountMinor - amount} released`,
+        { userId: null, role },
+      );
+      if (a.captureReason === 'IMMEDIATE') {
+        // held until the reservation ends; it then settles like a prepayment (refund / keep rules)
+        await tx.reservation.update({ where: { id: r.id }, data: { paymentStatus: 'PAID' } });
+      } else {
+        const redemptionId = a.captureReason?.startsWith('REDEEMED:')
+          ? a.captureReason.slice('REDEEMED:'.length)
+          : null;
+        const fee = commissionOn(amount, r.commissionBps ?? 0);
+        await this.ledger.post(tx, {
+          type: 'RESERVATION_SETTLEMENT',
+          sourceType: redemptionId ? 'Redemption' : 'Reservation',
+          sourceId: redemptionId ?? r.id,
+          idempotencyKey: redemptionId
+            ? `rsettle:${r.id}:redeem:${redemptionId}`
+            : `rsettle:${r.id}:end`,
+          currency: a.currency,
+          memo: `Reservation ${r.reference} card hold kept (${a.captureReason ?? 'capture'})`,
+          reasonCode: a.captureReason ?? undefined,
+          lines: [
+            { family: 'MERCHANT_HELD', organizationId: r.organizationId, amountHalalas: amount },
+            {
+              family: 'PLATFORM_REVENUE',
+              amountHalalas: -fee,
+              memo: `commission ${r.commissionBps ?? 0} bps`,
+            },
+            {
+              family: 'MERCHANT_SETTLEMENT_ELIGIBLE',
+              organizationId: r.organizationId,
+              amountHalalas: -(amount - fee),
+            },
+          ],
+        });
+        // redeemed: the captured amount is "paid and used" (PAID, like a redeemed prepayment: a redemption reversal or a cancelled
+        // campaign can still refund it); a late cancellation / no-show capture is final (CAPTURED)
+        await tx.reservation.update({
+          where: { id: r.id },
+          data: {
+            keptMinor: amount,
+            feeMinor: fee,
+            settledAt: new Date(),
+            paymentStatus: redemptionId ? 'PAID' : 'CAPTURED',
+          },
+        });
+        if (!redemptionId)
+          await this.event(tx, r.id, 'FORFEITED', `${amount} kept (${a.captureReason})`, {
+            userId: null,
+            role,
+          });
+        await this.event(
+          tx,
+          r.id,
+          'SETTLED_TO_MERCHANT',
+          `${amount - fee} to the merchant, fee ${fee}`,
+          { userId: null, role },
+        );
+      }
+      await this.audit.record(
+        {
+          action: 'reservation.hold_captured',
+          entityType: 'ReservationAuthorisation',
+          entityId: a.id,
+          actorRole: role,
+          subjectOrganizationId: r.organizationId,
+          newState: {
+            capturedMinor: amount,
+            releasedMinor: a.amountMinor - amount,
+            reason: a.captureReason,
+            source,
+          },
+        },
+        tx,
+      );
+      sent.push(
+        ...(await this.notifications.emit(tx, [
+          this.notice('RESERVATION_HOLD_CAPTURED', r, `hold:${a.id}:captured`, {
+            capturedMinor: amount,
+            releasedMinor: a.amountMinor - amount,
+            reason: a.captureReason,
+          }),
+        ])),
+      );
+      return true;
+    });
+    await this.notifications.dispatch(sent);
+    return done;
+  }
+
+  /** Sends a decided release to the provider (after commit); retried by the sweep if the provider call fails. */
+  async executeRelease(authId: string) {
+    const holds = this.holdProvider();
+    const a = await this.prisma.reservationAuthorisation.findUnique({ where: { id: authId } });
+    if (!holds || !a || !a.releaseRequestedAt) return;
+    if (a.status !== 'AUTHORISED' && a.status !== 'REQUESTED') return;
+    try {
+      if (a.providerReference) await holds.release(a.providerReference);
+    } catch (e) {
+      this.logger.warn(`Card hold release ${a.id} failed: ${(e as Error).message}`);
+      return;
+    }
+    await this.completeRelease(a.id, 'SYNC');
+  }
+
+  /** A confirmed release: nothing is charged, nothing is posted to the ledger (no money moved). */
+  private async completeRelease(authId: string, source: string): Promise<boolean> {
+    const sent: Sent = [];
+    const done = await this.prisma.$transaction(async (tx) => {
+      const a = await tx.reservationAuthorisation.findUniqueOrThrow({ where: { id: authId } });
+      const wasHeld = a.status === 'AUTHORISED';
+      const claimed = await tx.reservationAuthorisation.updateMany({
+        where: { id: authId, status: { in: ['AUTHORISED', 'REQUESTED'] } },
+        data: {
+          status: wasHeld ? 'RELEASED' : 'CANCELLED',
+          releasedAt: new Date(),
+          pendingCaptureMinor: null,
+        },
+      });
+      if (claimed.count !== 1) return false;
+      const r = await tx.reservation.findUniqueOrThrow({
+        where: { id: a.reservationId },
+        include: MONEY_INCLUDE,
+      });
+      if (wasHeld && r.paymentStatus === 'AUTHORISED')
+        await tx.reservation.update({ where: { id: r.id }, data: { paymentStatus: 'VOIDED' } });
+      const role = source === 'WEBHOOK' ? 'PROVIDER' : 'SYSTEM';
+      await this.event(
+        tx,
+        r.id,
+        'HOLD_RELEASED',
+        `${a.amountMinor} released (${a.releaseReason ?? 'release'})`,
+        {
+          userId: null,
+          role,
+        },
+      );
+      await this.audit.record(
+        {
+          action: 'reservation.hold_released',
+          entityType: 'ReservationAuthorisation',
+          entityId: a.id,
+          actorRole: role,
+          subjectOrganizationId: r.organizationId,
+          newState: { releasedMinor: a.amountMinor, reason: a.releaseReason, source },
+        },
+        tx,
+      );
+      if (wasHeld)
+        sent.push(
+          ...(await this.notifications.emit(tx, [
+            this.notice('RESERVATION_HOLD_RELEASED', r, `hold:${a.id}:released`, {
+              releasedMinor: a.amountMinor,
+              reason: a.releaseReason,
+            }),
+          ])),
+        );
+      return true;
+    });
+    await this.notifications.dispatch(sent);
+    return done;
+  }
+
+  /**
+   * A live hold that lapsed (authExpiresAt passed, or the provider said EXPIRED): marked EXPIRED, nothing charged. The caller then
+   * cancels the reservation it guaranteed (units released, not a strike) in the same transaction.
+   */
+  async expireHoldInTx(tx: Tx, authId: string): Promise<boolean> {
+    const claimed = await tx.reservationAuthorisation.updateMany({
+      where: { id: authId, status: 'AUTHORISED' },
+      data: { status: 'EXPIRED', pendingCaptureMinor: null },
+    });
+    if (claimed.count !== 1) return false;
+    const a = await tx.reservationAuthorisation.findUniqueOrThrow({ where: { id: authId } });
+    await tx.reservation.updateMany({
+      where: { id: a.reservationId, paymentStatus: 'AUTHORISED' },
+      data: { paymentStatus: 'VOIDED' },
+    });
+    await this.event(
+      tx,
+      a.reservationId,
+      'AUTHORISATION_EXPIRED',
+      'card hold lapsed: nothing charged',
+    );
+    await this.audit.record(
+      {
+        action: 'reservation.authorisation_expired',
+        entityType: 'ReservationAuthorisation',
+        entityId: a.id,
+        actorRole: 'SYSTEM',
+        newState: { amountMinor: a.amountMinor },
+      },
+      tx,
+    );
+    return true;
+  }
+
+  /** Live holds that have lapsed (for the sweep). */
+  dueExpiredHolds(now: Date, limit = 200) {
+    return this.prisma.reservationAuthorisation.findMany({
+      where: { status: 'AUTHORISED', authExpiresAt: { lte: now } },
+      select: { id: true, reservationId: true },
+      take: limit,
+    });
+  }
+
+  /** Sweep: captures and releases decided inside other transactions, or refused / failed earlier, are (re)sent. */
+  async sendPendingHoldActions(limit = 50) {
+    const captures = await this.prisma.reservationAuthorisation.findMany({
+      where: { status: 'AUTHORISED', pendingCaptureMinor: { not: null } },
+      select: { id: true },
+      take: limit,
+    });
+    for (const c of captures)
+      await this.executeCapture(c.id).catch((e: Error) => this.logger.warn(e.message));
+    const releases = await this.prisma.reservationAuthorisation.findMany({
+      where: { status: { in: ['AUTHORISED', 'REQUESTED'] }, releaseRequestedAt: { not: null } },
+      select: { id: true },
+      take: limit,
+    });
+    for (const r of releases)
+      await this.executeRelease(r.id).catch((e: Error) => this.logger.warn(e.message));
+    return captures.length + releases.length;
   }
 }

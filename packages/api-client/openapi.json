@@ -46707,6 +46707,19 @@
                   },
                   "additionalRedemptionFee": {
                     "type": "boolean"
+                  },
+                  "preauthImmediateCapture": {
+                    "type": "boolean"
+                  },
+                  "preauthPartialCaptureAllowed": {
+                    "type": "boolean"
+                  },
+                  "preauthOnRedemption": {
+                    "type": "string",
+                    "enum": [
+                      "RELEASE",
+                      "CAPTURE"
+                    ]
                   }
                 },
                 "required": [
@@ -46723,7 +46736,10 @@
                   "prepaymentRefundMaxPercent",
                   "prepaymentRefundDefaultPercent",
                   "commissionBps",
-                  "additionalRedemptionFee"
+                  "additionalRedemptionFee",
+                  "preauthImmediateCapture",
+                  "preauthPartialCaptureAllowed",
+                  "preauthOnRedemption"
                 ]
               },
               "source": {
@@ -52586,6 +52602,74 @@
                       "minimum": -9007199254740991,
                       "maximum": 9007199254740991,
                       "nullable": true
+                    },
+                    "authorisation": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "REQUESTED",
+                            "AUTHORISED",
+                            "FAILED",
+                            "CANCELLED",
+                            "EXPIRED",
+                            "RELEASED",
+                            "CAPTURED",
+                            "PARTIALLY_CAPTURED"
+                          ]
+                        },
+                        "amountMinor": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "capturedMinor": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "releasedMinor": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "authorisedAt": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "expiresAt": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "capturedAt": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "releasedAt": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "amountMinor",
+                        "capturedMinor",
+                        "releasedMinor",
+                        "authorisedAt",
+                        "expiresAt",
+                        "capturedAt",
+                        "releasedAt"
+                      ],
+                      "nullable": true
                     }
                   },
                   "required": [
@@ -52599,7 +52683,8 @@
                     "feeMinor",
                     "netToMerchantMinor",
                     "additionalFeeAllowed",
-                    "redemptionFeeMinor"
+                    "redemptionFeeMinor",
+                    "authorisation"
                   ]
                 }
               },
@@ -52745,6 +52830,74 @@
                   "canRetry": {
                     "type": "boolean"
                   },
+                  "authorisation": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "REQUESTED",
+                          "AUTHORISED",
+                          "FAILED",
+                          "CANCELLED",
+                          "EXPIRED",
+                          "RELEASED",
+                          "CAPTURED",
+                          "PARTIALLY_CAPTURED"
+                        ]
+                      },
+                      "amountMinor": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "capturedMinor": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "releasedMinor": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "authorisedAt": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "expiresAt": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "capturedAt": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "releasedAt": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "status",
+                      "amountMinor",
+                      "capturedMinor",
+                      "releasedMinor",
+                      "authorisedAt",
+                      "expiresAt",
+                      "capturedAt",
+                      "releasedAt"
+                    ],
+                    "nullable": true
+                  },
                   "cancelCutoffAt": {
                     "type": [
                       "string",
@@ -52822,6 +52975,7 @@
                   "dueAt",
                   "redirectUrl",
                   "canRetry",
+                  "authorisation",
                   "cancelCutoffAt",
                   "depositRefundable",
                   "noShowRefundPercent",
@@ -57258,6 +57412,74 @@
                     "canRetry": {
                       "type": "boolean"
                     },
+                    "authorisation": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "REQUESTED",
+                            "AUTHORISED",
+                            "FAILED",
+                            "CANCELLED",
+                            "EXPIRED",
+                            "RELEASED",
+                            "CAPTURED",
+                            "PARTIALLY_CAPTURED"
+                          ]
+                        },
+                        "amountMinor": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "capturedMinor": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "releasedMinor": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "authorisedAt": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "expiresAt": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "capturedAt": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "releasedAt": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "amountMinor",
+                        "capturedMinor",
+                        "releasedMinor",
+                        "authorisedAt",
+                        "expiresAt",
+                        "capturedAt",
+                        "releasedAt"
+                      ],
+                      "nullable": true
+                    },
                     "cancelCutoffAt": {
                       "type": [
                         "string",
@@ -57335,6 +57557,7 @@
                     "dueAt",
                     "redirectUrl",
                     "canRetry",
+                    "authorisation",
                     "cancelCutoffAt",
                     "depositRefundable",
                     "noShowRefundPercent",
@@ -57646,7 +57869,9 @@
                         "ACCOUNT_WELCOME",
                         "RESERVATION_PAYMENT_FAILED",
                         "RESERVATION_REFUND_UPDATED",
-                        "RESERVATION_FORFEITED"
+                        "RESERVATION_FORFEITED",
+                        "RESERVATION_HOLD_RELEASED",
+                        "RESERVATION_HOLD_CAPTURED"
                       ]
                     },
                     "data": {

@@ -38,6 +38,8 @@ const RES_INCLUDE = {
   // phase 2: the latest payment attempt (pay link) and the refunds the customer / merchant see
   payments: { orderBy: { attemptNo: 'desc' as const }, take: 1 },
   refunds: { orderBy: { createdAt: 'asc' as const } },
+  // phase 3: the latest card hold
+  authorisations: { orderBy: { attemptNo: 'desc' as const }, take: 1 },
 } satisfies Prisma.ReservationInclude;
 
 /** Statuses that hold units and count toward the customer's limits (a reservation waiting for payment holds its units). */
@@ -301,7 +303,16 @@ export class ReservationsService {
         'This offer cannot be reserved right now.',
         409,
       );
-    if (method === 'CARD_PREAUTH')
+    // phase 3 card holds: only where the payment provider supports them (and partial capture, when the deal releases a share)
+    const holds = method === 'CARD_PREAUTH' ? this.money.holdProvider() : null;
+    const releaseShare = dealContent.commitment.noShowRefundPercent ?? 0;
+    if (
+      method === 'CARD_PREAUTH' &&
+      (!holds ||
+        (releaseShare > 0 &&
+          (!holds.holdCapabilities.partialCapture ||
+            !effectivePolicy.fields.preauthPartialCaptureAllowed)))
+    )
       throw new AppError(
         'RESERVATION_PAYMENT_UNAVAILABLE',
         'Reserving this offer needs a payment, which is not available yet.',
@@ -313,11 +324,14 @@ export class ReservationsService {
       throw new AppError('OFFER_UNAVAILABLE', 'This offer cannot be reserved right now.', 409);
     // money is in the deal's market currency (never a fixed country)
     const currency = paid ? (await this.markets.profile(effectivePolicy.market)).currency : null;
+    // prepayment: share refunded on a late cancellation / no-show (policy default if unset); card hold: share released (0 = all captured)
     const noShowRefundPercent =
       method === 'FULL_PREPAYMENT'
         ? (dealContent.commitment.noShowRefundPercent ??
           effectivePolicy.fields.prepaymentRefundDefaultPercent)
-        : null;
+        : method === 'CARD_PREAUTH'
+          ? releaseShare
+          : null;
     const paymentWindowMinutes = effectivePolicy.fields.paymentWindowMinutes;
 
     const branch = await this.prisma.merchantBranch.findFirst({
@@ -349,6 +363,13 @@ export class ReservationsService {
         403,
       );
     const holdMinutes = await this.core.holdMinutes(deal);
+    // RC-90: a card hold must stay valid for the whole payment window and hold (never relied on beyond the provider's validity)
+    if (holds && paymentWindowMinutes + holdMinutes > holds.holdCapabilities.authValidityMinutes)
+      throw new AppError(
+        'RESERVATION_PAYMENT_UNAVAILABLE',
+        'Reserving this offer needs a payment, which is not available yet.',
+        409,
+      );
     const maxActive = await this.core.maxActiveReservations();
 
     const out = await this.prisma.$transaction(async (tx) => {
@@ -476,7 +497,15 @@ export class ReservationsService {
           actorRole: 'CUSTOMER',
         },
       });
-      const paymentId = paid ? await this.money.openAttempt(tx, created, actor, meta) : null;
+      // full prepayment / deposit: a payment attempt; card pre-authorisation: a hold request (phase 3)
+      const paymentId =
+        paid && method !== 'CARD_PREAUTH'
+          ? await this.money.openAttempt(tx, created, actor, meta)
+          : null;
+      const authId =
+        method === 'CARD_PREAUTH'
+          ? await this.money.openAuthorisation(tx, created, actor, meta)
+          : null;
       await this.event(tx, 'RESERVATION_CREATED', created);
       await this.core.audit.record(
         {
@@ -496,10 +525,11 @@ export class ReservationsService {
         : await this.notifications.emit(tx, [
             this.notice('RESERVATION_CONFIRMED', created, 'confirmed'),
           ]);
-      return { created, paymentId, sent: [...lazyNotices, ...sent] };
+      return { created, paymentId, authId, sent: [...lazyNotices, ...sent] };
     });
     await this.notifications.dispatch(out.sent);
     if (out.paymentId) await this.money.initiate(out.paymentId);
+    if (out.authId) await this.money.requestAuthorisation(out.authId);
     const fresh = await this.prisma.reservation.findUniqueOrThrow({
       where: { id: out.created.id },
       include: RES_INCLUDE,
@@ -773,6 +803,8 @@ export class ReservationsService {
     restrictions: number;
     unpaid: number;
     refundsSent: number;
+    holdsExpired: number;
+    holdActions: number;
   }> {
     let expired = 0;
     const users = new Set<string>();
@@ -812,6 +844,32 @@ export class ReservationsService {
         this.logger.warn(`Could not release unpaid reservation ${r.id}: ${(e as Error).message}`);
       }
     }
+    // Phase 3: a card hold that lapsed can no longer guarantee its reservation: the reservation is cancelled by the system (units
+    // released, nothing charged, not a no-show strike).
+    let holdsExpired = 0;
+    for (const h of await this.money.dueExpiredHolds(now)) {
+      try {
+        const post: PostCommit[] = [];
+        const sent = await this.prisma.$transaction(async (tx) => {
+          if (!(await this.money.expireHoldInTx(tx, h.id))) return null;
+          const row = await tx.reservation.findUniqueOrThrow({
+            where: { id: h.reservationId },
+            include: RES_INCLUDE,
+          });
+          if (row.status !== 'HELD') return [];
+          return this.cancelInTx(tx, row, 'SYSTEM', null, 'Card hold expired', null, now, post);
+        });
+        if (sent) {
+          holdsExpired++;
+          await this.notifications.dispatch(sent);
+          await this.runPost(post);
+        }
+      } catch (e) {
+        this.logger.warn(`Could not end expired card hold ${h.id}: ${(e as Error).message}`);
+      }
+    }
+    // Captures / releases decided inside other transactions (deal cancelled, lazy expiry) or refused earlier are (re)sent.
+    const holdActions = await this.money.sendPendingHoldActions();
     // Refunds created inside other transactions (deal cancelled, lazy expiry) are sent to the provider here.
     const refundsSent = await this.money.sendUnsentRefunds();
 
@@ -862,7 +920,7 @@ export class ReservationsService {
       this.logger.log(
         `Sweep: ${expired} expired, ${notified} notices, ${restrictions} restrictions, ${unpaid} unpaid released, ${refundsSent} refunds sent`,
       );
-    return { expired, notified, restrictions, unpaid, refundsSent };
+    return { expired, notified, restrictions, unpaid, refundsSent, holdsExpired, holdActions };
   }
 
   /**
@@ -929,27 +987,54 @@ export class ReservationsService {
     return 'HELD';
   }
 
+  /** Card hold status shown to the customer and the merchant (phase 3). Amounts in minor units of the reservation currency. */
+  private holdView(h: ResRow['authorisations'][number]) {
+    return {
+      status: h.status,
+      amountMinor: h.amountMinor,
+      capturedMinor: h.capturedMinor,
+      releasedMinor:
+        h.status === 'RELEASED' || h.status === 'CANCELLED' || h.status === 'EXPIRED'
+          ? h.amountMinor
+          : h.status === 'PARTIALLY_CAPTURED'
+            ? h.amountMinor - h.capturedMinor
+            : 0,
+      authorisedAt: h.authorisedAt?.toISOString() ?? null,
+      expiresAt: h.authExpiresAt?.toISOString() ?? null,
+      capturedAt: h.capturedAt?.toISOString() ?? null,
+      releasedAt: h.releasedAt?.toISOString() ?? null,
+    };
+  }
+
   /** Customer payment status of a paid reservation (RC-81); FREE reservations carry no payment block at all. */
   private paymentView(r: ResRow, now: Date): ReservationView['payment'] {
     if (r.commitmentMethod === 'FREE' || !r.amountMinor || !r.currency) return undefined;
+    const preauth = r.commitmentMethod === 'CARD_PREAUTH';
+    const hold = r.authorisations[0] ?? null;
     const attempt = r.payments[0] ?? null;
-    const open =
-      r.status === 'PENDING_PAYMENT' &&
-      attempt &&
-      (attempt.status === 'CREATED' || attempt.status === 'PENDING') &&
-      (r.paymentDueAt?.getTime() ?? 0) > now.getTime();
+    const inWindow = (r.paymentDueAt?.getTime() ?? 0) > now.getTime();
+    // the open step: a card hold request (phase 3) or a payment attempt
+    const openUrl =
+      r.status !== 'PENDING_PAYMENT' || !inWindow
+        ? null
+        : preauth
+          ? hold?.status === 'REQUESTED'
+            ? (hold.redirectUrl ?? null)
+            : null
+          : attempt && (attempt.status === 'CREATED' || attempt.status === 'PENDING')
+            ? (attempt.redirectUrl ?? null)
+            : null;
+    const open = preauth ? hold?.status === 'REQUESTED' : !!openUrl;
+    const tries = preauth ? (hold?.attemptNo ?? 0) : (attempt?.attemptNo ?? 0);
     return {
       method: r.commitmentMethod as NonNullable<ReservationView['payment']>['method'],
       status: r.paymentStatus,
       amountMinor: r.amountMinor * r.quantity,
       currency: r.currency,
       dueAt: r.status === 'PENDING_PAYMENT' ? (r.paymentDueAt?.toISOString() ?? null) : null,
-      redirectUrl: open ? (attempt.redirectUrl ?? null) : null,
-      canRetry:
-        r.status === 'PENDING_PAYMENT' &&
-        !open &&
-        (r.paymentDueAt?.getTime() ?? 0) > now.getTime() &&
-        (attempt?.attemptNo ?? 0) < MAX_PAYMENT_ATTEMPTS,
+      redirectUrl: openUrl,
+      canRetry: r.status === 'PENDING_PAYMENT' && !open && inWindow && tries < MAX_PAYMENT_ATTEMPTS,
+      authorisation: preauth && hold ? this.holdView(hold) : null,
       cancelCutoffAt: r.cancelCutoffAt?.toISOString() ?? null,
       depositRefundable: r.depositRefundable,
       noShowRefundPercent: r.noShowRefundPercent,
@@ -1093,7 +1178,14 @@ export class ReservationsService {
     };
     const page = await keysetPage({
       findMany: (query) =>
-        this.prisma.reservation.findMany({ ...query, include: { branch: true, refunds: true } }),
+        this.prisma.reservation.findMany({
+          ...query,
+          include: {
+            branch: true,
+            refunds: true,
+            authorisations: { orderBy: { attemptNo: 'desc' }, take: 1 },
+          },
+        }),
       baseWhere: where as Record<string, unknown>,
       sort: { field: 'createdAt', dir: 'desc' },
       limit: q.limit,
@@ -1137,6 +1229,11 @@ export class ReservationsService {
                 // RC-73 / RC-74: the per-redemption fee is 0 for a paid reservation unless the agreement explicitly allows it
                 additionalFeeAllowed: r.additionalFeeAllowed,
                 redemptionFeeMinor: r.redemptionFeeMinor,
+                // phase 3: the card hold behind a CARD_PREAUTH reservation
+                authorisation:
+                  r.commitmentMethod === 'CARD_PREAUTH' && r.authorisations[0]
+                    ? this.holdView(r.authorisations[0])
+                    : null,
               },
             }
           : {}),

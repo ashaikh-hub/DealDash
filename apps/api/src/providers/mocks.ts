@@ -1,6 +1,10 @@
 import { Logger } from '@nestjs/common';
 import { createHmac, randomUUID } from 'node:crypto';
 import type {
+  CardHoldCapabilities,
+  CardHoldProvider,
+  CardHoldRequest,
+  CardHoldStatus,
   EmailMessage,
   EmailProvider,
   GeocodeResult,
@@ -126,9 +130,91 @@ export class MockPushProvider implements PushProvider {
   }
 }
 
-export class MockPaymentProvider implements PaymentProvider {
+export class MockPaymentProvider implements PaymentProvider, CardHoldProvider {
   static readonly WEBHOOK_SECRET = 'mock-webhook-secret';
   readonly name = 'mock';
+  /** Phase 3 card holds. Test / development switches: validity, partial capture support, failing captures. */
+  holdCapabilities: CardHoldCapabilities = {
+    cardHolds: true,
+    partialCapture: true,
+    authValidityMinutes: 7 * 24 * 60,
+  };
+  failCaptures = false;
+  private readonly holds = new Map<
+    string,
+    { status: CardHoldStatus; amount: number; captured: number; key: string }
+  >();
+  private readonly holdByKey = new Map<string, string>();
+  private readonly captures = new Map<
+    string,
+    { captureReference: string; status: 'SUCCEEDED' | 'FAILED'; failureCode?: string }
+  >();
+
+  async authorise(input: CardHoldRequest) {
+    const existing = this.holdByKey.get(input.idempotencyKey);
+    if (existing) return { providerReference: existing, status: this.holds.get(existing)!.status };
+    const providerReference = `mock-auth-${randomUUID()}`;
+    this.holds.set(providerReference, {
+      status: 'PENDING',
+      amount: input.amountMinor,
+      captured: 0,
+      key: input.idempotencyKey,
+    });
+    this.holdByKey.set(input.idempotencyKey, providerReference);
+    return {
+      providerReference,
+      status: 'PENDING' as const,
+      redirectUrl: `${input.returnUrl}?mock_hold=${providerReference}`,
+    };
+  }
+
+  /** Test / dev helper: the customer completed (or failed) 3-D Secure, or the issuer let the hold lapse. */
+  settleHold(providerReference: string, status: 'AUTHORISED' | 'FAILED' | 'EXPIRED') {
+    const h = this.holds.get(providerReference);
+    if (h) h.status = status;
+  }
+
+  async capture(input: { providerReference: string; amountMinor: number; idempotencyKey: string }) {
+    const prior = this.captures.get(input.idempotencyKey);
+    if (prior) return prior;
+    const h = this.holds.get(input.providerReference);
+    const ok =
+      !this.failCaptures &&
+      !!h &&
+      h.status === 'AUTHORISED' &&
+      input.amountMinor > 0 &&
+      input.amountMinor <= h.amount &&
+      (input.amountMinor === h.amount || this.holdCapabilities.partialCapture);
+    const result = ok
+      ? { captureReference: `mock-capture-${randomUUID()}`, status: 'SUCCEEDED' as const }
+      : {
+          captureReference: '',
+          status: 'FAILED' as const,
+          failureCode: h?.status === 'EXPIRED' ? 'AUTHORISATION_EXPIRED' : 'CAPTURE_REFUSED',
+        };
+    if (ok) {
+      h!.captured = input.amountMinor;
+      h!.status = input.amountMinor === h!.amount ? 'CAPTURED' : 'PARTIALLY_CAPTURED';
+      // a capture is refundable like a payment
+      this.payments.set(result.captureReference, {
+        status: 'SUCCEEDED',
+        amount: input.amountMinor,
+        idempotencyKey: input.idempotencyKey,
+      });
+    }
+    this.captures.set(input.idempotencyKey, result);
+    return result;
+  }
+
+  async release(providerReference: string) {
+    const h = this.holds.get(providerReference);
+    if (h && (h.status === 'PENDING' || h.status === 'AUTHORISED')) h.status = 'RELEASED';
+    return { status: h?.status ?? ('RELEASED' as const) };
+  }
+
+  async getHoldStatus(providerReference: string): Promise<CardHoldStatus> {
+    return this.holds.get(providerReference)?.status ?? 'PENDING';
+  }
   /** Test and development switch: the next refund calls fail (to exercise the failed-refund path). */
   failRefunds = false;
   /** Test and development switch: refunds are accepted but complete later through a webhook (asynchronous PSP refund). */

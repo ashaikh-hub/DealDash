@@ -51,7 +51,7 @@ const sha256 = (s: string) => createHash('sha256').update(s).digest('hex');
 
 interface IncomingPaymentEvent {
   eventId: string;
-  kind: 'PAYMENT' | 'REFUND';
+  kind: 'PAYMENT' | 'REFUND' | 'AUTHORISATION';
   payloadHash: string;
   occurredAt: Date | null;
 }
@@ -616,6 +616,19 @@ export class PaymentsService {
       // (after the same signature, freshness and duplicate checks); voucher events continue below unchanged.
       if (this.reservationPayments && (await this.reservationPayments.owns(event)))
         return { outcome: await this.reservationPayments.handleEvent(event, incoming) };
+      // card holds exist only for reservations (phase 3): an unknown hold event is recorded and ignored
+      if (event.kind === 'AUTHORISATION') {
+        await this.storeEvent(
+          this.prisma,
+          incoming,
+          null,
+          event.status,
+          'IGNORED',
+          'UNKNOWN_HOLD',
+          true,
+        );
+        return { outcome: 'IGNORED' as PaymentEventOutcome };
+      }
       if (event.kind === 'REFUND') {
         const r = await this.refunds.applyProviderRefund(
           event,

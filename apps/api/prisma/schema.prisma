@@ -1209,6 +1209,26 @@ enum ReservationEventType {
   REFUND_FAILED
   FORFEITED
   SETTLED_TO_MERCHANT
+  /// Phase 3 card pre-authorisation events (RC-82, RC-90)
+  AUTHORISATION_REQUESTED
+  AUTHORISED
+  AUTHORISATION_FAILED
+  AUTHORISATION_EXPIRED
+  HOLD_RELEASED
+  HOLD_CAPTURED
+}
+
+/// Card pre-authorisation of a reservation (phase 3, RC-90..RC-95). REQUESTED -> AUTHORISED | FAILED | CANCELLED;
+/// AUTHORISED -> RELEASED | CAPTURED | PARTIALLY_CAPTURED (remainder released) | EXPIRED (the provider's hold lapsed).
+enum ReservationAuthStatus {
+  REQUESTED
+  AUTHORISED
+  FAILED
+  CANCELLED
+  EXPIRED
+  RELEASED
+  CAPTURED
+  PARTIALLY_CAPTURED
 }
 
 /// Reservation commitment model (founder decision 2026-10-15, RC-04/05). FREE only where the effective reservation policy allows it.
@@ -1295,6 +1315,9 @@ enum NotificationType {
   RESERVATION_PAYMENT_FAILED
   RESERVATION_REFUND_UPDATED
   RESERVATION_FORFEITED
+  /// Phase 3: a card hold was released / captured
+  RESERVATION_HOLD_RELEASED
+  RESERVATION_HOLD_CAPTURED
 }
 
 /// Hot Deal: urgent, limited by time and/or quantity. Reservation is optional (default off) and, when on, carries a commitment
@@ -1450,6 +1473,7 @@ model Reservation {
   additionalFeeAllowed Boolean           @default(false)
   redemptionFeeMinor   Int?
   payments             ReservationPayment[]
+  authorisations       ReservationAuthorisation[]
   refunds              ReservationRefund[]
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
@@ -1493,6 +1517,43 @@ model ReservationPayment {
 
   @@index([reservationId, createdAt])
   @@index([status, createdAt])
+}
+
+/// A card hold for a CARD_PREAUTH reservation (phase 3). No money moves and nothing is posted to the ledger while it is only
+/// authorised; a capture becomes a SUCCEEDED ReservationPayment (and is then settled like any paid amount).
+model ReservationAuthorisation {
+  id                  String                @id @default(uuid(7)) @db.Uuid
+  reservationId       String                @db.Uuid
+  provider            String
+  providerReference   String?               @unique
+  status              ReservationAuthStatus @default(REQUESTED)
+  /// The hold (all units), minor units of `currency`.
+  amountMinor         Int
+  currency            String
+  attemptNo           Int                   @default(1)
+  idempotencyKey      String                @unique
+  redirectUrl         String?
+  failureCode         String?
+  authorisedAt        DateTime?
+  /// When the provider's authorisation lapses (provider capability `authValidityMinutes`).
+  authExpiresAt       DateTime?
+  /// A capture decided in a transaction and sent to the provider after commit (retried by the sweep until done).
+  pendingCaptureMinor Int?
+  captureReason       String?
+  /// A release decided in a transaction and sent to the provider after commit (retried by the sweep until done).
+  releaseRequestedAt  DateTime?
+  releaseReason       String?
+  capturedMinor       Int                   @default(0)
+  capturedAt          DateTime?
+  releasedAt          DateTime?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+
+  reservation Reservation    @relation(fields: [reservationId], references: [id])
+  events      PaymentEvent[]
+
+  @@index([reservationId, createdAt])
+  @@index([status, authExpiresAt])
 }
 
 /// A refund of reservation money (RC-40..RC-43, RC-51). Partial amounts are allowed for reservations (PY-09 exception).
@@ -1946,12 +2007,16 @@ model PaymentEvent {
   receivedAt        DateTime            @default(now())
   /// Reservation commitment payments (2026-10-15): the same provider webhook, routed to a reservation payment attempt.
   reservationPaymentId String?         @db.Uuid
+  /// Phase 3: a card pre-authorisation event (authorised, failed, expired, captured, released).
+  reservationAuthorisationId String?   @db.Uuid
 
-  payment            Payment?            @relation(fields: [paymentId], references: [id])
-  reservationPayment ReservationPayment? @relation(fields: [reservationPaymentId], references: [id])
+  payment                  Payment?                  @relation(fields: [paymentId], references: [id])
+  reservationPayment       ReservationPayment?       @relation(fields: [reservationPaymentId], references: [id])
+  reservationAuthorisation ReservationAuthorisation? @relation(fields: [reservationAuthorisationId], references: [id])
 
   @@index([paymentId, receivedAt])
   @@index([reservationPaymentId, receivedAt])
+  @@index([reservationAuthorisationId])
 }
 
 model Refund {

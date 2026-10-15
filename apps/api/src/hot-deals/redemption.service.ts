@@ -18,7 +18,11 @@ import { RestrictionCheckService } from '../operations/restriction-check.service
 import { LoyaltyIssuanceService } from '../loyalty/loyalty-issuance.service';
 import { HotCoreService } from './hot-core.service';
 import { NotificationsService, type NotificationInput } from './notifications.service';
-import { ReservationPaymentsService, type PostCommit } from './reservation-payments.service';
+import {
+  ReservationPaymentsService,
+  policyOf,
+  type PostCommit,
+} from './reservation-payments.service';
 import { ReservationsService } from './reservations.service';
 
 const RES_INCLUDE = {
@@ -396,6 +400,8 @@ export class RedemptionService {
 
     if (result === 'VALID' && row) {
       const target = row;
+      // card hold captures / releases decided at redemption go to the provider after commit (phase 3)
+      const redeemPost: PostCommit[] = [];
       const outcome = await this.prisma.$transaction(async (tx) => {
         // The one decisive step: only one caller can move HELD -> REDEEMED.
         const claimed = await tx.reservation.updateMany({
@@ -425,8 +431,13 @@ export class RedemptionService {
         // RC-73 / RC-74: one customer transaction, one DealDash fee. A PAID reservation already pays DealDash its reservation
         // commission, so the Exclusive Deal per-redemption fee is NOT charged as well, unless the merchant's agreement explicitly
         // allows it (snapshotted on the reservation). FREE / walk-in deals keep the per-redemption fee unchanged.
+        // phase 3: a card hold captured at redemption earns the commission too; a hold RELEASED at redemption earns none, so the
+        // per-redemption fee is then the one DealDash fee (never both, never neither by accident)
         const paidReservation =
-          target.commitmentMethod !== 'FREE' && target.paymentStatus === 'PAID';
+          target.commitmentMethod !== 'FREE' &&
+          (target.paymentStatus === 'PAID' ||
+            (target.paymentStatus === 'AUTHORISED' &&
+              policyOf(target).preauthOnRedemption === 'CAPTURE'));
         const chargeRedemptionFee = !paidReservation || target.additionalFeeAllowed;
         // a VERIFIED redemption is the financial trigger: it draws down the funding commitments (idempotent per redemption);
         // sponsor funding is always drawn, the DealDash per-redemption CHARGE only when it applies
@@ -506,7 +517,7 @@ export class RedemptionService {
           },
         });
         // RC-61: a paid reservation's amount is used / credited to the bill: kept for the merchant, net of the agreed commission
-        await this.money.settleOnEnd(tx, target.id, 'REDEEMED', now, [], {
+        await this.money.settleOnEnd(tx, target.id, 'REDEEMED', now, redeemPost, {
           redemptionId: created.id,
           actor,
         });
@@ -566,6 +577,7 @@ export class RedemptionService {
       });
       if (outcome.won) {
         await this.notifications.dispatch(outcome.sent);
+        for (const fn of redeemPost) await Promise.resolve(fn()).catch(() => undefined);
         reference = outcome.created.reference;
         redeemedAt = outcome.created.redeemedAt;
         result = 'REDEEMED';

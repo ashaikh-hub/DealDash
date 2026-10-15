@@ -13,6 +13,7 @@ import {
   PAID_COMMITMENT_METHODS,
   REDEMPTION_RESULTS,
   REFUND_STATUSES,
+  RESERVATION_AUTH_STATUSES,
   RESERVATION_PAYMENT_STATUSES,
   RESERVATION_STATUSES,
 } from '@dealdash/types';
@@ -154,6 +155,8 @@ export interface CommitmentPolicy {
   cutoffMaxMinutes: number;
   prepaymentRefundMinPercent: number;
   prepaymentRefundMaxPercent: number;
+  /** Phase 3: a card hold may be captured in part (the deal's release share on a late cancellation / no-show). */
+  preauthPartialCaptureAllowed?: boolean;
 }
 
 /**
@@ -204,6 +207,14 @@ export function commitmentIssues(c: HotDealContent, policy: CommitmentPolicy): H
       m.noShowRefundPercent > policy.prepaymentRefundMaxPercent)
   )
     out.push({ field: 'commitment.noShowRefundPercent', code: 'REFUND_PERCENT_OUT_OF_RANGE' });
+  // CARD_PREAUTH: releasing part of the hold on a late cancellation / no-show means a PARTIAL capture (policy must allow it)
+  if (
+    method === 'CARD_PREAUTH' &&
+    m.noShowRefundPercent !== null &&
+    m.noShowRefundPercent > 0 &&
+    !policy.preauthPartialCaptureAllowed
+  )
+    out.push({ field: 'commitment.noShowRefundPercent', code: 'NOT_ALLOWED' });
   return out;
 }
 
@@ -501,6 +512,19 @@ export const hotDealDetailSchema = hotDealCardSchema.extend({
 });
 export type HotDealDetail = z.infer<typeof hotDealDetailSchema>;
 
+/** Card hold of a CARD_PREAUTH reservation (phase 3): nothing is charged unless something is captured. */
+export const reservationHoldViewSchema = z.object({
+  status: z.enum(RESERVATION_AUTH_STATUSES),
+  amountMinor: z.number().int(),
+  capturedMinor: z.number().int(),
+  releasedMinor: z.number().int(),
+  authorisedAt: z.string().nullable(),
+  /** When the provider's authorisation lapses. */
+  expiresAt: z.string().nullable(),
+  capturedAt: z.string().nullable(),
+  releasedAt: z.string().nullable(),
+});
+
 export const reservationPaymentViewSchema = z.object({
   method: z.enum(PAID_COMMITMENT_METHODS),
   status: z.enum(RESERVATION_PAYMENT_STATUSES),
@@ -512,6 +536,8 @@ export const reservationPaymentViewSchema = z.object({
   /** The provider's payment page for the open attempt. */
   redirectUrl: z.string().nullable(),
   canRetry: z.boolean(),
+  /** CARD_PREAUTH only: the hold on the customer's card (null for prepayment / deposit). */
+  authorisation: reservationHoldViewSchema.nullable(),
   /** After this moment a customer cancellation no longer returns the refundable amounts (RC-40 / RC-41). */
   cancelCutoffAt: z.string().nullable(),
   depositRefundable: z.boolean().nullable(),
@@ -701,6 +727,8 @@ export const merchantReservationRowSchema = z.object({
       additionalFeeAllowed: z.boolean(),
       /** The per-redemption fee charged at redemption (0 = not charged: the reservation commission was the only fee; null = not redeemed). */
       redemptionFeeMinor: z.number().int().nullable(),
+      /** Phase 3: the card hold of a CARD_PREAUTH reservation (null otherwise). */
+      authorisation: reservationHoldViewSchema.nullable(),
     })
     .optional(),
 });

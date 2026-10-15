@@ -203,6 +203,9 @@ const policyFields = z.object({
   prepaymentRefundDefaultPercent: z.number().int(),
   commissionBps: z.number().int(),
   additionalRedemptionFee: z.boolean(),
+  preauthImmediateCapture: z.boolean(),
+  preauthPartialCaptureAllowed: z.boolean(),
+  preauthOnRedemption: z.enum(['RELEASE', 'CAPTURE']),
 });
 const effectivePolicy = z.object({
   market: z.string(),

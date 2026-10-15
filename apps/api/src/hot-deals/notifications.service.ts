@@ -64,6 +64,14 @@ const TITLES: Record<NotificationType, { en: string; ar: string }> = {
     en: 'Your reservation amount was kept under the terms you accepted',
     ar: 'تم الاحتفاظ بمبلغ حجزك وفق الشروط التي وافقت عليها',
   },
+  RESERVATION_HOLD_RELEASED: {
+    en: 'The hold on your card was released',
+    ar: 'تم إلغاء حجز المبلغ على بطاقتك',
+  },
+  RESERVATION_HOLD_CAPTURED: {
+    en: 'An amount was charged from the hold on your card',
+    ar: 'تم خصم مبلغ من الحجز على بطاقتك',
+  },
 };
 
 interface NotificationOpsConfig {

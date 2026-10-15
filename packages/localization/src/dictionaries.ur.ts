@@ -391,6 +391,9 @@ export const urCustomer: Record<string, string> = {
   'notif.RESERVATION_PAYMENT_FAILED': '{merchant} پر بکنگ کی ادائیگی مکمل نہیں ہوئی',
   'notif.RESERVATION_REFUND_UPDATED': '{merchant} پر بکنگ کی رقم کی واپسی کی تازہ کاری',
   'notif.RESERVATION_FORFEITED': '{merchant} پر بکنگ کی رقم منظور شدہ شرائط کے مطابق رکھ لی گئی',
+  'notif.RESERVATION_HOLD_RELEASED': '{merchant} کے لیے آپ کے کارڈ پر رکی ہوئی رقم واپس کر دی گئی',
+  'notif.RESERVATION_HOLD_CAPTURED':
+    '{merchant} کے لیے آپ کے کارڈ پر رکی ہوئی رقم سے ادائیگی کاٹی گئی',
   'notif.REDEMPTION_SUCCESS': '{merchant} پر استعمال ہوئی: {deal}',
   'notif.PURCHASE_SUCCEEDED': '{deal} کی ادائیگی موصول ہو گئی',
   'notif.PAYMENT_FAILED': '{deal} کی ادائیگی مکمل نہیں ہوئی',

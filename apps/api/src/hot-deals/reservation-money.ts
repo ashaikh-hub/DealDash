@@ -52,12 +52,39 @@ export function splitOnEnd(c: PaidCommitment, situation: EndSituation): MoneySpl
         return all;
       case 'CUSTOMER_LATE':
       case 'NO_SHOW':
-        if (c.method === 'FULL_PREPAYMENT')
+        // prepayment, and a card hold captured up front (policy "immediate capture"), refund the agreed share
+        if (c.method !== 'DEPOSIT')
           return Math.round((all * Math.min(100, Math.max(0, c.noShowRefundPercent ?? 0))) / 100);
         return 0;
     }
   })();
   return { refundMinor: refund, keptMinor: all - refund };
+}
+
+/**
+ * Card pre-authorisation (phase 3, RC-92): how much of an AUTHORISED hold is captured when the reservation ends; the rest is
+ * released (nothing is charged for it). `releasePercent` is the deal's share released on a late cancellation / no-show.
+ *  - cancelled in time, or by the merchant / DealDash / system: nothing captured (the whole hold is released)
+ *  - late cancellation or no-show: hold minus the released share (never more than the hold)
+ *  - redeemed: released (customer pays at the till) unless the policy captures the hold as part payment (RC-61)
+ */
+export function holdCaptureOnEnd(
+  holdMinor: number,
+  releasePercent: number | null,
+  situation: EndSituation,
+  onRedemption: 'RELEASE' | 'CAPTURE',
+): number {
+  switch (situation) {
+    case 'CUSTOMER_LATE':
+    case 'NO_SHOW':
+      return (
+        holdMinor - Math.round((holdMinor * Math.min(100, Math.max(0, releasePercent ?? 0))) / 100)
+      );
+    case 'REDEEMED':
+      return onRedemption === 'CAPTURE' ? holdMinor : 0;
+    default:
+      return 0;
+  }
 }
 
 /** DealDash's commission on an amount kept for the merchant: basis points, rounded, never more than the amount (RC-71). */

@@ -16094,6 +16094,10 @@ export interface components {
                     prepaymentRefundDefaultPercent: number;
                     commissionBps: number;
                     additionalRedemptionFee: boolean;
+                    preauthImmediateCapture: boolean;
+                    preauthPartialCaptureAllowed: boolean;
+                    /** @enum {string} */
+                    preauthOnRedemption: "RELEASE" | "CAPTURE";
                 };
                 source: {
                     [key: string]: "MERCHANT" | "CATEGORY" | "MARKET" | "BASELINE";
@@ -18025,6 +18029,17 @@ export interface components {
                     netToMerchantMinor: number | null;
                     additionalFeeAllowed: boolean;
                     redemptionFeeMinor: number | null;
+                    authorisation: {
+                        /** @enum {string} */
+                        status: "REQUESTED" | "AUTHORISED" | "FAILED" | "CANCELLED" | "EXPIRED" | "RELEASED" | "CAPTURED" | "PARTIALLY_CAPTURED";
+                        amountMinor: number;
+                        capturedMinor: number;
+                        releasedMinor: number;
+                        authorisedAt: string | null;
+                        expiresAt: string | null;
+                        capturedAt: string | null;
+                        releasedAt: string | null;
+                    } | null;
                 };
             }[];
             meta: {
@@ -18056,6 +18071,17 @@ export interface components {
                     dueAt: string | null;
                     redirectUrl: string | null;
                     canRetry: boolean;
+                    authorisation: {
+                        /** @enum {string} */
+                        status: "REQUESTED" | "AUTHORISED" | "FAILED" | "CANCELLED" | "EXPIRED" | "RELEASED" | "CAPTURED" | "PARTIALLY_CAPTURED";
+                        amountMinor: number;
+                        capturedMinor: number;
+                        releasedMinor: number;
+                        authorisedAt: string | null;
+                        expiresAt: string | null;
+                        capturedAt: string | null;
+                        releasedAt: string | null;
+                    } | null;
                     cancelCutoffAt: string | null;
                     depositRefundable: boolean | null;
                     noShowRefundPercent: number | null;
@@ -19182,6 +19208,17 @@ export interface components {
                     dueAt: string | null;
                     redirectUrl: string | null;
                     canRetry: boolean;
+                    authorisation: {
+                        /** @enum {string} */
+                        status: "REQUESTED" | "AUTHORISED" | "FAILED" | "CANCELLED" | "EXPIRED" | "RELEASED" | "CAPTURED" | "PARTIALLY_CAPTURED";
+                        amountMinor: number;
+                        capturedMinor: number;
+                        releasedMinor: number;
+                        authorisedAt: string | null;
+                        expiresAt: string | null;
+                        capturedAt: string | null;
+                        releasedAt: string | null;
+                    } | null;
                     cancelCutoffAt: string | null;
                     depositRefundable: boolean | null;
                     noShowRefundPercent: number | null;
@@ -19261,7 +19298,7 @@ export interface components {
                     /** Format: uuid */
                     id: string;
                     /** @enum {string} */
-                    type: "RESERVATION_CONFIRMED" | "RESERVATION_EXPIRING" | "RESERVATION_EXPIRED" | "RESERVATION_CANCELLED" | "REDEMPTION_SUCCESS" | "PURCHASE_SUCCEEDED" | "PAYMENT_FAILED" | "VOUCHER_ISSUED" | "VOUCHER_EXPIRING" | "REFUND_UPDATED" | "VOUCHER_REDEEMED" | "REWARD_EARNED" | "REWARD_HELD" | "REWARD_RELEASED" | "REWARD_REVERSED" | "REWARD_EXPIRING" | "CAMPAIGN_COMPLETED" | "ALERT" | "CASE_UPDATED" | "ACCOUNT_RESTRICTION" | "BENEFIT_UPDATED" | "ACCOUNT_WELCOME" | "RESERVATION_PAYMENT_FAILED" | "RESERVATION_REFUND_UPDATED" | "RESERVATION_FORFEITED";
+                    type: "RESERVATION_CONFIRMED" | "RESERVATION_EXPIRING" | "RESERVATION_EXPIRED" | "RESERVATION_CANCELLED" | "REDEMPTION_SUCCESS" | "PURCHASE_SUCCEEDED" | "PAYMENT_FAILED" | "VOUCHER_ISSUED" | "VOUCHER_EXPIRING" | "REFUND_UPDATED" | "VOUCHER_REDEEMED" | "REWARD_EARNED" | "REWARD_HELD" | "REWARD_RELEASED" | "REWARD_REVERSED" | "REWARD_EXPIRING" | "CAMPAIGN_COMPLETED" | "ALERT" | "CASE_UPDATED" | "ACCOUNT_RESTRICTION" | "BENEFIT_UPDATED" | "ACCOUNT_WELCOME" | "RESERVATION_PAYMENT_FAILED" | "RESERVATION_REFUND_UPDATED" | "RESERVATION_FORFEITED" | "RESERVATION_HOLD_RELEASED" | "RESERVATION_HOLD_CAPTURED";
                     data: {
                         [key: string]: unknown;
                     };

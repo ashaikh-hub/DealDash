@@ -26,7 +26,7 @@ const DEPOSIT = {
 /**
  * Reservation commitment model, build phase 1 (founder decision 2026-10-15, RC-01..RC-90): policy hierarchy through governed
  * configuration, merchant-side commitment validation, the reservation snapshot and backfill shape, the FREE gate, admin strike reset.
- * Paid methods take payment since phase 2 (reservation-payments.e2e.test.ts); card pre-authorisation is still refused (phase 3).
+ * Paid methods take payment since phase 2 (reservation-payments.e2e.test.ts); card holds since phase 3 (reservation-preauth.e2e.test.ts).
  */
 describe.skipIf(!DB_READY)('Reservation commitment model (phase 1)', () => {
   let t: TestApp;
@@ -154,7 +154,7 @@ describe.skipIf(!DB_READY)('Reservation commitment model (phase 1)', () => {
     }
   });
 
-  it('a valid deposit deal publishes with its policy snapshot; reserving it waits for payment; card holds wait for phase 3', async () => {
+  it('a valid deposit deal publishes with its policy snapshot; reserving it (or a card-hold deal) waits for payment', async () => {
     await setMerchantOverride({ freeAllowed: false, depositMaxMinor: 2_000 });
     try {
       const deal = await w.publishHot('A', 4, { commitment: DEPOSIT });
@@ -184,13 +184,13 @@ describe.skipIf(!DB_READY)('Reservation commitment model (phase 1)', () => {
         where: { dealId_branchId: { dealId: deal.id, branchId: w.A.branchIds[0]! } },
       });
       expect(inv.reserved).toBe(1);
-      // card pre-authorisation is build phase 3: still refused, nothing held
+      // card pre-authorisation (phase 3): the reservation waits for the card hold (reservation-preauth.e2e.test.ts)
       const preauth = await w.publishHot('A', 4, {
         commitment: { method: 'CARD_PREAUTH', amountMinor: 1_000, cancelCutoffMinutes: 15 },
       });
       const pa = await w.reserve(await w.newCustomer(), preauth.id, w.A.branchIds[0]!);
-      expect(pa.status).toBe(409);
-      expect(pa.body.errors[0].code).toBe('RESERVATION_PAYMENT_UNAVAILABLE');
+      expect(pa.status, JSON.stringify(pa.body)).toBe(201);
+      expect(pa.body.data).toMatchObject({ status: 'PENDING_PAYMENT', code: null });
       // the commitment is material: it cannot change on a live deal
       const edit = await w
         .api(w.ownerA)

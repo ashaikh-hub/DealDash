@@ -119,7 +119,43 @@ export const RESERVATION_EVENT_TYPES = [
   'REFUND_FAILED',
   'FORFEITED',
   'SETTLED_TO_MERCHANT',
+  // phase 3 card pre-authorisation (RC-90..RC-95)
+  'AUTHORISATION_REQUESTED',
+  'AUTHORISED',
+  'AUTHORISATION_FAILED',
+  'AUTHORISATION_EXPIRED',
+  'HOLD_RELEASED',
+  'HOLD_CAPTURED',
 ] as const;
+
+/**
+ * Card pre-authorisation states (phase 3): REQUESTED -> AUTHORISED | FAILED | CANCELLED; AUTHORISED -> RELEASED | CAPTURED |
+ * PARTIALLY_CAPTURED (remainder released) | EXPIRED (the provider's hold lapsed).
+ */
+export const RESERVATION_AUTH_STATUSES = [
+  'REQUESTED',
+  'AUTHORISED',
+  'FAILED',
+  'CANCELLED',
+  'EXPIRED',
+  'RELEASED',
+  'CAPTURED',
+  'PARTIALLY_CAPTURED',
+] as const;
+export type ReservationAuthStatus = (typeof RESERVATION_AUTH_STATUSES)[number];
+export const RESERVATION_AUTH_TRANSITIONS: Record<
+  ReservationAuthStatus,
+  readonly ReservationAuthStatus[]
+> = {
+  REQUESTED: ['AUTHORISED', 'FAILED', 'CANCELLED'],
+  AUTHORISED: ['RELEASED', 'CAPTURED', 'PARTIALLY_CAPTURED', 'EXPIRED'],
+  FAILED: [],
+  CANCELLED: [],
+  EXPIRED: [],
+  RELEASED: [],
+  CAPTURED: [],
+  PARTIALLY_CAPTURED: [],
+};
 export type ReservationEventType = (typeof RESERVATION_EVENT_TYPES)[number];
 
 /**
@@ -209,6 +245,9 @@ export const NOTIFICATION_TYPES = [
   'RESERVATION_PAYMENT_FAILED',
   'RESERVATION_REFUND_UPDATED',
   'RESERVATION_FORFEITED',
+  /** Phase 3: a card hold was released (nothing charged) / captured (charged under the accepted terms). */
+  'RESERVATION_HOLD_RELEASED',
+  'RESERVATION_HOLD_CAPTURED',
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
@@ -234,6 +273,8 @@ export const NOTIFICATION_CATEGORY_OF: Partial<
   RESERVATION_PAYMENT_FAILED: 'ORDERS',
   RESERVATION_REFUND_UPDATED: 'ORDERS',
   RESERVATION_FORFEITED: 'ORDERS',
+  RESERVATION_HOLD_RELEASED: 'ORDERS',
+  RESERVATION_HOLD_CAPTURED: 'ORDERS',
   REDEMPTION_SUCCESS: 'ORDERS',
   PURCHASE_SUCCEEDED: 'ORDERS',
   PAYMENT_FAILED: 'ORDERS',

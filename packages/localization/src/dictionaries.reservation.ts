@@ -49,6 +49,15 @@ const RESERVATION = {
     'Your reservation amount at {merchant} was kept under the terms you accepted',
     'تم الاحتفاظ بمبلغ حجزك لدى {merchant} وفق الشروط التي وافقت عليها',
   ],
+  // phase 3 card pre-authorisation
+  'notif.RESERVATION_HOLD_RELEASED': [
+    'The hold on your card for {merchant} was released',
+    'تم إلغاء حجز المبلغ على بطاقتك لدى {merchant}',
+  ],
+  'notif.RESERVATION_HOLD_CAPTURED': [
+    'An amount was charged from your card hold for {merchant}',
+    'تم خصم مبلغ من الحجز على بطاقتك لدى {merchant}',
+  ],
   'error.RESERVATION_METHOD_REQUIRED': [
     'This offer cannot be reserved right now.',
     'لا يمكن حجز هذا العرض الآن.',

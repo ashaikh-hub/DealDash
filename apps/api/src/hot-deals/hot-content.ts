@@ -23,7 +23,11 @@ export function denormalizeHot(c: HotDealContent) {
     commitmentAmountMinor: paid ? c.commitment.amountMinor : null,
     depositRefundable: method === 'DEPOSIT' ? c.commitment.depositRefundable : null,
     cancelCutoffMinutes: paid ? c.commitment.cancelCutoffMinutes : null,
-    noShowRefundPercent: method === 'FULL_PREPAYMENT' ? c.commitment.noShowRefundPercent : null,
+    // prepayment: share refunded; card hold: share released (not captured) on a late cancellation / no-show
+    noShowRefundPercent:
+      method === 'FULL_PREPAYMENT' || method === 'CARD_PREAUTH'
+        ? c.commitment.noShowRefundPercent
+        : null,
     categoryId: c.categoryId,
     mechanic: c.mechanic,
     titleEn: c.title.en,

@@ -80,7 +80,58 @@ export type PaymentWebhookEvent =
       refundReference: string;
       status: 'SUCCEEDED' | 'FAILED';
       occurredAt?: string;
+    }
+  | {
+      /** Card pre-authorisation (phase 3): the hold's state changed at the provider (3-D Secure done, declined, lapsed ...). */
+      eventId: string;
+      kind: 'AUTHORISATION';
+      providerReference: string;
+      status: CardHoldStatus;
+      /** For CAPTURED / PARTIALLY_CAPTURED: the amount captured and the capture's own reference (refundable like a payment). */
+      capturedMinor?: number;
+      captureReference?: string;
+      occurredAt?: string;
+      failureCode?: string;
     };
+
+// ---- Card pre-authorisation (phase 3; reservation commitment RC-90). Optional provider capability: a market can offer CARD_PREAUTH
+// only when its provider implements it. Real providers must be validated per market (PK / QA / AE / SA) before go-live.
+export type CardHoldStatus =
+  'PENDING' | 'AUTHORISED' | 'FAILED' | 'EXPIRED' | 'RELEASED' | 'CAPTURED' | 'PARTIALLY_CAPTURED';
+export interface CardHoldCapabilities {
+  /** Authorise-only (a hold), captured or released later. */
+  cardHolds: boolean;
+  /** Capture less than the authorised amount (the rest is released by the capture). */
+  partialCapture: boolean;
+  /** How long an authorisation stays valid at the provider / issuer (a hold must never be relied on beyond it). */
+  authValidityMinutes: number;
+}
+export interface CardHoldRequest {
+  /** DealDash's reference sent to the provider (the reservation reference). */
+  orderId: string;
+  amountMinor: number;
+  currency: string;
+  idempotencyKey: string;
+  returnUrl: string;
+}
+export interface CardHoldProvider {
+  readonly holdCapabilities: CardHoldCapabilities;
+  authorise(
+    input: CardHoldRequest,
+  ): Promise<{ providerReference: string; status: CardHoldStatus; redirectUrl?: string }>;
+  /** Captures up to the authorised amount; returns the capture's own reference (refunds are made against it). */
+  capture(input: {
+    providerReference: string;
+    amountMinor: number;
+    idempotencyKey: string;
+  }): Promise<{ captureReference: string; status: 'SUCCEEDED' | 'FAILED'; failureCode?: string }>;
+  /** Voids the hold (nothing is charged). Releasing an already released / expired hold is not an error. */
+  release(providerReference: string): Promise<{ status: CardHoldStatus }>;
+  getHoldStatus(providerReference: string): Promise<CardHoldStatus>;
+}
+export const supportsCardHolds = (p: PaymentProvider): p is PaymentProvider & CardHoldProvider =>
+  typeof (p as Partial<CardHoldProvider>).authorise === 'function' &&
+  !!(p as Partial<CardHoldProvider>).holdCapabilities?.cardHolds;
 export interface PaymentProvider {
   /** Stable adapter name stored on each payment ("mock" today). */
   readonly name: string;

@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { commissionOn, refundReasonOf, splitOnEnd, type PaidCommitment } from './reservation-money';
+import {
+  commissionOn,
+  holdCaptureOnEnd,
+  refundReasonOf,
+  splitOnEnd,
+  type PaidCommitment,
+} from './reservation-money';
 
 const prepay: PaidCommitment = {
   method: 'FULL_PREPAYMENT',
@@ -66,6 +72,31 @@ describe('reservation money rules', () => {
     expect(commissionOn(0, 1_000)).toBe(0);
     expect(commissionOn(999, 1_234)).toBe(123);
     expect(commissionOn(10, 10_000)).toBe(10);
+  });
+
+  it('card hold (phase 3): released when cancelled in time or by the business; late / no-show captures minus the released share', () => {
+    for (const s of [
+      'CUSTOMER_IN_TIME',
+      'MERCHANT_CANCELLED',
+      'DEALDASH_CANCELLED',
+      'SYSTEM_CANCELLED',
+      'LATE_PAYMENT',
+    ] as const)
+      expect(holdCaptureOnEnd(2_000, 25, s, 'RELEASE')).toBe(0);
+    expect(holdCaptureOnEnd(2_000, null, 'NO_SHOW', 'RELEASE')).toBe(2_000);
+    expect(holdCaptureOnEnd(2_000, 25, 'NO_SHOW', 'RELEASE')).toBe(1_500);
+    expect(holdCaptureOnEnd(2_000, 25, 'CUSTOMER_LATE', 'RELEASE')).toBe(1_500);
+    expect(holdCaptureOnEnd(999, 33, 'NO_SHOW', 'RELEASE')).toBe(669);
+    // redeemed: released (pay at the till) unless the policy captures it as part payment
+    expect(holdCaptureOnEnd(2_000, 25, 'REDEEMED', 'RELEASE')).toBe(0);
+    expect(holdCaptureOnEnd(2_000, 25, 'REDEEMED', 'CAPTURE')).toBe(2_000);
+  });
+
+  it('a card hold captured up front then follows the prepayment rules (refund share on late / no-show)', () => {
+    const captured: PaidCommitment = { ...prepay, method: 'CARD_PREAUTH', noShowRefundPercent: 25 };
+    expect(splitOnEnd(captured, 'CUSTOMER_IN_TIME')).toEqual({ refundMinor: 5_000, keptMinor: 0 });
+    expect(splitOnEnd(captured, 'NO_SHOW')).toEqual({ refundMinor: 1_250, keptMinor: 3_750 });
+    expect(splitOnEnd(captured, 'REDEEMED')).toEqual({ refundMinor: 0, keptMinor: 5_000 });
   });
 
   it('stores readable refund reasons', () => {

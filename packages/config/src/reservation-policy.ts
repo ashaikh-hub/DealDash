@@ -48,6 +48,13 @@ const policyFieldShape = {
    * merchant override backed by the signed agreement; every application is shown to the merchant and audited.
    */
   additionalRedemptionFee: z.boolean(),
+  // ---- card pre-authorisation (phase 3, RC-92..RC-95)
+  /** Capture the whole hold as soon as it is authorised (then it behaves like a full prepayment). Default false: hold only. */
+  preauthImmediateCapture: z.boolean(),
+  /** Whether a late cancellation / no-show may capture PART of the hold (the deal's release share); needs provider support. */
+  preauthPartialCaptureAllowed: z.boolean(),
+  /** At redemption the hold is RELEASED (customer pays at the till, default) or CAPTURED as part payment (RC-61). */
+  preauthOnRedemption: z.enum(['RELEASE', 'CAPTURE']),
 };
 
 export const reservationPolicyFieldsSchema = z.object(policyFieldShape).strict();
@@ -81,6 +88,9 @@ export const reservationPolicySchema = z
     baseline: reservationPolicyFieldsSchema.extend({
       commissionBps: z.number().int().min(0).max(10_000).default(0),
       additionalRedemptionFee: z.boolean().default(false),
+      preauthImmediateCapture: z.boolean().default(false),
+      preauthPartialCaptureAllowed: z.boolean().default(false),
+      preauthOnRedemption: z.enum(['RELEASE', 'CAPTURE']).default('RELEASE'),
     }),
     market: z.record(marketCode, reservationPolicyOverrideSchema).default({}),
     category: z.record(uuid, reservationPolicyOverrideSchema).default({}),
@@ -109,6 +119,9 @@ export const DEFAULT_RESERVATION_POLICY: ReservationPolicyConfig = {
     prepaymentRefundDefaultPercent: 50,
     commissionBps: 0,
     additionalRedemptionFee: false,
+    preauthImmediateCapture: false,
+    preauthPartialCaptureAllowed: false,
+    preauthOnRedemption: 'RELEASE',
   },
   market: {},
   category: {},
