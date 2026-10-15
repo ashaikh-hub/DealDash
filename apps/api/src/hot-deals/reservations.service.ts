@@ -437,6 +437,8 @@ export class ReservationsService {
                   method === 'DEPOSIT' ? dealContent.commitment.depositRefundable : null,
                 noShowRefundPercent,
                 commissionBps: effectivePolicy.fields.commissionBps,
+                // RC-73 / RC-74: the per-redemption fee is not charged on top unless the agreement explicitly allows it
+                additionalFeeAllowed: effectivePolicy.fields.additionalRedemptionFee,
               }
             : {
                 commitmentMethod: 'FREE' as const,
@@ -1132,6 +1134,9 @@ export class ReservationsService {
                 keptMinor: r.keptMinor,
                 feeMinor: r.feeMinor,
                 netToMerchantMinor: r.keptMinor === null ? null : r.keptMinor - (r.feeMinor ?? 0),
+                // RC-73 / RC-74: the per-redemption fee is 0 for a paid reservation unless the agreement explicitly allows it
+                additionalFeeAllowed: r.additionalFeeAllowed,
+                redemptionFeeMinor: r.redemptionFeeMinor,
               },
             }
           : {}),

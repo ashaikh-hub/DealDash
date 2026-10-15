@@ -16093,6 +16093,7 @@ export interface components {
                     prepaymentRefundMaxPercent: number;
                     prepaymentRefundDefaultPercent: number;
                     commissionBps: number;
+                    additionalRedemptionFee: boolean;
                 };
                 source: {
                     [key: string]: "MERCHANT" | "CATEGORY" | "MARKET" | "BASELINE";
@@ -18022,6 +18023,8 @@ export interface components {
                     keptMinor: number | null;
                     feeMinor: number | null;
                     netToMerchantMinor: number | null;
+                    additionalFeeAllowed: boolean;
+                    redemptionFeeMinor: number | null;
                 };
             }[];
             meta: {

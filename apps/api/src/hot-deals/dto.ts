@@ -202,6 +202,7 @@ const policyFields = z.object({
   prepaymentRefundMaxPercent: z.number().int(),
   prepaymentRefundDefaultPercent: z.number().int(),
   commissionBps: z.number().int(),
+  additionalRedemptionFee: z.boolean(),
 });
 const effectivePolicy = z.object({
   market: z.string(),

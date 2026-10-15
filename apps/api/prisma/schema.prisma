@@ -1444,6 +1444,11 @@ model Reservation {
   keptMinor            Int?
   feeMinor             Int?
   settledAt            DateTime?
+  /// RC-73 / RC-74: whether the merchant's agreement explicitly allowed the per-redemption fee ON TOP of the reservation commission
+  /// (snapshot at creation; default false = one DealDash fee per customer transaction), and the per-redemption fee actually drawn
+  /// at redemption (0 when not charged; null before redemption or for FREE reservations).
+  additionalFeeAllowed Boolean           @default(false)
+  redemptionFeeMinor   Int?
   payments             ReservationPayment[]
   refunds              ReservationRefund[]
   createdAt            DateTime          @default(now())

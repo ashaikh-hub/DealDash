@@ -750,9 +750,10 @@ export class ReservationPaymentsService {
       memo: 'Redemption reversed: amount held for the merchant again',
       actor: { userId: actor.userId, role: actor.membership?.roleCode ?? null },
     });
+    // the per-redemption drawdown (if any) is reversed by the commercial engine with the redemption; the record follows it
     await tx.reservation.update({
       where: { id: reservationId },
-      data: { keptMinor: null, feeMinor: null, settledAt: null },
+      data: { keptMinor: null, feeMinor: null, settledAt: null, redemptionFeeMinor: null },
     });
   }
 

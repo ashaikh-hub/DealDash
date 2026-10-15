@@ -116,21 +116,50 @@ describe.skipIf(!DB_READY)('Reservation payments, refunds and forfeits (phase 2)
       data: Record<string, unknown>;
     }>;
 
-  beforeAll(async () => {
-    t = await createTestApp();
-    w = await buildHotWorld(t);
-    provider = t.app.get(PAYMENT_PROVIDER) as MockPaymentProvider;
-    // merchant A: paid reservations only, and an agreed 10 % commission (RC-71)
-    await cfg().set(
+  /** Merchant A: paid reservations only, an agreed 10 % commission (RC-71), plus any extra agreed terms. */
+  const setPolicyA = (extra: Record<string, unknown> = {}) =>
+    cfg().set(
       'reservation.policy',
       {
         ...DEFAULT_RESERVATION_POLICY,
-        merchant: { [w.A.orgId]: { freeAllowed: false, commissionBps: 1_000 } },
+        merchant: { [w.A.orgId]: { freeAllowed: false, commissionBps: 1_000, ...extra } },
       },
       'test',
       actor(),
       meta,
     );
+
+  /** What DealDash charged per redemption through the commercial engine, and what was billed / counted (RC-73). */
+  async function redemptionFeeFacts(dealId: string, redemptionId: string) {
+    const c = await t.prisma.commercialCase.findUniqueOrThrow({
+      where: { product_subjectId: { product: 'EXCLUSIVE', subjectId: dealId } },
+      include: { commitments: true },
+    });
+    const chargeIds = c.commitments
+      .filter((m) => m.kind === 'CHARGE' && m.perUnitHalalas > 0)
+      .map((m) => m.id);
+    const ev = await t.prisma.utilizationEvent.findMany({
+      where: { sourceType: 'REDEMPTION', sourceId: redemptionId },
+    });
+    return {
+      hasPerRedemptionCharge: chargeIds.length > 0,
+      charged: ev
+        .filter((e) => chargeIds.includes(e.commitmentId))
+        .reduce((n, e) => n + e.amountHalalas, 0),
+      billed: !!(await t.prisma.commercialBillingEvent.findUnique({
+        where: { idempotencyKey: `bill:VERIFIED_REDEMPTION_USAGE:REDEMPTION:${redemptionId}` },
+      })),
+      counted: !!(await t.prisma.usageEvent.findUnique({
+        where: { idempotencyKey: `usage:verified_redemptions:REDEMPTION:${redemptionId}` },
+      })),
+    };
+  }
+
+  beforeAll(async () => {
+    t = await createTestApp();
+    w = await buildHotWorld(t);
+    provider = t.app.get(PAYMENT_PROVIDER) as MockPaymentProvider;
+    await setPolicyA();
   });
   afterAll(async () => {
     if (t)
@@ -501,5 +530,89 @@ describe.skipIf(!DB_READY)('Reservation payments, refunds and forfeits (phase 2)
     });
     expect(inv.reserved).toBe(0);
     expect((await t.app.get(LedgerService).trialBalance()).balanced).toBe(true);
+  });
+
+  it('RC-73 / RC-74: one customer transaction, one DealDash fee; an extra per-redemption fee only when explicitly agreed', async () => {
+    // (1) FREE deal (business B; free allowed on this test machine): the per-redemption fee model is unchanged
+    const freeDeal = await w.publishHot('B', 3);
+    const fc = await w.newCustomer();
+    const free = (await w.reserve(fc, freeDeal.id, w.B.branchIds[0]!)).body.data;
+    expect((await w.redeem(w.staffBorg, free.code.qr)).body.data.result).toBe('REDEEMED');
+    const freeRed = await t.prisma.redemption.findFirstOrThrow({
+      where: { reservationId: free.id },
+    });
+    const freeFacts = await redemptionFeeFacts(freeDeal.id, freeRed.id);
+    expect(freeFacts.hasPerRedemptionCharge).toBe(true); // the agreement has a per-redemption fee
+    expect(freeFacts.charged).toBeGreaterThan(0);
+    expect(freeFacts).toMatchObject({ billed: true, counted: true });
+    expect((await row(free.id)).redemptionFeeMinor).toBeNull();
+
+    // (2) PAID reservation: the reservation commission is the only DealDash fee
+    const paid = await confirmed(PREPAY);
+    const qr = (await w.api(paid.c).get(`/v1/app/reservations/${paid.r.id}`)).body.data.code.qr;
+    expect((await w.redeem(w.staffA, qr)).body.data.result).toBe('REDEEMED');
+    const paidRed = await t.prisma.redemption.findFirstOrThrow({
+      where: { reservationId: paid.r.id },
+    });
+    const paidFacts = await redemptionFeeFacts(paid.deal.id, paidRed.id);
+    expect(paidFacts.hasPerRedemptionCharge).toBe(true); // the same agreement exists ...
+    expect(paidFacts).toMatchObject({ charged: 0, billed: false, counted: true }); // ... but is not charged
+    // the only DealDash revenue from this customer transaction is the 10 % commission
+    const caseId = (
+      await t.prisma.commercialCase.findUniqueOrThrow({
+        where: { product_subjectId: { product: 'EXCLUSIVE', subjectId: paid.deal.id } },
+      })
+    ).id;
+    const perRedemption = await t.prisma.ledgerJournal.findMany({
+      where: { idempotencyKey: { startsWith: 'util:' }, sourceId: caseId },
+      include: { entries: { include: { account: true } } },
+    });
+    expect(
+      perRedemption.filter((j) => j.idempotencyKey.endsWith(`:REDEMPTION:${paidRed.id}`)),
+    ).toEqual([]);
+    expect(familySum(await moneyJournals(paid.r.id), 'PLATFORM_REVENUE')).toBe(-500);
+    expect(await row(paid.r.id)).toMatchObject({
+      additionalFeeAllowed: false,
+      redemptionFeeMinor: 0,
+      feeMinor: 500,
+    });
+    expect(
+      await t.prisma.auditLog.count({
+        where: { action: 'reservation.redemption_fee_not_charged', entityId: paid.r.id },
+      }),
+    ).toBe(1);
+
+    // (3) an agreement that EXPLICITLY allows the extra fee: charged, shown to the merchant, audited
+    await setPolicyA({ additionalRedemptionFee: true });
+    try {
+      const extra = await confirmed(PREPAY);
+      expect((await row(extra.r.id)).additionalFeeAllowed).toBe(true);
+      const xqr = (await w.api(extra.c).get(`/v1/app/reservations/${extra.r.id}`)).body.data.code
+        .qr;
+      expect((await w.redeem(w.staffA, xqr)).body.data.result).toBe('REDEEMED');
+      const xRed = await t.prisma.redemption.findFirstOrThrow({
+        where: { reservationId: extra.r.id },
+      });
+      const xFacts = await redemptionFeeFacts(extra.deal.id, xRed.id);
+      expect(xFacts.charged).toBeGreaterThan(0);
+      expect(xFacts.billed).toBe(true);
+      const xRow = await row(extra.r.id);
+      expect(xRow.redemptionFeeMinor).toBe(xFacts.charged);
+      const merchant = (
+        await w.api(w.ownerA).get(`${w.base('A')}/hot-deals/${extra.deal.id}/reservations`)
+      ).body.data.find((x: { id: string }) => x.id === extra.r.id);
+      expect(merchant.money).toMatchObject({
+        additionalFeeAllowed: true,
+        redemptionFeeMinor: xFacts.charged,
+        feeMinor: 500,
+      });
+      expect(
+        await t.prisma.auditLog.count({
+          where: { action: 'reservation.additional_fee_applied', entityId: extra.r.id },
+        }),
+      ).toBe(1);
+    } finally {
+      await setPolicyA();
+    }
   });
 });

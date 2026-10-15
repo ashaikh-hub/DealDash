@@ -46704,6 +46704,9 @@
                     "type": "integer",
                     "minimum": -9007199254740991,
                     "maximum": 9007199254740991
+                  },
+                  "additionalRedemptionFee": {
+                    "type": "boolean"
                   }
                 },
                 "required": [
@@ -46719,7 +46722,8 @@
                   "prepaymentRefundMinPercent",
                   "prepaymentRefundMaxPercent",
                   "prepaymentRefundDefaultPercent",
-                  "commissionBps"
+                  "commissionBps",
+                  "additionalRedemptionFee"
                 ]
               },
               "source": {
@@ -52573,6 +52577,15 @@
                       "minimum": -9007199254740991,
                       "maximum": 9007199254740991,
                       "nullable": true
+                    },
+                    "additionalFeeAllowed": {
+                      "type": "boolean"
+                    },
+                    "redemptionFeeMinor": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991,
+                      "nullable": true
                     }
                   },
                   "required": [
@@ -52584,7 +52597,9 @@
                     "refundPendingMinor",
                     "keptMinor",
                     "feeMinor",
-                    "netToMerchantMinor"
+                    "netToMerchantMinor",
+                    "additionalFeeAllowed",
+                    "redemptionFeeMinor"
                   ]
                 }
               },

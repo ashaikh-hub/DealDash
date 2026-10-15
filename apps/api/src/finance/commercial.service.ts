@@ -1336,17 +1336,27 @@ export class CommercialService {
   async recordUtilization(
     product: CommercialProduct,
     subjectId: string,
-    src: { sourceType: string; sourceId: string; units?: number },
+    src: {
+      sourceType: string;
+      sourceId: string;
+      units?: number;
+      /**
+       * Reservation commitment (2026-10-15, RC-73): a paid reservation already pays DealDash its reservation commission, so the
+       * per-redemption DealDash CHARGE is not drawn as well (one customer transaction, one DealDash fee). Sponsor funding is still drawn.
+       */
+      skipCharges?: boolean;
+    },
     tx?: Tx,
   ) {
     const db = tx ?? this.prisma;
     const c = await db.commercialCase.findUnique({
       where: { product_subjectId: { product, subjectId } },
     });
-    if (!c) return { applied: 0, eventIds: [] as string[] };
+    if (!c) return { applied: 0, chargeApplied: 0, eventIds: [] as string[] };
     const units = src.units ?? 1;
     const run = async (t: Tx) => {
       let applied = 0;
+      let chargeApplied = 0;
       const eventIds: string[] = [];
       const ms = await t.fundingCommitment.findMany({
         where: {
@@ -1355,6 +1365,7 @@ export class CommercialService {
           perUnitHalalas: { gt: 0 },
           trigger: CASH_TRIGGER_EVENT,
           status: 'OPEN',
+          ...(src.skipCharges ? { kind: { not: 'CHARGE' as const } } : {}),
         },
       });
       for (const m of ms) {
@@ -1402,8 +1413,9 @@ export class CommercialService {
         });
         eventIds.push(ev.id);
         applied += amount;
+        if (m.kind === 'CHARGE') chargeApplied += amount;
       }
-      return { applied, eventIds };
+      return { applied, chargeApplied, eventIds };
     };
     return tx ? run(tx) : this.prisma.$transaction(run);
   }

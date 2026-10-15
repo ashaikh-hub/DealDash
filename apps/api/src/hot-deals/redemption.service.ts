@@ -422,14 +422,26 @@ export class RedemptionService {
             redeemedAt: now,
           },
         });
-        // a VERIFIED redemption is the financial trigger: it draws down the funding commitments (idempotent per redemption)
-        await this.core.commercial.recordUtilization(
+        // RC-73 / RC-74: one customer transaction, one DealDash fee. A PAID reservation already pays DealDash its reservation
+        // commission, so the Exclusive Deal per-redemption fee is NOT charged as well, unless the merchant's agreement explicitly
+        // allows it (snapshotted on the reservation). FREE / walk-in deals keep the per-redemption fee unchanged.
+        const paidReservation =
+          target.commitmentMethod !== 'FREE' && target.paymentStatus === 'PAID';
+        const chargeRedemptionFee = !paidReservation || target.additionalFeeAllowed;
+        // a VERIFIED redemption is the financial trigger: it draws down the funding commitments (idempotent per redemption);
+        // sponsor funding is always drawn, the DealDash per-redemption CHARGE only when it applies
+        const util = await this.core.commercial.recordUtilization(
           'EXCLUSIVE',
           target.dealId,
-          { sourceType: 'REDEMPTION', sourceId: created.id, units: target.quantity },
+          {
+            sourceType: 'REDEMPTION',
+            sourceId: created.id,
+            units: target.quantity,
+            skipCharges: !chargeRedemptionFee,
+          },
           tx,
         );
-        // the billable fact (the CAMPAIGN's billing trigger is VERIFIED_REDEMPTION): once per verified redemption
+        // the usage fact always (plan limits count redemptions); the billing event only when the per-redemption fee applies
         await this.usage?.recordBillable(
           {
             organizationId: target.organizationId,
@@ -442,9 +454,36 @@ export class RedemptionService {
             quantity: target.quantity,
             pricingVersionKey: await this.usage.campaignPricingKey('EXCLUSIVE', target.dealId, tx),
             occurredAt: now,
+            billable: chargeRedemptionFee,
           },
           tx,
         );
+        if (paidReservation) {
+          await tx.reservation.update({
+            where: { id: target.id },
+            data: { redemptionFeeMinor: chargeRedemptionFee ? util.chargeApplied : 0 },
+          });
+          await this.core.audit.record(
+            {
+              action: chargeRedemptionFee
+                ? 'reservation.additional_fee_applied'
+                : 'reservation.redemption_fee_not_charged',
+              entityType: 'Reservation',
+              entityId: target.id,
+              actor,
+              subjectOrganizationId: target.organizationId,
+              reason: chargeRedemptionFee
+                ? 'Merchant agreement explicitly allows the per-redemption fee in addition to the reservation commission (RC-74)'
+                : 'Paid reservation: the reservation commission is the only DealDash fee (RC-73)',
+              newState: {
+                redemptionId: created.id,
+                redemptionFeeMinor: chargeRedemptionFee ? util.chargeApplied : 0,
+              },
+              meta,
+            },
+            tx,
+          );
+        }
         await this.loyalty?.issueForEvent(tx, {
           eventType: 'EXCLUSIVE_REDEMPTION',
           userId: target.userId,

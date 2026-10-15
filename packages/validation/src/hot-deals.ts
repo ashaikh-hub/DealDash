@@ -697,6 +697,10 @@ export const merchantReservationRowSchema = z.object({
       keptMinor: z.number().int().nullable(),
       feeMinor: z.number().int().nullable(),
       netToMerchantMinor: z.number().int().nullable(),
+      /** RC-74: the merchant's agreement explicitly allows the per-redemption fee in addition to the reservation commission. */
+      additionalFeeAllowed: z.boolean(),
+      /** The per-redemption fee charged at redemption (0 = not charged: the reservation commission was the only fee; null = not redeemed). */
+      redemptionFeeMinor: z.number().int().nullable(),
     })
     .optional(),
 });

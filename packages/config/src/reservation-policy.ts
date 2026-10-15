@@ -42,6 +42,12 @@ const policyFieldShape = {
    * A merchant override is that merchant's agreed rate. Default 0: DealDash keeps nothing unless a rate is agreed.
    */
   commissionBps: z.number().int().min(0).max(10_000),
+  /**
+   * RC-74: a merchant's commercial agreement EXPLICITLY allows the Exclusive Deal per-redemption fee IN ADDITION to the reservation
+   * commission on paid reservations. Never on by default (one customer transaction, one DealDash fee: RC-73). Set it only as a
+   * merchant override backed by the signed agreement; every application is shown to the merchant and audited.
+   */
+  additionalRedemptionFee: z.boolean(),
 };
 
 export const reservationPolicyFieldsSchema = z.object(policyFieldShape).strict();
@@ -74,6 +80,7 @@ export const reservationPolicySchema = z
     // a baseline stored before the commission field existed reads as 0 (overrides never get a default: they inherit)
     baseline: reservationPolicyFieldsSchema.extend({
       commissionBps: z.number().int().min(0).max(10_000).default(0),
+      additionalRedemptionFee: z.boolean().default(false),
     }),
     market: z.record(marketCode, reservationPolicyOverrideSchema).default({}),
     category: z.record(uuid, reservationPolicyOverrideSchema).default({}),
@@ -101,6 +108,7 @@ export const DEFAULT_RESERVATION_POLICY: ReservationPolicyConfig = {
     prepaymentRefundMaxPercent: 100,
     prepaymentRefundDefaultPercent: 50,
     commissionBps: 0,
+    additionalRedemptionFee: false,
   },
   market: {},
   category: {},

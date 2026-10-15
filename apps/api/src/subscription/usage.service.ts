@@ -349,9 +349,14 @@ export class UsageService {
       pricingVersionKey?: string | null;
       occurredAt?: Date;
       metadata?: Record<string, unknown>;
+      /**
+       * false = record the usage fact only, no billing event (reservation commitment RC-73: a paid reservation's redemption is
+       * already paid for by the reservation commission, so the per-redemption fee is not billed as well). Default true.
+       */
+      billable?: boolean;
     },
     db: Prisma.TransactionClient | PrismaService = this.prisma,
-  ) {
+  ): Promise<{ id: string | null; created: boolean }> {
     const key = `usage:${input.metric}:${input.sourceType}:${input.sourceId}`;
     const at = input.occurredAt ?? new Date();
     await db.usageEvent
@@ -372,6 +377,7 @@ export class UsageService {
       .catch((e: { code?: string }) => {
         if (e.code !== 'P2002') throw e;
       });
+    if (input.billable === false) return { id: null, created: false };
     return this.billing.emit(
       {
         idempotencyKey: `bill:${input.eventType}:${input.sourceType}:${input.sourceId}`,
