@@ -136,7 +136,9 @@ export function ExplorePage() {
       <div className="dd-row" style={{ justifyContent: 'flex-end' }}>
         <label className="dd-caption dd-row" style={{ gap: 6 }}>
           {t('filter.sort')}
+          {/* Chrome on iOS tags server-rendered form fields before hydration (see SearchBox) */}
           <select
+            suppressHydrationWarning
             className="dd-select"
             style={{ minBlockSize: 36, inlineSize: 'auto' }}
             value={sort}

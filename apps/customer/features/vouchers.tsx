@@ -120,7 +120,9 @@ export function VoucherListPage() {
           {t('vch.sub')}
         </p>
       </div>
+      {/* Chrome on iOS tags server-rendered form fields before hydration (see SearchBox) */}
       <input
+        suppressHydrationWarning
         className="dd-input"
         type="search"
         value={q}

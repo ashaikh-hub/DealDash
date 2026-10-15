@@ -309,7 +309,9 @@ export function SearchBox({ initial = '', autoFocus }: { initial?: string; autoF
       }}
     >
       <Icon name="search" size={20} />
+      {/* Chrome on iOS tags server-rendered form fields (`__gcruniqueid`) before hydration: this field's own attributes only */}
       <input
+        suppressHydrationWarning
         type="text"
         inputMode="search"
         autoComplete="off"
