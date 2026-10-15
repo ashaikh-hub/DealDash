@@ -245,6 +245,38 @@ export function isStagingTestRecipient(env: TestInboxEnv, to: string): boolean {
   return env.STAGING_TEST_PHONE_PREFIXES.some((p) => value.startsWith(p));
 }
 
+const PRIVATE_IPV4 = /^(10\.\d+|172\.(1[6-9]|2\d|3[01])|192\.168)\.\d+\.\d+$/;
+
+/**
+ * Browser origins the API accepts: CORS_ORIGINS, plus — on a local development machine only (NODE_ENV=development, tier
+ * local/development) — the same app ports opened from a private-network address, so a phone on the same Wi-Fi can test the
+ * apps without anyone's IP being configured. Staging and production (NODE_ENV=production) accept CORS_ORIGINS only.
+ */
+export function isAllowedBrowserOrigin(
+  env: Pick<ApiEnv, 'CORS_ORIGINS' | 'NODE_ENV' | 'APP_ENV'>,
+  origin: string,
+): boolean {
+  if (env.CORS_ORIGINS.includes(origin)) return true;
+  const tier = appEnvOf(env);
+  if (env.NODE_ENV !== 'development' || (tier !== 'local' && tier !== 'development')) return false;
+  let url: URL;
+  try {
+    url = new URL(origin);
+  } catch {
+    return false;
+  }
+  if (url.protocol !== 'http:' || !PRIVATE_IPV4.test(url.hostname)) return false;
+  // only the ports of locally configured app origins (http://localhost:3001 -> 3001)
+  return env.CORS_ORIGINS.some((o) => {
+    try {
+      const c = new URL(o);
+      return (c.hostname === 'localhost' || c.hostname === '127.0.0.1') && c.port === url.port;
+    } catch {
+      return false;
+    }
+  });
+}
+
 export function parseApiEnv(source: Record<string, string | undefined> = process.env): ApiEnv {
   const parsed = apiEnvSchema.safeParse(source);
   if (!parsed.success) {

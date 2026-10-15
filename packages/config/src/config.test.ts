@@ -3,6 +3,7 @@ import {
   CONFIG_DEFAULTS,
   CONFIG_KEYS,
   appEnvOf,
+  isAllowedBrowserOrigin,
   isStagingTestRecipient,
   launchControlsSchema,
   parseApiEnv,
@@ -23,6 +24,40 @@ describe('config', () => {
     expect(env.API_PORT).toBe(4000);
     expect(env.CORS_ORIGINS).toHaveLength(5);
     expect(env.SMS_PROVIDER).toBe('mock');
+  });
+
+  it('browser origins: CORS_ORIGINS, plus private-network app ports on a local development machine only', () => {
+    const dev = parseApiEnv({ ...base, NODE_ENV: 'development' });
+    expect(isAllowedBrowserOrigin(dev, 'http://localhost:3001')).toBe(true);
+    // a phone on the same Wi-Fi, on a configured app port
+    expect(isAllowedBrowserOrigin(dev, 'http://192.168.70.107:3001')).toBe(true);
+    expect(isAllowedBrowserOrigin(dev, 'http://10.0.0.5:3005')).toBe(true);
+    expect(isAllowedBrowserOrigin(dev, 'http://172.20.1.2:3002')).toBe(true);
+    // not a configured app port, not private, not http
+    expect(isAllowedBrowserOrigin(dev, 'http://192.168.70.107:8080')).toBe(false);
+    expect(isAllowedBrowserOrigin(dev, 'http://8.8.8.8:3001')).toBe(false);
+    expect(isAllowedBrowserOrigin(dev, 'http://172.32.0.1:3001')).toBe(false);
+    expect(isAllowedBrowserOrigin(dev, 'https://192.168.70.107:3001')).toBe(false);
+    expect(isAllowedBrowserOrigin(dev, 'http://evil.example:3001')).toBe(false);
+    expect(isAllowedBrowserOrigin(dev, 'not a url')).toBe(false);
+    // test, staging and production accept CORS_ORIGINS only
+    const lan = 'http://192.168.70.107:3001';
+    expect(isAllowedBrowserOrigin(parseApiEnv({ ...base, NODE_ENV: 'test' }), lan)).toBe(false);
+    expect(
+      isAllowedBrowserOrigin(
+        parseApiEnv({ ...base, NODE_ENV: 'production', APP_ENV: 'staging' }),
+        lan,
+      ),
+    ).toBe(false);
+    expect(isAllowedBrowserOrigin(parseApiEnv({ ...base, NODE_ENV: 'production' }), lan)).toBe(
+      false,
+    );
+    expect(
+      isAllowedBrowserOrigin(
+        parseApiEnv({ ...base, NODE_ENV: 'production', CORS_ORIGINS: 'https://app.example' }),
+        'https://app.example',
+      ),
+    ).toBe(true);
   });
 
   it('fails clearly when required values are missing or weak', () => {

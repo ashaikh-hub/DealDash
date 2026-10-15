@@ -4,7 +4,7 @@ import { DocumentBuilder, SwaggerModule, type OpenAPIObject } from '@nestjs/swag
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { cleanupOpenApiDoc } from 'nestjs-zod';
-import type { ApiEnv } from '@dealdash/config';
+import { isAllowedBrowserOrigin, type ApiEnv } from '@dealdash/config';
 import { AppModule } from './app.module';
 import { JsonLogger, accessLog } from './common/logger';
 import { rateLimiter } from './common/rate-limit';
@@ -45,7 +45,9 @@ export async function createApp(
   app.use(cookieParser());
   app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
   app.enableCors({
-    origin: env.CORS_ORIGINS,
+    // CORS_ORIGINS; a local development machine also accepts its app ports from a private-network address (phone testing)
+    origin: (origin: string | undefined, done: (err: Error | null, allow?: boolean) => void) =>
+      done(null, origin === undefined || isAllowedBrowserOrigin(env, origin)),
     credentials: true,
     allowedHeaders: [
       'Content-Type',
