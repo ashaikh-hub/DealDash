@@ -292,11 +292,14 @@ describe('Watch & Earn player (the client only reports; the server decides)', ()
     );
     Object.defineProperty(video, 'paused', { configurable: true, value: false });
     Object.defineProperty(video, 'currentTime', { configurable: true, value: 2.1, writable: true });
-    for (let i = 0; i < 6 && !calls.some((c) => c.url.endsWith('/events')); i++)
+    // the view's heartbeat (not the app's analytics batch, POST /v1/app/events, which can be sent first under load)
+    const isHeartbeat = (c: { url: string }) =>
+      c.url.includes('/v1/app/watch/views/') && c.url.endsWith('/events');
+    for (let i = 0; i < 6 && !calls.some(isHeartbeat); i++)
       await act(async () => {
         await vi.advanceTimersByTimeAsync(2100);
       });
-    const hb = calls.find((c) => c.url.endsWith('/events'))!;
+    const hb = calls.find(isHeartbeat)!;
     expect(hb.headers['x-view-token']).toBe('tok-secret');
     expect(JSON.parse(hb.body!).events[0]).toMatchObject({ type: 'HEARTBEAT', positionSec: 2.1 });
     await act(async () => {
