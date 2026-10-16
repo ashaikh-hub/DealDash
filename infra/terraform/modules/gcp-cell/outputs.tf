@@ -39,6 +39,11 @@ output "public_hosts" {
   value = local.hosts
 }
 
+output "host_suffix" {
+  value       = local.edge ? local.suffix : null
+  description = "GitHub variable STAGING_HOST_SUFFIX (G-4): each web image is built to call the API on its own https://<label>.<suffix>/v1."
+}
+
 output "load_balancer_ip" {
   value = local.edge ? google_compute_global_address.lb[0].address : null
 }

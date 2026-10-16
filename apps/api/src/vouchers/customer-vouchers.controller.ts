@@ -17,7 +17,7 @@ import {
 } from '@nestjs/common';
 import { ApiExcludeController, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
-import type { ApiEnv } from '@dealdash/config';
+import { mockProviderPagesEnabled, type ApiEnv } from '@dealdash/config';
 import {
   Audiences,
   CurrentActor,
@@ -216,7 +216,8 @@ export class PaymentWebhookController {
 
 /**
  * Development-only: stands in for the hosted payment page of a real provider. It settles the mock payment and then delivers
- * the SAME signed webhook the provider would send, through the SAME code path. Not registered in production.
+ * the SAME signed webhook the provider would send, through the SAME code path. Refused in production; in staging only with
+ * development adapters allowed (remote UAT, G-5).
  */
 @ApiExcludeController()
 @Controller('dev')
@@ -235,10 +236,11 @@ export class DevPaymentsController {
     @Body() body: { outcome?: 'SUCCEEDED' | 'FAILED' | 'CANCELLED'; duplicate?: boolean },
     @Meta() meta: RequestMeta,
   ) {
-    if (this.env.NODE_ENV === 'production') throw new NotFoundException();
+    // production: never; staging: only with development adapters allowed (remote UAT, G-5)
+    if (!mockProviderPagesEnabled(this.env) || !(this.provider instanceof MockPaymentProvider))
+      throw new NotFoundException();
     const outcome = body?.outcome ?? 'SUCCEEDED';
-    if (this.provider instanceof MockPaymentProvider)
-      this.provider.settle(providerReference, outcome);
+    this.provider.settle(providerReference, outcome);
     const { rawBody, signature } = MockPaymentProvider.buildWebhook({
       eventId: `evt_${providerReference}_${outcome}`,
       kind: 'PAYMENT',

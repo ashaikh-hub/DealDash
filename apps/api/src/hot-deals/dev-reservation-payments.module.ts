@@ -10,7 +10,7 @@ import {
   Post,
 } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
-import type { ApiEnv } from '@dealdash/config';
+import { mockProviderPagesEnabled, type ApiEnv } from '@dealdash/config';
 import { APP_ENV } from '../common/env';
 import { Meta, Public } from '../common/decorators';
 import type { RequestMeta } from '../common/request-context';
@@ -23,7 +23,8 @@ import { VouchersModule } from '../vouchers/vouchers.module';
 /**
  * Development-only stand-in for a real provider's hosted page, for RESERVATION payments and card holds (phase 4, mobile testing).
  * It settles the mock payment / hold and then delivers the SAME signed webhook the provider would send, through the SAME shared
- * webhook path. Refused in production. Kept out of the voucher module so voucher code is unchanged.
+ * webhook path. Refused in production; in staging only with development adapters allowed (remote UAT, G-5). Kept out of the
+ * voucher module so voucher code is unchanged.
  */
 @ApiExcludeController()
 @Controller('dev/reservations')
@@ -36,7 +37,7 @@ export class DevReservationPaymentsController {
   ) {}
 
   private async find(providerReference: string) {
-    if (this.env.NODE_ENV === 'production' || !(this.provider instanceof MockPaymentProvider))
+    if (!mockProviderPagesEnabled(this.env) || !(this.provider instanceof MockPaymentProvider))
       throw new NotFoundException();
     const hold = await this.prisma.reservationAuthorisation.findUnique({
       where: { providerReference },

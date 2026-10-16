@@ -1,5 +1,5 @@
 # EDGE mode only (a founder-approved domain exists): Cloudflare (DNS, TLS, WAF, Access for staging) -> global external
-# load balancer -> serverless NEGs -> Cloud Run. Cloud Armor admits only Cloudflare's edge ranges, so nobody bypasses Cloudflare
+# load balancer -> serverless NEGs -> Cloud Run. Each app host also routes /v1/* to the API (same-origin API, G-4). Cloud Armor admits only Cloudflare's edge ranges, so nobody bypasses Cloudflare
 # (and its Access login for staging). Certificates come from Certificate Manager with DNS authorisation, which works behind the
 # Cloudflare proxy: create the CNAME records from the `dns_records` output in Cloudflare.
 resource "google_compute_global_address" "lb" {
@@ -23,6 +23,20 @@ resource "google_compute_security_policy" "cloudflare_only" {
   count   = local.edge ? 1 : 0
   project = var.project_id
   name    = "${local.name}-cloudflare-only"
+
+  # Remote UAT (G-4): every app reaches the API on its own address (/v1/* below), so the admin API must not be reachable through
+  # the customer, merchant, staff or partner hosts. Admin sessions, TOTP and RBAC still apply on the admin host; this rule removes
+  # the network path everywhere else (evaluated before the Cloudflare allow rules).
+  rule {
+    action   = "deny(404)"
+    priority = 900
+    match {
+      expr {
+        expression = "request.path.startsWith('/v1/admin') && request.headers['host'] != '${local.hosts.admin}'"
+      }
+    }
+    description = "Admin API only on the admin host"
+  }
 
   dynamic "rule" {
     # Cloud Armor allows at most 10 ranges per rule
@@ -87,6 +101,16 @@ resource "google_compute_url_map" "lb" {
     content {
       name            = path_matcher.key
       default_service = google_compute_backend_service.svc[path_matcher.key].id
+      # Remote UAT (G-4): each app calls the API on its OWN address (https://<app host>/v1/...). Cloudflare Access gives every
+      # hostname its own login cookie, so calls to a separate api host would be stopped at the login page. Same origin also means
+      # no CORS for browser calls. The api host stays for health checks (Cloudflare service token).
+      dynamic "path_rule" {
+        for_each = path_matcher.key == "api" ? [] : [1]
+        content {
+          paths   = ["/v1", "/v1/*"]
+          service = google_compute_backend_service.svc["api"].id
+        }
+      }
     }
   }
 }

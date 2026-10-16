@@ -2,7 +2,14 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createElement, type ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import { AppShell, AuthProvider, LoginPanel, PlaceholderPage, useAuth } from './index';
+import {
+  AppShell,
+  AuthProvider,
+  EnvironmentRibbon,
+  LoginPanel,
+  PlaceholderPage,
+  useAuth,
+} from './index';
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/en' }));
 vi.mock('next/link', () => ({
@@ -72,6 +79,45 @@ function Probe() {
     </div>
   );
 }
+
+describe('remote UAT (G-7): staging label', () => {
+  const shell = (locale: 'en' | 'ar') =>
+    render(
+      <AuthProvider audience="merchant" locale={locale} apiUrl="http://api.test">
+        <EnvironmentRibbon env="staging" />
+        <EnvironmentRibbon env="production" />
+        <EnvironmentRibbon env={undefined} />
+      </AuthProvider>,
+    );
+
+  it('a staging build labels every screen; production and local builds show nothing', async () => {
+    stubApi(unauthenticated);
+    shell('en');
+    const ribbons = await screen.findAllByTestId('env-ribbon');
+    expect(ribbons).toHaveLength(1);
+    expect(ribbons[0]).toHaveTextContent('STAGING · Test data only');
+    expect(ribbons[0]).toHaveAttribute('role', 'note');
+  });
+
+  it('in Arabic too', async () => {
+    stubApi(unauthenticated);
+    shell('ar');
+    expect(await screen.findByTestId('env-ribbon')).toHaveTextContent('بيئة اختبار');
+  });
+
+  it('the app shell itself shows nothing outside staging builds (tests run as local)', async () => {
+    stubApi(unauthenticated);
+    render(
+      <AuthProvider audience="merchant" locale="en" apiUrl="http://api.test">
+        <AppShell>
+          <div data-testid="content" />
+        </AppShell>
+      </AuthProvider>,
+    );
+    await screen.findByTestId('content');
+    expect(screen.queryByTestId('env-ribbon')).toBeNull();
+  });
+});
 
 describe('app shell: permission-aware navigation', () => {
   it('shows only navigation the role may use (finance hidden for a merchant admin)', async () => {

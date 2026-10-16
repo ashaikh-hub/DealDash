@@ -300,6 +300,18 @@ Free until used: web apps at zero, logging up to the free tier, Workload Identit
   - The production boot check refuses http or localhost values for both, so a missing setting stops the API instead of sending localhost links.
 - **New open item (production, not staging):** first-time two-step set-up for real administrators — the routes and screen need to be built before go-live.
 
+## Remote UAT fixes G-4 to G-8 — CLOSED 2026-10-16 (repository only, nothing provisioned)
+Founder approved the remote UAT architecture and these fixes on 2026-10-16. Details and the tester guide: `docs/REMOTE_UAT_GUIDE.md`.
+- **G-4** same-origin API per app host (`/v1/*` routed by the load balancer; web images built with `STAGING_HOST_SUFFIX`); Cloud Armor
+  refuses `/v1/admin/*` except on the admin host; service workers skip `/v1/`.
+- **G-5** the test provider pages (reservation payment / card hold, saved card, Google / Apple, voucher payment) run in staging with
+  `ALLOW_MOCK_PROVIDERS`; never in production; the SMS / TOTP dev helpers stay off in every production build.
+- **G-6** `X-Robots-Tag: noindex` on every web and API response outside a production customer build; robots.txt disallows all.
+- **G-7** "STAGING · Test data only" label on every screen of a staging build.
+- **G-8** tester number ranges, account list, invite / remove steps (`docs/REMOTE_UAT_GUIDE.md`).
+- New GitHub variable: `STAGING_HOST_SUFFIX` (Terraform output `host_suffix`); `STAGING_API_URL` is now only the PRIVATE-mode fallback.
+- Three Cloudflare Access applications (Customer + Staff, Merchant + Partner, Admin) instead of one, so the admin list stays short.
+
 ## GO / NO-GO checklist (founder)
 | # | Item | Owner |
 |---|---|---|

@@ -210,6 +210,19 @@ function hasStagingTestRecipients(env: TestInboxEnv) {
   return env.STAGING_TEST_PHONE_PREFIXES.length > 0 || env.STAGING_TEST_EMAIL_DOMAINS.length > 0;
 }
 
+/**
+ * Remote UAT (G-5): the development provider pages — the mock payment / card-hold page, the mock "add a card" page and the mock
+ * Google / Apple screen — stand in for the real providers' hosted pages. They exist outside production builds, and in STAGING only
+ * when development adapters are explicitly allowed (ALLOW_MOCK_PROVIDERS, itself refused in production by the boot check). Never in
+ * production. The other development helpers (SMS inbox, TOTP codes) stay off in every production build, staging included.
+ */
+export function mockProviderPagesEnabled(
+  env: Pick<ApiEnv, 'APP_ENV' | 'NODE_ENV' | 'ALLOW_MOCK_PROVIDERS'>,
+): boolean {
+  if (env.NODE_ENV !== 'production') return true;
+  return appEnvOf(env) === 'staging' && env.ALLOW_MOCK_PROVIDERS === true;
+}
+
 /** Shape rules for the test-recipient lists (any tier): a prefix never covers a whole country, a domain is never a real one. */
 export function stagingTestRecipientProblems(env: TestInboxEnv): string[] {
   const problems: string[] = [];

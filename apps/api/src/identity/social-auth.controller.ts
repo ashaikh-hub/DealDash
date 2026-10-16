@@ -14,7 +14,7 @@ import { ApiExcludeController, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import type { ApiEnv } from '@dealdash/config';
+import { mockProviderPagesEnabled, type ApiEnv } from '@dealdash/config';
 import {
   SOCIAL_PROVIDERS,
   envelope,
@@ -155,7 +155,7 @@ export class DevSocialController {
   @Public()
   @HttpCode(200)
   approve(@Body() b: DevApproveDto) {
-    if (this.env.NODE_ENV === 'production' || !(this.provider instanceof MockSocialAuthProvider))
+    if (!mockProviderPagesEnabled(this.env) || !(this.provider instanceof MockSocialAuthProvider))
       throw new NotFoundException();
     const code = this.provider.approve(b.provider, {
       subject: `${b.provider.toLowerCase()}-${b.subject}`,

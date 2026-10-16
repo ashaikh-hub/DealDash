@@ -13,6 +13,7 @@ const config: NextConfig = {
         headers: webSecurityHeaders({
           camera: true,
           production: process.env.NODE_ENV === 'production',
+          indexable: false, // business app: never indexed in any environment (G-6)
         }),
       },
     ];

@@ -1,5 +1,5 @@
 import type { NextConfig } from 'next';
-import { webSecurityHeaders } from '@dealdash/types';
+import { webAppEnv, webSecurityHeaders } from '@dealdash/types';
 
 const config: NextConfig = {
   reactStrictMode: true,
@@ -13,6 +13,8 @@ const config: NextConfig = {
         headers: webSecurityHeaders({
           geolocation: true,
           production: process.env.NODE_ENV === 'production',
+          // only a production build of the customer app may be indexed (staging / UAT never: G-6)
+          indexable: webAppEnv(process.env.NEXT_PUBLIC_APP_ENV) === 'production',
         }),
       },
     ];

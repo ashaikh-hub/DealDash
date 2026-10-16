@@ -8,7 +8,7 @@ import {
   withLocale,
   type DictionaryKey,
 } from '@dealdash/localization';
-import { AUDIENCE_DEFINITIONS, LOCALES, type UiLocale } from '@dealdash/types';
+import { AUDIENCE_DEFINITIONS, LOCALES, webAppEnv, type UiLocale } from '@dealdash/types';
 import { Button, StatusChip, Wordmark } from '@dealdash/ui';
 import { Icon } from './deals/icons';
 import { useApi } from './api';
@@ -95,6 +95,22 @@ function MyDealsLink({ locale }: { locale: UiLocale }) {
  * responsive sidebar. Navigation shows only what the signed-in role may use (hidden, not greyed); the API
  * enforces every permission regardless of what is shown here.
  */
+/**
+ * Remote UAT (G-7): every screen of a STAGING / UAT build carries a small "Staging · test data only" label, so nobody mistakes it for
+ * the live service (or shares a screenshot as real). It never takes space or catches taps; production and local builds show nothing.
+ * `env` is the public build setting NEXT_PUBLIC_APP_ENV (a prop only so tests can set it).
+ */
+export function EnvironmentRibbon({ env = process.env.NEXT_PUBLIC_APP_ENV }: { env?: string }) {
+  const { uiLocale } = useAuth();
+  if (webAppEnv(env) !== 'staging') return null;
+  const t = createTranslator(uiLocale);
+  return (
+    <div className="dd-envribbon" role="note" data-testid="env-ribbon">
+      {t('shell.envStaging')}
+    </div>
+  );
+}
+
 export function AppShell({
   children,
   hiddenKeys,
@@ -198,6 +214,7 @@ export function AppShell({
   if (mobileFirst) {
     return (
       <div className="dd-shell dd-shell--mobile">
+        <EnvironmentRibbon />
         {noHeader ? null : (
           <header className="dd-main" style={{ paddingBlockEnd: 0 }}>
             {header}
@@ -220,6 +237,7 @@ export function AppShell({
 
   return (
     <div className="dd-shell">
+      <EnvironmentRibbon />
       <aside className="dd-sidebar" aria-label="Primary">
         <div style={{ padding: '4px 12px 16px' }}>
           <Wordmark />

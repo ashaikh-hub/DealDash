@@ -10,7 +10,11 @@ const config: NextConfig = {
     return [
       {
         source: '/:path*',
-        headers: webSecurityHeaders({ production: process.env.NODE_ENV === 'production' }),
+        // business portal: never indexed in any environment (G-6)
+        headers: webSecurityHeaders({
+          production: process.env.NODE_ENV === 'production',
+          indexable: false,
+        }),
       },
     ];
   },

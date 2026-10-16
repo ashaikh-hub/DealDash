@@ -3,7 +3,10 @@ name: Staging (Google Cloud Doha)
 # Launch readiness: deploys a TAGGED release to the Doha STAGING cell (founder-approved for staging only). Inactive until the
 # repository variables below exist (set after `terraform apply` of infra/terraform/envs/staging-doha):
 #   GCP_PROJECT, GCP_REGION (me-central1), GCP_ARTIFACT_REGISTRY, GCP_WORKLOAD_IDENTITY_PROVIDER, GCP_DEPLOYER_SA,
-#   STAGING_API_URL (baked into the web images), optional STAGING_HEALTH_URL.
+#   STAGING_HOST_SUFFIX (Terraform output host_suffix, e.g. staging.example.com), optional STAGING_HEALTH_URL.
+# Remote UAT: each web image calls the API on its OWN address (https://<app host>/v1, routed by the load balancer, G-4) because
+# Cloudflare Access keeps a separate login per hostname; it is built as a STAGING build (noindex, staging label: G-6 / G-7).
+# STAGING_API_URL is the fallback for a cell without a domain (PRIVATE mode, engineers only).
 # Keyless: GitHub OIDC -> Workload Identity Federation (only the `staging` environment of this repository is trusted).
 # Production is NOT deployed here (and tooling/deploy/deploy-gcp.mjs refuses any target but staging).
 on:
@@ -47,10 +50,14 @@ jobs:
       - run: gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet
       - name: Build and push ${{ matrix.app }}
         run: |
-          case "${{ matrix.app }}" in
+          APP="${{ matrix.app }}"
+          LABEL="$APP"; [ "$APP" = "customer" ] && LABEL="app"
+          SUFFIX="${{ vars.STAGING_HOST_SUFFIX }}"
+          if [ -n "$SUFFIX" ]; then API_URL="https://${LABEL}.${SUFFIX}"; else API_URL="${{ vars.STAGING_API_URL }}"; fi
+          case "$APP" in
             api)     ARGS="-f infra/docker/api.Dockerfile" ;;
             migrate) ARGS="-f infra/docker/api.Dockerfile --target migrate" ;;
-            *)       ARGS="-f infra/docker/web.Dockerfile --build-arg APP=${{ matrix.app }} --build-arg NEXT_PUBLIC_API_URL=${{ vars.STAGING_API_URL }}" ;;
+            *)       ARGS="-f infra/docker/web.Dockerfile --build-arg APP=$APP --build-arg NEXT_PUBLIC_API_URL=$API_URL --build-arg NEXT_PUBLIC_APP_ENV=staging" ;;
           esac
           IMAGE="${{ vars.GCP_ARTIFACT_REGISTRY }}/${{ matrix.app }}:${VERSION}"
           docker build $ARGS -t "$IMAGE" .

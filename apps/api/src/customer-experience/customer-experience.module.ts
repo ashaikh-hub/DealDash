@@ -16,7 +16,7 @@ import {
 import { ApiExcludeController, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import type { ApiEnv } from '@dealdash/config';
+import { mockProviderPagesEnabled, type ApiEnv } from '@dealdash/config';
 import {
   SAVING_SOURCES,
   cardSetupResultSchema,
@@ -172,7 +172,7 @@ export class DevPaymentMethodsController {
   ) {}
 
   private mock() {
-    if (this.env.NODE_ENV === 'production' || !(this.provider instanceof MockPaymentProvider))
+    if (!mockProviderPagesEnabled(this.env) || !(this.provider instanceof MockPaymentProvider))
       throw new NotFoundException();
     return this.provider;
   }

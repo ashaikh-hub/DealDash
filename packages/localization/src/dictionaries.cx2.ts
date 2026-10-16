@@ -263,6 +263,8 @@ const CX2 = {
   'cx.rv.merchant': ['Reviews of {merchant}', 'تقييمات {merchant}'],
   'cx.rv.dealRating': ['Deal rating', 'تقييم العرض'],
   'cx.rv.rate': ['Rate your visit', 'قيّم زيارتك'],
+  // ---- remote UAT (G-7): the label on every screen of a staging build
+  'shell.envStaging': ['STAGING · Test data only', 'بيئة اختبار · بيانات تجريبية فقط'],
   // ---- profile menu
   'cx.menu.payments': ['Payment methods', 'طرق الدفع'],
   'cx.menu.pass': ['Employee Pass', 'بطاقة الموظف'],

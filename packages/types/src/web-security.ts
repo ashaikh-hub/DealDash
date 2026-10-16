@@ -8,6 +8,11 @@ export function webSecurityHeaders(opts: {
   camera?: boolean;
   geolocation?: boolean;
   production: boolean;
+  /**
+   * Remote UAT (G-6): only a page meant for search engines may be indexed. Every non-production environment (staging, UAT, local)
+   * and every business portal sends `X-Robots-Tag: noindex` (with robots.txt disallowing everything) whatever its host.
+   */
+  indexable?: boolean;
 }): Array<{ key: string; value: string }> {
   const headers = [
     { key: 'X-Frame-Options', value: 'DENY' },
@@ -29,5 +34,28 @@ export function webSecurityHeaders(opts: {
       key: 'Strict-Transport-Security',
       value: 'max-age=31536000; includeSubDomains',
     });
+  if (!opts.indexable) headers.push({ key: 'X-Robots-Tag', value: NOINDEX });
   return headers;
+}
+
+/** What search engines are told about pages that must never be listed (staging / UAT, portals, the API). */
+export const NOINDEX = 'noindex, nofollow, noarchive, nosnippet';
+
+/**
+ * The deployment tier a web app was BUILT for (`NEXT_PUBLIC_APP_ENV`, a public build setting; unset = local development). Only
+ * `production` builds of the customer app may be indexed; staging builds also show the "STAGING · test data" ribbon (G-7).
+ */
+export function webAppEnv(value: string | undefined): 'production' | 'staging' | 'local' {
+  return value === 'production'
+    ? 'production'
+    : value === 'staging' || value === 'uat'
+      ? 'staging'
+      : 'local';
+}
+
+/** robots.txt for a web app: everything disallowed unless the app may be indexed (Next.js `app/robots.ts`). */
+export function robotsRules(indexable: boolean) {
+  return indexable
+    ? { rules: [{ userAgent: '*', allow: '/' }] }
+    : { rules: [{ userAgent: '*', disallow: '/' }] };
 }

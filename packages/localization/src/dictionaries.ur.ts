@@ -1304,6 +1304,7 @@ export const urCustomer: Record<string, string> = {
   'cx.rv.merchant': '{merchant} کے ریویوز',
   'cx.rv.dealRating': 'ڈیل کی ریٹنگ',
   'cx.rv.rate': 'اپنے وزٹ کی ریٹنگ دیں',
+  'shell.envStaging': 'ٹیسٹ ماحول · صرف آزمائشی ڈیٹا',
   'cx.menu.payments': 'ادائیگی کے طریقے',
   'cx.menu.pass': 'ملازم پاس',
   'cx.menu.savings': 'میری بچت',

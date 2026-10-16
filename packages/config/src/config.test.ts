@@ -6,6 +6,7 @@ import {
   isAllowedBrowserOrigin,
   isStagingTestRecipient,
   launchControlsSchema,
+  mockProviderPagesEnabled,
   parseApiEnv,
   productionSafetyProblems,
   stagingTestInboxEnabled,
@@ -19,6 +20,18 @@ const base = {
 };
 
 describe('config', () => {
+  it('remote UAT (G-5): the development provider pages exist in development / test, in staging only with mock providers allowed, never in production', () => {
+    const p = (NODE_ENV: string, APP_ENV?: string, ALLOW_MOCK_PROVIDERS = false) =>
+      mockProviderPagesEnabled({ NODE_ENV, APP_ENV, ALLOW_MOCK_PROVIDERS } as never);
+    expect(p('development')).toBe(true);
+    expect(p('test')).toBe(true);
+    expect(p('production', 'staging', true)).toBe(true);
+    expect(p('production', 'staging', false)).toBe(false);
+    expect(p('production', 'production', true)).toBe(false);
+    expect(p('production', undefined, true)).toBe(false);
+    expect(p('production', 'production', false)).toBe(false);
+  });
+
   it('parses a valid environment with defaults', () => {
     const env = parseApiEnv(base);
     expect(env.API_PORT).toBe(4000);

@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { ZodValidationPipe } from 'nestjs-zod';
-import { stagingTestInboxEnabled, type ApiEnv } from '@dealdash/config';
+import { mockProviderPagesEnabled, stagingTestInboxEnabled, type ApiEnv } from '@dealdash/config';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { AuditModule } from './audit/audit.module';
 import { APP_ENV } from './common/env';
@@ -45,6 +45,24 @@ import {
   DevCustomerExperienceModule,
 } from './customer-experience/customer-experience.module';
 import { StagingTestInboxModule } from './staging/test-inbox';
+
+/**
+ * Development helpers per tier. The SMS inbox / TOTP helpers (DevModule) never exist in a production build, staging included. The
+ * development provider pages (mock payment / card hold, mock card page, mock Google / Apple) also run in STAGING when development
+ * adapters are explicitly allowed (remote UAT, G-5), so testers can finish paid and sign-in flows. Never in production.
+ */
+export function developmentModules(
+  env: Pick<ApiEnv, 'APP_ENV' | 'NODE_ENV' | 'ALLOW_MOCK_PROVIDERS'>,
+): Array<
+  typeof DevModule | typeof DevReservationPaymentsModule | typeof DevCustomerExperienceModule
+> {
+  return [
+    ...(env.NODE_ENV === 'production' ? [] : [DevModule]),
+    ...(mockProviderPagesEnabled(env)
+      ? [DevReservationPaymentsModule, DevCustomerExperienceModule]
+      : []),
+  ];
+}
 
 @Global()
 @Module({})
@@ -94,9 +112,7 @@ export class AppModule implements NestModule {
         AnalyticsModule,
         JobsModule,
         HealthModule,
-        ...(env.NODE_ENV === 'production'
-          ? []
-          : [DevModule, DevReservationPaymentsModule, DevCustomerExperienceModule]),
+        ...developmentModules(env),
         // launch readiness G-1: the staging test inbox is not even routed in any other tier
         ...(stagingTestInboxEnabled(env) ? [StagingTestInboxModule] : []),
       ],

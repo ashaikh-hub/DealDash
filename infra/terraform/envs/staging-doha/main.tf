@@ -113,6 +113,7 @@ output "cell" {
     seed_secrets               = module.cell.seed_secrets
     service_uris               = module.cell.service_uris
     public_hosts               = module.cell.public_hosts
+    host_suffix                = module.cell.host_suffix
     dns_records                = module.cell.dns_records
     buckets                    = module.cell.buckets
   }

@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { cleanupOpenApiDoc } from 'nestjs-zod';
 import { isAllowedBrowserOrigin, type ApiEnv } from '@dealdash/config';
+import { NOINDEX } from '@dealdash/types';
 import { AppModule } from './app.module';
 import { JsonLogger, accessLog } from './common/logger';
 import { rateLimiter } from './common/rate-limit';
@@ -34,6 +35,11 @@ export async function createApp(
       referrerPolicy: { policy: 'no-referrer' },
     }),
   );
+  // remote UAT (G-6): API answers are never listed by search engines, in any environment
+  app.use((_req: unknown, res: { setHeader: (k: string, v: string) => void }, next: () => void) => {
+    res.setHeader('X-Robots-Tag', NOINDEX);
+    next();
+  });
   if (json && opts.logger !== false) app.use(accessLog(json));
   if (env.RATE_LIMIT_PER_MINUTE > 0 || env.AUTH_RATE_LIMIT_PER_MINUTE > 0)
     app.use(

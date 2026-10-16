@@ -5,7 +5,7 @@ export {
   type AuthContextValue,
   type AuthState,
 } from './auth-context';
-export { AppShell } from './app-shell';
+export { AppShell, EnvironmentRibbon } from './app-shell';
 export { LoginPanel } from './login-panel';
 export { ShellHome } from './shell-home';
 export { PlaceholderPage } from './placeholder-page';
