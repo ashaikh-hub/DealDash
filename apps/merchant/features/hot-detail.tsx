@@ -535,6 +535,35 @@ function Monitor({
         ) : null}
       </div>
 
+      {/* paid reservations (founder UAT 2026-10-16): temporary payment holds and the outcome of every payment */}
+      {mon.payments ? (
+        <Card data-testid="payment-outcomes">
+          <div className="dd-stack" style={{ gap: 10 }}>
+            <h2 className="dd-title">{t('mrsv.out.title')}</h2>
+            <div className="dd-kpis">
+              {(
+                [
+                  ['awaitingPayment', 'mrsv.out.awaiting'],
+                  ['paid', 'mrsv.out.paid'],
+                  ['cardHolds', 'mrsv.out.holds'],
+                  ['failed', 'mrsv.out.failed'],
+                  ['refunded', 'mrsv.out.refunded'],
+                  ['kept', 'mrsv.out.kept'],
+                ] as const
+              ).map(([k, label]) => (
+                <div className="dd-kpi" key={k} data-testid={`out-${k}`}>
+                  <div className="dd-kpi__n">{mon.payments![k]}</div>
+                  <div className="dd-kpi__l">{t(label)}</div>
+                </div>
+              ))}
+            </div>
+            <p className="dd-caption" style={{ margin: 0 }}>
+              {t('mrsv.out.note')}
+            </p>
+          </div>
+        </Card>
+      ) : null}
+
       {tracked ? (
         <Card>
           <div className="dd-stack">

@@ -16631,6 +16631,8 @@ export interface components {
              *         "method": null,
              *         "amountMinor": null,
              *         "depositRefundable": null,
+             *         "depositLateRefund": null,
+             *         "depositCredited": null,
              *         "cancelCutoffMinutes": null,
              *         "noShowRefundPercent": null
              *       },
@@ -16759,6 +16761,8 @@ export interface components {
                  *       "method": null,
                  *       "amountMinor": null,
                  *       "depositRefundable": null,
+                 *       "depositLateRefund": null,
+                 *       "depositCredited": null,
                  *       "cancelCutoffMinutes": null,
                  *       "noShowRefundPercent": null
                  *     }
@@ -16773,6 +16777,10 @@ export interface components {
                     amountMinor: number | null;
                     /** @default null */
                     depositRefundable: boolean | null;
+                    /** @default null */
+                    depositLateRefund: boolean | null;
+                    /** @default null */
+                    depositCredited: boolean | null;
                     /** @default null */
                     cancelCutoffMinutes: number | null;
                     /** @default null */
@@ -17018,6 +17026,8 @@ export interface components {
                      *       "method": null,
                      *       "amountMinor": null,
                      *       "depositRefundable": null,
+                     *       "depositLateRefund": null,
+                     *       "depositCredited": null,
                      *       "cancelCutoffMinutes": null,
                      *       "noShowRefundPercent": null
                      *     }
@@ -17032,6 +17042,10 @@ export interface components {
                         amountMinor: number | null;
                         /** @default null */
                         depositRefundable: boolean | null;
+                        /** @default null */
+                        depositLateRefund: boolean | null;
+                        /** @default null */
+                        depositCredited: boolean | null;
                         /** @default null */
                         cancelCutoffMinutes: number | null;
                         /** @default null */
@@ -17349,6 +17363,8 @@ export interface components {
                  *       "method": null,
                  *       "amountMinor": null,
                  *       "depositRefundable": null,
+                 *       "depositLateRefund": null,
+                 *       "depositCredited": null,
                  *       "cancelCutoffMinutes": null,
                  *       "noShowRefundPercent": null
                  *     }
@@ -17363,6 +17379,10 @@ export interface components {
                     amountMinor: number | null;
                     /** @default null */
                     depositRefundable: boolean | null;
+                    /** @default null */
+                    depositLateRefund: boolean | null;
+                    /** @default null */
+                    depositCredited: boolean | null;
                     /** @default null */
                     cancelCutoffMinutes: number | null;
                     /** @default null */
@@ -17610,6 +17630,8 @@ export interface components {
                          *       "method": null,
                          *       "amountMinor": null,
                          *       "depositRefundable": null,
+                         *       "depositLateRefund": null,
+                         *       "depositCredited": null,
                          *       "cancelCutoffMinutes": null,
                          *       "noShowRefundPercent": null
                          *     }
@@ -17624,6 +17646,10 @@ export interface components {
                             amountMinor: number | null;
                             /** @default null */
                             depositRefundable: boolean | null;
+                            /** @default null */
+                            depositLateRefund: boolean | null;
+                            /** @default null */
+                            depositCredited: boolean | null;
                             /** @default null */
                             cancelCutoffMinutes: number | null;
                             /** @default null */
@@ -17953,6 +17979,8 @@ export interface components {
                          *       "method": null,
                          *       "amountMinor": null,
                          *       "depositRefundable": null,
+                         *       "depositLateRefund": null,
+                         *       "depositCredited": null,
                          *       "cancelCutoffMinutes": null,
                          *       "noShowRefundPercent": null
                          *     }
@@ -17967,6 +17995,10 @@ export interface components {
                             amountMinor: number | null;
                             /** @default null */
                             depositRefundable: boolean | null;
+                            /** @default null */
+                            depositLateRefund: boolean | null;
+                            /** @default null */
+                            depositCredited: boolean | null;
                             /** @default null */
                             cancelCutoffMinutes: number | null;
                             /** @default null */
@@ -18226,6 +18258,8 @@ export interface components {
                 /** @enum {string} */
                 limitType: "TIME" | "QUANTITY" | "TIME_AND_QUANTITY";
                 reservationsEnabled: boolean;
+                /** @enum {string|null} */
+                reservationMethod?: "FREE" | "FULL_PREPAYMENT" | "DEPOSIT" | "CARD_PREAUTH" | null;
                 startsAt: string | null;
                 endsAt: string | null;
                 remaining: number | null;
@@ -18268,6 +18302,8 @@ export interface components {
                     amountMinor: number | null;
                     currency: string | null;
                     depositRefundable: boolean | null;
+                    depositLateRefund: boolean | null;
+                    depositCredited: boolean | null;
                     cancelCutoffMinutes: number | null;
                     noShowRefundPercent: number | null;
                     paymentWindowMinutes: number | null;
@@ -18392,6 +18428,14 @@ export interface components {
                     expired: number;
                     cancelled: number;
                     expiringSoon: number;
+                };
+                payments?: {
+                    awaitingPayment: number;
+                    paid: number;
+                    cardHolds: number;
+                    failed: number;
+                    refunded: number;
+                    kept: number;
                 };
                 funnel: {
                     impressions: number;
@@ -18522,6 +18566,8 @@ export interface components {
                     } | null;
                     cancelCutoffAt: string | null;
                     depositRefundable: boolean | null;
+                    depositLateRefund: boolean | null;
+                    depositCredited: boolean | null;
                     noShowRefundPercent: number | null;
                     keptMinor: number | null;
                     refunds: {
@@ -18837,6 +18883,8 @@ export interface components {
                      *       "method": null,
                      *       "amountMinor": null,
                      *       "depositRefundable": null,
+                     *       "depositLateRefund": null,
+                     *       "depositCredited": null,
                      *       "cancelCutoffMinutes": null,
                      *       "noShowRefundPercent": null
                      *     }
@@ -18851,6 +18899,10 @@ export interface components {
                         amountMinor: number | null;
                         /** @default null */
                         depositRefundable: boolean | null;
+                        /** @default null */
+                        depositLateRefund: boolean | null;
+                        /** @default null */
+                        depositCredited: boolean | null;
                         /** @default null */
                         cancelCutoffMinutes: number | null;
                         /** @default null */
@@ -19112,6 +19164,8 @@ export interface components {
                     /** @enum {string} */
                     limitType: "TIME" | "QUANTITY" | "TIME_AND_QUANTITY";
                     reservationsEnabled: boolean;
+                    /** @enum {string|null} */
+                    reservationMethod?: "FREE" | "FULL_PREPAYMENT" | "DEPOSIT" | "CARD_PREAUTH" | null;
                     startsAt: string | null;
                     endsAt: string | null;
                     remaining: number | null;
@@ -19154,6 +19208,8 @@ export interface components {
                         amountMinor: number | null;
                         currency: string | null;
                         depositRefundable: boolean | null;
+                        depositLateRefund: boolean | null;
+                        depositCredited: boolean | null;
                         cancelCutoffMinutes: number | null;
                         noShowRefundPercent: number | null;
                         paymentWindowMinutes: number | null;
@@ -19437,6 +19493,8 @@ export interface components {
                 /** @enum {string} */
                 limitType: "TIME" | "QUANTITY" | "TIME_AND_QUANTITY";
                 reservationsEnabled: boolean;
+                /** @enum {string|null} */
+                reservationMethod?: "FREE" | "FULL_PREPAYMENT" | "DEPOSIT" | "CARD_PREAUTH" | null;
                 startsAt: string | null;
                 endsAt: string | null;
                 remaining: number | null;
@@ -19519,6 +19577,8 @@ export interface components {
                 /** @enum {string} */
                 limitType: "TIME" | "QUANTITY" | "TIME_AND_QUANTITY";
                 reservationsEnabled: boolean;
+                /** @enum {string|null} */
+                reservationMethod?: "FREE" | "FULL_PREPAYMENT" | "DEPOSIT" | "CARD_PREAUTH" | null;
                 startsAt: string | null;
                 endsAt: string | null;
                 remaining: number | null;
@@ -19561,6 +19621,8 @@ export interface components {
                     amountMinor: number | null;
                     currency: string | null;
                     depositRefundable: boolean | null;
+                    depositLateRefund: boolean | null;
+                    depositCredited: boolean | null;
                     cancelCutoffMinutes: number | null;
                     noShowRefundPercent: number | null;
                     paymentWindowMinutes: number | null;
@@ -19692,6 +19754,8 @@ export interface components {
                     } | null;
                     cancelCutoffAt: string | null;
                     depositRefundable: boolean | null;
+                    depositLateRefund: boolean | null;
+                    depositCredited: boolean | null;
                     noShowRefundPercent: number | null;
                     keptMinor: number | null;
                     refunds: {
@@ -19864,6 +19928,7 @@ export interface components {
                         amountMinor: number;
                         currency: string;
                         depositRefundable: boolean | null;
+                        depositCredited?: boolean | null;
                         /** @enum {string|null} */
                         holdStatus: "REQUESTED" | "AUTHORISED" | "FAILED" | "CANCELLED" | "EXPIRED" | "RELEASED" | "CAPTURED" | "PARTIALLY_CAPTURED" | null;
                         refundedMinor: number;
@@ -19935,6 +20000,7 @@ export interface components {
                         amountMinor: number;
                         currency: string;
                         depositRefundable: boolean | null;
+                        depositCredited?: boolean | null;
                         /** @enum {string|null} */
                         holdStatus: "REQUESTED" | "AUTHORISED" | "FAILED" | "CANCELLED" | "EXPIRED" | "RELEASED" | "CAPTURED" | "PARTIALLY_CAPTURED" | null;
                         refundedMinor: number;
@@ -28676,6 +28742,8 @@ export interface components {
                     /** @enum {string} */
                     limitType: "TIME" | "QUANTITY" | "TIME_AND_QUANTITY";
                     reservationsEnabled: boolean;
+                    /** @enum {string|null} */
+                    reservationMethod?: "FREE" | "FULL_PREPAYMENT" | "DEPOSIT" | "CARD_PREAUTH" | null;
                     startsAt: string | null;
                     endsAt: string | null;
                     remaining: number | null;

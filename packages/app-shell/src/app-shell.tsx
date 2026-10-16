@@ -59,6 +59,21 @@ function LocaleSwitcher({ locale }: { locale: UiLocale }) {
 
 /** My Deals entry in the customer header, with a dot while there are updates the customer has not seen. */
 function MyDealsLink({ locale }: { locale: UiLocale }) {
+  const t = createTranslator(locale);
+  return (
+    <Link
+      href={withLocale('/reservations', locale)}
+      className="dd-topicon"
+      aria-label={t('res.title')}
+      data-testid="my-deals-link"
+    >
+      <Icon name="ticket" size={20} />
+    </Link>
+  );
+}
+
+/** Customer header bell: the reservation and payment updates (My Deals → Updates) with the unread count. */
+function NotificationBell({ locale }: { locale: UiLocale }) {
   const { status } = useAuth();
   const { call } = useApi();
   const pathname = usePathname() ?? '/';
@@ -71,7 +86,7 @@ function MyDealsLink({ locale }: { locale: UiLocale }) {
     }
     let alive = true;
     void call<{ unread: number }>('GET', '/v1/app/notifications').then((r) => {
-      if (alive && r.ok && r.data) setUnread(r.data.unread);
+      if (alive && r.ok && typeof r.data?.unread === 'number') setUnread(r.data.unread);
     });
     return () => {
       alive = false;
@@ -79,13 +94,17 @@ function MyDealsLink({ locale }: { locale: UiLocale }) {
   }, [call, status, pathname]);
   return (
     <Link
-      href={withLocale('/reservations', locale)}
+      href={withLocale('/reservations?tab=updates', locale)}
       className="dd-topicon"
-      aria-label={t('res.title')}
-      data-testid="my-deals-link"
+      aria-label={unread > 0 ? `${t('hdr.updates')} (${unread})` : t('hdr.updates')}
+      data-testid="notifications-bell"
     >
-      <Icon name="ticket" size={20} />
-      {unread > 0 ? <span className="dd-topicon__dot" aria-label={String(unread)} /> : null}
+      <Icon name="bell" size={20} />
+      {unread > 0 ? (
+        <span className="dd-topicon__badge dd-ltr" data-testid="notifications-unread">
+          {unread > 9 ? '9+' : unread}
+        </span>
+      ) : null}
     </Link>
   );
 }
@@ -176,20 +195,14 @@ export function AppShell({
   const header = isCustomer ? (
     <div className="dd-topbar dd-topbar--customer">
       <div className="dd-brandblock">
-        {/* the proposition lives in the Home hero; the header stays light (brand, location, utilities) */}
+        {/* approved header (founder direction 2026-10-16): wordmark with the tagline; location and greeting beneath */}
         <Wordmark />
+        <span className="dd-brandblock__tag">{t('brand.tagline')}</span>
       </div>
       {headerAccessory ? <div className="dd-topbar__accessory">{headerAccessory}</div> : null}
       <div className="dd-row dd-topbar__actions">
+        <NotificationBell locale={locale} />
         <MyDealsLink locale={locale} />
-        <Link
-          href={withLocale('/my-vouchers', locale)}
-          className="dd-topicon"
-          aria-label={t('wal.title')}
-          data-testid="my-vouchers-link"
-        >
-          <Icon name="tag" size={20} />
-        </Link>
         <LocaleSwitcher locale={locale} />
       </div>
     </div>

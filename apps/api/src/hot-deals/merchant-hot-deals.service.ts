@@ -577,7 +577,7 @@ export class MerchantHotDealsService {
   /** Shared with the admin monitor. Measurable steps only: no sales, no revenue. */
   async monitorOf(deal: HotRow, now = new Date()): Promise<HotMonitor> {
     const noticeMin = await this.core.expiringNoticeMinutes();
-    const [byStatus, soon, events] = await Promise.all([
+    const [byStatus, soon, events, byPayment] = await Promise.all([
       this.prisma.reservation.groupBy({
         by: ['status'],
         where: { dealId: deal.id },
@@ -595,7 +595,16 @@ export class MerchantHotDealsService {
         where: { dealId: deal.id, productType: 'HOT', type: { in: ['IMPRESSION', 'DETAIL_VIEW'] } },
         _count: { _all: true },
       }),
+      // paid reservations by money status (temporary payment holds, paid, failed, refunded, kept)
+      this.prisma.reservation.groupBy({
+        by: ['paymentStatus'],
+        where: { dealId: deal.id, commitmentMethod: { not: 'FREE' } },
+        _count: { _all: true },
+      }),
     ]);
+    const p = (...s: string[]) =>
+      byPayment.filter((r) => s.includes(r.paymentStatus)).reduce((a, r) => a + r._count._all, 0);
+    const anyPaid = byPayment.length > 0;
     const n = (s: ReservationStatus) => byStatus.find((r) => r.status === s)?._count._all ?? 0;
     const created = byStatus.reduce((a, r) => a + r._count._all, 0);
     const ev = (t: string) => events.find((e) => e.type === t)?._count._all ?? 0;
@@ -622,6 +631,18 @@ export class MerchantHotDealsService {
         cancelled: n('CANCELLED'),
         expiringSoon: soon,
       },
+      ...(anyPaid
+        ? {
+            payments: {
+              awaitingPayment: p('PENDING'),
+              paid: p('PAID', 'CAPTURED'),
+              cardHolds: p('AUTHORISED'),
+              failed: p('FAILED'),
+              refunded: p('REFUNDED', 'PARTIALLY_REFUNDED', 'VOIDED'),
+              kept: p('FORFEITED'),
+            },
+          }
+        : {}),
       funnel: {
         impressions: ev('IMPRESSION'),
         detailViews: ev('DETAIL_VIEW'),

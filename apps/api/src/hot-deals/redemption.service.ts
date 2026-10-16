@@ -276,6 +276,9 @@ export class RedemptionService {
               amountMinor: row.amountMinor * row.quantity,
               currency: row.currency,
               depositRefundable: row.depositRefundable,
+              // staff credit the deposit to the bill unless it is a booking fee (2026-10-16)
+              depositCredited:
+                row.commitmentMethod === 'DEPOSIT' ? row.depositCredited !== false : null,
               holdStatus: row.authorisations[0]?.status ?? null,
               refundedMinor: row.refunds.reduce((n, f) => n + f.amountMinor, 0),
               keptMinor: row.keptMinor,

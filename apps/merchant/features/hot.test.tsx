@@ -811,8 +811,12 @@ describe('Exclusive Deal builder: reservation payment', () => {
     await user.click(within(editor).getByTestId('commitment-DEPOSIT'));
     expect(within(editor).getByText(/Allowed: SAR\s?5\.00 to SAR\s?50\.00/)).toBeInTheDocument();
     await user.type(screen.getByLabelText(/Deposit per unit/), '15');
-    await user.click(screen.getByLabelText('Refund the deposit if the customer cancels in time'));
+    // deposit treatment: three refund modes (non-refundable only where the policy permits it) and credited vs booking fee
+    expect(within(editor).getByTestId('deposit-refund-BEFORE_CUTOFF')).toBeChecked();
+    await user.click(within(editor).getByTestId('deposit-refund-NEVER'));
     expect(screen.getByText(/non-refundable deposit is shown to the customer/)).toBeInTheDocument();
+    expect(within(editor).getByTestId('deposit-credited')).toBeChecked();
+    await user.click(within(editor).getByTestId('deposit-credited'));
     await user.clear(screen.getByLabelText(/Free cancellation cut-off/));
     await user.type(screen.getByLabelText(/Free cancellation cut-off/), '30');
     expect(editor).toHaveTextContent('DealDash commission on reservation money kept for you: 10%');
@@ -823,8 +827,28 @@ describe('Exclusive Deal builder: reservation payment', () => {
       method: 'DEPOSIT',
       amountMinor: 1500,
       depositRefundable: false,
+      depositLateRefund: false,
+      depositCredited: false,
       cancelCutoffMinutes: 30,
       noShowRefundPercent: null,
+    });
+  });
+
+  it('a deposit refundable on any cancellation saves both refund flags', async () => {
+    const calls = stub(routes());
+    const user = await open();
+    const editor = await screen.findByTestId('commitment-editor');
+    await user.click(within(editor).getByTestId('commitment-DEPOSIT'));
+    await user.type(screen.getByLabelText(/Deposit per unit/), '15');
+    await user.click(within(editor).getByTestId('deposit-refund-ANY'));
+    await user.click(screen.getByRole('button', { name: 'Save draft' }));
+    await waitFor(() => expect(calls.some((c) => c.method === 'PUT')).toBe(true));
+    const body = JSON.parse(calls.find((c) => c.method === 'PUT')!.body!);
+    expect(body.content.commitment).toMatchObject({
+      method: 'DEPOSIT',
+      depositRefundable: true,
+      depositLateRefund: true,
+      depositCredited: true,
     });
   });
 

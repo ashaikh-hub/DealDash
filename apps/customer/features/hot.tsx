@@ -40,8 +40,17 @@ import {
   useEligibilityNote,
   useRating,
 } from './cx-parts';
-import { CardSkeletons, CityBar, LoadError, SectionHead, signInPath, useHref, useT } from './parts';
-import { curate, presentCard, presentDetail } from './presentation';
+import {
+  CardSkeletons,
+  CityBar,
+  LoadError,
+  RailEmpty,
+  SectionHead,
+  signInPath,
+  useHref,
+  useT,
+} from './parts';
+import { RAIL_SIZE, curate, presentCard, presentDetail } from './presentation';
 import { useDealList } from './use-deals';
 
 // ------------------------------------------------------------------ card with impression tracking
@@ -78,7 +87,8 @@ export function HotRail() {
     lng: approximate ? undefined : coords.lng,
   });
   if (list.loading) return <CardSkeletons variant="carousel" n={2} />;
-  if (list.failed || list.items.length === 0) return null; // the rail simply is not there when there is nothing hot
+  const items = list.failed ? [] : list.items;
+  // the section is always there (curated Home, never truncated): with nothing to show, a short note and the way to the full list
   return (
     <section className="dd-section" aria-label={t('hot.nearYou')} data-testid="hot-rail">
       <SectionHead
@@ -91,12 +101,22 @@ export function HotRail() {
           </Link>
         }
       />
-      {/* curated: two strong cards (one card fills the row), the rest behind See all */}
-      <div className="dd-duo">
-        {curate([list.items]).map((d) => (
-          <TrackedHotCard key={d.id} deal={presentCard(d)} variant="carousel" />
-        ))}
-      </div>
+      {items.length ? (
+        // compact carousel (founder direction 2026-10-16): up to five offers, the next one peeking, the rest behind See all
+        <div className="dd-hscroll dd-rail" data-testid="hot-rail-items">
+          {curate([items], RAIL_SIZE).map((d) => (
+            <TrackedHotCard key={d.id} deal={d} variant="carousel" />
+          ))}
+        </div>
+      ) : (
+        <RailEmpty
+          icon="flame"
+          text={t('home.empty.exclusive')}
+          href={href('/hot')}
+          cta={t('cust.seeAll')}
+          testId="hot-rail-empty"
+        />
+      )}
     </section>
   );
 }

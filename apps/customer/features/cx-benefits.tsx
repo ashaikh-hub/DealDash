@@ -133,6 +133,8 @@ export function CardOfferPanel({
                 loading={busy}
                 onClick={() => void activate()}
                 data-testid="card-offer-activate"
+                // long card names wrap inside the button at 320 px instead of running past it
+                style={{ whiteSpace: 'normal', blockSize: 'auto', maxInlineSize: '100%' }}
               >
                 {chosen && s.cards.length === 1
                   ? t('cx.ca.activateOn', { card: pickText(chosen.name, locale) })

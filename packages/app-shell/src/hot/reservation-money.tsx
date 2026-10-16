@@ -54,13 +54,19 @@ export function commitmentLines(
         ? t('rsv.immediate')
         : t(`rsv.use.${c.preauthOnRedemption ?? 'RELEASE'}` as DictionaryKey),
     );
+  // deposit: credited toward the bill (the rest is paid at the branch) or a booking fee (the full bill is paid at the branch)
+  else if (c.method === 'DEPOSIT' && c.depositCredited === false)
+    out.push(t('rsv.use.DEPOSIT_FEE'));
   else out.push(t(`rsv.use.${c.method}` as DictionaryKey));
+  const anyTime = c.method === 'DEPOSIT' && c.depositRefundable !== false && !!c.depositLateRefund;
   if (c.method === 'DEPOSIT' && c.depositRefundable === false) out.push(t('rsv.nonRefundable'));
+  else if (anyTime) out.push(t('rsv.cancelAny.DEPOSIT'));
   else if (c.cancelCutoffMinutes !== null)
     out.push(t(`rsv.cancelFree.${c.method}` as DictionaryKey, { min: c.cancelCutoffMinutes }));
   if (c.method === 'FULL_PREPAYMENT')
     out.push(t('rsv.late.FULL_PREPAYMENT', { pct: c.noShowRefundPercent ?? 0 }));
-  else if (c.method === 'DEPOSIT') out.push(t('rsv.late.DEPOSIT'));
+  else if (c.method === 'DEPOSIT')
+    out.push(anyTime ? t('rsv.late.DEPOSIT_NOSHOW') : t('rsv.late.DEPOSIT'));
   else if (!c.preauthImmediateCapture) {
     const charge = holdLateCharge(total, c.noShowRefundPercent);
     out.push(
@@ -159,6 +165,8 @@ export function ReservationMoneyPanel({
     amountMinor: Math.round(p.amountMinor / Math.max(1, reservation.quantity)),
     currency: p.currency,
     depositRefundable: p.depositRefundable,
+    depositLateRefund: p.depositLateRefund,
+    depositCredited: p.depositCredited,
     cancelCutoffMinutes: null,
     noShowRefundPercent: p.noShowRefundPercent,
     paymentWindowMinutes: null,
@@ -213,7 +221,8 @@ export function ReservationMoneyPanel({
           </div>
         ) : null}
       </dl>
-      {live && cutoff ? (
+      {/* a deposit refundable on any cancellation has no cut-off that matters to the customer */}
+      {live && cutoff && !(p.method === 'DEPOSIT' && p.depositLateRefund) ? (
         <p className="dd-caption" style={{ margin: 0 }} data-testid="cutoff">
           <Icon name="clock" size={13} />{' '}
           {cutoffPassed

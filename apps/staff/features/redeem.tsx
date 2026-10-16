@@ -584,7 +584,13 @@ function StaffMoney({
         <strong>
           {money.method === 'FULL_PREPAYMENT'
             ? t('srsv.FULL_PREPAYMENT')
-            : t(`srsv.${money.method}` as DictionaryKey, { amount })}
+            : // a deposit that is a booking fee is NOT credited to the bill (2026-10-16)
+              t(
+                (money.method === 'DEPOSIT' && money.depositCredited === false
+                  ? 'srsv.DEPOSIT_FEE'
+                  : `srsv.${money.method}`) as DictionaryKey,
+                { amount },
+              )}
         </strong>
         <span
           className={`dd-chip dd-chip--${MONEY_TONE[money.paymentStatus] ?? 'neutral'}`}

@@ -265,6 +265,23 @@ const CX2 = {
   'cx.rv.rate': ['Rate your visit', 'قيّم زيارتك'],
   // ---- remote UAT (G-7): the label on every screen of a staging build
   'shell.envStaging': ['STAGING · Test data only', 'بيئة اختبار · بيانات تجريبية فقط'],
+  // ---- Home: a product section with nothing to show right now (the section stays; curated, never truncated)
+  'home.empty.live': [
+    'No Live Deals near you right now. New ones go live every day.',
+    'لا توجد عروض حية قربك الآن. تُضاف عروض جديدة كل يوم.',
+  ],
+  'home.empty.exclusive': [
+    'No Exclusive Deals near you right now. Limited stock drops often.',
+    'لا توجد عروض حصرية قربك الآن. تصل كميات محدودة باستمرار.',
+  ],
+  'home.empty.watch': [
+    'No videos to watch right now. Check back soon to earn points.',
+    'لا توجد مقاطع للمشاهدة الآن. عُد قريباً لتكسب النقاط.',
+  ],
+  'home.empty.vouchers': [
+    'No Vouchers on sale near you right now.',
+    'لا توجد قسائم معروضة قربك الآن.',
+  ],
   // ---- profile menu
   'cx.menu.payments': ['Payment methods', 'طرق الدفع'],
   'cx.menu.pass': ['Employee Pass', 'بطاقة الموظف'],

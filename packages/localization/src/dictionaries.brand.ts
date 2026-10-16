@@ -20,8 +20,8 @@ const BRAND = {
   'home.ecosystem': ['Everything on DealDash', 'كل ما في ديل داش'],
   'home.eco.live': ['Live Deals', 'العروض الحية'],
   'home.eco.liveSub': ['Happening now', 'متاحة الآن'],
-  'home.eco.exclusive': ['Exclusive', 'حصرية'],
-  'home.eco.exclusiveSub': ['Reserve free', 'احجز مجاناً'],
+  'home.eco.exclusive': ['Exclusive Deals', 'العروض الحصرية'],
+  'home.eco.exclusiveSub': ['Limited stock', 'كمية محدودة'],
   'home.eco.vouchers': ['Vouchers', 'القسائم'],
   'home.eco.vouchersSub': ['Pay less', 'ادفع أقل'],
   'home.eco.watch': ['Watch & Earn', 'شاهد واكسب'],
@@ -43,6 +43,23 @@ const BRAND = {
   ],
   'shell.installDismiss': ['Not now', 'ليس الآن'],
   'vch.saveChip': ['Save {pct}%', 'وفّر {pct}%'],
+  // approved header and Home (founder direction 2026-10-16)
+  'hdr.updates': ['Notifications', 'الإشعارات'],
+  'hdr.hi': ['Hi {name}', 'مرحباً {name}'],
+  'hdr.hiThere': ['Hi there', 'مرحباً'],
+  'hdr.points': ['{n} pts', '{n} نقطة'],
+  'hdr.signIn': ['Sign in', 'تسجيل الدخول'],
+  'home.browse.title': ['Browse Offers By', 'تصفّح العروض حسب'],
+  'home.browse.sub': [
+    'Recent deals by card, employer or brand',
+    'أحدث العروض حسب البطاقة أو جهة العمل أو العلامة',
+  ],
+  'home.browse.allOffers': ['All offers', 'كل العروض'],
+  'home.browse.new': ['New offers', 'عروض جديدة'],
+  'home.browse.ending': ['Ending soon', 'تنتهي قريباً'],
+  'hot.card.paid': ['Pay & Reserve', 'ادفع واحجز'],
+  'hot.card.free': ['Free reservation', 'حجز مجاني'],
+  'wat.prop': ['Watch {sec}s · earn points', 'شاهد {sec} ث · واكسب النقاط'],
 } as const satisfies Record<string, readonly [string, string]>;
 
 type BrandPairs = typeof BRAND;

@@ -413,6 +413,16 @@ function Inner({ id }: { id: string }) {
                 {mon.funnel.reservationsCreated} / {mon.funnel.redeemed}
               </p>
             ) : null}
+            {/* paid reservations (founder UAT 2026-10-16): payment holds and outcomes, read-only for DealDash */}
+            {mon?.payments ? (
+              <p className="dd-caption" style={{ margin: 0 }} data-testid="admin-payment-outcomes">
+                {t('mrsv.out.title')}: {t('mrsv.out.awaiting')} {mon.payments.awaitingPayment} ·{' '}
+                {t('mrsv.out.paid')} {mon.payments.paid} · {t('mrsv.out.holds')}{' '}
+                {mon.payments.cardHolds} · {t('mrsv.out.failed')} {mon.payments.failed} ·{' '}
+                {t('mrsv.out.refunded')} {mon.payments.refunded} · {t('mrsv.out.kept')}{' '}
+                {mon.payments.kept}
+              </p>
+            ) : null}
           </Card>
 
           <div>

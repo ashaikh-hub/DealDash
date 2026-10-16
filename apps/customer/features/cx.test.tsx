@@ -552,6 +552,29 @@ describe('Reference audit: deal page, sheet, ticket, rows, return and sign-in', 
     expect(within(bar).getByTestId('ticket-done')).toHaveAttribute('href', '/en/reservations');
   });
 
+  it('booking fee refundable any time: says it is not taken off the bill and shows no cut-off', async () => {
+    stub({
+      [`/v1/app/reservations/${RES}`]: ok(
+        reservation({
+          payment: payment({
+            depositRefundable: true,
+            depositLateRefund: true,
+            depositCredited: false,
+          }),
+        }),
+      ),
+    });
+    mount(<ReservationPage id={RES} />);
+    expect(await screen.findByTestId('ticket-paid-line')).toHaveTextContent(
+      'Booking fee paid: SAR 10.00, not taken off your bill.',
+    );
+    expect(document.body.textContent).toContain(
+      'Your booking fee is not taken off the bill; pay the full bill at the till.',
+    );
+    expect(document.body.textContent).not.toContain('credited to your bill');
+    expect(screen.queryByTestId('cutoff')).toBeNull();
+  });
+
   it('an active My Deals row counts down live', async () => {
     nav.params = new URLSearchParams('tab=active');
     stub({ '/v1/app/reservations': ok([reservation({ payment: payment() })]) });

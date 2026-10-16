@@ -21,7 +21,7 @@ import type {
   WatchMonitor,
 } from '@dealdash/validation';
 import { Icon } from '../deals/icons';
-import { dateLabel, pickText } from '../deals/format';
+import { dateLabel, formatDistance, pickText } from '../deals/format';
 
 type T = (key: DictionaryKey, vars?: Record<string, string | number>) => string;
 const tr = (locale: Locale) => createTranslator(locale) as T;
@@ -116,10 +116,19 @@ export function WatchCardView({
       <div className="dd-dc__body">
         <h3 className="dd-dc__title">{pickText(campaign.title, locale)}</h3>
         <div className="dd-dc__merchant">{pickText(campaign.merchantName, locale)}</div>
+        {/* the reward proposition: watch N seconds, earn the points */}
+        <div className="dd-watch-prop" data-testid="watch-prop">
+          {t('wat.prop', { sec: formatNumber(locale, campaign.durationSec) })}
+        </div>
         <div className="dd-dc__meta">
           <span className="dd-chip dd-chip--success" data-testid="watch-points">
             <Points n={campaign.rewardPoints} locale={locale} signed />
           </span>
+          {campaign.distanceMeters !== null && campaign.distanceMeters !== undefined ? (
+            <span className="dd-dc__chip dd-ltr">
+              <Icon name="pin" size={12} /> {formatDistance(locale, campaign.distanceMeters)}
+            </span>
+          ) : null}
           {unavailable && campaign.availableAgainAt ? (
             <span className="dd-dc__chip">
               {t('wat.again', { when: dateLabel(locale, campaign.availableAgainAt) })}

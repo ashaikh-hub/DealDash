@@ -357,6 +357,16 @@ export class ReservationsService {
           ? releaseShare
           : null;
     const paymentWindowMinutes = effectivePolicy.fields.paymentWindowMinutes;
+    // deposit treatment (2026-10-16): refundable on any cancellation or only before the cut-off; credited to the bill or a fee
+    const depositTerms =
+      method === 'DEPOSIT'
+        ? {
+            depositLateRefund:
+              dealContent.commitment.depositRefundable === true &&
+              dealContent.commitment.depositLateRefund === true,
+            depositCredited: dealContent.commitment.depositCredited !== false,
+          }
+        : { depositLateRefund: null, depositCredited: null };
 
     const branch = await this.prisma.merchantBranch.findFirst({
       where: { id: input.branchId, organizationId: deal.organizationId },
@@ -480,6 +490,7 @@ export class ReservationsService {
                 currency,
                 depositRefundable:
                   method === 'DEPOSIT' ? dealContent.commitment.depositRefundable : null,
+                ...depositTerms,
                 noShowRefundPercent,
                 commissionBps: effectivePolicy.fields.commissionBps,
                 // RC-73 / RC-74: the per-redemption fee is not charged on top unless the agreement explicitly allows it
@@ -500,6 +511,7 @@ export class ReservationsService {
                   currency,
                   depositRefundable:
                     method === 'DEPOSIT' ? dealContent.commitment.depositRefundable : null,
+                  ...depositTerms,
                   cancelCutoffMinutes: dealContent.commitment.cancelCutoffMinutes,
                   noShowRefundPercent,
                   paymentWindowMinutes,
@@ -1072,6 +1084,9 @@ export class ReservationsService {
       authorisation: preauth && hold ? this.holdView(hold) : null,
       cancelCutoffAt: r.cancelCutoffAt?.toISOString() ?? null,
       depositRefundable: r.depositRefundable,
+      depositLateRefund: r.commitmentMethod === 'DEPOSIT' ? r.depositLateRefund === true : null,
+      // reservations made before this choice existed were credited to the bill
+      depositCredited: r.commitmentMethod === 'DEPOSIT' ? r.depositCredited !== false : null,
       noShowRefundPercent: r.noShowRefundPercent,
       keptMinor: r.keptMinor,
       refunds: r.refunds.map((f) => ({

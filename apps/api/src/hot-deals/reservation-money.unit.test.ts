@@ -61,6 +61,16 @@ describe('reservation money rules', () => {
     expect(odd).toEqual({ refundMinor: 330, keptMinor: 669 });
   });
 
+  it('deposit refundable on any cancellation (founder UAT 2026-10-16): a late cancellation refunds it; a no-show still keeps it', () => {
+    const any = { ...deposit(true), depositLateRefund: true };
+    expect(splitOnEnd(any, 'CUSTOMER_LATE')).toEqual({ refundMinor: 1_000, keptMinor: 0 });
+    expect(splitOnEnd(any, 'CUSTOMER_IN_TIME')).toEqual({ refundMinor: 1_000, keptMinor: 0 });
+    expect(splitOnEnd(any, 'NO_SHOW')).toEqual({ refundMinor: 0, keptMinor: 1_000 });
+    // the flag never makes a non-refundable deposit refundable
+    const never = { ...deposit(false), depositLateRefund: true };
+    expect(splitOnEnd(never, 'CUSTOMER_LATE')).toEqual({ refundMinor: 0, keptMinor: 1_000 });
+  });
+
   it('redeemed: everything is kept for the merchant', () => {
     expect(splitOnEnd(prepay, 'REDEEMED')).toEqual({ refundMinor: 0, keptMinor: 5_000 });
     expect(splitOnEnd(deposit(true), 'REDEEMED')).toEqual({ refundMinor: 0, keptMinor: 1_000 });

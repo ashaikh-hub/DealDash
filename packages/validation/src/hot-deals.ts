@@ -57,6 +57,17 @@ export const hotDealCommitmentSchema = z.object({
   amountMinor: z.number().int().min(0).max(100_000_000).nullable().default(null),
   /** DEPOSIT only: false = kept even when the customer cancels before the cut-off (only where the policy allows it). */
   depositRefundable: z.boolean().nullable().default(null),
+  /**
+   * DEPOSIT only (2026-10-16, founder UAT): a refundable deposit is also returned when the customer cancels AFTER the cut-off
+   * (refundable on any cancellation). null / false = refundable only before the cut-off (the original rule). A reservation not used
+   * in time (no-show) keeps the deposit either way.
+   */
+  depositLateRefund: z.boolean().nullable().default(null),
+  /**
+   * DEPOSIT only (2026-10-16): true / null = credited toward the customer's final bill at the branch (the original rule); false = a
+   * booking fee that is not deducted from the bill. Shown to the customer before paying and to staff at redemption.
+   */
+  depositCredited: z.boolean().nullable().default(null),
   /** Minutes before the hold ends after which a cancellation no longer returns refundable amounts. */
   cancelCutoffMinutes: z.number().int().min(0).max(1440).nullable().default(null),
   /** FULL_PREPAYMENT only: share refunded on a late cancellation or no-show; null = the policy default. */
@@ -476,6 +487,8 @@ export const hotDealCardSchema = z.object({
   imageAlt: biText,
   limitType: z.enum(HOT_DEAL_LIMIT_TYPES),
   reservationsEnabled: z.boolean(),
+  /** How the customer reserves (display only): FREE, a paid method, or null for walk-in. Amount and terms are on the detail. */
+  reservationMethod: z.enum(COMMITMENT_METHODS).nullable().optional(),
   startsAt: z.string().nullable(),
   endsAt: z.string().nullable(),
   /** Units left at the nearest branch (null when stock is not shown: walk-in deals or above the display threshold). */
@@ -520,6 +533,10 @@ export const commitmentTermsSchema = z.object({
   amountMinor: z.number().int().nullable(),
   currency: z.string().nullable(),
   depositRefundable: z.boolean().nullable(),
+  /** DEPOSIT: refunded on any cancellation (also after the cut-off). */
+  depositLateRefund: z.boolean().nullable(),
+  /** DEPOSIT: credited toward the final bill (false = a booking fee not deducted from the bill). */
+  depositCredited: z.boolean().nullable(),
   /** Minutes before the hold ends after which a cancellation no longer returns refundable amounts. */
   cancelCutoffMinutes: z.number().int().nullable(),
   /** Prepayment: share refunded on a late cancellation / no-show; card hold: share released (not charged). */
@@ -579,6 +596,8 @@ export const reservationPaymentViewSchema = z.object({
   /** After this moment a customer cancellation no longer returns the refundable amounts (RC-40 / RC-41). */
   cancelCutoffAt: z.string().nullable(),
   depositRefundable: z.boolean().nullable(),
+  depositLateRefund: z.boolean().nullable(),
+  depositCredited: z.boolean().nullable(),
   noShowRefundPercent: z.number().int().nullable(),
   /** Amount kept for the merchant under the terms (redeemed, forfeited or the kept part). */
   keptMinor: z.number().int().nullable(),
@@ -785,6 +804,21 @@ export const hotMonitorSchema = z.object({
     cancelled: z.number().int(),
     expiringSoon: z.number().int(),
   }),
+  /**
+   * Paid reservations (founder UAT 2026-10-16): units waiting for payment (temporary payment holds), paid / held, payments that
+   * failed or lapsed (units released), refunded, kept under the terms. Counts of reservations; the money is in the reservations
+   * tab. Absent for deals that never took a paid reservation.
+   */
+  payments: z
+    .object({
+      awaitingPayment: z.number().int(),
+      paid: z.number().int(),
+      cardHolds: z.number().int(),
+      failed: z.number().int(),
+      refunded: z.number().int(),
+      kept: z.number().int(),
+    })
+    .optional(),
   /** Measurable steps only: no sales, no revenue. */
   funnel: z.object({
     impressions: z.number().int(),
@@ -877,6 +911,8 @@ export const staffReservationSummarySchema = z.object({
       amountMinor: z.number().int(),
       currency: z.string(),
       depositRefundable: z.boolean().nullable(),
+      /** DEPOSIT: staff credit it to the bill (true / null), or it is a booking fee not deducted (false). */
+      depositCredited: z.boolean().nullable().optional(),
       holdStatus: z.enum(RESERVATION_AUTH_STATUSES).nullable(),
       refundedMinor: z.number().int(),
       keptMinor: z.number().int().nullable(),

@@ -27,8 +27,17 @@ import {
 } from '@dealdash/validation';
 import { useCustomer, useImpression } from './customer-context';
 import { CardOfferPanel, LogSaving } from './cx-benefits';
-import { CardSkeletons, CityBar, LoadError, SectionHead, signInPath, useHref, useT } from './parts';
-import { curate, presentCard, presentDetail } from './presentation';
+import {
+  CardSkeletons,
+  CityBar,
+  LoadError,
+  RailEmpty,
+  SectionHead,
+  signInPath,
+  useHref,
+  useT,
+} from './parts';
+import { RAIL_SIZE, curate, presentCard, presentDetail } from './presentation';
 import { useDealList } from './use-deals';
 
 // ------------------------------------------------------------------ card with impression tracking
@@ -65,7 +74,8 @@ export function VoucherRail() {
     lng: approximate ? undefined : coords.lng,
   });
   if (list.loading) return <CardSkeletons variant="carousel" n={2} />;
-  if (list.failed || list.items.length === 0) return null;
+  const items = list.failed ? [] : list.items;
+  // always part of Home (curated, never truncated): with nothing on sale, a short note and the way to the full list
   return (
     <section className="dd-section" aria-label={t('vch.rail')} data-testid="voucher-rail">
       <SectionHead
@@ -78,12 +88,22 @@ export function VoucherRail() {
           </Link>
         }
       />
-      {/* curated: two strong cards (one card fills the row), the rest behind See all */}
-      <div className="dd-duo">
-        {curate([list.items]).map((v) => (
-          <TrackedVoucherCard key={v.id} voucher={presentCard(v)} variant="carousel" />
-        ))}
-      </div>
+      {items.length ? (
+        // compact carousel (founder direction 2026-10-16): up to five vouchers, the next one peeking, the rest behind See all
+        <div className="dd-hscroll dd-rail" data-testid="voucher-rail-items">
+          {curate([items], RAIL_SIZE).map((v) => (
+            <TrackedVoucherCard key={v.id} voucher={v} variant="carousel" />
+          ))}
+        </div>
+      ) : (
+        <RailEmpty
+          icon="ticket"
+          text={t('home.empty.vouchers')}
+          href={href('/vouchers')}
+          cta={t('cust.seeAll')}
+          testId="voucher-rail-empty"
+        />
+      )}
     </section>
   );
 }

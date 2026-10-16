@@ -22,6 +22,23 @@ const FOOD_PHOTOS = [
   '/brand/ambience-3.jpg',
 ];
 const PHOTO_CATEGORIES = new Set(['dining', 'cafes']);
+/** Approved, brand-free category photography (development review only; production shows category art for a card without media). */
+const CATEGORY_PHOTOS: Record<string, string> = {
+  cafes: '/brand/cat-cafes.jpg',
+  shopping: '/brand/cat-shopping.jpg',
+  fashion: '/brand/cat-fashion.jpg',
+  electronics: '/brand/cat-electronics.jpg',
+  groceries: '/brand/cat-groceries.jpg',
+};
+/** Development review picture for a placeholder: food photography for dining, the approved category photo, else category art. */
+const reviewPicture = (category: string | null | undefined, id: string) =>
+  category === 'dining'
+    ? FOOD_PHOTOS[hashOf(id) % FOOD_PHOTOS.length]!
+    : category && CATEGORY_PHOTOS[category]
+      ? CATEGORY_PHOTOS[category]!
+      : category && PHOTO_CATEGORIES.has(category)
+        ? FOOD_PHOTOS[hashOf(id) % FOOD_PHOTOS.length]!
+        : categoryArt(category);
 const ART_CATEGORIES = new Set([
   'dining',
   'cafes',
@@ -73,10 +90,7 @@ export function cardImage(
   title: BilingualText,
 ): string {
   if (!url) return categoryArt(category);
-  if (REVIEW && (isQaRecord(title) || isSeedPlaceholder(url)))
-    return category && PHOTO_CATEGORIES.has(category)
-      ? FOOD_PHOTOS[hashOf(id) % FOOD_PHOTOS.length]!
-      : categoryArt(category);
+  if (REVIEW && (isQaRecord(title) || isSeedPlaceholder(url))) return reviewPicture(category, id);
   return url;
 }
 
@@ -115,24 +129,37 @@ export function presentDetail<
   };
 }
 
-/** Watch & Earn: the video art (navy, play, sound-wave) unless the merchant uploaded a real thumbnail. */
-export function presentWatch<T extends { title: BilingualText; thumbnailUrl: string | null }>(
-  c: T,
-): T {
+/**
+ * Watch & Earn: the merchant's real thumbnail always. Without one: the merchant's category picture when it is known (development
+ * review: approved food photography for dining / cafés, category art otherwise — never a restaurant photo for a gym), else the
+ * video art. `category` is the merchant's category from offers on the same page (presentation only).
+ */
+export function presentWatch<
+  T extends { id?: string; title: BilingualText; thumbnailUrl: string | null },
+>(c: T, category?: string | null): T {
   const placeholder =
     !c.thumbnailUrl || (REVIEW && (isQaRecord(c.title) || isSeedPlaceholder(c.thumbnailUrl)));
+  const fallback =
+    REVIEW && category
+      ? reviewPicture(category, c.id ?? c.title.en)
+      : category && ART_CATEGORIES.has(category)
+        ? categoryArt(category)
+        : '/brand/art-watch.svg';
   return {
     ...c,
     title: reviewTitle(c.title),
-    thumbnailUrl: placeholder ? '/brand/art-watch.svg' : c.thumbnailUrl,
+    thumbnailUrl: placeholder ? fallback : c.thumbnailUrl,
   };
 }
+
+/** Home carousels: up to five cards per product, the next one peeking (founder direction 2026-10-16). */
+export const RAIL_SIZE = 5;
 
 /**
  * Home curation: up to `n` cards, never one already shown elsewhere on the page. The API's order is kept; in development review
  * automated-QA records go last so demo content leads.
  */
-export function curate<T extends { id: string; title: BilingualText }>(
+export function curate<T extends { id: string; title: BilingualText; merchantId?: string }>(
   lists: T[][],
   n = 2,
   shown?: Set<string>,
@@ -145,9 +172,21 @@ export function curate<T extends { id: string; title: BilingualText }>(
     : all;
   for (const c of ordered) {
     if (out.length >= n) break;
-    if (seen.has(c.id)) continue;
+    if (seen.has(c.id) || seen.has(sameOfferKey(c))) continue;
     seen.add(c.id);
+    seen.add(sameOfferKey(c));
     out.push(c);
   }
   return out;
 }
+
+/**
+ * Two records that the customer would see as the same card (same merchant, same title once a development QA run id is hidden).
+ * Home never shows the same offer twice, even when development data holds several copies of it.
+ */
+export const sameOfferKey = (c: { title: BilingualText; merchantId?: string }) =>
+  `offer:${c.merchantId ?? ''}|${reviewTitle(c.title).en.trim().toLowerCase()}`;
+
+/** The ids and same-offer keys of cards already on the page (for a later section's `shown`). */
+export const shownOn = (cards: Array<{ id: string; title: BilingualText; merchantId?: string }>) =>
+  new Set(cards.flatMap((c) => [c.id, sameOfferKey(c)]));

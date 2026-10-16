@@ -295,6 +295,81 @@ const RESERVATION = {
     'Deposits are always refundable when the customer cancels in time.',
     'العربون قابل للاسترداد دائماً عند الإلغاء في الوقت المحدد.',
   ],
+  // deposit treatment (founder UAT 2026-10-16)
+  'mrsv.depositRefund': ['If the customer cancels', 'إذا ألغى العميل'],
+  'mrsv.depositRefund.ANY': [
+    'Refundable: returned whenever the customer cancels',
+    'قابل للاسترداد: يُعاد متى ألغى العميل',
+  ],
+  'mrsv.depositRefund.BEFORE_CUTOFF': [
+    'Conditionally refundable: returned only if they cancel before the cut-off',
+    'قابل للاسترداد بشرط: يُعاد فقط عند الإلغاء قبل الموعد النهائي',
+  ],
+  'mrsv.depositRefund.NEVER': [
+    'Non-refundable: kept even if they cancel early (where permitted)',
+    'غير قابل للاسترداد: يُحتفظ به حتى عند الإلغاء المبكر (حيث يُسمح بذلك)',
+  ],
+  'mrsv.depositCredited': [
+    'Credit the deposit toward the customer’s final bill',
+    'خصم العربون من الفاتورة النهائية للعميل',
+  ],
+  'mrsv.depositCreditedHelp': [
+    'Untick for a booking fee that is not deducted from the bill. A deposit not used in time is kept either way.',
+    'ألغِ التحديد لرسوم حجز لا تُخصم من الفاتورة. يُحتفظ بالعربون في الحالتين إذا لم يُستخدم الحجز في الوقت المحدد.',
+  ],
+  'rsv.use.DEPOSIT_FEE': [
+    'At the branch: this is a booking fee. It is not taken off your bill; you pay your full bill.',
+    'في الفرع: هذه رسوم حجز ولا تُخصم من فاتورتك؛ تدفع فاتورتك كاملة.',
+  ],
+  'rsv.cancelAny.DEPOSIT': [
+    'Cancel any time before your reservation ends and your deposit is refunded.',
+    'ألغِ في أي وقت قبل انتهاء حجزك ويُسترد العربون.',
+  ],
+  'rsv.late.DEPOSIT_NOSHOW': [
+    'If you do not use the reservation in time, the deposit is kept by the business.',
+    'إذا لم تستخدم الحجز في الوقت المحدد، يحتفظ النشاط التجاري بالعربون.',
+  ],
+  // partner Exclusive Deal builder: reservation mode (founder UAT 2026-10-16)
+  'pt.camp.step.reservation': ['Reservation', 'الحجز'],
+  'pt.camp.resMode': ['Reservation mode', 'نوع الحجز'],
+  'pt.camp.resMode.NONE': ['No reservation (walk-in)', 'بدون حجز (حضور مباشر)'],
+  'pt.camp.resMode.FREE': ['Free reservation', 'حجز مجاني'],
+  'pt.camp.resMode.PAID': [
+    'Paid reservation (secures limited stock)',
+    'حجز مدفوع (يضمن الكمية المحدودة)',
+  ],
+  'pt.camp.resHelp.NONE': [
+    'Customers redeem at the branch while the offer lasts; no stock is held for them.',
+    'يستخدم العملاء العرض في الفرع طوال مدته؛ لا تُحجز لهم كمية.',
+  ],
+  'pt.camp.resHelp.FREE': [
+    'Only where DealDash policy allows free reservations (testing markets). Otherwise choose a paid reservation.',
+    'فقط حيث تسمح سياسة DealDash بالحجز المجاني (أسواق الاختبار). وإلا اختر حجزاً مدفوعاً.',
+  ],
+  'pt.camp.resHelp.PAID': [
+    'The customer pays the amount to secure a unit. Limits come from the merchant’s market policy and are checked when you submit. This is not a voucher purchase.',
+    'يدفع العميل المبلغ لضمان وحدة. الحدود من سياسة سوق التاجر وتُراجع عند الإرسال. هذا ليس شراء قسيمة.',
+  ],
+  'pt.camp.holdMinutes': [
+    'Hold length in minutes (empty = DealDash default)',
+    'مدة الحجز بالدقائق (فارغ = الافتراضي)',
+  ],
+  'pt.camp.perCustomer': ['Per customer limit', 'الحد لكل عميل'],
+  'mrsv.out.title': ['Paid reservations', 'الحجوزات المدفوعة'],
+  'mrsv.out.awaiting': ['Awaiting payment (units held)', 'بانتظار الدفع (وحدات محجوزة)'],
+  'mrsv.out.paid': ['Paid', 'مدفوعة'],
+  'mrsv.out.holds': ['Card holds', 'مبالغ محجوزة على البطاقة'],
+  'mrsv.out.failed': ['Payment failed (units released)', 'فشل الدفع (أُعيدت الوحدات)'],
+  'mrsv.out.refunded': ['Refunded or released', 'مستردة أو مُلغاة'],
+  'mrsv.out.kept': ['Kept under the terms', 'محتفظ بها وفق الشروط'],
+  'mrsv.out.note': [
+    'Units waiting for payment are held for the payment window only, then released automatically. Amounts are in the Reservations tab.',
+    'تُحجز الوحدات بانتظار الدفع خلال مهلة الدفع فقط ثم تُعاد تلقائياً. المبالغ في تبويب الحجوزات.',
+  ],
+  'srsv.DEPOSIT_FEE': [
+    'Booking fee {amount}, do not deduct it from the bill',
+    'رسوم حجز {amount}، لا تخصمها من الفاتورة',
+  ],
   'mrsv.nonRefundableNote': [
     'A non-refundable deposit is shown to the customer before they pay.',
     'يُعرض العربون غير القابل للاسترداد على العميل قبل الدفع.',

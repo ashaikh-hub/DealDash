@@ -749,6 +749,9 @@ export function ProfilePage() {
             <Link className="dd-link" href={href('/account')} data-testid="account-link">
               {t('profile.account')}
             </Link>
+            <Link className="dd-link" href={href('/my-vouchers')} data-testid="my-vouchers-link">
+              {t('wal.title')}
+            </Link>
             <Link className="dd-link" href={href('/benefits')} data-testid="my-benefits-link">
               {t('profile.benefits')}
             </Link>

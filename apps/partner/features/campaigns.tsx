@@ -416,6 +416,50 @@ function Builder({ orgId }: { orgId: string }) {
     sponsor: '',
     mine: false,
   });
+  // Exclusive Deal reservation mode (founder UAT 2026-10-16): none (walk-in), free (only where DealDash policy allows it) or paid
+  // (full prepayment, deposit, card hold). Every value is re-checked by the server against the merchant's market policy.
+  const [res, setRes] = useState({
+    mode: 'PAID' as 'NONE' | 'FREE' | 'PAID',
+    method: 'DEPOSIT' as 'FULL_PREPAYMENT' | 'DEPOSIT' | 'CARD_PREAUTH',
+    amount: '',
+    refund: 'BEFORE_CUTOFF' as 'ANY' | 'BEFORE_CUTOFF' | 'NEVER',
+    credited: true,
+    cutoff: '30',
+    hold: '',
+    perCustomer: '1',
+  });
+  const reservation = () => {
+    const units = Number(f.units) || 1;
+    if (res.mode === 'NONE')
+      return {
+        limitType: 'TIME',
+        reservationsEnabled: false,
+        // walk-in deals have no tracked stock; the redemption cap bounds the commercial liability
+        allocations: branches.map((branchId) => ({ branchId, units: 0 })),
+        perCustomerLimit: 1,
+        holdMinutes: null,
+        commitment: { method: null },
+      };
+    return {
+      limitType: 'TIME_AND_QUANTITY',
+      reservationsEnabled: true,
+      allocations: branches.map((branchId) => ({ branchId, units })),
+      perCustomerLimit: Math.max(1, Number(res.perCustomer) || 1),
+      holdMinutes: res.hold.trim() ? Number(res.hold) : null,
+      commitment:
+        res.mode === 'FREE'
+          ? { method: 'FREE' }
+          : {
+              method: res.method,
+              amountMinor: sar(res.amount) || null,
+              depositRefundable: res.method === 'DEPOSIT' ? res.refund !== 'NEVER' : null,
+              depositLateRefund: res.method === 'DEPOSIT' ? res.refund === 'ANY' : null,
+              depositCredited: res.method === 'DEPOSIT' ? res.credited : null,
+              cancelCutoffMinutes: res.cutoff.trim() ? Number(res.cutoff) : null,
+              noShowRefundPercent: null,
+            },
+    };
+  };
   const registered = (network.data?.items ?? []).filter(
     (m) => m.organizationId && m.state === 'REGISTERED_ACTIVE',
   );
@@ -446,17 +490,13 @@ function Builder({ orgId }: { orgId: string }) {
         shortDescription: { en: f.offerEn, ar: f.offerAr },
         description: { en: f.descEn, ar: f.descAr },
         media,
-        limitType: 'TIME_AND_QUANTITY',
-        reservationsEnabled: true,
-        allocations: branches.map((branchId) => ({ branchId, units: Number(f.units) || 1 })),
+        ...reservation(),
         commercial: {
           normalPriceHalalas: sar(f.normal) || null,
           dealPriceHalalas: sar(f.deal) || null,
           maxRedemptions: (Number(f.units) || 1) * Math.max(1, branches.length),
           sponsors,
         },
-        perCustomerLimit: 1,
-        holdMinutes: null,
         startAt: new Date(f.start).toISOString(),
         endAt: new Date(f.end).toISOString(),
         eligibility,
@@ -650,6 +690,127 @@ function Builder({ orgId }: { orgId: string }) {
           {input('end', t('pt.camp.end'), 'ltr', 'datetime-local')}
         </div>
       </Card>
+      {product === 'EXCLUSIVE' ? (
+        <Card>
+          <div className="dd-stack" style={{ gap: 10 }} data-testid="pt-cb-reservation">
+            <h2 className="dd-title">{t('pt.camp.step.reservation')}</h2>
+            <Field label={t('pt.camp.resMode')} htmlFor="cb-res-mode">
+              <Select
+                id="cb-res-mode"
+                value={res.mode}
+                onChange={(e) => setRes({ ...res, mode: e.target.value as typeof res.mode })}
+                data-testid="pt-cb-res-mode"
+              >
+                <option value="PAID">{t('pt.camp.resMode.PAID')}</option>
+                <option value="FREE">{t('pt.camp.resMode.FREE')}</option>
+                <option value="NONE">{t('pt.camp.resMode.NONE')}</option>
+              </Select>
+            </Field>
+            {res.mode === 'PAID' ? (
+              <div
+                style={{
+                  display: 'grid',
+                  gap: 8,
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                }}
+              >
+                <Field label={t('mrsv.method')} htmlFor="cb-res-method">
+                  <Select
+                    id="cb-res-method"
+                    value={res.method}
+                    onChange={(e) =>
+                      setRes({ ...res, method: e.target.value as typeof res.method })
+                    }
+                    data-testid="pt-cb-res-method"
+                  >
+                    {(['FULL_PREPAYMENT', 'DEPOSIT', 'CARD_PREAUTH'] as const).map((m) => (
+                      <option key={m} value={m}>
+                        {t(k('mrsv.method', m))}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+                <Field label={t(k('mrsv.amount', res.method))} htmlFor="cb-res-amount">
+                  <Input
+                    id="cb-res-amount"
+                    type="number"
+                    min={0}
+                    step="any"
+                    dir="ltr"
+                    value={res.amount}
+                    onChange={(e) => setRes({ ...res, amount: e.target.value })}
+                    data-testid="pt-cb-res-amount"
+                  />
+                </Field>
+                <Field label={t('mrsv.cutoff')} htmlFor="cb-res-cutoff">
+                  <Input
+                    id="cb-res-cutoff"
+                    type="number"
+                    min={0}
+                    dir="ltr"
+                    value={res.cutoff}
+                    onChange={(e) => setRes({ ...res, cutoff: e.target.value })}
+                  />
+                </Field>
+              </div>
+            ) : null}
+            {res.mode === 'PAID' && res.method === 'DEPOSIT' ? (
+              <fieldset className="dd-stack" style={{ border: 0, padding: 0, margin: 0, gap: 6 }}>
+                <legend className="dd-label">{t('mrsv.depositRefund')}</legend>
+                {(['ANY', 'BEFORE_CUTOFF', 'NEVER'] as const).map((m) => (
+                  <label key={m} className="dd-row" style={{ gap: 8 }}>
+                    <input
+                      type="radio"
+                      name="cb-deposit-refund"
+                      checked={res.refund === m}
+                      onChange={() => setRes({ ...res, refund: m })}
+                    />
+                    <span>{t(k('mrsv.depositRefund', m))}</span>
+                  </label>
+                ))}
+                <Checkbox
+                  checked={res.credited}
+                  onChange={(e) => setRes({ ...res, credited: e.target.checked })}
+                  label={t('mrsv.depositCredited')}
+                />
+              </fieldset>
+            ) : null}
+            {res.mode !== 'NONE' ? (
+              <div
+                style={{
+                  display: 'grid',
+                  gap: 8,
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                }}
+              >
+                <Field label={t('pt.camp.holdMinutes')} htmlFor="cb-res-hold">
+                  <Input
+                    id="cb-res-hold"
+                    type="number"
+                    min={0}
+                    dir="ltr"
+                    value={res.hold}
+                    onChange={(e) => setRes({ ...res, hold: e.target.value })}
+                  />
+                </Field>
+                <Field label={t('pt.camp.perCustomer')} htmlFor="cb-res-per">
+                  <Input
+                    id="cb-res-per"
+                    type="number"
+                    min={1}
+                    dir="ltr"
+                    value={res.perCustomer}
+                    onChange={(e) => setRes({ ...res, perCustomer: e.target.value })}
+                  />
+                </Field>
+              </div>
+            ) : null}
+            <p className="dd-muted" style={{ margin: 0 }}>
+              {t(k('pt.camp.resHelp', res.mode))}
+            </p>
+          </div>
+        </Card>
+      ) : null}
       <Card>
         <h2 className="dd-title">{t('pt.camp.step.funding')}</h2>
         {input('sponsor', t('pt.camp.sponsor'), 'ltr')}
@@ -699,6 +860,18 @@ function Detail({ orgId, product, id }: { orgId: string; product: string; id: st
     campaign: { status: string; content: { title: { en: string; ar: string } }; version: number };
     merchantOrganizationId: string;
     caseId: string;
+    monitor?: {
+      totals: { total: number; available: number; reserved: number; redeemed: number };
+      reservations: { expired: number; cancelled: number };
+      payments?: {
+        awaitingPayment: number;
+        paid: number;
+        cardHolds: number;
+        failed: number;
+        refunded: number;
+        kept: number;
+      };
+    } | null;
   }>(`${pbase(orgId)}/campaigns/${product}/${id}`, { r: refresh });
   const submit = async () => {
     const r = await cmd.run(
@@ -736,6 +909,53 @@ function Detail({ orgId, product, id }: { orgId: string; product: string; id: st
               </Button>
             ) : null}
           </Card>
+          {d.monitor ? (
+            // Exclusive Deal stock and paid reservations (read-only, same numbers as the merchant's monitor)
+            <Card>
+              <div className="dd-stack" style={{ gap: 8 }} data-testid="pt-camp-monitor">
+                <h2 className="dd-title" style={{ margin: 0 }}>
+                  {t('mm.stock')}
+                </h2>
+                <div className="dd-kpis">
+                  {(
+                    [
+                      [t('mm.available'), d.monitor.totals.available],
+                      [t('mm.reserved'), d.monitor.totals.reserved],
+                      [t('mm.redeemed'), d.monitor.totals.redeemed],
+                      [t('mm.notCompleted'), d.monitor.reservations.expired],
+                    ] as const
+                  ).map(([label, n]) => (
+                    <div className="dd-kpi" key={label}>
+                      <div className="dd-kpi__n">{n}</div>
+                      <div className="dd-kpi__l">{label}</div>
+                    </div>
+                  ))}
+                </div>
+                {d.monitor.payments ? (
+                  <>
+                    <strong>{t('mrsv.out.title')}</strong>
+                    <div className="dd-kpis" data-testid="pt-camp-payments">
+                      {(
+                        [
+                          ['mrsv.out.awaiting', d.monitor.payments.awaitingPayment],
+                          ['mrsv.out.paid', d.monitor.payments.paid],
+                          ['mrsv.out.holds', d.monitor.payments.cardHolds],
+                          ['mrsv.out.failed', d.monitor.payments.failed],
+                          ['mrsv.out.refunded', d.monitor.payments.refunded],
+                          ['mrsv.out.kept', d.monitor.payments.kept],
+                        ] as const
+                      ).map(([label, n]) => (
+                        <div className="dd-kpi" key={label}>
+                          <div className="dd-kpi__n">{n}</div>
+                          <div className="dd-kpi__l">{t(label)}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : null}
+              </div>
+            </Card>
+          ) : null}
           <CommercialPanel
             orgId={orgId}
             product={product as 'EXCLUSIVE'}

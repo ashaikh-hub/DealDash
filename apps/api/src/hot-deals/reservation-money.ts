@@ -26,6 +26,8 @@ export interface PaidCommitment {
   /** The whole amount the customer paid (all units), minor units. */
   paidMinor: number;
   depositRefundable: boolean | null;
+  /** DEPOSIT (2026-10-16): a refundable deposit is also returned when the customer cancels after the cut-off. */
+  depositLateRefund?: boolean | null;
   /** FULL_PREPAYMENT: share refunded on a late cancellation or no-show (resolved when the reservation was made). */
   noShowRefundPercent: number | null;
 }
@@ -55,7 +57,10 @@ export function splitOnEnd(c: PaidCommitment, situation: EndSituation): MoneySpl
         // prepayment, and a card hold captured up front (policy "immediate capture"), refund the agreed share
         if (c.method !== 'DEPOSIT')
           return Math.round((all * Math.min(100, Math.max(0, c.noShowRefundPercent ?? 0))) / 100);
-        return 0;
+        // a deposit refundable on ANY cancellation comes back on a late cancellation too; a no-show always keeps it
+        return situation === 'CUSTOMER_LATE' && c.depositRefundable && c.depositLateRefund
+          ? all
+          : 0;
     }
   })();
   return { refundMinor: refund, keptMinor: all - refund };

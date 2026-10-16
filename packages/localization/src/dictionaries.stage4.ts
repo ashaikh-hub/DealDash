@@ -57,9 +57,15 @@ const S4 = {
 
   // ================================================================ customer: Exclusive Deals
   'hot.title': ['Exclusive Deals', 'العروض الحصرية'],
-  'hot.sub': ['Limited-time offers you can reserve for free', 'عروض محدودة يمكنك حجزها مجاناً'],
-  'hot.nearYou': ['Exclusive Deals near you', 'عروض حصرية قربك'],
-  'hot.nearYouSub': ['Reserve free before they are gone', 'احجز مجاناً قبل نفادها'],
+  'hot.sub': [
+    'Limited-time, limited-stock offers you can reserve',
+    'عروض لفترة وكمية محدودة يمكنك حجزها',
+  ],
+  'hot.nearYou': ['Exclusive Deals', 'العروض الحصرية'],
+  'hot.nearYouSub': [
+    'Exclusive benefits · limited quantity, limited time',
+    'مزايا حصرية · كمية محدودة ووقت محدود',
+  ],
   'hot.seeAll': ['See all Exclusive Deals', 'عرض كل العروض الحصرية'],
   'hot.badge': ['EXCLUSIVE', 'حصري'],
   'hot.empty': ['No Exclusive Deals right now', 'لا توجد عروض حصرية الآن'],
@@ -163,8 +169,8 @@ const S4 = {
   'res.signIn': ['Sign in to see your reservations', 'سجّل الدخول لعرض حجوزاتك'],
   'res.emptyActive': ['No active reservations', 'لا توجد حجوزات نشطة'],
   'res.emptyActiveBody': [
-    'Reserve an Exclusive Deal for free and it appears here with its code.',
-    'احجز عرضاً حصرياً مجاناً ليظهر هنا مع رمزه.',
+    'Reserve an Exclusive Deal and it appears here with its code.',
+    'احجز عرضاً حصرياً ليظهر هنا مع رمزه.',
   ],
   'res.emptyPast': ['No past reservations', 'لا توجد حجوزات سابقة'],
   'res.emptyPastBody': [
@@ -180,6 +186,10 @@ const S4 = {
   'res.confirmedBody': [
     'It is free. Show this code at the branch within {min} minutes.',
     'الحجز مجاني. اعرض هذا الرمز في الفرع خلال {min} دقيقة.',
+  ],
+  'res.confirmedBodyPaid': [
+    'Payment received and your unit is secured. Show this code at the branch within {min} minutes.',
+    'تم استلام الدفع وتأكيد حجزك. اعرض هذا الرمز في الفرع خلال {min} دقيقة.',
   ],
   'res.timeLeft': ['Time left', 'الوقت المتبقي'],
   'res.expiresIn': ['Expires in {time}', 'ينتهي بعد {time}'],

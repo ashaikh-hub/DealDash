@@ -145,7 +145,7 @@ const S5 = {
     'اشترِ الآن واستخدم لاحقاً لدى التاجر. ادفع في التطبيق واعرض الرمز عند الكاشير.',
   ],
   'vch.rail': ['Vouchers', 'القسائم'],
-  'vch.railSub': ['Pay less than the voucher value', 'ادفع أقل من قيمة القسيمة'],
+  'vch.railSub': ['Buy now. Use later.', 'اشترِ الآن. واستخدم لاحقاً.'],
   'vch.searchPlaceholder': ['Search vouchers', 'ابحث في القسائم'],
   'vch.sort.newest': ['Newest', 'الأحدث'],
   'vch.sort.price_low': ['Price: low to high', 'السعر: الأقل أولاً'],

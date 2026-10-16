@@ -129,6 +129,8 @@ export function CommitmentEditor({
       // values that do not apply to the new method are cleared (the server keeps none of them either)
       amountMinor: m === 'FREE' ? null : c.amountMinor,
       depositRefundable: m === 'DEPOSIT' ? (c.depositRefundable ?? true) : null,
+      depositLateRefund: m === 'DEPOSIT' ? (c.depositLateRefund ?? false) : null,
+      depositCredited: m === 'DEPOSIT' ? (c.depositCredited ?? true) : null,
       cancelCutoffMinutes: m === 'FREE' ? null : (c.cancelCutoffMinutes ?? f.cutoffMinMinutes),
       noShowRefundPercent:
         m === 'FULL_PREPAYMENT' || m === 'CARD_PREAUTH' ? c.noShowRefundPercent : null,
@@ -280,21 +282,63 @@ export function CommitmentEditor({
           )}
 
           {method === 'DEPOSIT' ? (
-            f.nonRefundableDepositAllowed ? (
-              <div className="dd-stack" style={{ gap: 4 }}>
-                <Checkbox
-                  label={t('mrsv.refundable')}
-                  checked={c.depositRefundable !== false}
-                  disabled={disabled}
-                  onChange={(e) => set({ depositRefundable: e.target.checked })}
-                />
-                {c.depositRefundable === false ? (
-                  <span className="dd-help">{t('mrsv.nonRefundableNote')}</span>
-                ) : null}
-              </div>
-            ) : (
-              <span className="dd-help">{t('mrsv.refundableOnly')}</span>
-            )
+            // deposit treatment (founder UAT 2026-10-16): refundable on any cancellation, only before the cut-off, or (where the
+            // policy permits) non-refundable; and whether it is credited toward the final bill or is a booking fee
+            <fieldset
+              className="dd-stack"
+              style={{ border: 0, padding: 0, margin: 0, gap: 6 }}
+              disabled={disabled}
+              data-testid="deposit-terms"
+            >
+              <legend className="dd-label">{t('mrsv.depositRefund')}</legend>
+              {(
+                [
+                  'ANY',
+                  'BEFORE_CUTOFF',
+                  ...(f.nonRefundableDepositAllowed ? (['NEVER'] as const) : []),
+                ] as const
+              ).map((mode) => {
+                const current =
+                  c.depositRefundable === false
+                    ? 'NEVER'
+                    : c.depositLateRefund
+                      ? 'ANY'
+                      : 'BEFORE_CUTOFF';
+                return (
+                  <label key={mode} className="dd-row" style={{ gap: 8, alignItems: 'flex-start' }}>
+                    <input
+                      type="radio"
+                      name="deposit-refund"
+                      checked={current === mode}
+                      onChange={() =>
+                        set({
+                          depositRefundable: mode !== 'NEVER',
+                          depositLateRefund: mode === 'ANY',
+                        })
+                      }
+                      data-testid={`deposit-refund-${mode}`}
+                    />
+                    <span>{t(`mrsv.depositRefund.${mode}` as DictionaryKey)}</span>
+                  </label>
+                );
+              })}
+              {c.depositRefundable === false ? (
+                <span className="dd-help">{t('mrsv.nonRefundableNote')}</span>
+              ) : null}
+              {err('depositRefundable') ? (
+                <span className="dd-error" role="alert">
+                  {err('depositRefundable')}
+                </span>
+              ) : null}
+              <Checkbox
+                label={t('mrsv.depositCredited')}
+                checked={c.depositCredited !== false}
+                disabled={disabled}
+                onChange={(e) => set({ depositCredited: e.target.checked })}
+                data-testid="deposit-credited"
+              />
+              <span className="dd-help">{t('mrsv.depositCreditedHelp')}</span>
+            </fieldset>
           ) : null}
 
           <div className="dd-grid dd-grid--2">

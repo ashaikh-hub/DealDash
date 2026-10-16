@@ -30,8 +30,8 @@ import type {
   WatchViewStarted,
 } from '@dealdash/validation';
 import { useCustomer, useImpression } from './customer-context';
-import { CardSkeletons, CityBar, LoadError, SectionHead, useHref, useT } from './parts';
-import { curate, presentWatch } from './presentation';
+import { CardSkeletons, CityBar, LoadError, RailEmpty, SectionHead, useHref, useT } from './parts';
+import { RAIL_SIZE, curate, presentWatch } from './presentation';
 import { useDealList } from './use-deals';
 
 // ------------------------------------------------------------------ device id (random, app-generated: no fingerprinting)
@@ -55,16 +55,19 @@ function deviceId(): string {
 export function TrackedWatchCard({
   campaign,
   variant,
+  category,
 }: {
   campaign: WatchCard;
   variant: 'carousel' | 'list';
+  /** The merchant's category when known (picture for a video without its own thumbnail). */
+  category?: string | null;
 }) {
   const { uiLocale: locale } = useAuth();
   const href = useHref();
   const ref = useImpression(campaign.id, undefined, 'WATCH');
   return (
     <WatchCardView
-      campaign={presentWatch(campaign)}
+      campaign={presentWatch(campaign, category)}
       locale={locale}
       variant={variant}
       href={href(`/watch/${campaign.id}`)}
@@ -94,13 +97,36 @@ function useHub() {
 }
 
 // ------------------------------------------------------------------ home rail
-export function WatchRail() {
+export function WatchRail({ categories }: { categories?: Map<string, string> } = {}) {
   const { t } = useT();
   const href = useHref();
   const { hub, state } = useHub();
   if (state === 'loading') return <CardSkeletons variant="carousel" n={2} />;
-  const cards = (hub?.campaigns ?? []).filter((c) => c.availability !== 'ENDED');
-  if (state === 'error' || cards.length === 0) return null;
+  const cards =
+    state === 'error' ? [] : (hub?.campaigns ?? []).filter((c) => c.availability !== 'ENDED');
+  // Home presents Watch & Earn even when no video is available right now (a note and the way to the hub)
+  if (!cards.length)
+    return (
+      <section className="dd-section" aria-label={t('wat.rail')} data-testid="watch-rail">
+        <SectionHead
+          icon="play"
+          title={t('wat.rail')}
+          sub={t('wat.railSub')}
+          action={
+            <Link className="dd-link" href={href('/watch')}>
+              {t('cust.seeAll')}
+            </Link>
+          }
+        />
+        <RailEmpty
+          icon="play"
+          text={t('home.empty.watch')}
+          href={href('/watch')}
+          cta={t('cust.seeAll')}
+          testId="watch-rail-empty"
+        />
+      </section>
+    );
   return (
     <section className="dd-section" aria-label={t('wat.rail')} data-testid="watch-rail">
       <SectionHead
@@ -113,10 +139,15 @@ export function WatchRail() {
           </Link>
         }
       />
-      {/* curated: two strong cards (one card fills the row), the rest behind See all */}
-      <div className="dd-duo">
-        {curate([cards]).map((c) => (
-          <TrackedWatchCard key={c.id} campaign={presentWatch(c)} variant="carousel" />
+      {/* compact carousel (founder direction 2026-10-16): up to five videos, the next one peeking, the rest behind See all */}
+      <div className="dd-hscroll dd-rail" data-testid="watch-rail-items">
+        {curate([cards], RAIL_SIZE).map((c) => (
+          <TrackedWatchCard
+            key={c.id}
+            campaign={c}
+            variant="carousel"
+            category={categories?.get(c.merchantId)}
+          />
         ))}
       </div>
     </section>

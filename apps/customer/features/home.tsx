@@ -9,7 +9,7 @@ import type { DealCard, RewardSummary } from '@dealdash/validation';
 import { SetupBanner } from './account';
 import { EntryGate } from './cx-parts';
 import { useCustomer } from './customer-context';
-import { curate, presentCard } from './presentation';
+import { RAIL_SIZE, curate, presentCard, shownOn } from './presentation';
 import { HotRail } from './hot';
 import { VoucherRail } from './vouchers';
 import { WatchRail } from './watch';
@@ -17,6 +17,7 @@ import {
   CardSkeletons,
   LoadError,
   NoDeals,
+  RailEmpty,
   SearchBox,
   SectionHead,
   TrackedCard,
@@ -42,30 +43,55 @@ const CATEGORY_ART: Record<string, { img?: string; accent: string }> = {
   fitness: { accent: '#E2F7EF' },
 };
 
-/** The DealDash ecosystem at a glance: every product line, one tap away (existing screens only). */
-const ECOSYSTEM: Array<{ key: string; href: string; icon: string; tone: string }> = [
-  { key: 'live', href: '/explore', icon: 'tag', tone: 'live' },
-  { key: 'exclusive', href: '/hot', icon: 'flame', tone: 'hot' },
-  { key: 'vouchers', href: '/vouchers', icon: 'ticket', tone: 'voucher' },
-  { key: 'watch', href: '/watch', icon: 'play', tone: 'watch' },
-  { key: 'rewards', href: '/rewards', icon: 'gift', tone: 'rewards' },
+/**
+ * Browse Offers By (approved Home, founder direction 2026-10-16): the existing Explore views — all offers, offers for the customer's
+ * cards, for their verified employer, or by brand — plus quick links into Explore's existing sorts. Eligibility is decided by the
+ * existing Explore screens and the API; nothing is filtered here.
+ */
+const BROWSE_BY: Array<{ key: 'all' | 'card' | 'employer' | 'brand'; label: DictionaryKey }> = [
+  { key: 'all', label: 'cx.browse.all' },
+  { key: 'card', label: 'cx.browse.card' },
+  { key: 'employer', label: 'cx.browse.employer' },
+  { key: 'brand', label: 'cx.browse.brand' },
+];
+const QUICK: Array<{ key: string; label: DictionaryKey; query: string }> = [
+  { key: 'all', label: 'home.browse.allOffers', query: '' },
+  { key: 'new', label: 'home.browse.new', query: '?sort=newest' },
+  { key: 'ending', label: 'home.browse.ending', query: '?sort=ending_soon' },
 ];
 
-function Ecosystem() {
+function BrowseOffersBy() {
   const { t } = useT();
   const href = useHref();
   return (
-    <nav className="dd-eco" aria-label={t('home.ecosystem')} data-testid="home-ecosystem">
-      {ECOSYSTEM.map((e) => (
-        <Link key={e.key} href={href(e.href)} className={`dd-eco__item dd-eco__item--${e.tone}`}>
-          <span className="dd-eco__icon" aria-hidden="true">
-            <Icon name={e.icon} size={20} filled={e.icon === 'play' || e.icon === 'flame'} />
-          </span>
-          <span className="dd-eco__label">{t(`home.eco.${e.key}` as DictionaryKey)}</span>
-          <span className="dd-eco__sub">{t(`home.eco.${e.key}Sub` as DictionaryKey)}</span>
-        </Link>
-      ))}
-    </nav>
+    <section className="dd-section dd-browseby" data-testid="home-browse-by">
+      <SectionHead icon="sliders" title={t('home.browse.title')} sub={t('home.browse.sub')} />
+      <nav className="dd-browseby__tabs" aria-label={t('home.browse.title')}>
+        {BROWSE_BY.map((b) => (
+          <Link
+            key={b.key}
+            href={href(b.key === 'all' ? '/explore' : `/explore?by=${b.key}`)}
+            className={`dd-browseby__tab ${b.key === 'all' ? 'dd-browseby__tab--on' : ''}`}
+            aria-current={b.key === 'all' ? 'true' : undefined}
+            data-testid={`browse-by-${b.key}`}
+          >
+            {t(b.label)}
+          </Link>
+        ))}
+      </nav>
+      <div className="dd-hscroll dd-browseby__quick">
+        {QUICK.map((q) => (
+          <Link
+            key={q.key}
+            href={`${href('/explore')}${q.query}`}
+            className={`dd-pill ${q.key === 'all' ? 'dd-pill--active' : ''}`}
+            data-testid={`browse-quick-${q.key}`}
+          >
+            {t(q.label)}
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -80,7 +106,8 @@ function RewardsCard() {
     if (status !== 'authenticated') return;
     let alive = true;
     void call<RewardSummary>('GET', '/v1/app/rewards').then((r) => {
-      if (alive && r.ok && r.data) setSummary(r.data);
+      // only a real balance is shown (never "NaN points" from an unexpected answer)
+      if (alive && r.ok && typeof r.data?.availableBalance === 'number') setSummary(r.data);
     });
     return () => {
       alive = false;
@@ -167,10 +194,18 @@ export function HomePage() {
   const total = feed
     ? new Set([...feed.liveNow, ...feed.nearYou, ...feed.endingSoon].map((d) => d.id)).size
     : 0;
-  // curated Home: ONE Live Deals section (near you first, then the city's other live deals), then Ending Soon only for cards
-  // not already shown — never the same card twice on the page
-  const principal = feed ? curate([feed.nearYou, feed.liveNow]) : [];
-  const ending = feed ? curate([feed.endingSoon], 2, new Set(principal.map((d) => d.id))) : [];
+  // curated Home: ONE Live Deals carousel (near you first, then the city's other live deals), then Ending Soon only for offers
+  // not already shown — never the same offer twice on the page (by id, and by merchant + title for duplicated records)
+  const principal = feed ? curate([feed.nearYou, feed.liveNow], RAIL_SIZE) : [];
+  const ending = feed ? curate([feed.endingSoon], RAIL_SIZE, shownOn(principal)) : [];
+  // the merchants' categories (from their offers on this page) give Watch & Earn videos without a thumbnail a matching picture
+  const merchantCategories = new Map<string, string>(
+    feed
+      ? [...feed.liveNow, ...feed.nearYou, ...feed.endingSoon].flatMap((d) =>
+          d.category ? [[d.merchantId, d.category.code] as [string, string]] : [],
+        )
+      : [],
+  );
 
   return (
     <div className="dd-stack dd-home" data-testid="customer-home">
@@ -193,30 +228,7 @@ export function HomePage() {
         <NoDeals cityOff />
       ) : (
         <>
-          <div className="dd-hero dd-hero--photo">
-            <img className="dd-hero__img" src="/brand/hero-dining.jpg" alt="" />
-            <div className="dd-hero__top">
-              <span className="dd-hero__place">
-                <Icon name="pin" size={14} />{' '}
-                {t('home.heroKicker', { city: cityLabel(feed.city, locale) })}
-              </span>
-              {total ? (
-                <span className="dd-hero__live">
-                  <span className="dd-hero__pulse" aria-hidden="true" />
-                  {t('home.heroLive')} · {formatNumber(locale, total)}
-                </span>
-              ) : null}
-            </div>
-            {/* the page's main heading (one h1 per page: Stage 9 accessibility) */}
-            <h1>{t('home.heroTitle')}</h1>
-            <p>{t('home.heroBody')}</p>
-            <Link className="dd-hero__cta" href={href('/explore')}>
-              {t('home.heroCta')} <Icon name="forward" size={16} />
-            </Link>
-          </div>
-
-          <Ecosystem />
-
+          {/* approved Home order (founder direction 2026-10-16): search, categories, Browse Offers By, hero, then the products */}
           <section className="dd-section" aria-label={t('cust.shopByCategory')}>
             <SectionHead icon="other" title={t('cust.shopByCategory')} />
             <div className="dd-hscroll dd-cats">
@@ -255,19 +267,46 @@ export function HomePage() {
             </div>
           </section>
 
-          {principal.length ? (
-            <section className="dd-section" data-testid="home-live-deals">
-              <SectionHead
-                icon="pin"
-                title={t('cust.nearYou')}
-                sub={t('cust.nearYouSub')}
-                action={
-                  <Link className="dd-link" href={href('/explore?sort=nearest')}>
-                    {t('cust.seeAll')}
-                  </Link>
-                }
-              />
-              <div className="dd-duo">
+          <BrowseOffersBy />
+
+          <div className="dd-hero dd-hero--photo">
+            <img className="dd-hero__img" src="/brand/hero-dining.jpg" alt="" />
+            <div className="dd-hero__top">
+              <span className="dd-hero__place">
+                <Icon name="pin" size={14} />{' '}
+                {t('home.heroKicker', { city: cityLabel(feed.city, locale) })}
+              </span>
+              {total ? (
+                <span className="dd-hero__live">
+                  <span className="dd-hero__pulse" aria-hidden="true" />
+                  {t('home.heroLive')} · {formatNumber(locale, total)}
+                </span>
+              ) : null}
+            </div>
+            {/* the page's main heading (one h1 per page: Stage 9 accessibility) */}
+            <h1>{t('home.heroTitle')}</h1>
+            <p>{t('home.heroBody')}</p>
+            <Link className="dd-hero__cta" href={href('/explore')}>
+              {t('home.heroCta')} <Icon name="forward" size={16} />
+            </Link>
+          </div>
+
+          {/* the products in the approved order: Live Deals, Exclusive Deals, Watch & Earn, Vouchers, Rewards, then Ending Soon.
+              Every product section is always presented; one with nothing right now shows a short note and See all. */}
+          <section className="dd-section" data-testid="home-live-deals">
+            <SectionHead
+              icon="pin"
+              title={t('cust.nearYou')}
+              sub={t('cust.nearYouSub')}
+              action={
+                <Link className="dd-link" href={href('/explore?sort=nearest')}>
+                  {t('cust.seeAll')}
+                </Link>
+              }
+            />
+            {principal.length ? (
+              // compact carousel: up to five offers, the next one peeking, the rest behind See all
+              <div className="dd-hscroll dd-rail" data-testid="home-live-items">
                 {principal.map((d) => (
                   <TrackedCard
                     key={d.id}
@@ -277,15 +316,21 @@ export function HomePage() {
                   />
                 ))}
               </div>
-            </section>
-          ) : null}
+            ) : (
+              <RailEmpty
+                icon="tag"
+                text={t('home.empty.live')}
+                href={href('/explore')}
+                cta={t('cust.seeAll')}
+                testId="home-live-empty"
+              />
+            )}
+          </section>
 
           <HotRail />
-          <WatchRail />
-          <RewardsCard />
+          <WatchRail categories={merchantCategories} />
           <VoucherRail />
-
-          {principal.length === 0 ? <NoDeals /> : null}
+          <RewardsCard />
 
           {ending.length ? (
             <section className="dd-section" data-testid="home-ending-soon">
@@ -299,7 +344,7 @@ export function HomePage() {
                   </Link>
                 }
               />
-              <div className="dd-duo">
+              <div className="dd-hscroll dd-rail">
                 {ending.map((d) => (
                   <TrackedCard
                     key={d.id}

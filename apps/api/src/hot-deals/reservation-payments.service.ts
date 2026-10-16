@@ -765,6 +765,7 @@ export class ReservationPaymentsService {
       method: r.commitmentMethod as PaidCommitment['method'],
       paidMinor,
       depositRefundable: r.depositRefundable,
+      depositLateRefund: r.depositLateRefund,
       noShowRefundPercent: r.noShowRefundPercent,
     };
   }

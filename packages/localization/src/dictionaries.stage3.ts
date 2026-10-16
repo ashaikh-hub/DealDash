@@ -188,7 +188,7 @@ const S3 = {
   'merch.closesAt': ['Closes {time}', 'يغلق {time}'],
   'merch.call': ['Call', 'اتصال'],
   'merch.directions': ['Directions', 'الاتجاهات'],
-  'merch.noOffers': ['No live offers right now', 'لا توجد عروض حية حالياً'],
+  'merch.noOffers': ['No offers right now', 'لا توجد عروض حالياً'],
   'merch.noOffersBody': ['Check back soon.', 'عد لاحقاً.'],
   'merch.contact': ['Contact', 'التواصل'],
   'merch.notFound': ['This merchant is not available', 'هذا التاجر غير متاح'],

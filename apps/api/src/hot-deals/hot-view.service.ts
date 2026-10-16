@@ -260,6 +260,8 @@ export class HotViewService {
       imageAlt: { en: first?.altEn || c.title.en, ar: first?.altAr || c.title.ar },
       limitType: c.limitType,
       reservationsEnabled: c.reservationsEnabled,
+      // display only: how the customer reserves (walk-in = null); the amount and terms are on the detail
+      reservationMethod: commitmentMethodOf(c),
       startsAt: c.startAt,
       endsAt: c.endAt,
       remaining:
@@ -372,6 +374,11 @@ export class HotViewService {
       amountMinor: c.commitment.amountMinor,
       currency: policy.currency,
       depositRefundable: method === 'DEPOSIT' ? c.commitment.depositRefundable : null,
+      depositLateRefund:
+        method === 'DEPOSIT'
+          ? c.commitment.depositRefundable === true && c.commitment.depositLateRefund === true
+          : null,
+      depositCredited: method === 'DEPOSIT' ? c.commitment.depositCredited !== false : null,
       cancelCutoffMinutes: c.commitment.cancelCutoffMinutes,
       noShowRefundPercent:
         method === 'FULL_PREPAYMENT'

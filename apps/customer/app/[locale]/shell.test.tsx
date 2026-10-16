@@ -117,8 +117,14 @@ describe('customer discovery (guest)', () => {
       .map((a) => a.textContent);
     expect(tabs).toEqual(['Home', 'Explore', 'Watch & Earn', 'Rewards', 'Profile']);
     expect(within(nav).queryByText('Play & Win')).toBeNull();
-    // My Deals is reachable from the header
+    // approved header: tagline, notifications bell, My Deals; a guest gets a sign-in chip beside the location
     expect(screen.getByTestId('my-deals-link')).toHaveAttribute('href', '/en/reservations');
+    expect(screen.getByText('Discover Deals. Watch. Get Rewarded.')).toBeInTheDocument();
+    expect(screen.getByTestId('notifications-bell')).toHaveAttribute(
+      'href',
+      '/en/reservations?tab=updates',
+    );
+    expect(screen.getByTestId('header-signin')).toHaveAttribute('href', '/en/profile');
     expect(document.documentElement.dir || 'ltr').toBe('ltr');
   });
 
@@ -166,7 +172,11 @@ describe('customer discovery (guest)', () => {
         <HomePage />
       </Providers>,
     );
-    expect(await screen.findByText('No deals here yet')).toBeInTheDocument();
+    // curated Home: the Live Deals section stays, with a short note and See all (never a blank page)
+    expect(await screen.findByTestId('home-live-empty')).toHaveTextContent(
+      'No Live Deals near you right now.',
+    );
+    expect(screen.getByText('Live Deals Near You')).toBeInTheDocument();
     unmount();
     stubApi({ '/v1/app/home': { body: { data: { ...home.data, cityEnabled: false }, meta: {} } } });
     render(
@@ -175,6 +185,191 @@ describe('customer discovery (guest)', () => {
       </Providers>,
     );
     expect(await screen.findByText(/not live in this city/i)).toBeInTheDocument();
+  });
+
+  // founder UAT 2026-10-16: Home is curated, not truncated
+  const order = () =>
+    [
+      ...document.querySelectorAll(
+        '[data-testid="home-browse-by"],.dd-hero,[data-testid="home-live-deals"],[data-testid="hot-rail"],[data-testid="watch-rail"],[data-testid="home-rewards"],[data-testid="voucher-rail"],[data-testid="home-ending-soon"]',
+      ),
+    ].map((e) => e.getAttribute('data-testid') ?? 'hero');
+
+  it('every product section is present in the approved order, each with See all, even when they have nothing right now', async () => {
+    stubApi({
+      '/v1/app/home': { body: home },
+      '/v1/app/hot-deals': { body: { data: [], meta: { nextCursor: null } } },
+      '/v1/app/vouchers': { body: { data: [], meta: { nextCursor: null } } },
+      '/v1/app/watch': {
+        body: {
+          data: { campaigns: [], balance: null, categories: [], rewardsEnabled: true },
+          meta: {},
+        },
+      },
+    });
+    render(
+      <Providers locale="en">
+        <HomePage />
+      </Providers>,
+    );
+    await screen.findByTestId('voucher-rail');
+    await screen.findByTestId('watch-rail');
+    await screen.findByTestId('home-rewards');
+    await screen.findByTestId('hot-rail');
+    // approved order: categories, Browse Offers By, hero, Live Deals, Exclusive Deals, Watch & Earn, Vouchers, Rewards
+    expect(order()).toEqual([
+      'home-browse-by',
+      'hero',
+      'home-live-deals',
+      'hot-rail',
+      'watch-rail',
+      'voucher-rail',
+      'home-rewards',
+    ]);
+    const browse = screen.getByTestId('home-browse-by');
+    expect(within(browse).getByText('Browse Offers By')).toBeInTheDocument();
+    expect(within(browse).getByTestId('browse-by-card')).toHaveAttribute(
+      'href',
+      '/en/explore?by=card',
+    );
+    expect(within(browse).getByTestId('browse-by-employer')).toHaveAttribute(
+      'href',
+      '/en/explore?by=employer',
+    );
+    expect(within(browse).getByTestId('browse-by-brand')).toHaveAttribute(
+      'href',
+      '/en/explore?by=brand',
+    );
+    expect(within(browse).getByTestId('browse-quick-ending')).toHaveAttribute(
+      'href',
+      '/en/explore?sort=ending_soon',
+    );
+    // locked terms; the stale "Live Offers" wording is gone
+    for (const title of [
+      'Shop by Category',
+      'Live Deals Near You',
+      'Exclusive Deals',
+      'Watch & Earn',
+      'Vouchers',
+    ])
+      expect(screen.getAllByText(title).length).toBeGreaterThan(0);
+    expect(document.body.textContent).not.toMatch(/live offers/i);
+    // empty product rails: a note and the way to the full list
+    expect(screen.getByTestId('hot-rail-empty')).toHaveTextContent('No Exclusive Deals near you');
+    expect(screen.getByTestId('watch-rail-empty')).toHaveTextContent('No videos to watch');
+    expect(screen.getByTestId('voucher-rail-empty')).toHaveTextContent('No Vouchers on sale');
+    for (const id of ['home-live-deals', 'hot-rail', 'watch-rail', 'voucher-rail'])
+      expect(within(screen.getByTestId(id)).getAllByText('See all').length).toBeGreaterThan(0);
+  });
+
+  it('Live Deals appear once: a deal in both feeds shows one card, and Ending Soon never repeats it', async () => {
+    stubApi({
+      '/v1/app/home': {
+        body: { data: { ...home.data, endingSoon: [card()] }, meta: {} },
+      },
+      '/v1/app/hot-deals': { body: { data: [], meta: { nextCursor: null } } },
+      '/v1/app/vouchers': { body: { data: [], meta: { nextCursor: null } } },
+    });
+    render(
+      <Providers locale="en">
+        <HomePage />
+      </Providers>,
+    );
+    const live = await screen.findByTestId('home-live-deals');
+    expect(within(live).getAllByText('30% off the tasting menu')).toHaveLength(1);
+    expect(within(live).getAllByText('Team lunch 25% off')).toHaveLength(1);
+    // the only ending-soon card is already shown above, so there is no Ending Soon section
+    expect(screen.queryByTestId('home-ending-soon')).toBeNull();
+    expect(screen.getAllByText('30% off the tasting menu')).toHaveLength(1);
+  });
+
+  it('Ending Soon shows only cards not already on the page', async () => {
+    const other = card({
+      id: '018f0000-0000-7000-8000-0000000000a9',
+      title: { en: 'Last call brunch', ar: 'برنش أخير' },
+    });
+    stubApi({
+      '/v1/app/home': {
+        body: { data: { ...home.data, endingSoon: [card(), other] }, meta: {} },
+      },
+      '/v1/app/hot-deals': { body: { data: [], meta: { nextCursor: null } } },
+      '/v1/app/vouchers': { body: { data: [], meta: { nextCursor: null } } },
+    });
+    render(
+      <Providers locale="en">
+        <HomePage />
+      </Providers>,
+    );
+    const ending = await screen.findByTestId('home-ending-soon');
+    expect(within(ending).getByText('Last call brunch')).toBeInTheDocument();
+    expect(within(ending).queryByText('30% off the tasting menu')).toBeNull();
+  });
+
+  it('compact carousels: up to five Live Deals, and two records of the same offer show once', async () => {
+    const many = Array.from({ length: 7 }, (_, i) =>
+      card({
+        id: `018f0000-0000-7000-8000-0000000001${String(i).padStart(2, '0')}`,
+        title: { en: `Offer number ${i}`, ar: `عرض ${i}` },
+      }),
+    );
+    // a second record of offer 0 (same merchant, same title): the customer sees it once
+    const copy = card({
+      id: '018f0000-0000-7000-8000-0000000001ff',
+      title: { en: 'Offer number 0', ar: 'عرض 0' },
+    });
+    stubApi({
+      '/v1/app/home': {
+        body: {
+          data: { ...home.data, nearYou: [], liveNow: [many[0]!, copy, ...many.slice(1)] },
+          meta: {},
+        },
+      },
+      '/v1/app/hot-deals': { body: { data: [], meta: { nextCursor: null } } },
+      '/v1/app/vouchers': { body: { data: [], meta: { nextCursor: null } } },
+    });
+    render(
+      <Providers locale="en">
+        <HomePage />
+      </Providers>,
+    );
+    const rail = await screen.findByTestId('home-live-items');
+    expect(rail).toHaveClass('dd-rail');
+    expect(rail.children).toHaveLength(5);
+    expect(within(rail).getAllByText('Offer number 0')).toHaveLength(1);
+  });
+
+  it('Exclusive Deals show how the customer reserves: Pay & Reserve for a paid reservation, free otherwise', async () => {
+    const hot = (id: string, title: string, reservationMethod: string | null) => ({
+      ...card({ id, title: { en: title, ar: title } }),
+      limitType: 'TIME_AND_QUANTITY',
+      reservationsEnabled: reservationMethod !== null,
+      reservationMethod,
+      remaining: 3,
+      remainingTotal: 3,
+      soldOut: false,
+    });
+    stubApi({
+      '/v1/app/home': { body: home },
+      '/v1/app/hot-deals': {
+        body: {
+          data: [
+            hot('018f0000-0000-7000-8000-0000000002a1', 'Grill for two', 'DEPOSIT'),
+            hot('018f0000-0000-7000-8000-0000000002a2', 'Free dessert', 'FREE'),
+          ],
+          meta: { nextCursor: null },
+        },
+      },
+      '/v1/app/vouchers': { body: { data: [], meta: { nextCursor: null } } },
+    });
+    render(
+      <Providers locale="en">
+        <HomePage />
+      </Providers>,
+    );
+    const rail = await screen.findByTestId('hot-rail-items');
+    expect(within(rail).getByTestId('hot-paid')).toHaveTextContent('Pay & Reserve');
+    expect(within(rail).getByTestId('hot-free')).toHaveTextContent('Free reservation');
+    expect(screen.getByText('Exclusive Deals')).toBeInTheDocument();
   });
 });
 

@@ -1,10 +1,12 @@
 'use client';
 
+import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { DealCardView, Icon, categoryIcon, useApi, useAuth } from '@dealdash/app-shell';
 import {
   createTranslator,
+  formatNumber,
   stripLocale,
   withLocale,
   type UiLocale as Locale,
@@ -162,6 +164,36 @@ export function LoadError({ onRetry, home }: { onRetry: () => void; home?: boole
   );
 }
 
+/**
+ * A Home product section with nothing to show right now (none in the city, or the list could not load): the section stays, so the
+ * whole DealDash ecosystem is always presented, with a short note and the way to the full list (curated, never truncated).
+ */
+export function RailEmpty({
+  icon,
+  text,
+  href,
+  cta,
+  testId,
+}: {
+  icon: string;
+  text: string;
+  href: string;
+  cta: string;
+  testId?: string;
+}) {
+  return (
+    <div className="dd-railempty" data-testid={testId}>
+      <span className="dd-railempty__icon" aria-hidden="true">
+        <Icon name={icon} size={20} />
+      </span>
+      <span className="dd-grow dd-caption">{text}</span>
+      <Link className="dd-link" href={href}>
+        {cta}
+      </Link>
+    </div>
+  );
+}
+
 export function NoDeals({ cityOff }: { cityOff?: boolean }) {
   const { t } = useT();
   return (
@@ -275,10 +307,10 @@ export function HeaderCity() {
   if (path !== '/') return null;
   const label = cityLabel(city, locale);
   return (
-    <>
+    <div className="dd-hdrrow">
       <button
         type="button"
-        className="dd-loc"
+        className="dd-loc dd-loc--pill"
         onClick={() => setOpen(true)}
         aria-label={`${t('loc.title')}: ${label}`}
         data-testid="header-city"
@@ -301,8 +333,73 @@ export function HeaderCity() {
           />
         </svg>
       </button>
+      <HeaderGreeting />
       <LocationSheet open={open} onClose={() => setOpen(false)} />
-    </>
+    </div>
+  );
+}
+
+/**
+ * Header greeting (approved header, founder direction 2026-10-16): initials, "Hi <first name>", the points balance and a chevron
+ * into Profile. A guest sees a sign-in chip instead. The balance is the customer's own rewards summary (never shown when the answer
+ * is not a real number).
+ */
+function HeaderGreeting() {
+  const { t, locale } = useT();
+  const href = useHref();
+  const { call } = useApi();
+  const { status, me } = useAuth();
+  const [points, setPoints] = useState<number | null>(null);
+  useEffect(() => {
+    if (status !== 'authenticated') return;
+    let alive = true;
+    void call<{ availableBalance: number }>('GET', '/v1/app/rewards').then((r) => {
+      if (alive && r.ok && typeof r.data?.availableBalance === 'number')
+        setPoints(r.data.availableBalance);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [call, status]);
+  if (status === 'loading') return null;
+  if (status !== 'authenticated')
+    return (
+      <Link
+        className="dd-hello dd-hello--guest"
+        href={href('/profile')}
+        data-testid="header-signin"
+      >
+        <span className="dd-hello__avatar" aria-hidden="true">
+          <Icon name="user" size={16} />
+        </span>
+        <span className="dd-hello__text">
+          <strong>{t('hdr.signIn')}</strong>
+        </span>
+        <Icon name="forward" size={14} />
+      </Link>
+    );
+  // the account's display name; a profile without a name yet reads "Hi there"
+  const name = (me?.displayName ?? '').trim();
+  const named = name && name !== 'Customer' ? name.split(/\s+/) : [];
+  const initials = named
+    .slice(0, 2)
+    .map((p) => p[0]!.toUpperCase())
+    .join('');
+  return (
+    <Link className="dd-hello" href={href('/profile')} data-testid="header-greeting">
+      <span className="dd-hello__avatar" aria-hidden="true">
+        {initials || <Icon name="user" size={16} />}
+      </span>
+      <span className="dd-hello__text">
+        <strong>{named[0] ? t('hdr.hi', { name: named[0] }) : t('hdr.hiThere')}</strong>
+        {points !== null ? (
+          <span className="dd-hello__pts" data-testid="header-points">
+            {t('hdr.points', { n: formatNumber(locale, points) })}
+          </span>
+        ) : null}
+      </span>
+      <Icon name="forward" size={14} />
+    </Link>
   );
 }
 

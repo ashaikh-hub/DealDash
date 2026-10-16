@@ -111,6 +111,15 @@ export function HotCardView({
           ) : null}
           {!deal.reservationsEnabled ? (
             <span className="dd-dc__chip">{t('hot.walkIn')}</span>
+          ) : deal.reservationMethod && deal.reservationMethod !== 'FREE' ? (
+            // PAID_RESERVATION: the customer pays (or holds) an amount to secure a unit; amount and terms on the detail
+            <span className="dd-dc__chip dd-hot-chip dd-hot-chip--paid" data-testid="hot-paid">
+              <Icon name="card" size={13} /> {t('hot.card.paid')}
+            </span>
+          ) : deal.reservationMethod === 'FREE' ? (
+            <span className="dd-dc__chip" data-testid="hot-free">
+              {t('hot.card.free')}
+            </span>
           ) : null}
           {distance ? (
             <span className="dd-dc__chip">
@@ -1068,7 +1077,11 @@ export function ReservationTicket({
   const pending = stateNow === 'PAYMENT_PENDING';
   const pay = r.payment;
   const attemptFailed = pending && pay?.status === 'FAILED';
-  const cutoffPassed = !!pay?.cancelCutoffAt && new Date(pay.cancelCutoffAt).getTime() <= now;
+  // a deposit refundable on any cancellation is never "after the cut-off" for the customer
+  const cutoffPassed =
+    !!pay?.cancelCutoffAt &&
+    new Date(pay.cancelCutoffAt).getTime() <= now &&
+    !(pay.method === 'DEPOSIT' && pay.depositLateRefund);
   const tone =
     stateNow === 'HELD'
       ? 'success'
@@ -1110,7 +1123,12 @@ export function ReservationTicket({
           </span>
           <div>
             <strong>{t('res.confirmed')}</strong>
-            <div className="dd-caption">{t('res.confirmedBody', { min: r.holdMinutes })}</div>
+            <div className="dd-caption">
+              {/* "it is free" only for a free reservation; a paid one says it is paid and secured */}
+              {r.payment
+                ? t('res.confirmedBodyPaid', { min: r.holdMinutes })
+                : t('res.confirmedBody', { min: r.holdMinutes })}
+            </div>
           </div>
         </div>
       ) : null}
@@ -1167,9 +1185,14 @@ export function ReservationTicket({
                   <>
                     <br />
                     <span data-testid="ticket-paid-line">
-                      {t(`cx.t.paid.${pay.method}` as DictionaryKey, {
-                        amount: formatMoney(locale, pay.amountMinor, pay.currency),
-                      })}
+                      {t(
+                        (pay.method === 'DEPOSIT' && pay.depositCredited === false
+                          ? 'cx.t.paid.DEPOSIT_FEE'
+                          : `cx.t.paid.${pay.method}`) as DictionaryKey,
+                        {
+                          amount: formatMoney(locale, pay.amountMinor, pay.currency),
+                        },
+                      )}
                     </span>
                   </>
                 ) : null}
@@ -1265,7 +1288,12 @@ export function ReservationTicket({
               <li>{t('cx.t.step1', { merchant: pickText(r.deal.merchantName, locale) })}</li>
               <li>{t('cx.t.step2')}</li>
               <li>{t('cx.t.step3')}</li>
-              <li>{t(`cx.t.step4.${r.payment?.method ?? 'FREE'}` as DictionaryKey)}</li>
+              <li>
+                {/* a booking fee is not taken off the bill (founder UAT 2026-10-16) */}
+                {r.payment?.method === 'DEPOSIT' && r.payment.depositCredited === false
+                  ? t('cx.t.step4.DEPOSIT_FEE')
+                  : t(`cx.t.step4.${r.payment?.method ?? 'FREE'}` as DictionaryKey)}
+              </li>
             </ol>
           </section>
         ) : null}

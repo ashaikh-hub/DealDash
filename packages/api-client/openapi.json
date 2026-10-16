@@ -48425,6 +48425,8 @@
                 "method": null,
                 "amountMinor": null,
                 "depositRefundable": null,
+                "depositLateRefund": null,
+                "depositCredited": null,
                 "cancelCutoffMinutes": null,
                 "noShowRefundPercent": null
               },
@@ -48650,6 +48652,8 @@
                   "method": null,
                   "amountMinor": null,
                   "depositRefundable": null,
+                  "depositLateRefund": null,
+                  "depositCredited": null,
                   "cancelCutoffMinutes": null,
                   "noShowRefundPercent": null
                 },
@@ -48675,6 +48679,20 @@
                     "nullable": true
                   },
                   "depositRefundable": {
+                    "default": null,
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
+                  "depositLateRefund": {
+                    "default": null,
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
+                  "depositCredited": {
                     "default": null,
                     "type": [
                       "boolean",
@@ -49269,6 +49287,8 @@
                       "method": null,
                       "amountMinor": null,
                       "depositRefundable": null,
+                      "depositLateRefund": null,
+                      "depositCredited": null,
                       "cancelCutoffMinutes": null,
                       "noShowRefundPercent": null
                     },
@@ -49294,6 +49314,20 @@
                         "nullable": true
                       },
                       "depositRefundable": {
+                        "default": null,
+                        "type": [
+                          "boolean",
+                          "null"
+                        ]
+                      },
+                      "depositLateRefund": {
+                        "default": null,
+                        "type": [
+                          "boolean",
+                          "null"
+                        ]
+                      },
+                      "depositCredited": {
                         "default": null,
                         "type": [
                           "boolean",
@@ -50259,6 +50293,8 @@
                   "method": null,
                   "amountMinor": null,
                   "depositRefundable": null,
+                  "depositLateRefund": null,
+                  "depositCredited": null,
                   "cancelCutoffMinutes": null,
                   "noShowRefundPercent": null
                 },
@@ -50284,6 +50320,20 @@
                     "nullable": true
                   },
                   "depositRefundable": {
+                    "default": null,
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
+                  "depositLateRefund": {
+                    "default": null,
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
+                  "depositCredited": {
                     "default": null,
                     "type": [
                       "boolean",
@@ -50889,6 +50939,8 @@
                           "method": null,
                           "amountMinor": null,
                           "depositRefundable": null,
+                          "depositLateRefund": null,
+                          "depositCredited": null,
                           "cancelCutoffMinutes": null,
                           "noShowRefundPercent": null
                         },
@@ -50914,6 +50966,20 @@
                             "nullable": true
                           },
                           "depositRefundable": {
+                            "default": null,
+                            "type": [
+                              "boolean",
+                              "null"
+                            ]
+                          },
+                          "depositLateRefund": {
+                            "default": null,
+                            "type": [
+                              "boolean",
+                              "null"
+                            ]
+                          },
+                          "depositCredited": {
                             "default": null,
                             "type": [
                               "boolean",
@@ -51929,6 +51995,8 @@
                           "method": null,
                           "amountMinor": null,
                           "depositRefundable": null,
+                          "depositLateRefund": null,
+                          "depositCredited": null,
                           "cancelCutoffMinutes": null,
                           "noShowRefundPercent": null
                         },
@@ -51954,6 +52022,20 @@
                             "nullable": true
                           },
                           "depositRefundable": {
+                            "default": null,
+                            "type": [
+                              "boolean",
+                              "null"
+                            ]
+                          },
+                          "depositLateRefund": {
+                            "default": null,
+                            "type": [
+                              "boolean",
+                              "null"
+                            ]
+                          },
+                          "depositCredited": {
                             "default": null,
                             "type": [
                               "boolean",
@@ -52829,6 +52911,17 @@
               "reservationsEnabled": {
                 "type": "boolean"
               },
+              "reservationMethod": {
+                "type": "string",
+                "enum": [
+                  "FREE",
+                  "FULL_PREPAYMENT",
+                  "DEPOSIT",
+                  "CARD_PREAUTH",
+                  null
+                ],
+                "nullable": true
+              },
               "startsAt": {
                 "type": [
                   "string",
@@ -53022,6 +53115,18 @@
                       "null"
                     ]
                   },
+                  "depositLateRefund": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
+                  "depositCredited": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
                   "cancelCutoffMinutes": {
                     "type": "integer",
                     "minimum": -9007199254740991,
@@ -53061,6 +53166,8 @@
                   "amountMinor",
                   "currency",
                   "depositRefundable",
+                  "depositLateRefund",
+                  "depositCredited",
                   "cancelCutoffMinutes",
                   "noShowRefundPercent",
                   "paymentWindowMinutes",
@@ -53630,6 +53737,49 @@
                   "expired",
                   "cancelled",
                   "expiringSoon"
+                ]
+              },
+              "payments": {
+                "type": "object",
+                "properties": {
+                  "awaitingPayment": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "paid": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "cardHolds": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "failed": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "refunded": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "kept": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "awaitingPayment",
+                  "paid",
+                  "cardHolds",
+                  "failed",
+                  "refunded",
+                  "kept"
                 ]
               },
               "funnel": {
@@ -54285,6 +54435,18 @@
                       "null"
                     ]
                   },
+                  "depositLateRefund": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
+                  "depositCredited": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
                   "noShowRefundPercent": {
                     "type": "integer",
                     "minimum": -9007199254740991,
@@ -54353,6 +54515,8 @@
                   "authorisation",
                   "cancelCutoffAt",
                   "depositRefundable",
+                  "depositLateRefund",
+                  "depositCredited",
                   "noShowRefundPercent",
                   "keptMinor",
                   "refunds"
@@ -55481,6 +55645,8 @@
                       "method": null,
                       "amountMinor": null,
                       "depositRefundable": null,
+                      "depositLateRefund": null,
+                      "depositCredited": null,
                       "cancelCutoffMinutes": null,
                       "noShowRefundPercent": null
                     },
@@ -55506,6 +55672,20 @@
                         "nullable": true
                       },
                       "depositRefundable": {
+                        "default": null,
+                        "type": [
+                          "boolean",
+                          "null"
+                        ]
+                      },
+                      "depositLateRefund": {
+                        "default": null,
+                        "type": [
+                          "boolean",
+                          "null"
+                        ]
+                      },
+                      "depositCredited": {
                         "default": null,
                         "type": [
                           "boolean",
@@ -56420,6 +56600,17 @@
                   "reservationsEnabled": {
                     "type": "boolean"
                   },
+                  "reservationMethod": {
+                    "type": "string",
+                    "enum": [
+                      "FREE",
+                      "FULL_PREPAYMENT",
+                      "DEPOSIT",
+                      "CARD_PREAUTH",
+                      null
+                    ],
+                    "nullable": true
+                  },
                   "startsAt": {
                     "type": [
                       "string",
@@ -56613,6 +56804,18 @@
                           "null"
                         ]
                       },
+                      "depositLateRefund": {
+                        "type": [
+                          "boolean",
+                          "null"
+                        ]
+                      },
+                      "depositCredited": {
+                        "type": [
+                          "boolean",
+                          "null"
+                        ]
+                      },
                       "cancelCutoffMinutes": {
                         "type": "integer",
                         "minimum": -9007199254740991,
@@ -56652,6 +56855,8 @@
                       "amountMinor",
                       "currency",
                       "depositRefundable",
+                      "depositLateRefund",
+                      "depositCredited",
                       "cancelCutoffMinutes",
                       "noShowRefundPercent",
                       "paymentWindowMinutes",
@@ -57870,6 +58075,17 @@
                 "reservationsEnabled": {
                   "type": "boolean"
                 },
+                "reservationMethod": {
+                  "type": "string",
+                  "enum": [
+                    "FREE",
+                    "FULL_PREPAYMENT",
+                    "DEPOSIT",
+                    "CARD_PREAUTH",
+                    null
+                  ],
+                  "nullable": true
+                },
                 "startsAt": {
                   "type": [
                     "string",
@@ -58230,6 +58446,17 @@
               "reservationsEnabled": {
                 "type": "boolean"
               },
+              "reservationMethod": {
+                "type": "string",
+                "enum": [
+                  "FREE",
+                  "FULL_PREPAYMENT",
+                  "DEPOSIT",
+                  "CARD_PREAUTH",
+                  null
+                ],
+                "nullable": true
+              },
               "startsAt": {
                 "type": [
                   "string",
@@ -58423,6 +58650,18 @@
                       "null"
                     ]
                   },
+                  "depositLateRefund": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
+                  "depositCredited": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
                   "cancelCutoffMinutes": {
                     "type": "integer",
                     "minimum": -9007199254740991,
@@ -58462,6 +58701,8 @@
                   "amountMinor",
                   "currency",
                   "depositRefundable",
+                  "depositLateRefund",
+                  "depositCredited",
                   "cancelCutoffMinutes",
                   "noShowRefundPercent",
                   "paymentWindowMinutes",
@@ -59050,6 +59291,18 @@
                         "null"
                       ]
                     },
+                    "depositLateRefund": {
+                      "type": [
+                        "boolean",
+                        "null"
+                      ]
+                    },
+                    "depositCredited": {
+                      "type": [
+                        "boolean",
+                        "null"
+                      ]
+                    },
                     "noShowRefundPercent": {
                       "type": "integer",
                       "minimum": -9007199254740991,
@@ -59118,6 +59371,8 @@
                     "authorisation",
                     "cancelCutoffAt",
                     "depositRefundable",
+                    "depositLateRefund",
+                    "depositCredited",
                     "noShowRefundPercent",
                     "keptMinor",
                     "refunds"
@@ -59778,6 +60033,12 @@
                           "null"
                         ]
                       },
+                      "depositCredited": {
+                        "type": [
+                          "boolean",
+                          "null"
+                        ]
+                      },
                       "holdStatus": {
                         "type": "string",
                         "enum": [
@@ -60100,6 +60361,12 @@
                         "type": "string"
                       },
                       "depositRefundable": {
+                        "type": [
+                          "boolean",
+                          "null"
+                        ]
+                      },
+                      "depositCredited": {
                         "type": [
                           "boolean",
                           "null"
@@ -92588,6 +92855,17 @@
                         },
                         "reservationsEnabled": {
                           "type": "boolean"
+                        },
+                        "reservationMethod": {
+                          "type": "string",
+                          "enum": [
+                            "FREE",
+                            "FULL_PREPAYMENT",
+                            "DEPOSIT",
+                            "CARD_PREAUTH",
+                            null
+                          ],
+                          "nullable": true
                         },
                         "startsAt": {
                           "type": [

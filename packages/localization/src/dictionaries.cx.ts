@@ -134,6 +134,10 @@ const CX = {
     'Your deposit is taken off the bill; pay the rest at the till.',
     'يُخصم العربون من الفاتورة؛ ادفع الباقي عند الكاشير.',
   ],
+  'cx.t.step4.DEPOSIT_FEE': [
+    'Your booking fee is not taken off the bill; pay the full bill at the till.',
+    'رسوم الحجز لا تُخصم من الفاتورة؛ ادفع الفاتورة كاملة عند الكاشير.',
+  ],
   'cx.t.step4.CARD_PREAUTH': [
     'The card hold is handled as your terms say; pay at the till.',
     'يُعالَج الحجز على البطاقة وفق شروطك؛ ادفع عند الكاشير.',
@@ -145,6 +149,10 @@ const CX = {
   'cx.t.paid.DEPOSIT': [
     'Deposit paid: {amount}, credited to your bill.',
     'العربون المدفوع: {amount}، يُخصم من فاتورتك.',
+  ],
+  'cx.t.paid.DEPOSIT_FEE': [
+    'Booking fee paid: {amount}, not taken off your bill.',
+    'رسوم الحجز المدفوعة: {amount}، لا تُخصم من فاتورتك.',
   ],
   'cx.t.paid.CARD_PREAUTH': ['Held on your card: {amount}.', 'المحجوز على بطاقتك: {amount}.'],
   'cx.t.directions': ['Get directions', 'الاتجاهات'],

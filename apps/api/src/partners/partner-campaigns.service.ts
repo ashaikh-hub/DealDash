@@ -242,7 +242,10 @@ export class PartnerCampaignsService {
         ? await this.hot.get(as, row.organizationId, id)
         : await this.vouchers.get(as, row.organizationId, id);
     const { caseId } = await this.commercial.syncQuotation(product, id, as);
-    return { product, merchantOrganizationId: row.organizationId, campaign: view, caseId };
+    // Exclusive Deals: the same stock and paid-reservation monitor the merchant sees (founder UAT 2026-10-16), read-only
+    const monitor =
+      product === 'EXCLUSIVE' ? await this.hot.monitor(as, row.organizationId, id) : null;
+    return { product, merchantOrganizationId: row.organizationId, campaign: view, caseId, monitor };
   }
 
   async update(

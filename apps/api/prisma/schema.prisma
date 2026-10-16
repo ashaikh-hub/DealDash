@@ -1566,6 +1566,10 @@ model Reservation {
   amountMinor          Int?
   currency             String?
   depositRefundable    Boolean?
+  /// DEPOSIT (2026-10-16): a refundable deposit is returned on ANY customer cancellation, also after the cut-off (null = before only).
+  depositLateRefund    Boolean?
+  /// DEPOSIT (2026-10-16): credited toward the final bill (true / null) or a booking fee not deducted (false).
+  depositCredited      Boolean?
   /// The moment after which a customer cancellation no longer returns refundable amounts (RC-40/41).
   cancelCutoffAt       DateTime?
   noShowRefundPercent  Int?
