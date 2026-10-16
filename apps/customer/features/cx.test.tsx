@@ -349,7 +349,8 @@ describe('Merchant page', () => {
       'https://wa.me/966500000001',
     );
     expect(screen.getByTestId('merchant-share')).toBeInTheDocument();
-    expect(await screen.findByTestId('merchant-offers-hot')).toHaveTextContent(
+    // every offer type in one list (reference "Merchant page - Offers")
+    expect(await screen.findByTestId('merchant-offers')).toHaveTextContent(
       'Lunch rush: 40% off kabsa',
     );
   });
@@ -582,6 +583,172 @@ describe('Reference audit: deal page, sheet, ticket, rows, return and sign-in', 
     mount(<ProfilePage />);
     await screen.findByTestId('customer-profile');
     expect(nav.replace).not.toHaveBeenCalled();
+  });
+
+  it('Overview: distance with directions, the merchant video, photos and "Before you go"', async () => {
+    stub({
+      [`/v1/app/merchants/${ORG}/reviews`]: reviews(4.2, 9),
+      '/v1/app/watch': ok({
+        campaigns: [
+          {
+            id: '018f0000-0000-7000-8000-00000000aa01',
+            merchantId: ORG,
+            merchantName: bi('Najd Kitchen', 'نجد'),
+            merchantLogoUrl: null,
+            title: bi('Kabsa night', 'ليلة الكبسة'),
+            description: bi('', ''),
+            thumbnailUrl: null,
+            durationSec: 15,
+            rewardPoints: 15,
+            availability: 'AVAILABLE',
+            availableAgainAt: null,
+            endsAt: null,
+          },
+        ],
+        daily: { earnedViews: 0, cap: 5, resetsAt: inMin(600) },
+        balance: { availableBalance: 0, heldBalance: 0 },
+        serverNow: new Date().toISOString(),
+      }),
+      '/v1/app/hot-deals/': ok(hotDetail({ media })),
+    });
+    mount(<HotDealPage id={DEAL} />);
+    const overview = await screen.findByTestId('hot-overview');
+    expect(within(overview).getByTestId('hot-near')).toHaveTextContent('640 m away');
+    expect(within(overview).getByTestId('hot-near')).toHaveTextContent('from Al Nakheel');
+    const video = await within(overview).findByTestId('merchant-video');
+    expect(video).toHaveTextContent('Kabsa night');
+    expect(video).toHaveTextContent('Watch to earn up to 15 points');
+    expect(video).toHaveAttribute('href', '/en/watch/018f0000-0000-7000-8000-00000000aa01');
+    expect(within(overview).getByTestId('hot-media')).toHaveTextContent('Photos (3)');
+    expect(within(overview).getByTestId('hot-before')).toHaveTextContent('Show your code.');
+  });
+
+  it('an employer offer the customer qualifies for names their verified employer', async () => {
+    stub({
+      [`/v1/app/merchants/${ORG}/reviews`]: reviews(null, 0),
+      '/v1/app/benefits': ok({
+        employer: {
+          programId: '018f0000-0000-7000-8000-00000000bb01',
+          programName: bi('Aramco staff', 'موظفو أرامكو'),
+          partner: {
+            id: '018f0000-0000-7000-8000-00000000bb02',
+            name: bi('Saudi Aramco', 'أرامكو السعودية'),
+          },
+          maskedEmail: 'a***@aramco.com',
+          status: 'VERIFIED',
+          verifiedAt: inMin(-600),
+          expiresAt: null,
+          renewFrom: null,
+          renewDueAt: null,
+        },
+        cards: [],
+        maxCards: 5,
+        counts: { unlocked: 1, available: 0, active: 0, used: 0, expired: 0 },
+      }),
+      '/v1/app/hot-deals/': ok(
+        hotDetail({
+          eligibility: { result: 'ELIGIBLE', kind: 'EMPLOYER', message: null, unlockAction: null },
+        }),
+      ),
+    });
+    mount(<HotDealPage id={DEAL} />);
+    const box = await screen.findByTestId('hot-elig');
+    await waitFor(() => expect(box).toHaveTextContent('Verified: Saudi Aramco'));
+    expect(box).toHaveTextContent('Your verified employer benefit applies to this offer.');
+  });
+
+  it('My Deals - Payments: total paid, refunded, and each reservation payment / voucher with its status', async () => {
+    nav.params = new URLSearchParams('tab=payments');
+    stub({
+      '/v1/app/reservations': (c) =>
+        c.url.includes('tab=active')
+          ? ok([
+              reservation({
+                id: 'p-held',
+                payment: payment({ method: 'FULL_PREPAYMENT', amountMinor: 1500 }),
+              }),
+            ])
+          : ok([
+              reservation({
+                id: 'p-credited',
+                status: 'REDEEMED',
+                displayState: 'REDEEMED',
+                code: null,
+                createdAt: inMin(-6000),
+                payment: payment({ amountMinor: 1000 }),
+              }),
+              reservation({
+                id: 'p-refunded',
+                status: 'CANCELLED',
+                displayState: 'CANCELLED_BY_YOU',
+                code: null,
+                createdAt: inMin(-9000),
+                payment: payment({
+                  method: 'FULL_PREPAYMENT',
+                  status: 'REFUNDED',
+                  amountMinor: 1500,
+                  refunds: [
+                    {
+                      reference: 'RRF-1',
+                      amountMinor: 1500,
+                      status: 'REFUNDED',
+                      reasonCode: 'X',
+                      refundedAt: inMin(-8000),
+                    },
+                  ],
+                }),
+              }),
+              reservation({
+                id: 'p-free',
+                status: 'REDEEMED',
+                displayState: 'REDEEMED',
+                code: null,
+              }),
+            ]),
+      '/v1/app/orders': ok([
+        {
+          id: 'o1',
+          reference: 'ORD-1',
+          status: 'PAID',
+          quantity: 1,
+          unitPriceHalalas: 8000,
+          faceValueHalalas: 10000,
+          totalHalalas: 8000,
+          currency: 'SAR',
+          holdExpiresAt: inMin(10),
+          termsVersion: null,
+          createdAt: inMin(-3000),
+          paidAt: inMin(-3000),
+          voucher: {
+            id: 'v1',
+            title: bi('Pay 80, get 100', 'ادفع 80'),
+            imageUrl: null,
+            merchantName: bi('Najd Kitchen', 'نجد'),
+            reportedSavingsHalalas: 2000,
+          },
+          payment: null,
+          voucherInstanceId: 'vi1',
+          retriesLeft: 0,
+          canRetry: false,
+          canCancel: false,
+          serverNow: new Date().toISOString(),
+        },
+      ]),
+    });
+    mount(<MyDealsPage />);
+    const total = await screen.findByTestId('payments-total');
+    // paid: 15 held-for-redemption prepayment + 10 deposit + 15 later refunded + 80 voucher = 120; refunded 15
+    expect(total).toHaveTextContent('SAR 120.00');
+    expect(total).toHaveTextContent('SAR 15.00');
+    const rows = screen.getAllByTestId('payment-row');
+    expect(rows).toHaveLength(4); // the free reservation has no payment
+    expect(rows.map((r) => within(r).getByTestId('payment-status').textContent)).toEqual([
+      'Held until redeemed',
+      'Paid',
+      'Credited to bill',
+      'Refunded',
+    ]);
+    expect(rows[1]).toHaveTextContent('Voucher');
   });
 
   it('a guest asked to sign in for a reservation sees why', async () => {

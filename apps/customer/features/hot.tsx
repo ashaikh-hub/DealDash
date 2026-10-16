@@ -22,10 +22,17 @@ import {
 } from '@dealdash/localization';
 import type { UnlockAction } from '@dealdash/types';
 import { Alert, Button, EmptyState, LoadingState, Skeleton } from '@dealdash/ui';
-import type { HotDealCard, HotDealDetail, ReservationView } from '@dealdash/validation';
+import type { HotDealCard, HotDealDetail, OrderView, ReservationView } from '@dealdash/validation';
 import { MerchantReviews } from './care';
 import { useCustomer, useImpression } from './customer-context';
-import { STATUS_TONE, customerStatus, statusKey, useRating } from './cx-parts';
+import {
+  MerchantVideo,
+  STATUS_TONE,
+  customerStatus,
+  statusKey,
+  useEligibilityNote,
+  useRating,
+} from './cx-parts';
 import { CardSkeletons, CityBar, LoadError, SectionHead, signInPath, useHref, useT } from './parts';
 import { curate, presentCard, presentDetail } from './presentation';
 import { useDealList } from './use-deals';
@@ -163,6 +170,7 @@ export function HotDealPage({ id }: { id: string }) {
   const [detail, setDetail] = useState<HotDealDetail | null>(null);
   const [state, setState] = useState<'loading' | 'ready' | 'missing' | 'error'>('loading');
   const rating = useRating(detail?.merchantId);
+  const eligibilityNote = useEligibilityNote(detail?.eligibility.kind, detail?.eligibility.result);
 
   const load = useCallback(
     async (quiet = false) => {
@@ -284,6 +292,8 @@ export function HotDealPage({ id }: { id: string }) {
         merchantHref={`${href(`/merchants/${detail.merchantId}`)}`}
         rating={rating}
         reviews={<MerchantReviews merchantId={detail.merchantId} />}
+        merchantMedia={<MerchantVideo merchantId={detail.merchantId} />}
+        eligibilityNote={eligibilityNote}
       />
     </div>
   );
@@ -410,6 +420,214 @@ function usePick() {
   return { pick: (x: { en: string; ar: string }) => x[locale] || x.en || x.ar };
 }
 
+interface PaymentLine {
+  id: string;
+  href: string;
+  title: { en: string; ar: string };
+  merchant: { en: string; ar: string };
+  imageUrl: string | null;
+  kind: 'RESERVATION' | 'VOUCHER';
+  method: string | null;
+  at: string;
+  amountMinor: number;
+  currency: string;
+  /** Translation key of the status chip, and its tone. */
+  statusKey: DictionaryKey;
+  tone: string;
+  /** Money that left the customer's account (a card hold that was never charged is not counted). */
+  paidMinor: number;
+  refundedMinor: number;
+}
+
+/** Status of a reservation payment in the customer's words (reference "My Deals - payments"). */
+function reservationPaymentStatus(r: ReservationView): { key: DictionaryKey; tone: string } {
+  const p = r.payment!;
+  if (p.status === 'PAID' && r.displayState === 'REDEEMED')
+    return p.method === 'DEPOSIT'
+      ? { key: 'cx.pay.st.CREDITED', tone: 'success' }
+      : { key: 'cx.pay.st.USED', tone: 'info' };
+  if (p.status === 'PAID' && r.displayState === 'HELD')
+    return { key: 'cx.pay.st.HELD', tone: 'info' };
+  const tone: Record<string, string> = {
+    PENDING: 'warning',
+    FAILED: 'danger',
+    REFUNDED: 'danger',
+    PARTIALLY_REFUNDED: 'warning',
+    FORFEITED: 'neutral',
+    AUTHORISED: 'info',
+    CAPTURED: 'success',
+    VOIDED: 'neutral',
+    PAID: 'success',
+  };
+  return { key: `rsv.status.${p.status}` as DictionaryKey, tone: tone[p.status] ?? 'neutral' };
+}
+
+/**
+ * My Deals - Payments: every reservation payment / card hold and every voucher purchase, newest first, with the total paid and the
+ * total refunded. Built from the customer's own reservation and order lists (no money logic here).
+ */
+function PaymentsPanel() {
+  const { t, locale } = useT();
+  const { call } = useApi();
+  const href = useHref();
+  const { pick } = usePick();
+  const [lines, setLines] = useState<PaymentLine[] | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    let alive = true;
+    setFailed(false);
+    void Promise.all([
+      call<ReservationView[]>('GET', '/v1/app/reservations', {
+        query: { tab: 'active', limit: 50 },
+      }),
+      call<ReservationView[]>('GET', '/v1/app/reservations', { query: { tab: 'past', limit: 50 } }),
+      call<OrderView[]>('GET', '/v1/app/orders', { query: { limit: 50 } }),
+    ]).then(([a, p, o]) => {
+      if (!alive) return;
+      if (!a.ok || !p.ok) {
+        setFailed(true);
+        return;
+      }
+      const out: PaymentLine[] = [];
+      // a reservation can move from active to past between the two requests: list it once
+      const seen = new Set<string>();
+      for (const r of [...(a.data ?? []), ...(p.data ?? [])]) {
+        if (!r.payment || seen.has(r.id)) continue;
+        seen.add(r.id);
+        const pay = r.payment;
+        const st = reservationPaymentStatus(r);
+        const captured = pay.authorisation?.capturedMinor ?? 0;
+        const charged =
+          pay.method === 'CARD_PREAUTH'
+            ? captured
+            : pay.status === 'PENDING' || pay.status === 'FAILED'
+              ? 0
+              : pay.amountMinor;
+        out.push({
+          id: r.id,
+          href: href(`/reservations/${r.id}`),
+          title: r.deal.title,
+          merchant: r.deal.merchantName,
+          imageUrl: r.deal.imageUrl,
+          kind: 'RESERVATION',
+          method: pay.method,
+          at: r.createdAt,
+          amountMinor: pay.amountMinor,
+          currency: pay.currency,
+          statusKey: st.key,
+          tone: st.tone,
+          paidMinor: charged,
+          refundedMinor: pay.refunds
+            .filter((f) => f.status === 'REFUNDED')
+            .reduce((n, f) => n + f.amountMinor, 0),
+        });
+      }
+      // voucher purchases (customers without the voucher permission simply have none)
+      for (const ord of o.ok ? (o.data ?? []) : []) {
+        if (ord.status === 'PENDING_PAYMENT' && !ord.payment) continue;
+        out.push({
+          id: ord.id,
+          href: href(`/orders/${ord.id}`),
+          title: ord.voucher.title,
+          merchant: ord.voucher.merchantName,
+          imageUrl: ord.voucher.imageUrl,
+          kind: 'VOUCHER',
+          method: null,
+          at: ord.paidAt ?? ord.createdAt,
+          amountMinor: ord.totalHalalas,
+          currency: ord.currency,
+          statusKey: `cx.pay.ord.${ord.status}` as DictionaryKey,
+          tone:
+            ord.status === 'PAID'
+              ? 'success'
+              : ord.status === 'FAILED'
+                ? 'danger'
+                : ord.status === 'PENDING_PAYMENT'
+                  ? 'warning'
+                  : 'neutral',
+          paidMinor: ord.status === 'PAID' ? ord.totalHalalas : 0,
+          refundedMinor: 0,
+        });
+      }
+      out.sort((x, y) => new Date(y.at).getTime() - new Date(x.at).getTime());
+      setLines(out);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [call, href, attempt]);
+
+  if (failed) return <LoadError onRetry={() => setAttempt((n) => n + 1)} />;
+  if (!lines) return <CardSkeletons />;
+  if (!lines.length) return <EmptyState title={t('cx.pay.empty')} />;
+  const ccy = lines[0]!.currency;
+  const same = lines.filter((l) => l.currency === ccy);
+  const paid = same.reduce((n, l) => n + l.paidMinor, 0);
+  const refunded = same.reduce((n, l) => n + l.refundedMinor, 0);
+  return (
+    <div className="dd-stack" style={{ gap: 14 }} data-testid="payments">
+      <div className="dd-paytotal" data-testid="payments-total">
+        <div>
+          <span>{t('cx.pay.totalPaid')}</span>
+          <strong className="dd-ltr">{formatMoney(locale, paid, ccy)}</strong>
+        </div>
+        <div style={{ textAlign: 'end' }}>
+          <span>{t('cx.pay.refundedTotal')}</span>
+          <strong className="dd-ltr dd-paytotal__small">
+            {formatMoney(locale, refunded, ccy)}
+          </strong>
+        </div>
+      </div>
+      <p className="dd-caption" style={{ margin: 0 }}>
+        {t('cx.pay.note')}
+      </p>
+      <h2 className="dd-title">{t('cx.pay.all')}</h2>
+      <div className="dd-stack">
+        {lines.map((l) => (
+          <Link
+            key={`${l.kind}-${l.id}`}
+            href={l.href}
+            className="dd-staffrow"
+            style={{ textDecoration: 'none', color: 'inherit', alignItems: 'center' }}
+            data-testid="payment-row"
+          >
+            {l.imageUrl ? (
+              <img className="dd-logo" src={l.imageUrl} alt="" />
+            ) : (
+              <span className="dd-notif__icon">
+                <Icon name={l.kind === 'VOUCHER' ? 'gift' : 'ticket'} />
+              </span>
+            )}
+            <div className="dd-grow" style={{ minInlineSize: 0 }}>
+              <strong>
+                {pick(l.merchant)} · {pick(l.title)}
+              </strong>
+              <div className="dd-caption">
+                {l.kind === 'VOUCHER'
+                  ? t('cx.pay.kindVoucher')
+                  : `${t('cx.pay.kindReservation')} · ${t(`rsv.methodName.${l.method}` as DictionaryKey)}`}{' '}
+                · {formatDateTime(locale, l.at)}
+              </div>
+              <span
+                className={`dd-chip dd-chip--${l.tone}`}
+                style={{ marginBlockStart: 4, display: 'inline-flex' }}
+                data-testid="payment-status"
+              >
+                {t(l.statusKey)}
+              </span>
+            </div>
+            <strong className="dd-ltr" style={{ flex: 'none' }} data-testid="payment-amount">
+              {formatMoney(locale, l.amountMinor, l.currency)}
+            </strong>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function MyDealsPage() {
   const { t, locale } = useT();
   const { call } = useApi();
@@ -417,14 +635,15 @@ export function MyDealsPage() {
   const href = useHref();
   const params = useSearchParams();
   const router = useRouter();
-  const tab = (params.get('tab') as 'active' | 'past' | 'updates' | null) ?? 'active';
+  const tab = (params.get('tab') as 'active' | 'past' | 'payments' | 'updates' | null) ?? 'active';
   const [items, setItems] = useState<ReservationView[]>([]);
   const [notes, setNotes] = useState<{ unread: number; items: NotificationItem[] } | null>(null);
   const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading');
 
   const load = useCallback(
     async (quiet = false) => {
-      if (status !== 'authenticated') return;
+      // the payments tab loads its own lists
+      if (status !== 'authenticated' || tab === 'payments') return;
       if (!quiet) setState('loading');
       if (tab === 'updates') {
         const r = await call<{ unread: number; items: NotificationItem[] }>(
@@ -478,19 +697,24 @@ export function MyDealsPage() {
     <div className="dd-stack" style={{ gap: 14 }} data-testid="my-deals">
       <h1 className="dd-title-xl">{t('res.title')}</h1>
       <div className="dd-segment" role="tablist" aria-label={t('res.title')}>
-        {(['active', 'past', 'updates'] as const).map((k) => (
+        {(['active', 'past', 'payments', 'updates'] as const).map((k) => (
           <button
             key={k}
             role="tab"
             type="button"
             aria-selected={tab === k}
             onClick={() => setTab(k)}
+            data-testid={`mydeals-tab-${k}`}
           >
-            {t(`res.tab${k[0]!.toUpperCase()}${k.slice(1)}` as DictionaryKey)}
+            {k === 'payments'
+              ? t('cx.pay.tab')
+              : t(`res.tab${k[0]!.toUpperCase()}${k.slice(1)}` as DictionaryKey)}
           </button>
         ))}
       </div>
-      {state === 'loading' ? (
+      {tab === 'payments' ? (
+        <PaymentsPanel />
+      ) : state === 'loading' ? (
         <CardSkeletons />
       ) : state === 'error' ? (
         <LoadError onRetry={() => void load()} />

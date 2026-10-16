@@ -1,10 +1,12 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { Icon, LoginPanel, useApi, useAuth } from '@dealdash/app-shell';
+import { Icon, LoginPanel, pickText, useApi, useAuth } from '@dealdash/app-shell';
 import type { DictionaryKey } from '@dealdash/localization';
-import type { ReservationView } from '@dealdash/validation';
-import { useT } from './parts';
+import type { BenefitsOverview, ReservationView, WatchCard, WatchHub } from '@dealdash/validation';
+import { useCustomer } from './customer-context';
+import { useHref, useT } from './parts';
 
 /** A merchant's public review summary (the existing reviews endpoint), for the merchant header and the deal page. */
 export function useRating(merchantId: string | null | undefined) {
@@ -63,6 +65,95 @@ export function Stars({ value }: { value: number }) {
       ))}
     </span>
   );
+}
+
+/**
+ * "From <merchant>" (reference deal pages): the merchant's Watch & Earn video, read from the existing Watch & Earn list (no change to
+ * Watch & Earn itself). Nothing is shown when the merchant has no video.
+ */
+export function MerchantVideo({ merchantId }: { merchantId: string }) {
+  const { t } = useT();
+  const { uiLocale } = useAuth();
+  const { call } = useApi();
+  const href = useHref();
+  const { city } = useCustomer();
+  const [video, setVideo] = useState<WatchCard | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void call<WatchHub>('GET', '/v1/app/watch', { query: { city, limit: 50 } }).then((r) => {
+      const campaigns = r.ok && Array.isArray(r.data?.campaigns) ? r.data.campaigns : [];
+      if (!alive) return;
+      setVideo(
+        campaigns.find(
+          (c) =>
+            c.merchantId === merchantId &&
+            (c.availability === 'AVAILABLE' || c.availability === 'ALREADY_EARNED'),
+        ) ?? null,
+      );
+    });
+    return () => {
+      alive = false;
+    };
+  }, [call, city, merchantId]);
+  if (!video) return null;
+  const mins = Math.floor(video.durationSec / 60);
+  const secs = String(video.durationSec % 60).padStart(2, '0');
+  return (
+    <Link className="dd-mvideo" href={href(`/watch/${video.id}`)} data-testid="merchant-video">
+      {video.thumbnailUrl ? <img src={video.thumbnailUrl} alt="" loading="lazy" /> : null}
+      <span className="dd-mvideo__badge">{t('cx.hot.video')}</span>
+      <span className="dd-mvideo__time dd-ltr">
+        {mins}:{secs}
+      </span>
+      <span className="dd-mvideo__play" aria-hidden="true">
+        <Icon name="play" size={24} />
+      </span>
+      <strong>{pickText(video.title, uiLocale)}</strong>
+      <span className="dd-caption" style={{ color: 'rgba(255,255,255,0.85)' }}>
+        {t('cx.hot.earn', { n: video.rewardPoints })}
+      </span>
+    </Link>
+  );
+}
+
+/**
+ * For an offer the signed-in customer already qualifies for: which of their own benefits opens it (reference "Verified: Saudi Aramco
+ * employee"). Read from My benefits; nothing for guests, public offers or locked offers.
+ */
+export function useEligibilityNote(
+  kind: string | undefined,
+  result: string | undefined,
+): { title: string; body: string } | null {
+  const { t, locale } = useT();
+  const { call } = useApi();
+  const { status } = useAuth();
+  const [overview, setOverview] = useState<BenefitsOverview | null>(null);
+  const relevant =
+    status === 'authenticated' &&
+    result === 'ELIGIBLE' &&
+    (kind === 'EMPLOYER' || kind === 'BANK_CARD' || kind === 'SCHEME');
+  useEffect(() => {
+    if (!relevant) return;
+    let alive = true;
+    void call<BenefitsOverview>('GET', '/v1/app/benefits').then((r) => {
+      if (alive && r.ok && r.data) setOverview(r.data);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [call, relevant]);
+  if (!relevant || !overview) return null;
+  if (kind === 'EMPLOYER' && overview.employer)
+    return {
+      title: t('cx.hot.verified', { name: pickText(overview.employer.partner.name, locale) }),
+      body: t('cx.hot.verifiedEmployer'),
+    };
+  if ((kind === 'BANK_CARD' || kind === 'SCHEME') && overview.cards.length === 1)
+    return {
+      title: t('cx.hot.verified', { name: pickText(overview.cards[0]!.name, locale) }),
+      body: t('cx.hot.verifiedCard'),
+    };
+  return null;
 }
 
 export type CustomerStatus =

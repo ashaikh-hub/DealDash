@@ -2305,6 +2305,113 @@ html[lang='ar'] body,
   margin-inline-start: auto;
   color: var(--dd-ink-2);
 }
+.dd-hot-near {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--dd-line);
+  border-radius: var(--dd-radius-card);
+  background: var(--dd-card);
+  margin-block-end: 14px;
+}
+.dd-hot-near__icon {
+  display: grid;
+  place-items: center;
+  inline-size: 40px;
+  block-size: 40px;
+  border-radius: 12px;
+  background: var(--dd-lilac);
+  color: var(--dd-purple);
+  flex: none;
+}
+.dd-hot-photos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.dd-hot-photos button {
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  overflow: hidden;
+  aspect-ratio: 1;
+  background: var(--dd-lilac);
+  cursor: zoom-in;
+}
+.dd-hot-photos img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  display: block;
+}
+.dd-mvideo {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-block-size: 190px;
+  padding: 14px;
+  border-radius: var(--dd-radius-card);
+  overflow: hidden;
+  color: #fff;
+  text-decoration: none;
+  background: linear-gradient(135deg, var(--dd-navy), var(--dd-purple));
+}
+.dd-mvideo img {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+.dd-mvideo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(10, 8, 48, 0.1) 30%, rgba(10, 8, 48, 0.8) 100%);
+}
+.dd-mvideo > * {
+  position: relative;
+  z-index: 1;
+}
+.dd-mvideo__badge {
+  position: absolute;
+  inset-block-start: 12px;
+  inset-inline-start: 12px;
+  padding: 3px 9px;
+  border-radius: var(--dd-radius-chip);
+  background: var(--dd-amber);
+  color: var(--dd-navy);
+  font-size: 11px;
+  font-weight: 800;
+}
+.dd-mvideo__time {
+  position: absolute;
+  inset-block-start: 12px;
+  inset-inline-end: 12px;
+  padding: 3px 9px;
+  border-radius: var(--dd-radius-chip);
+  background: rgba(15, 12, 66, 0.72);
+  font-size: 12px;
+  font-weight: 700;
+}
+.dd-mvideo__play {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  transform: translate(-50%, -60%);
+  display: grid;
+  place-items: center;
+  inline-size: 56px;
+  block-size: 56px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--dd-purple);
+}
+[dir='rtl'] .dd-mvideo__play {
+  transform: translate(50%, -60%);
+}
 .dd-dd__count {
   position: absolute;
   inset-block-start: 18px;
@@ -2455,6 +2562,29 @@ html[lang='ar'] body,
   border-radius: var(--dd-radius-card);
   background: rgba(255, 255, 255, 0.94);
   box-shadow: var(--dd-shadow-overlay);
+}
+.dd-paytotal {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 20px;
+  border-radius: var(--dd-radius-card);
+  background: linear-gradient(135deg, var(--dd-navy) 0%, #3a14c9 100%);
+  color: #fff;
+}
+.dd-paytotal span {
+  display: block;
+  font-size: 13px;
+  opacity: 0.8;
+}
+.dd-paytotal strong {
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+.dd-paytotal .dd-paytotal__small {
+  font-size: 20px;
 }
 .dd-row-valid {
   color: var(--dd-danger);

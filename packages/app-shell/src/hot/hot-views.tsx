@@ -168,9 +168,15 @@ export function HotDetailView({
   merchantHref,
   rating,
   reviews,
+  merchantMedia,
+  eligibilityNote,
 }: {
   detail: HotDealDetail;
   locale: Locale;
+  /** The merchant's Watch & Earn video, when it has one (customer app), shown under "From <merchant>". */
+  merchantMedia?: ReactNode;
+  /** For an offer the customer already qualifies for: which of their benefits it is ("Verified: Aramco"). */
+  eligibilityNote?: { title: string; body: string } | null;
   /** The merchant's review summary, when known (customer app). */
   rating?: { average: number | null; count: number } | null;
   /** The customer app's reviews list, shown in a Reviews tab (reference "Deal - Hot limited reserve"). */
@@ -509,6 +515,14 @@ export function HotDetailView({
               <div>{t('cx.hot.openBody')}</div>
             </div>
           </div>
+        ) : detail.eligibility.result === 'ELIGIBLE' && eligibilityNote ? (
+          <div className="dd-hot-elig" data-testid="hot-elig">
+            <Icon name="check" size={18} />
+            <div>
+              <strong>{eligibilityNote.title}</strong>
+              <div>{eligibilityNote.body}</div>
+            </div>
+          </div>
         ) : !locked && detail.eligibility.message ? (
           <div className="dd-hot-elig dd-hot-elig--req" data-testid="hot-elig">
             <Icon name="tag" size={18} />
@@ -638,7 +652,62 @@ export function HotDetailView({
           {reviews}
         </div>
       ) : tab === 'overview' ? (
-        <div className="dd-dd__panel">
+        <div className="dd-dd__panel" data-testid="hot-overview">
+          {/* reference: how far, from where, and the way there */}
+          {nearest && distance ? (
+            <div className="dd-hot-near" data-testid="hot-near">
+              <span className="dd-hot-near__icon" aria-hidden="true">
+                <Icon name="pin" size={20} />
+              </span>
+              <div className="dd-grow">
+                <strong>{t('cx.hot.away', { d: distance })}</strong>
+                <div className="dd-caption">
+                  {t('cx.hot.fromBranch', { place: pickText(nearest.name, locale) })}
+                </div>
+              </div>
+              {nearest.latitude !== null ? (
+                <button
+                  type="button"
+                  className="dd-btn dd-btn--secondary dd-btn--sm"
+                  onClick={() => go(nearest)}
+                >
+                  {t('merch.directions')}
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+          {/* the merchant's video card renders only when there is a video (customer app) */}
+          {media.length ? null : merchantMedia}
+          {media.length ? (
+            <section className="dd-stack" style={{ gap: 8 }} data-testid="hot-media">
+              <div>
+                <h3 className="dd-dd__h" style={{ margin: 0 }}>
+                  {t('cx.hot.fromMerchant', { merchant: pickText(detail.merchantName, locale) })}
+                </h3>
+                <p className="dd-caption" style={{ margin: 0 }}>
+                  {t('cx.hot.media')}
+                </p>
+              </div>
+              {merchantMedia}
+              {media.length ? (
+                <>
+                  <strong>{t('cx.hot.photosN', { n: media.length })}</strong>
+                  <div className="dd-hot-photos">
+                    {media.map((m, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => !embedded && setViewer(i)}
+                        aria-label={t('cx.hot.photoN', { i: i + 1, n: media.length })}
+                      >
+                        <img src={m.url} alt="" loading="lazy" />
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : null}
+            </section>
+          ) : null}
           {merchantHref ? (
             <Link href={merchantHref} className="dd-dd__merchantlink">
               <span>{t('deal.fromMerchant', { name: pickText(detail.merchantName, locale) })}</span>
@@ -648,6 +717,17 @@ export function HotDetailView({
           ) : null}
           <h3 className="dd-dd__h">{t('deal.description')}</h3>
           <p className="dd-pre">{pickText(detail.description, locale)}</p>
+          {lines.length || termsText ? (
+            <>
+              <h3 className="dd-dd__h">{t('cx.hot.before')}</h3>
+              <ul className="dd-dd__terms" data-testid="hot-before">
+                {lines.map((l) => (
+                  <li key={l}>{l}</li>
+                ))}
+                {termsText ? <li>{termsText}</li> : null}
+              </ul>
+            </>
+          ) : null}
         </div>
       ) : (
         <div className="dd-dd__panel">
@@ -1030,7 +1110,7 @@ export function ReservationTicket({
               <span className="dd-caption dd-ltr">{r.publicRef}</span>
             </div>
             <h1 className="dd-ticket__title">
-              {pickText(r.deal.merchantName, locale)}, {pickText(r.deal.offerLabel, locale)}
+              {pickText(r.deal.merchantName, locale)} · {pickText(r.deal.offerLabel, locale)}
             </h1>
             <p style={{ margin: 0, opacity: 0.8 }}>{pickText(r.deal.title, locale)}</p>
             <div className="dd-ticket__timer" data-testid="ticket-timer">

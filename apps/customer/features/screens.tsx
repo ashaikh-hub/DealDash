@@ -546,46 +546,26 @@ export function MerchantPageView({ id }: { id: string }) {
         <MerchantReviews merchantId={page.id} />
       ) : tab === 'offers' ? (
         offerCount ? (
-          <div className="dd-stack" style={{ gap: 18 }} data-testid="merchant-offers">
-            {hot.length ? (
-              <section className="dd-stack" data-testid="merchant-offers-hot">
-                <h2 className="dd-title">{t('cx.browse.hot')}</h2>
-                <div className="dd-cardgrid">
-                  {hot.map((d) => (
-                    <TrackedHotCard key={d.id} deal={d} variant="list" />
-                  ))}
-                </div>
-              </section>
-            ) : null}
-            {page.deals.length ? (
-              <section className="dd-stack" data-testid="merchant-offers-live">
-                <h2 className="dd-title">{t('cx.browse.live')}</h2>
-                <div className="dd-cardgrid">
-                  {page.deals.map((d) => (
-                    <TrackedCard
-                      key={d.id}
-                      deal={d}
-                      variant="list"
-                      onChange={(n) =>
-                        setPage((p) =>
-                          p ? { ...p, deals: p.deals.map((x) => (x.id === n.id ? n : x)) } : p,
-                        )
-                      }
-                    />
-                  ))}
-                </div>
-              </section>
-            ) : null}
-            {vouchers.length ? (
-              <section className="dd-stack" data-testid="merchant-offers-vouchers">
-                <h2 className="dd-title">{t('cx.browse.vouchers')}</h2>
-                <div className="dd-cardgrid">
-                  {vouchers.map((v) => (
-                    <TrackedVoucherCard key={v.id} voucher={v} variant="list" />
-                  ))}
-                </div>
-              </section>
-            ) : null}
+          // reference "Merchant page - Offers": one list of every offer type, each card marked with its own type
+          <div className="dd-cardgrid" data-testid="merchant-offers">
+            {hot.map((d) => (
+              <TrackedHotCard key={d.id} deal={d} variant="list" />
+            ))}
+            {page.deals.map((d) => (
+              <TrackedCard
+                key={d.id}
+                deal={d}
+                variant="list"
+                onChange={(n) =>
+                  setPage((p) =>
+                    p ? { ...p, deals: p.deals.map((x) => (x.id === n.id ? n : x)) } : p,
+                  )
+                }
+              />
+            ))}
+            {vouchers.map((v) => (
+              <TrackedVoucherCard key={v.id} voucher={v} variant="list" />
+            ))}
           </div>
         ) : (
           <EmptyState title={t('merch.noOffers')} description={t('merch.noOffersBody')} />
