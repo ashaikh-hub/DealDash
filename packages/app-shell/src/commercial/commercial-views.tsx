@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   createTranslator,
   formatMoney,
@@ -456,12 +456,22 @@ export function CommercialPanel({
   const [busy, setBusy] = useState(false);
   const [banner, setBanner] = useState<{ tone: 'danger' | 'success'; text: string } | null>(null);
 
+  // answers that arrive after the panel has gone (page left, test torn down) are dropped
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+
   const load = useCallback(async () => {
     setLoading(true);
     if (subjectId && !dirty) {
       const r = await call<CommercialCaseView>('GET', `${base}/case`, {
         query: { product, subjectId },
       });
+      if (!mounted.current) return;
       if (r.ok && r.data) {
         setView(r.data);
         setPreview(r.data.preview);
@@ -472,6 +482,7 @@ export function CommercialPanel({
     const p = await call<CommercialPreview>('POST', `${base}/preview`, {
       body: { product, content, ...(previewExtra ?? {}) },
     });
+    if (!mounted.current) return;
     setView(null);
     setPreview(p.ok ? p.data : null);
     setLoading(false);

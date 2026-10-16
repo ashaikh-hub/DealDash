@@ -41,6 +41,10 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # the Prisma client is generated code (gitignored, apps/api/src/generated) and Prisma 7 no longer creates it on
+      # install: generate it before anything compiles the API (same step as infra/docker/api.Dockerfile)
+      - name: Generate Prisma client
+        run: pnpm --filter @dealdash/api db:generate
       - name: Secret scan (no credentials in the repository)
         run: node tooling/security/secret-scan.mjs
       - name: Prepare databases (role, databases, PostGIS)
