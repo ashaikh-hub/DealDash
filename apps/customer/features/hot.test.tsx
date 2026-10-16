@@ -488,7 +488,10 @@ describe('Reservation ticket and My Deals', () => {
     expect(within(ticket).getByTestId('ticket-timer')).toHaveTextContent(/\d+m \d+s/);
     expect(screen.getByText('Reservation confirmed')).toBeInTheDocument();
     expect(within(ticket).getByText('DD-K7QM9T')).toBeInTheDocument();
-    expect(document.body.textContent!.toLowerCase()).not.toMatch(/deposit|payment|sar/);
+    // a free reservation never mentions money (checked per element, so adjacent words cannot form false matches)
+    for (const el of document.body.querySelectorAll('*'))
+      if (el.children.length === 0)
+        expect((el.textContent ?? '').toLowerCase()).not.toMatch(/\bdeposit\b|\bpayment\b|\bsar\b/);
   });
 
   it('cancelling asks first, calls the API, and then shows the cancelled state without a code', async () => {

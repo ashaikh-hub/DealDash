@@ -167,15 +167,21 @@ export function HotDetailView({
   onUnlock,
   merchantHref,
   rating,
+  reviews,
 }: {
   detail: HotDealDetail;
   locale: Locale;
   /** The merchant's review summary, when known (customer app). */
   rating?: { average: number | null; count: number } | null;
+  /** The customer app's reviews list, shown in a Reviews tab (reference "Deal - Hot limited reserve"). */
+  reviews?: ReactNode;
   embedded?: boolean;
   signedIn?: boolean;
   onBack?: () => void;
-  onReserve?: (branchId: string, opts: { acceptTerms: boolean }) => Promise<ReserveOutcome>;
+  onReserve?: (
+    branchId: string,
+    opts: { acceptTerms: boolean; quantity: number },
+  ) => Promise<ReserveOutcome>;
   onSignIn?: () => void;
   onViewReservation?: (reservationId: string) => void;
   onDirections?: (branchId: string) => void;
@@ -183,7 +189,10 @@ export function HotDetailView({
   merchantHref?: string;
 }) {
   const t = tr(locale);
-  const [tab, setTab] = useState<'overview' | 'details'>('overview');
+  const [tab, setTab] = useState<'overview' | 'details' | 'reviews'>('overview');
+  const [photo, setPhoto] = useState(0);
+  const [viewer, setViewer] = useState<number | null>(null);
+  const [qty, setQty] = useState(1);
   const [sheet, setSheet] = useState(false);
   const [picked, setPicked] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -207,12 +216,26 @@ export function HotDetailView({
   const ended = detail.endsAt ? new Date(detail.endsAt).getTime() <= now : false;
   const restricted = !!detail.restriction;
   const limitReached = signedIn && detail.remainingForMe === 0 && !mine;
+  // units this customer may take in one reservation: the per-customer limit, what they have left, and the branch stock
+  const pickedStock = reservable.find((b) => b.id === picked)?.stock?.available ?? null;
+  const maxQty = Math.max(
+    1,
+    Math.min(
+      detail.perCustomerLimit,
+      detail.remainingForMe ?? detail.perCustomerLimit,
+      pickedStock ?? detail.perCustomerLimit,
+    ),
+  );
+  const units = Math.min(qty, maxQty);
 
   useEffect(() => {
     if (sheet && !picked)
       setPicked(reservable.length === 1 ? reservable[0]!.id : (reservable[0]?.id ?? null));
     // terms are accepted afresh each time the sheet opens
-    if (sheet) setAccepted(false);
+    if (sheet) {
+      setAccepted(false);
+      setQty(1);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sheet]);
 
@@ -226,7 +249,7 @@ export function HotDetailView({
     if (!picked || !onReserve || (paid && !accepted)) return;
     setBusy(true);
     setError(null);
-    const r = await onReserve(picked, { acceptTerms: !!paid && accepted });
+    const r = await onReserve(picked, { acceptTerms: !!paid && accepted, quantity: units });
     // a paid reservation continues on the payment page: the sheet stays busy until the browser leaves
     if (r.error) {
       setBusy(false);
@@ -324,14 +347,31 @@ export function HotDetailView({
           className="dd-dd__gallery"
           tabIndex={0}
           aria-label={t('deal.photos', { n: media.length })}
+          onScroll={(e) => {
+            const el = e.currentTarget;
+            setPhoto(Math.round(Math.abs(el.scrollLeft) / Math.max(1, el.clientWidth)));
+          }}
         >
           {media.length ? (
-            media.map((m, i) => <img key={i} src={m.url} alt={pickText(m.alt, locale)} />)
+            media.map((m, i) => (
+              <img
+                key={i}
+                src={m.url}
+                alt={pickText(m.alt, locale)}
+                onClick={() => !embedded && setViewer(i)}
+                style={embedded ? undefined : { cursor: 'zoom-in' }}
+              />
+            ))
           ) : (
             <div className="dd-dc__ph dd-dd__ph" aria-hidden="true" />
           )}
         </div>
         <div className="dd-dd__shade" aria-hidden="true" />
+        {media.length > 1 ? (
+          <span className="dd-dd__count dd-ltr" data-testid="photo-count">
+            {Math.min(photo, media.length - 1) + 1}/{media.length}
+          </span>
+        ) : null}
         {onBack ? (
           <button
             type="button"
@@ -405,9 +445,12 @@ export function HotDetailView({
                 }}
               />
             </div>
-            <span className="dd-caption">
-              {t('cx.hot.left', { n: detail.remainingTotal, total: detail.unitsTotal })}
-            </span>
+            <div className="dd-row" style={{ justifyContent: 'space-between', gap: 8 }}>
+              <span className="dd-caption dd-hot-scarcity__left">
+                {t('cx.hot.left', { n: detail.remainingTotal, total: detail.unitsTotal })}
+              </span>
+              <span className="dd-caption">{t('cx.hot.ffs')}</span>
+            </div>
           </div>
         ) : null}
         <dl className="dd-hot-when" data-testid="hot-when">
@@ -421,35 +464,59 @@ export function HotDetailView({
             <dt>{t('cx.hot.ends')}</dt>
             <dd>{detail.endsAt ? formatDateTime(locale, detail.endsAt) : t('hot.noEnd')}</dd>
           </div>
-          {rating ? (
-            <div>
-              <dt>
-                <Icon name="star" size={13} />
-              </dt>
-              <dd data-testid="hot-rating">
-                {rating.average !== null && rating.count > 0 ? (
-                  <>
-                    <span className="dd-ltr">{rating.average.toFixed(1)}</span>{' '}
-                    <span className="dd-caption">{t('cx.m.reviews', { n: rating.count })}</span>
-                  </>
-                ) : (
-                  <span className="dd-caption">{t('cx.m.noRating')}</span>
-                )}
-              </dd>
-            </div>
-          ) : null}
         </dl>
+        {rating ? (
+          <button
+            type="button"
+            className="dd-hot-rating"
+            data-testid="hot-rating"
+            onClick={() => reviews && setTab('reviews')}
+            disabled={!reviews}
+          >
+            <span className="dd-stars" aria-hidden="true">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Icon
+                  key={i}
+                  name="star"
+                  size={15}
+                  filled={rating.average !== null && i <= Math.round(rating.average)}
+                />
+              ))}
+            </span>
+            {rating.average !== null && rating.count > 0 ? (
+              <>
+                <strong className="dd-ltr">{rating.average.toFixed(1)}</strong>
+                <span className="dd-caption">({t('cx.m.reviews', { n: rating.count })})</span>
+              </>
+            ) : (
+              <span className="dd-caption">{t('cx.m.noRating')}</span>
+            )}
+            {reviews ? <Icon name="forward" size={16} className="dd-hot-rating__go" /> : null}
+          </button>
+        ) : null}
         {soldOut ? (
           <Alert tone="warning">
             <span> {t('hot.soldOutBody')}</span>
           </Alert>
         ) : null}
 
-        {/* "Open to everyone" is the eligibility chip below; a restricted offer states its requirement here */}
-        {detail.eligibility.kind !== 'PUBLIC' && detail.eligibility.message && !locked ? (
-          <p className="dd-hot-elig" data-testid="hot-elig">
-            <Icon name="tag" size={14} /> {pickText(detail.eligibility.message, locale)}
-          </p>
+        {/* who can use it (reference: green "Open to everyone / No card or employer needed" box) */}
+        {detail.eligibility.kind === 'PUBLIC' ? (
+          <div className="dd-hot-elig" data-testid="hot-elig">
+            <Icon name="check" size={18} />
+            <div>
+              <strong>{t('cx.hot.openTitle')}</strong>
+              <div>{t('cx.hot.openBody')}</div>
+            </div>
+          </div>
+        ) : !locked && detail.eligibility.message ? (
+          <div className="dd-hot-elig dd-hot-elig--req" data-testid="hot-elig">
+            <Icon name="tag" size={18} />
+            <div>
+              <strong>{t('cx.hot.reqTitle')}</strong>
+              <div>{pickText(detail.eligibility.message, locale)}</div>
+            </div>
+          </div>
         ) : null}
 
         <div className="dd-dd__badges">
@@ -460,9 +527,12 @@ export function HotDetailView({
           ) : (
             <span className="dd-chip dd-chip--success">{t('hot.free')}</span>
           )}
-          <span className="dd-chip dd-chip--info">
-            <Icon name="tag" size={13} /> {t(`elig.${detail.eligibility.kind}` as DictionaryKey)}
-          </span>
+          {/* open-to-everyone is the green box above; a restricted offer keeps its kind as a chip */}
+          {detail.eligibility.kind !== 'PUBLIC' ? (
+            <span className="dd-chip dd-chip--info">
+              <Icon name="tag" size={13} /> {t(`elig.${detail.eligibility.kind}` as DictionaryKey)}
+            </span>
+          ) : null}
           {detail.perCustomerLimit > 1 ? (
             <span className="dd-chip dd-chip--neutral">
               {t('hot.perPerson', { n: detail.perCustomerLimit })}
@@ -545,7 +615,10 @@ export function HotDetailView({
       </div>
 
       <div className="dd-dd__tabs" role="tablist" aria-label={t('hot.detailsTitle')}>
-        {(['overview', 'details'] as const).map((id) => (
+        {(reviews
+          ? (['overview', 'details', 'reviews'] as const)
+          : (['overview', 'details'] as const)
+        ).map((id) => (
           <button
             key={id}
             role="tab"
@@ -553,13 +626,18 @@ export function HotDetailView({
             aria-selected={tab === id}
             className="dd-dd__tab"
             onClick={() => setTab(id)}
+            data-testid={`hot-tab-${id}`}
           >
-            {t(`deal.${id}` as DictionaryKey)}
+            {id === 'reviews' ? t('s8.rev.title') : t(`deal.${id}` as DictionaryKey)}
           </button>
         ))}
       </div>
 
-      {tab === 'overview' ? (
+      {tab === 'reviews' && reviews ? (
+        <div className="dd-dd__panel" data-testid="hot-reviews">
+          {reviews}
+        </div>
+      ) : tab === 'overview' ? (
         <div className="dd-dd__panel">
           {merchantHref ? (
             <Link href={merchantHref} className="dd-dd__merchantlink">
@@ -637,6 +715,40 @@ export function HotDetailView({
 
       {bar}
 
+      {/* photo viewer (reference "Deal - Photo viewer"): full screen, swipe between photos */}
+      {viewer !== null && media.length ? (
+        <div
+          className="dd-photoviewer"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t('cx.hot.photos')}
+          data-testid="photo-viewer"
+        >
+          <button
+            type="button"
+            className="dd-photoviewer__close"
+            onClick={() => setViewer(null)}
+            aria-label={t('common.close')}
+          >
+            <Icon name="x" size={22} />
+          </button>
+          <div
+            className="dd-photoviewer__strip"
+            ref={(el) => {
+              if (el && viewer > 0)
+                el.scrollLeft = (locale === 'en' ? 1 : -1) * viewer * el.clientWidth;
+            }}
+          >
+            {media.map((m, i) => (
+              <figure key={i}>
+                <img src={m.url} alt={pickText(m.alt, locale)} />
+                <figcaption>{t('cx.hot.photoN', { i: i + 1, n: media.length })}</figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       {sheet ? (
         <div
           className="dd-sheet-overlay"
@@ -708,6 +820,39 @@ export function HotDetailView({
                 </div>
               </div>
             ) : null}
+            {maxQty > 1 ? (
+              <div className="dd-qty" data-testid="reserve-qty">
+                <div>
+                  <strong>{t('cx.pay.qty')}</strong>
+                  <div className="dd-caption">
+                    {t('cx.pay.perCustomer', { n: detail.perCustomerLimit })}
+                  </div>
+                </div>
+                <div className="dd-qty__ctl">
+                  <button
+                    type="button"
+                    aria-label={t('cx.pay.less')}
+                    disabled={busy || units <= 1}
+                    onClick={() => setQty(units - 1)}
+                    data-testid="qty-less"
+                  >
+                    <Icon name="minus" size={18} />
+                  </button>
+                  <output aria-live="polite" className="dd-ltr" data-testid="qty-value">
+                    {units}
+                  </output>
+                  <button
+                    type="button"
+                    aria-label={t('cx.pay.more')}
+                    disabled={busy || units >= maxQty}
+                    onClick={() => setQty(units + 1)}
+                    data-testid="qty-more"
+                  >
+                    <Icon name="plus" size={18} />
+                  </button>
+                </div>
+              </div>
+            ) : null}
             {paid ? (
               <>
                 <dl className="dd-pay-summary" data-testid="pay-summary">
@@ -729,7 +874,9 @@ export function HotDetailView({
                         : t('cx.pay.charged')}
                     </dt>
                     <dd className="dd-ltr">
-                      <strong>{formatMoney(locale, paid.amountMinor!, paid.currency)}</strong>
+                      <strong data-testid="pay-total">
+                        {formatMoney(locale, paid.amountMinor! * units, paid.currency)}
+                      </strong>
                     </dd>
                   </div>
                 </dl>
@@ -738,6 +885,7 @@ export function HotDetailView({
                   locale={locale}
                   merchant={merchant}
                   holdMinutes={detail.holdMinutes}
+                  quantity={units}
                   testId="sheet-terms"
                 />
                 <label className="dd-rsv-accept">
@@ -767,7 +915,7 @@ export function HotDetailView({
                 ? busy
                   ? t('rsv.redirecting')
                   : t(`rsv.cta.${paid.method}` as DictionaryKey, {
-                      amount: formatMoney(locale, paid.amountMinor!, paid.currency),
+                      amount: formatMoney(locale, paid.amountMinor! * units, paid.currency),
                     })
                 : busy
                   ? t('hot.reserving')
@@ -795,6 +943,7 @@ export function ReservationTicket({
   onRetryPayment,
   offerHref,
   reserveAgainHref,
+  doneHref,
   onDirections,
 }: {
   reservation: ReservationView;
@@ -805,6 +954,8 @@ export function ReservationTicket({
   onRetryPayment?: () => Promise<string | null>;
   offerHref?: string;
   reserveAgainHref?: string;
+  /** Where "Done" goes from a live ticket (My Deals). */
+  doneHref?: string;
   onDirections?: () => void;
 }) {
   const t = tr(locale);
@@ -868,35 +1019,65 @@ export function ReservationTicket({
         </div>
       ) : null}
 
-      <div className="dd-ticket__card">
-        <div className="dd-ticket__top">
-          <span className={`dd-chip dd-chip--${tone}`}>
-            {t(`res.state.${stateNow}` as DictionaryKey)}
-          </span>
-          <span className="dd-caption dd-ltr">{r.publicRef}</span>
-        </div>
-        <h1 className="dd-ticket__title">{pickText(r.deal.title, locale)}</h1>
-        <p className="dd-muted" style={{ margin: 0 }}>
-          {pickText(r.deal.merchantName, locale)} · {pickText(r.deal.offerLabel, locale)}
-        </p>
-
+      <div className={`dd-ticket__card ${live ? 'dd-ticket__card--live' : ''}`}>
         {live ? (
-          <>
+          // reference "Code - reservation": a dark header with the offer and the live validity, then the code
+          <div className="dd-ticket__hero">
+            <div className="dd-ticket__top">
+              <span className={`dd-chip dd-chip--${tone}`}>
+                {t(`res.state.${stateNow}` as DictionaryKey)}
+              </span>
+              <span className="dd-caption dd-ltr">{r.publicRef}</span>
+            </div>
+            <h1 className="dd-ticket__title">
+              {pickText(r.deal.merchantName, locale)}, {pickText(r.deal.offerLabel, locale)}
+            </h1>
+            <p style={{ margin: 0, opacity: 0.8 }}>{pickText(r.deal.title, locale)}</p>
             <div className="dd-ticket__timer" data-testid="ticket-timer">
-              <span className="dd-caption">{t('res.timeLeft')}</span>
+              <span>{t('cx.t.validFor')}</span>
               <strong className={ms <= 5 * 60_000 ? 'dd-cd--urgent' : ''}>
                 <Countdown target={r.expiresAt} serverNow={r.serverNow} locale={locale} />
               </strong>
             </div>
+          </div>
+        ) : (
+          <>
+            <div className="dd-ticket__top">
+              <span className={`dd-chip dd-chip--${tone}`}>
+                {t(`res.state.${stateNow}` as DictionaryKey)}
+              </span>
+              <span className="dd-caption dd-ltr">{r.publicRef}</span>
+            </div>
+            <h1 className="dd-ticket__title">{pickText(r.deal.title, locale)}</h1>
+            <p className="dd-muted" style={{ margin: 0 }}>
+              {pickText(r.deal.merchantName, locale)} · {pickText(r.deal.offerLabel, locale)}
+            </p>
+          </>
+        )}
+
+        {live ? (
+          <>
             <div className="dd-ticket__qr">
               <QrCode text={r.code!.qr} label={t('res.qrAlt')} size={216} />
-              <p className="dd-caption">{t('res.qrHint')}</p>
             </div>
             <div className="dd-ticket__manual">
               <span className="dd-caption">{t('res.manualHint')}</span>
               <strong className="dd-ltr dd-ticket__code" data-testid="manual-code">
                 {r.code!.manual}
               </strong>
+              <p className="dd-caption" style={{ margin: 0, textAlign: 'center' }}>
+                {t('cx.t.show')}
+                {pay ? (
+                  <>
+                    <br />
+                    <span data-testid="ticket-paid-line">
+                      {t(`cx.t.paid.${pay.method}` as DictionaryKey, {
+                        amount: formatMoney(locale, pay.amountMinor, pay.currency),
+                      })}
+                    </span>
+                  </>
+                ) : null}
+              </p>
             </div>
           </>
         ) : pending ? (
@@ -996,7 +1177,7 @@ export function ReservationTicket({
         <ReservationMoneyPanel reservation={r} locale={locale} />
 
         <div className="dd-ticket__actions">
-          {lat !== null && lng !== null ? (
+          {lat !== null && lng !== null && !live ? (
             <a
               className="dd-btn dd-btn--secondary"
               href={directionsUrl(lat, lng)}
@@ -1069,6 +1250,29 @@ export function ReservationTicket({
           </div>
         ) : null}
       </div>
+
+      {/* reference: the two things a customer does next, always in reach */}
+      {live && (doneHref || (lat !== null && lng !== null)) ? (
+        <div className="dd-ticket__bar" data-testid="ticket-bar">
+          {lat !== null && lng !== null ? (
+            <a
+              className="dd-btn dd-btn--secondary"
+              href={directionsUrl(lat, lng)}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={onDirections}
+              data-testid="ticket-directions"
+            >
+              {t('cx.t.directions')}
+            </a>
+          ) : null}
+          {doneHref ? (
+            <Link className="dd-btn dd-btn--primary" href={doneHref} data-testid="ticket-done">
+              {t('cx.t.done')}
+            </Link>
+          ) : null}
+        </div>
+      ) : null}
 
       <Modal
         open={confirmCancel}

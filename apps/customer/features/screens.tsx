@@ -39,6 +39,8 @@ import {
   SearchBox,
   SectionHead,
   TrackedCard,
+  safeNext,
+  signInPath,
   useHref,
   useT,
 } from './parts';
@@ -200,7 +202,7 @@ export function DealPage({ id }: { id: string }) {
   const back = () => (window.history.length > 1 ? router.back() : router.push(href('/explore')));
   const toggleSave = async () => {
     if (!detail) return;
-    if (status !== 'authenticated') return router.push(href('/profile') + '?reason=save');
+    if (status !== 'authenticated') return router.push(signInPath(href, 'save'));
     const next = !detail.saved;
     setDetail({ ...detail, saved: next });
     const r = await call(next ? 'POST' : 'DELETE', `/v1/app/saved/live-deals/${detail.id}`, {
@@ -211,7 +213,7 @@ export function DealPage({ id }: { id: string }) {
   const directions = (b: PublicBranch) =>
     track({ type: 'DIRECTIONS_CLICK', dealId: id, branchId: b.id });
   const unlock = (a: UnlockAction) => {
-    if (a === 'SIGN_IN') router.push(href('/profile') + '?reason=unlock');
+    if (a === 'SIGN_IN') router.push(signInPath(href, 'unlock'));
     // My benefits: verify the employer (work-email code) or add the card / membership the offer needs
     else router.push(href('/benefits') + (a === 'VERIFY_EMPLOYER' ? '?add=employer' : '?add=card'));
   };
@@ -354,7 +356,7 @@ export function MerchantPageView({ id }: { id: string }) {
   }, [call, id, city, coords.lat, coords.lng, approximate]);
   const toggleFollow = async () => {
     if (status !== 'authenticated') {
-      router.push(href('/profile') + '?reason=follow');
+      router.push(signInPath(href, 'follow'));
       return;
     }
     const now = following?.following ?? page?.following ?? false;
@@ -437,39 +439,46 @@ export function MerchantPageView({ id }: { id: string }) {
         </div>
       </div>
       <div className="dd-mp__card">
-        <div className="dd-row" style={{ justifyContent: 'space-between' }}>
-          {st ? (
-            <span className={st.open ? 'dd-open' : 'dd-closed'}>
-              {st.open ? t('merch.openNow') : t('merch.closedNow')}
-              {st.next
-                ? ` · ${st.open ? t('merch.closesAt', { time: st.next }) : t('merch.opensAt', { time: st.next })}`
-                : ''}
-            </span>
-          ) : (
-            <span className="dd-muted">{t('deal.hoursUnknown')}</span>
-          )}
-          {page.logoUrl ? <img className="dd-logo" src={page.logoUrl} alt="" /> : null}
-        </div>
-        <div className="dd-mp__meta" data-testid="merchant-meta">
-          <RatingChip rating={rating} />
-          {dist ? (
-            <span className="dd-ltr">
-              <Icon name="pin" size={13} /> {dist}
-            </span>
-          ) : null}
-          <span data-testid="followers">{t('cx.m.followers', { n: follow.followers })}</span>
-        </div>
-        <div className="dd-mp__actions dd-mp__actions--five">
+        {/* reference "Merchant page": rating and opening state on the left, Follow on the right, then four actions */}
+        <div
+          className="dd-row"
+          style={{ justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}
+        >
+          <div className="dd-stack" style={{ gap: 4, minInlineSize: 0 }}>
+            <div className="dd-mp__meta" data-testid="merchant-meta">
+              <RatingChip rating={rating} />
+            </div>
+            {st ? (
+              <span className={st.open ? 'dd-open' : 'dd-closed'}>
+                {st.open ? t('merch.openNow') : t('merch.closedNow')}
+                {st.next
+                  ? ` · ${st.open ? t('merch.closesAt', { time: st.next }) : t('merch.opensAt', { time: st.next })}`
+                  : ''}
+              </span>
+            ) : (
+              <span className="dd-muted">{t('deal.hoursUnknown')}</span>
+            )}
+            <div className="dd-mp__meta">
+              {dist ? (
+                <span className="dd-ltr">
+                  <Icon name="pin" size={13} /> {dist}
+                </span>
+              ) : null}
+              <span data-testid="followers">{t('cx.m.followers', { n: follow.followers })}</span>
+            </div>
+          </div>
           <button
             type="button"
-            className="dd-mp__action"
+            className={`dd-btn dd-btn--sm ${follow.following ? 'dd-btn--outline' : 'dd-btn--primary'}`}
             aria-pressed={follow.following}
             onClick={() => void toggleFollow()}
             data-testid="merchant-follow"
+            style={{ flex: 'none' }}
           >
-            <Icon name="heart" filled={follow.following} />
             {follow.following ? t('cx.m.following') : t('cx.m.follow')}
           </button>
+        </div>
+        <div className="dd-mp__actions dd-mp__actions--four">
           <a
             className="dd-mp__action"
             href={phone ? `tel:${phone}` : undefined}
@@ -705,7 +714,14 @@ export function ProfilePage() {
   const { t, locale } = useT();
   const { status, me, signOut } = useAuth();
   const href = useHref();
-  const reason = useSearchParams().get('reason');
+  const router = useRouter();
+  const params = useSearchParams();
+  const reason = params.get('reason');
+  const next = safeNext(params.get('next'));
+  // guest-to-customer: once signed in, straight back to the deal / merchant the guest was on
+  useEffect(() => {
+    if (status === 'authenticated' && next) router.replace(next);
+  }, [status, next, router]);
   if (status === 'loading') return <LoadingState label={t('state.loading')} />;
   return (
     <div className="dd-stack" style={{ gap: 16 }} data-testid="customer-profile">
@@ -717,7 +733,11 @@ export function ProfilePage() {
               ? t('deal.saveSignIn')
               : reason === 'earn'
                 ? t('wat.signInPrompt')
-                : t('profile.signInPrompt')}
+                : reason === 'reserve'
+                  ? t('cx.signin.reserve')
+                  : reason === 'follow'
+                    ? t('cx.signin.follow')
+                    : t('profile.signInPrompt')}
           </p>
           <LoginPanel />
         </>

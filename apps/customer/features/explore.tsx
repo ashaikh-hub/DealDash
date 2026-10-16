@@ -340,38 +340,37 @@ function BySource({ source }: { source: 'card' | 'employer' }) {
       ) : empty ? (
         <EmptyState title={t('cx.browse.none')} />
       ) : (
-        <>
-          {hot.items.length ? (
-            <section className="dd-stack">
-              <h2 className="dd-title">{t('cx.browse.hot')}</h2>
+        (['open', 'locked'] as const).map((group) => {
+          // reference "Explore - Bank Cards": the offers the customer can use now, then the ones another card / employer unlocks
+          const inGroup = (r: string) =>
+            group === 'open' ? r === 'ELIGIBLE' : r === 'LOCKED_UNLOCKABLE';
+          const h = hot.items.filter((d) => inGroup(d.eligibility.result));
+          const l = live.items.filter((d) => inGroup(d.eligibility.result));
+          const v = vouchers.items.filter((d) => inGroup(d.eligibility.result));
+          if (!h.length && !l.length && !v.length) return null;
+          return (
+            <section className="dd-stack" key={group} data-testid={`by-${source}-${group}`}>
+              <h2 className="dd-title">
+                {group === 'open'
+                  ? t('cx.browse.forYou')
+                  : source === 'card'
+                    ? t('cx.browse.unlockCard')
+                    : t('cx.browse.unlockEmployer')}
+              </h2>
               <div className="dd-cardgrid">
-                {hot.items.map((d) => (
+                {h.map((d) => (
                   <TrackedHotCard key={d.id} deal={d} variant="list" />
                 ))}
-              </div>
-            </section>
-          ) : null}
-          {live.items.length ? (
-            <section className="dd-stack">
-              <h2 className="dd-title">{t('cx.browse.live')}</h2>
-              <div className="dd-cardgrid">
-                {live.items.map((d: DealCard) => (
+                {l.map((d: DealCard) => (
                   <TrackedCard key={d.id} deal={d} variant="list" onChange={live.patch} />
                 ))}
-              </div>
-            </section>
-          ) : null}
-          {vouchers.items.length ? (
-            <section className="dd-stack">
-              <h2 className="dd-title">{t('cx.browse.vouchers')}</h2>
-              <div className="dd-cardgrid">
-                {vouchers.items.map((v) => (
-                  <TrackedVoucherCard key={v.id} voucher={v} variant="list" />
+                {v.map((x) => (
+                  <TrackedVoucherCard key={x.id} voucher={x} variant="list" />
                 ))}
               </div>
             </section>
-          ) : null}
-        </>
+          );
+        })
       )}
     </div>
   );

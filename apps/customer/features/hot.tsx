@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  Countdown,
   HotCardView,
   HotDetailView,
   Icon,
@@ -22,9 +23,10 @@ import {
 import type { UnlockAction } from '@dealdash/types';
 import { Alert, Button, EmptyState, LoadingState, Skeleton } from '@dealdash/ui';
 import type { HotDealCard, HotDealDetail, ReservationView } from '@dealdash/validation';
+import { MerchantReviews } from './care';
 import { useCustomer, useImpression } from './customer-context';
 import { STATUS_TONE, customerStatus, statusKey, useRating } from './cx-parts';
-import { CardSkeletons, CityBar, LoadError, SectionHead, useHref, useT } from './parts';
+import { CardSkeletons, CityBar, LoadError, SectionHead, signInPath, useHref, useT } from './parts';
 import { curate, presentCard, presentDetail } from './presentation';
 import { useDealList } from './use-deals';
 
@@ -205,12 +207,12 @@ export function HotDealPage({ id }: { id: string }) {
   const back = () => (window.history.length > 1 ? router.back() : router.push(href('/hot')));
   const reserve = async (
     branchId: string,
-    opts: { acceptTerms: boolean },
+    opts: { acceptTerms: boolean; quantity: number },
   ): Promise<ReserveOutcome> => {
     const r = await call<ReservationView>('POST', `/v1/app/hot-deals/${id}/reservations`, {
       body: {
         branchId,
-        quantity: 1,
+        quantity: opts.quantity,
         ...(opts.acceptTerms ? { acceptTerms: true, returnUrl: reservationReturnUrl(href) } : {}),
       },
       idempotent: true,
@@ -218,6 +220,7 @@ export function HotDealPage({ id }: { id: string }) {
     if (r.ok && r.data) {
       // paid: continue on the provider's payment page; it returns to /reservations/return
       if (r.data.displayState === 'PAYMENT_PENDING' && r.data.payment?.redirectUrl) {
+        rememberPaying(r.data.id);
         window.location.assign(r.data.payment.redirectUrl);
         return { error: null };
       }
@@ -230,7 +233,7 @@ export function HotDealPage({ id }: { id: string }) {
     return { error: errorMessage(locale, r.errors) };
   };
   const unlock = (a: UnlockAction) => {
-    if (a === 'SIGN_IN') router.push(href('/profile') + '?reason=unlock');
+    if (a === 'SIGN_IN') router.push(signInPath(href, 'unlock'));
     // My benefits: verify the employer (work-email code) or add the card / membership the offer needs
     else router.push(href('/benefits') + (a === 'VERIFY_EMPLOYER' ? '?add=employer' : '?add=card'));
   };
@@ -272,7 +275,7 @@ export function HotDealPage({ id }: { id: string }) {
         signedIn={status === 'authenticated'}
         onBack={back}
         onReserve={reserve}
-        onSignIn={() => router.push(href('/profile') + '?reason=reserve')}
+        onSignIn={() => router.push(signInPath(href, 'reserve'))}
         onViewReservation={(rid) => router.push(href(`/reservations/${rid}`))}
         onDirections={(branchId) =>
           track({ type: 'DIRECTIONS_CLICK', dealId: id, branchId, product: 'HOT' })
@@ -280,6 +283,7 @@ export function HotDealPage({ id }: { id: string }) {
         onUnlock={unlock}
         merchantHref={`${href(`/merchants/${detail.merchantId}`)}`}
         rating={rating}
+        reviews={<MerchantReviews merchantId={detail.merchantId} />}
       />
     </div>
   );
@@ -357,24 +361,38 @@ function ReservationRow({ r }: { r: ReservationView }) {
           <span className={`dd-chip dd-chip--${STATUS_TONE[st]}`} data-testid="row-status">
             {t(statusKey(st))}
           </span>
-          {p ? (
-            <span className="dd-caption" data-testid="row-money">
-              {t(`rsv.methodName.${p.method}` as DictionaryKey)} ·{' '}
-              <span className="dd-ltr">{formatMoney(locale, p.amountMinor, p.currency)}</span>
-            </span>
-          ) : null}
-        </div>
-        {st === 'ACTIVE' ? (
-          <div className="dd-caption" style={{ marginBlockStart: 4 }}>
-            {t('cx.row.expires', { time: formatDateTime(locale, r.expiresAt) })}
-            {r.code ? (
+          <span className="dd-caption" data-testid="row-money">
+            {t('cx.row.reservation')}
+            {p ? (
               <>
                 {' · '}
-                <strong className="dd-ltr" data-testid="row-code">
-                  {r.code.manual}
-                </strong>
+                {t(`rsv.methodName.${p.method}` as DictionaryKey)} ·{' '}
+                {t(p.method === 'CARD_PREAUTH' ? 'cx.row.held' : 'cx.row.paid', {
+                  amount: formatMoney(locale, p.amountMinor, p.currency),
+                })}
               </>
             ) : null}
+          </span>
+        </div>
+        {st === 'ACTIVE' ? (
+          <div style={{ marginBlockStart: 4 }}>
+            <div className="dd-row-valid" data-testid="row-valid">
+              {t('cx.row.validFor')}{' '}
+              <strong>
+                <Countdown target={r.expiresAt} serverNow={r.serverNow} locale={locale} />
+              </strong>
+            </div>
+            <div className="dd-caption">
+              {t('cx.row.expires', { time: formatDateTime(locale, r.expiresAt) })}
+              {r.code ? (
+                <>
+                  {' · '}
+                  <strong className="dd-ltr" data-testid="row-code">
+                    {r.code.manual}
+                  </strong>
+                </>
+              ) : null}
+            </div>
           </div>
         ) : st === 'RESERVED' ? (
           <div className="dd-caption" style={{ marginBlockStart: 4 }}>
@@ -619,6 +637,7 @@ export function ReservationPage({ id }: { id: string }) {
       idempotent: true,
     });
     if (res.ok && res.data?.payment?.redirectUrl) {
+      rememberPaying(id);
       window.location.assign(res.data.payment.redirectUrl);
       return null;
     }
@@ -674,6 +693,7 @@ export function ReservationPage({ id }: { id: string }) {
         onCancel={cancel}
         onRetryPayment={retryPayment}
         offerHref={href(`/hot/${r.deal.id}`)}
+        doneHref={href('/reservations')}
       />
     </div>
   );
@@ -682,6 +702,25 @@ export function ReservationPage({ id }: { id: string }) {
 /** Where the payment page returns to: one route for every reservation (the id is not known before the reservation exists). */
 function reservationReturnUrl(href: (p: string) => string) {
   return `${window.location.origin}${href('/reservations/return')}`;
+}
+
+/** The reservation being paid, so the return from the payment page opens that reservation (this tab only). */
+const PAYING_KEY = 'dd.paying';
+function rememberPaying(id: string) {
+  try {
+    sessionStorage.setItem(PAYING_KEY, id);
+  } catch {
+    /* storage blocked: the return falls back to My Deals */
+  }
+}
+function takePaying(): string | null {
+  try {
+    const id = sessionStorage.getItem(PAYING_KEY);
+    sessionStorage.removeItem(PAYING_KEY);
+    return id && /^[0-9a-f-]{36}$/i.test(id) ? id : null;
+  } catch {
+    return null;
+  }
 }
 
 // ------------------------------------------------------------------ return from the payment page (+ the development mock page)
@@ -708,7 +747,9 @@ export function ReservationReturnPage() {
   useEffect(() => {
     if (status !== 'authenticated') return;
     if (!ref) {
-      router.replace(href('/reservations'));
+      // a real provider's return: open the reservation that was being paid (its state comes from the verified result)
+      const paying = takePaying();
+      router.replace(paying ? `${href(`/reservations/${paying}`)}?new=1` : href('/reservations'));
       return;
     }
     let alive = true;
@@ -739,8 +780,10 @@ export function ReservationReturnPage() {
     const res = await call('POST', `/v1/dev/reservations/${encodeURIComponent(ref)}/complete`, {
       body: { outcome },
     });
-    if (res.ok) router.replace(`${href(`/reservations/${r.id}`)}?new=1`);
-    else {
+    if (res.ok) {
+      takePaying();
+      router.replace(`${href(`/reservations/${r.id}`)}?new=1`);
+    } else {
       setBusy('');
       setError(errorMessage(locale, res.errors));
     }

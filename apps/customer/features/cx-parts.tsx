@@ -34,17 +34,33 @@ export function RatingChip({
 }) {
   const { t } = useT();
   if (!rating) return null;
+  const has = rating.average !== null && rating.count > 0;
   return (
     <span className="dd-mp__rating" data-testid="rating">
-      <Icon name="star" size={14} filled />
-      {rating.average !== null && rating.count > 0 ? (
+      {has ? (
         <>
-          <span className="dd-ltr">{rating.average.toFixed(1)}</span>
+          <strong className="dd-ltr">{rating.average!.toFixed(1)}</strong>
+          <Stars value={rating.average!} />
           <span className="dd-caption">({t('cx.m.reviews', { n: rating.count })})</span>
         </>
       ) : (
-        <span className="dd-caption">{t('cx.m.noRating')}</span>
+        <>
+          <Icon name="star" size={14} />
+          <span className="dd-caption">{t('cx.m.noRating')}</span>
+        </>
       )}
+    </span>
+  );
+}
+
+/** Five stars for an average rating (rounded to the nearest whole star; the number beside it is exact). */
+export function Stars({ value }: { value: number }) {
+  const full = Math.round(value);
+  return (
+    <span className="dd-stars" aria-hidden="true">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <Icon key={i} name="star" size={14} filled={i <= full} />
+      ))}
     </span>
   );
 }
@@ -96,6 +112,7 @@ export function EntryGate() {
   const { t } = useT();
   const { status } = useAuth();
   const [open, setOpen] = useState(false);
+  const [phone, setPhone] = useState(false);
   useEffect(() => {
     if (status !== 'anonymous') return;
     try {
@@ -116,21 +133,40 @@ export function EntryGate() {
     setOpen(false);
   };
   if (!open) return null;
+  // approved welcome (reference "01 Sign in"): photo hero with the wordmark, then the sign-in choices on a sheet
   return (
     <div
       className="dd-entry"
       role="dialog"
       aria-modal="true"
-      aria-label={t('cx.entry.title')}
+      aria-label={t('cx.entry.welcome')}
       data-testid="entry"
     >
       <div className="dd-entry__brand">
-        <strong style={{ fontSize: 30, letterSpacing: '-0.02em' }}>DealDash</strong>
-        <h1>{t('cx.entry.title')}</h1>
-        <p style={{ margin: 0, opacity: 0.85 }}>{t('cx.entry.body')}</p>
+        <span className="dd-entry__wordmark" aria-hidden="true">
+          Deal<span>Dash</span>
+        </span>
+        <p className="dd-entry__tagline">{t('cx.entry.tagline')}</p>
       </div>
       <div className="dd-entry__panel">
-        <LoginPanel />
+        <h1 className="dd-title-xl" style={{ margin: 0 }}>
+          {t('cx.entry.welcome')}
+        </h1>
+        <p className="dd-muted" style={{ margin: 0 }}>
+          {t('cx.entry.sub')}
+        </p>
+        {phone ? (
+          <LoginPanel />
+        ) : (
+          <button
+            type="button"
+            className="dd-btn dd-btn--outline dd-btn--block dd-entry__choice"
+            onClick={() => setPhone(true)}
+            data-testid="entry-phone"
+          >
+            <Icon name="phone" size={18} /> {t('cx.entry.phone')}
+          </button>
+        )}
         <button
           type="button"
           className="dd-btn dd-btn--ghost dd-btn--block"
@@ -139,8 +175,8 @@ export function EntryGate() {
         >
           {t('cx.entry.skip')}
         </button>
-        <p className="dd-caption" style={{ margin: 0, textAlign: 'center' }}>
-          {t('cx.entry.guestNote')}
+        <p className="dd-caption" style={{ margin: 0 }}>
+          {t('cx.entry.guestNote')} {t('cx.entry.terms')}
         </p>
       </div>
     </div>

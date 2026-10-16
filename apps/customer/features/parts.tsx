@@ -28,6 +28,19 @@ export const useHref = () => {
   return useCallback((path: string) => withLocale(path, locale), [locale]);
 };
 
+/**
+ * Guest-to-customer: the sign-in page for a protected action, remembering where the guest was so they come straight back to the
+ * deal / merchant / voucher after signing in (Profile follows `next`, same-site paths only).
+ */
+export function signInPath(href: (p: string) => string, reason: string) {
+  const here =
+    typeof window === 'undefined' ? '' : `${window.location.pathname}${window.location.search}`;
+  return `${href('/profile')}?reason=${reason}${here ? `&next=${encodeURIComponent(here)}` : ''}`;
+}
+/** Only a same-site path is followed after sign-in (never another site). */
+export const safeNext = (next: string | null) =>
+  next && next.startsWith('/') && !next.startsWith('//') && !next.includes('\\') ? next : null;
+
 /** A deal card that records impressions and saves/unsaves (asking guests to sign in first). */
 export function TrackedCard({
   deal,
@@ -49,7 +62,7 @@ export function TrackedCard({
   useEffect(() => setSaved(deal.saved), [deal.saved]);
   const toggle = async () => {
     if (status !== 'authenticated') {
-      router.push(href('/profile') + '?reason=save');
+      router.push(signInPath(href, 'save'));
       return;
     }
     const next = !saved;

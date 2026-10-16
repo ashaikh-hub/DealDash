@@ -26,7 +26,7 @@ import {
   type WalletItem,
 } from '@dealdash/validation';
 import { useCustomer, useImpression } from './customer-context';
-import { CardSkeletons, CityBar, LoadError, SectionHead, useHref, useT } from './parts';
+import { CardSkeletons, CityBar, LoadError, SectionHead, signInPath, useHref, useT } from './parts';
 import { curate, presentCard, presentDetail } from './presentation';
 import { useDealList } from './use-deals';
 
@@ -283,7 +283,7 @@ export function VoucherPage({ id }: { id: string }) {
         signedIn={status === 'authenticated'}
         onBack={back}
         onBuy={buy}
-        onSignIn={() => router.push(href('/profile') + '?reason=buy')}
+        onSignIn={() => router.push(signInPath(href, 'buy'))}
         onUnlock={(a) =>
           router.push(href('/benefits') + (a === 'VERIFY_EMPLOYER' ? '?add=employer' : '?add=card'))
         }

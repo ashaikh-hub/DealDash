@@ -2257,12 +2257,213 @@ html[lang='ar'] body,
 }
 .dd-hot-elig {
   display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 0;
-  font-weight: 600;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--dd-radius-input);
+  background: var(--dd-success-bg);
   font-size: 14px;
+  color: var(--dd-ink);
+}
+.dd-hot-elig > .dd-ic {
   color: var(--dd-success);
+  margin-block-start: 2px;
+  flex: none;
+}
+.dd-hot-elig strong {
+  display: block;
+  font-size: 15px;
+}
+.dd-hot-elig--req {
+  background: var(--dd-lilac);
+}
+.dd-hot-elig--req > .dd-ic {
+  color: var(--dd-purple);
+}
+.dd-hot-scarcity__left {
+  color: var(--dd-danger);
+  font-weight: 700;
+}
+.dd-hot-rating {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  inline-size: 100%;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: var(--dd-radius-input);
+  background: var(--dd-slate-100);
+  color: var(--dd-ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.dd-hot-rating:disabled {
+  cursor: default;
+}
+.dd-hot-rating__go {
+  margin-inline-start: auto;
+  color: var(--dd-ink-2);
+}
+.dd-dd__count {
+  position: absolute;
+  inset-block-start: 18px;
+  inset-inline-end: 16px;
+  padding: 4px 10px;
+  border-radius: var(--dd-radius-chip);
+  background: rgba(15, 12, 66, 0.72);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  pointer-events: none;
+}
+.dd-photoviewer {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: #050418;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.dd-photoviewer__close {
+  position: absolute;
+  inset-block-start: 16px;
+  inset-inline-end: 16px;
+  z-index: 1;
+  inline-size: 44px;
+  block-size: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.dd-photoviewer__strip {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.dd-photoviewer__strip figure {
+  flex: 0 0 100%;
+  margin: 0;
+  scroll-snap-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.dd-photoviewer__strip img {
+  max-inline-size: 100%;
+  max-block-size: 76vh;
+  object-fit: contain;
+}
+.dd-photoviewer__strip figcaption {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+}
+.dd-qty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--dd-radius-input);
+  background: var(--dd-slate-100);
+}
+.dd-qty__ctl {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.dd-qty__ctl button {
+  inline-size: 40px;
+  block-size: 40px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--dd-lilac);
+  color: var(--dd-purple);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.dd-qty__ctl button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.dd-qty__ctl output {
+  min-inline-size: 20px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 800;
+}
+.dd-ticket__card--live {
+  padding: 0;
+  overflow: hidden;
+}
+.dd-ticket__card--live > :not(.dd-ticket__hero) {
+  margin-inline: 18px;
+}
+/* full-width children stretch inside the margins (a 100% width plus margins would overflow) */
+.dd-ticket__card--live > .dd-btn--block {
+  inline-size: auto;
+}
+.dd-ticket__card--live > :last-child {
+  margin-block-end: 18px;
+}
+.dd-ticket__hero {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px 20px 22px;
+  background: linear-gradient(135deg, var(--dd-navy) 0%, #3a14c9 100%);
+  color: #fff;
+  border-block-end: 2px dashed rgba(255, 255, 255, 0.35);
+}
+.dd-ticket__hero .dd-ticket__title {
+  color: #fff;
+}
+.dd-ticket__hero .dd-caption {
+  color: rgba(255, 255, 255, 0.75);
+}
+.dd-ticket__hero .dd-ticket__timer {
+  align-self: flex-start;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+.dd-ticket__hero .dd-ticket__timer strong,
+.dd-ticket__hero .dd-ticket__timer strong * {
+  color: #fff;
+}
+.dd-ticket__hero .dd-ticket__timer strong.dd-cd--urgent,
+.dd-ticket__hero .dd-ticket__timer strong.dd-cd--urgent * {
+  color: #ffd166;
+}
+.dd-ticket__bar {
+  position: sticky;
+  inset-block-end: calc(var(--dd-tabbar-h, 84px) + 8px);
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  gap: 10px;
+  padding: 10px;
+  border-radius: var(--dd-radius-card);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--dd-shadow-overlay);
+}
+.dd-row-valid {
+  color: var(--dd-danger);
+  font-size: 13px;
+  font-weight: 600;
+}
+.dd-row-valid strong {
+  direction: ltr;
+  unicode-bidi: isolate;
 }
 .dd-pay-summary {
   display: flex;
@@ -2314,12 +2515,17 @@ html[lang='ar'] body,
 .dd-mp__rating .dd-ic {
   color: var(--dd-amber);
 }
-.dd-mp__actions--five {
+.dd-mp__actions--four {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 6px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
 }
-.dd-mp__actions--five .dd-mp__action {
+.dd-stars {
+  display: inline-flex;
+  gap: 1px;
+  color: var(--dd-amber);
+}
+.dd-mp__actions--four .dd-mp__action {
   flex-direction: column;
   gap: 4px;
   font-size: 11.5px;
@@ -2394,31 +2600,54 @@ html[lang='ar'] body,
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  background: linear-gradient(180deg, var(--dd-navy) 0%, var(--dd-purple) 100%);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(10, 8, 48, 0.55) 0%,
+      rgba(10, 8, 48, 0.1) 40%,
+      rgba(10, 8, 48, 0.6) 100%
+    ),
+    url('/brand/hero-dining.jpg') center / cover no-repeat,
+    var(--dd-navy);
   overflow-y: auto;
 }
 .dd-entry__brand {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 10px;
-  padding: 40px 24px 20px;
+  justify-content: flex-start;
+  gap: 4px;
+  padding: 56px 24px 20px;
   color: #fff;
 }
-.dd-entry__brand h1 {
+.dd-entry__wordmark {
+  font-size: 44px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+.dd-entry__wordmark span {
+  color: var(--dd-purple-2);
+}
+.dd-entry__tagline {
   margin: 0;
-  font-size: 28px;
-  line-height: 1.2;
+  font-size: 16px;
+  opacity: 0.92;
 }
 .dd-entry__panel {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 20px 16px 28px;
+  padding: 24px 20px 28px;
   border-start-start-radius: var(--dd-radius-sheet);
   border-start-end-radius: var(--dd-radius-sheet);
+  background: var(--dd-bg);
+}
+.dd-entry__choice {
+  min-block-size: 52px;
+  border-radius: 16px;
   background: var(--dd-card);
+  font-weight: 700;
 }
 /* reservation commitment (phase 4): terms before paying, payment state after */
 .dd-rsv-terms {

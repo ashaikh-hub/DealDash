@@ -5,15 +5,26 @@
  */
 const CX = {
   // entry
-  'cx.entry.title': ['Deals near you, ready when you are', 'عروض قريبة منك، جاهزة متى أردت'],
-  'cx.entry.body': [
-    'Sign in to reserve, buy vouchers and unlock card and employer offers.',
-    'سجّل الدخول للحجز وشراء القسائم وفتح عروض البطاقات وجهات العمل.',
-  ],
   'cx.entry.skip': ['Skip for now', 'تخطَّ الآن'],
   'cx.entry.guestNote': [
     'Browse as a guest. We ask you to sign in only when you reserve or buy.',
     'تصفّح كزائر. نطلب تسجيل الدخول فقط عند الحجز أو الشراء.',
+  ],
+  'cx.entry.welcome': ['Welcome', 'أهلاً بك'],
+  'cx.entry.tagline': ['Discover deals. Watch. Get rewarded.', 'اكتشف العروض. شاهد. واربح.'],
+  'cx.entry.sub': [
+    'Sign in to see offers for your cards and keep your saved deals.',
+    'سجّل الدخول لرؤية عروض بطاقاتك والاحتفاظ بعروضك المحفوظة.',
+  ],
+  'cx.entry.phone': ['Continue with phone number', 'المتابعة برقم الجوال'],
+  'cx.entry.terms': [
+    'By continuing you agree to the Terms and Privacy Policy.',
+    'بالمتابعة فإنك توافق على الشروط وسياسة الخصوصية.',
+  ],
+  'cx.signin.reserve': ['Sign in to reserve this offer.', 'سجّل الدخول لحجز هذا العرض.'],
+  'cx.signin.follow': [
+    'Sign in to follow this business.',
+    'سجّل الدخول لمتابعة هذا النشاط التجاري.',
   ],
   // browse offers by
   'cx.browse.title': ['Browse offers by', 'تصفّح العروض حسب'],
@@ -33,6 +44,9 @@ const CX = {
   'cx.browse.vouchers': ['Vouchers', 'القسائم'],
   'cx.browse.none': ['No offers here yet', 'لا توجد عروض هنا بعد'],
   'cx.brand.offers': ['{n} offers', '{n} عروض'],
+  'cx.browse.forYou': ['Offers for you', 'عروض لك'],
+  'cx.browse.unlockCard': ['Unlock with another card', 'افتح ببطاقة أخرى'],
+  'cx.browse.unlockEmployer': ['Unlock with your employer', 'افتح عبر جهة عملك'],
   // merchant
   'cx.m.follow': ['Follow', 'متابعة'],
   'cx.m.following': ['Following', 'تتابعه'],
@@ -47,6 +61,16 @@ const CX = {
   'cx.hot.starts': ['Starts', 'يبدأ'],
   'cx.hot.ends': ['Ends', 'ينتهي'],
   'cx.hot.left': ['{n} of {total} left', 'متبقٍ {n} من {total}'],
+  'cx.hot.ffs': ['First come, first served', 'الأولوية لمن يحجز أولاً'],
+  'cx.hot.openTitle': ['Open to everyone', 'متاح للجميع'],
+  'cx.hot.openBody': ['No card or employer needed.', 'لا يلزم بطاقة أو جهة عمل.'],
+  'cx.hot.reqTitle': ['Who can use it', 'من يمكنه الاستخدام'],
+  'cx.hot.photos': ['Photos', 'الصور'],
+  'cx.hot.photoN': ['Photo {i} of {n}', 'الصورة {i} من {n}'],
+  'cx.pay.qty': ['Quantity', 'الكمية'],
+  'cx.pay.perCustomer': ['Up to {n} per customer', 'حتى {n} لكل عميل'],
+  'cx.pay.less': ['One fewer', 'أقل بواحد'],
+  'cx.pay.more': ['One more', 'أكثر بواحد'],
   // pay and reserve
   'cx.pay.offer': ['Offer', 'العرض'],
   'cx.pay.method': ['Payment method', 'طريقة الدفع'],
@@ -82,6 +106,20 @@ const CX = {
     'يُعالَج الحجز على البطاقة وفق شروطك؛ ادفع عند الكاشير.',
   ],
   'cx.t.terms': ['View terms', 'عرض الشروط'],
+  'cx.t.validFor': ['Reservation valid for', 'الحجز صالح لمدة'],
+  'cx.t.show': ['Show this to staff before you order.', 'اعرض هذا للموظف قبل الطلب.'],
+  'cx.t.paid.FULL_PREPAYMENT': ['Paid: {amount}.', 'المدفوع: {amount}.'],
+  'cx.t.paid.DEPOSIT': [
+    'Deposit paid: {amount}, credited to your bill.',
+    'العربون المدفوع: {amount}، يُخصم من فاتورتك.',
+  ],
+  'cx.t.paid.CARD_PREAUTH': ['Held on your card: {amount}.', 'المحجوز على بطاقتك: {amount}.'],
+  'cx.t.directions': ['Get directions', 'الاتجاهات'],
+  'cx.t.done': ['Done', 'تم'],
+  'cx.row.reservation': ['Reservation', 'حجز'],
+  'cx.row.paid': ['Paid {amount}', 'مدفوع {amount}'],
+  'cx.row.held': ['Held {amount}', 'محجوز {amount}'],
+  'cx.row.validFor': ['Reservation valid for', 'الحجز صالح لمدة'],
   // my deals statuses
   'cx.st.RESERVED': ['Reserved', 'محجوز'],
   'cx.st.ACTIVE': ['Active', 'فعّال'],
