@@ -46,7 +46,9 @@ export function stepOfHotField(field: string): number {
       'endAt',
       'perCustomerLimit',
       'holdMinutes',
-    ].includes(field)
+    ].includes(field) ||
+    // reservation commitment (method, amount, cut-off, refund share) sits with the reservation settings
+    field.startsWith('commitment')
   )
     return 2;
   if (field === 'allocations') return 3;

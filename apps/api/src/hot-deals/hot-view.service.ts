@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { HotDealStatus } from '@dealdash/types';
 import {
+  commitmentMethodOf,
   hotDealIssues,
   hotTranslationStatus,
   type HotDealCard,
@@ -347,7 +348,36 @@ export class HotViewService {
       branches: branches as HotDealDetail['branches'],
       holdMinutes: hold,
       perCustomerLimit: c.perCustomerLimit,
+      commitment: await this.commitmentTerms(r.organizationId, c),
       ...extra,
+    };
+  }
+
+  /** RC-81: the terms a customer sees and accepts before reserving (null for walk-in deals). */
+  async commitmentTerms(
+    organizationId: string,
+    c: HotDealContent,
+  ): Promise<HotDealDetail['commitment']> {
+    const method = commitmentMethodOf(c);
+    // walk-in and FREE deals carry no payment terms at all (the Stage 4 free promise: nothing about payment is shown)
+    if (!method || method === 'FREE') return null;
+    const policy = await this.core.reservationPolicy.forDeal(organizationId, c);
+    return {
+      method,
+      amountMinor: c.commitment.amountMinor,
+      currency: policy.currency,
+      depositRefundable: method === 'DEPOSIT' ? c.commitment.depositRefundable : null,
+      cancelCutoffMinutes: c.commitment.cancelCutoffMinutes,
+      noShowRefundPercent:
+        method === 'FULL_PREPAYMENT'
+          ? (c.commitment.noShowRefundPercent ?? policy.fields.prepaymentRefundDefaultPercent)
+          : method === 'CARD_PREAUTH'
+            ? (c.commitment.noShowRefundPercent ?? 0)
+            : null,
+      paymentWindowMinutes: policy.fields.paymentWindowMinutes,
+      preauthOnRedemption: method === 'CARD_PREAUTH' ? policy.fields.preauthOnRedemption : null,
+      preauthImmediateCapture:
+        method === 'CARD_PREAUTH' ? policy.fields.preauthImmediateCapture : null,
     };
   }
 }

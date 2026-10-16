@@ -122,7 +122,8 @@ export async function buildHotWorld(t: Parameters<typeof buildWorld>[0]) {
       .api(s)
       .post(`/v1/app/hot-deals/${dealId}/reservations`)
       .set('Idempotency-Key', idem())
-      .send({ branchId, quantity });
+      // paid methods need the terms accepted (RC-81); ignored for free reservations
+      .send({ branchId, quantity, acceptTerms: true });
   const cancelRes = (s: Session, id: string) =>
     w.api(s).post(`/v1/app/reservations/${id}/cancel`).send({});
   const myRes = (s: Session, tab: 'active' | 'past' = 'active') =>

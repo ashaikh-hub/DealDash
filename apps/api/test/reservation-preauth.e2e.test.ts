@@ -435,6 +435,48 @@ describe.skipIf(!DB_READY)('Reservation card pre-authorisation (phase 3)', () =>
     }
   });
 
+  it('RC-96: repeated capture refusals raise ONE finance alert at the threshold; no fee until captured; recovery is logged', async () => {
+    const x = await held();
+    const hold = await latestHold(x.r.id);
+    provider.failCaptures = true;
+    try {
+      for (let i = 0; i < 4; i++) await reservations().sweep(new Date(Date.now() + (31 + i) * MIN));
+    } finally {
+      provider.failCaptures = false;
+    }
+    // each sweep retries the pending capture (the first sweep also tries it when the no-show is processed)
+    const refusals = await t.prisma.auditLog.count({
+      where: { action: 'reservation.capture_failed', entityId: hold.id },
+    });
+    expect(refusals).toBeGreaterThan(3);
+    const alerts = await t.prisma.alertEvent.findMany({
+      where: { code: 'RESERVATION_CAPTURE_FAILED', subjectId: hold.id },
+    });
+    expect(alerts).toHaveLength(1); // raised once at the threshold (3), never again on later refusals
+    expect(alerts[0]).toMatchObject({
+      organizationId: null,
+      category: 'FINANCE',
+      severity: 'CRITICAL',
+    });
+    expect(alerts[0]!.data).toMatchObject({ amountMinor: 2_000, refusals: 3 });
+    expect(
+      await t.prisma.auditLog.count({
+        where: { action: 'reservation.capture_alert_raised', entityId: hold.id },
+      }),
+    ).toBe(1);
+    // nothing recognised while the capture keeps failing
+    expect(await moneyJournals(x.r.id)).toEqual([]);
+    expect((await row(x.r.id)).feeMinor).toBeNull();
+    // the provider accepts the next try: captured, settled, and the recovery is logged against the alert
+    await reservations().sweep(new Date(Date.now() + 40 * MIN));
+    expect(await latestHold(x.r.id)).toMatchObject({ status: 'CAPTURED' });
+    expect((await row(x.r.id)).feeMinor).toBe(200);
+    const recovered = await t.prisma.auditLog.findFirstOrThrow({
+      where: { action: 'reservation.capture_recovered', entityId: hold.id },
+    });
+    expect(recovered.newState).toMatchObject({ refusalsBefore: refusals, alertId: alerts[0]!.id });
+  });
+
   it('a refused capture is retried by the sweep; the ledger moves only when the capture succeeds', async () => {
     const x = await held();
     provider.failCaptures = true;

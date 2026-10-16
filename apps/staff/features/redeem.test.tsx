@@ -367,6 +367,82 @@ describe('staff redemption flow', () => {
   });
 });
 
+describe('paid reservations at the counter (RC-60, read-only)', () => {
+  const money = (over: Record<string, unknown> = {}) => ({
+    method: 'DEPOSIT',
+    paymentStatus: 'PAID',
+    amountMinor: 1500,
+    currency: 'SAR',
+    depositRefundable: true,
+    holdStatus: null,
+    refundedMinor: 0,
+    keptMinor: null,
+    ...over,
+  });
+
+  it('a deposit tells staff to credit it to the bill; nothing about the payment can be changed', async () => {
+    stub({ '/redemptions/validate': () => validate('VALID', summary({ money: money() })) });
+    mount();
+    await enterManual();
+    const box = await screen.findByTestId('staff-money');
+    expect(box).toHaveAttribute('data-method', 'DEPOSIT');
+    expect(box).toHaveTextContent('Deposit SAR 15.00, credit it to the bill');
+    expect(within(box).getByTestId('staff-money-status')).toHaveTextContent('Paid');
+    expect(box).toHaveTextContent('Payment terms are fixed. Staff cannot change them.');
+    expect(within(box).queryByRole('textbox')).toBeNull();
+    expect(within(box).queryByRole('button')).toBeNull();
+  });
+
+  it('full payment and an active card hold read clearly; a free reservation shows no payment block', async () => {
+    stub({
+      '/redemptions/validate': (_c, n) =>
+        validate(
+          'VALID',
+          n === 1
+            ? summary({ money: money({ method: 'FULL_PREPAYMENT', amountMinor: 4500 }) })
+            : summary({
+                money: money({
+                  method: 'CARD_PREAUTH',
+                  paymentStatus: 'AUTHORISED',
+                  amountMinor: 2000,
+                  holdStatus: 'AUTHORISED',
+                }),
+              }),
+        ),
+    });
+    const { unmount } = mount();
+    await enterManual();
+    let box = await screen.findByTestId('staff-money');
+    expect(box).toHaveTextContent('Paid in full');
+    expect(box).toHaveTextContent('Amount paid: SAR 45.00');
+    unmount();
+    mount();
+    await enterManual();
+    box = await screen.findByTestId('staff-money');
+    expect(box).toHaveTextContent('Card hold SAR 20.00');
+    expect(within(box).getByTestId('staff-money-status')).toHaveTextContent('Hold active');
+    expect(box).toHaveTextContent('the customer pays at the till');
+  });
+
+  it('free reservations are unchanged (no payment block); Arabic deposit wording', async () => {
+    stub({ '/redemptions/validate': () => validate('VALID') });
+    const { unmount } = mount();
+    await enterManual();
+    await screen.findByTestId('staff-result');
+    expect(screen.queryByTestId('staff-money')).toBeNull();
+    unmount();
+    stub({ '/redemptions/validate': () => validate('VALID', summary({ money: money() })) });
+    mount('ar');
+    const input = await screen.findByLabelText('رمز الحجز أو القسيمة');
+    const user = userEvent.setup();
+    await user.type(input, 'K7QM-9T2X');
+    await user.click(screen.getByTestId('check-code'));
+    const box = await screen.findByTestId('staff-money');
+    expect(box).toHaveTextContent('عربون 15.00 ر.س، اخصمه من الفاتورة');
+    expect(document.body.textContent).not.toMatch(/[٠-٩]/);
+  });
+});
+
 describe('staff history and account', () => {
   it('lists the day with counts, filters, and never shows a customer phone number', async () => {
     const calls = stub({

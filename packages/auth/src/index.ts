@@ -330,6 +330,13 @@ export const NAV_BY_AUDIENCE: Record<Audience, readonly NavItem[]> = {
       requiresAny: ['admin.reservations.manage'],
     },
     {
+      // phase 4: market / category / merchant reservation commitment policy (changes go through maker-checker)
+      key: 'reservation-policy',
+      labelKey: 'nav.reservationPolicy',
+      href: '/reservation-policy',
+      requiresAny: ['admin.config.read'],
+    },
+    {
       key: 'finance',
       labelKey: 'nav.finance',
       href: '/finance',

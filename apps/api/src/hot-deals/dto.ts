@@ -27,6 +27,7 @@ import {
   notificationViewSchema,
   paginationQuerySchema,
   reservationCreateSchema,
+  reservationPaySchema,
   reservationListQuerySchema,
   reservationResultSchema,
   reservationViewSchema,
@@ -85,6 +86,7 @@ export class CancelReservationDto extends createZodDto(cancelReservationSchema) 
 export class CustomerCancelDto extends createZodDto(customerCancelSchema) {}
 export class HotDiscoveryQueryDto extends createZodDto(hotDiscoveryQuerySchema) {}
 export class ReservationCreateDto extends createZodDto(reservationCreateSchema) {}
+export class ReservationPayDto extends createZodDto(reservationPaySchema) {}
 export class ReservationListQueryDto extends createZodDto(reservationListQuerySchema) {}
 export class StaffCodeDto extends createZodDto(staffCodeBodySchema) {}
 export class StaffHistoryQueryDto extends createZodDto(staffHistoryQuerySchema) {}
@@ -206,10 +208,13 @@ const policyFields = z.object({
   preauthImmediateCapture: z.boolean(),
   preauthPartialCaptureAllowed: z.boolean(),
   preauthOnRedemption: z.enum(['RELEASE', 'CAPTURE']),
+  captureFailureAlertThreshold: z.number().int(),
 });
 const effectivePolicy = z.object({
   market: z.string(),
   marketStatus: z.string().nullable(),
+  currency: z.string().nullable(),
+  currencyDecimals: z.number().int(),
   /** RC-05, decided for this environment and market. */
   freeAllowed: z.boolean(),
   fields: policyFields,

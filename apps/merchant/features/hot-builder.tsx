@@ -39,6 +39,7 @@ import {
 } from '@dealdash/ui';
 import {
   DEFAULT_HOT_LIMITS,
+  commitmentIssues,
   emptyHotDealContent,
   hotDealIssues,
   hotMaterialChanges,
@@ -51,6 +52,7 @@ import {
   type HotDealView,
 } from '@dealdash/validation';
 import { fromMarketInput, toMarketInput, useOrgId } from './deal-utils';
+import { CommitmentEditor, commitmentPolicyOf, useReservationPolicy } from './hot-commitment';
 import { HotStatusChip, stepOfHotField } from './hot-utils';
 
 interface Options {
@@ -164,7 +166,12 @@ function BuilderInner({ dealId }: { dealId?: string }) {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [view, setView] = useState<HotDealView | null>(null);
-  const [content, setContent] = useState<HotDealContent>(emptyHotDealContent());
+  // a new Exclusive Deal starts with reservations OFF (walk-in); the merchant turns them on and picks a commitment method
+  const [content, setContent] = useState<HotDealContent>(() => ({
+    ...emptyHotDealContent(),
+    reservationsEnabled: false,
+    limitType: 'TIME',
+  }));
   const [options, setOptions] = useState<Options | null>(null);
   const [hot, setHot] = useState<HotOptions | null>(null);
   const [branches, setBranches] = useState<BranchOption[]>([]);
@@ -197,9 +204,18 @@ function BuilderInner({ dealId }: { dealId?: string }) {
   const editableLive = ['SCHEDULED', 'LIVE', 'PAUSED', 'SOLD_OUT'].includes(status);
   const limits = hot?.limits ?? DEFAULT_HOT_LIMITS;
 
+  const resPolicy = useReservationPolicy(
+    orgId,
+    content.categoryId,
+    content.allocations[0]?.branchId ?? null,
+  );
   const issues = useMemo(
-    () => hotDealIssues(content, { now: new Date(), limits }),
-    [content, limits],
+    () => [
+      ...hotDealIssues(content, { now: new Date(), limits }),
+      // RC-21: a reservable deal needs a commitment method the policy allows (the server checks the same on save / submit)
+      ...(resPolicy ? commitmentIssues(content, commitmentPolicyOf(resPolicy)) : []),
+    ],
+    [content, limits, resPolicy],
   );
   const translation = useMemo(() => hotTranslationStatus(content), [content]);
 
@@ -843,6 +859,21 @@ function BuilderInner({ dealId }: { dealId?: string }) {
           </Field>
         </div>
       ) : null}
+      {content.reservationsEnabled ? (
+        <CommitmentEditor
+          content={content}
+          edit={edit}
+          policy={resPolicy}
+          disabled={live}
+          issues={issues}
+          showErrors={showErrors}
+          serverError={msg}
+        />
+      ) : (
+        <p className="dd-help" data-testid="reservations-off-note">
+          {t('mrsv.offNote')}
+        </p>
+      )}
     </div>
   );
 

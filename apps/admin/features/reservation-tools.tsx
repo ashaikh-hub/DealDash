@@ -2,7 +2,12 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { RequirePermission, errorMessage, useApi, useAuth } from '@dealdash/app-shell';
-import { createTranslator, formatDateTime, type DictionaryKey } from '@dealdash/localization';
+import {
+  createTranslator,
+  formatDateTime,
+  formatMoney,
+  type DictionaryKey,
+} from '@dealdash/localization';
 import {
   Alert,
   Button,
@@ -78,9 +83,16 @@ function Inner() {
         tabs={[
           { id: 'restrictions', label: t('ah.restrictionsTitle') },
           { id: 'lookup', label: t('ah.lookup') },
+          { id: 'refunds', label: t('ah.refundsTab') },
         ]}
       />
-      {tab === 'restrictions' ? <Restrictions /> : <Lookup />}
+      {tab === 'restrictions' ? (
+        <Restrictions />
+      ) : tab === 'lookup' ? (
+        <Lookup />
+      ) : (
+        <FailedRefunds />
+      )}
     </div>
   );
 }
@@ -161,6 +173,7 @@ function Restrictions() {
   const [rows, setRows] = useState<Restriction[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [liftId, setLiftId] = useState<string | null>(null);
+  const [resetUser, setResetUser] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const load = useCallback(async () => {
     const r = await call<Restriction[]>('GET', '/v1/admin/reservations/restrictions', {
@@ -210,16 +223,26 @@ function Restrictions() {
                       {r.liftedReason ? <div className="dd-caption">{r.liftedReason}</div> : null}
                     </td>
                     <td>
-                      {r.status === 'ACTIVE' ? (
+                      <div className="dd-row" style={{ gap: 6, flexWrap: 'wrap' }}>
+                        {r.status === 'ACTIVE' ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setLiftId(r.id)}
+                            data-testid="lift-open"
+                          >
+                            {t('ah.lift')}
+                          </Button>
+                        ) : null}
                         <Button
                           size="sm"
-                          variant="outline"
-                          onClick={() => setLiftId(r.id)}
-                          data-testid="lift-open"
+                          variant="ghost"
+                          onClick={() => setResetUser(r.customer.userId)}
+                          data-testid="strikes-reset-open"
                         >
-                          {t('ah.lift')}
+                          {t('ah.resetStrikes')}
                         </Button>
-                      ) : null}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -246,6 +269,103 @@ function Restrictions() {
           return errorMessage(locale, r.errors);
         }}
       />
+      <ReasonModal
+        open={!!resetUser}
+        title={t('ah.resetStrikes')}
+        confirmLabel={t('ah.resetStrikes')}
+        onClose={() => setResetUser(null)}
+        onConfirm={async (reason) => {
+          const r = await call<{ reset: number }>(
+            'POST',
+            `/v1/admin/reservations/customers/${resetUser}/strike-reset`,
+            { body: { reason } },
+          );
+          if (r.ok) {
+            setResetUser(null);
+            setNote(t('ah.strikesReset', { n: r.data?.reset ?? 0 }));
+            void load();
+            return null;
+          }
+          return errorMessage(locale, r.errors);
+        }}
+      />
+    </div>
+  );
+}
+
+interface FailedRefund {
+  id: string;
+  reference: string;
+  reservationId: string;
+  amountMinor: number;
+  currency: string;
+  status: string;
+  reasonCode: string;
+  failureCode: string | null;
+  attempts: number;
+  createdAt: string;
+}
+
+/** RC-43: reservation refunds the provider refused (finance exception queue); a retry reuses the provider idempotency rules. */
+function FailedRefunds() {
+  const { locale } = useAuth();
+  const t = createTranslator(locale);
+  const { call } = useApi();
+  const [rows, setRows] = useState<FailedRefund[] | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [note, setNote] = useState<{ tone: 'success' | 'danger'; text: string } | null>(null);
+  const load = useCallback(async () => {
+    const r = await call<FailedRefund[]>('GET', '/v1/admin/reservations/refunds/failed');
+    if (r.ok) setRows(r.data ?? []);
+    else setFailed(true);
+  }, [call]);
+  useEffect(() => {
+    void load();
+  }, [load]);
+  if (failed) return <Alert tone="danger">{t('error.generic')}</Alert>;
+  if (!rows) return <LoadingState label={t('state.loading')} />;
+  return (
+    <div className="dd-stack" data-testid="failed-refunds">
+      {note ? <Alert tone={note.tone}>{note.text}</Alert> : null}
+      {rows.length === 0 ? <EmptyState title={t('ah.refundsEmpty')} /> : null}
+      {rows.map((f) => (
+        <Card key={f.id} data-testid="failed-refund">
+          <div className="dd-stack" style={{ gap: 6 }}>
+            <div className="dd-row" style={{ justifyContent: 'space-between', flexWrap: 'wrap' }}>
+              <strong className="dd-ltr">{f.reference}</strong>
+              <strong className="dd-ltr">{formatMoney(locale, f.amountMinor, f.currency)}</strong>
+            </div>
+            <div className="dd-caption">
+              <span className="dd-ltr">{f.failureCode ?? f.reasonCode}</span> ·{' '}
+              {t('ah.attempts', { n: f.attempts })} · {formatDateTime(locale, f.createdAt)}
+            </div>
+            <div>
+              <Button
+                size="sm"
+                variant="outline"
+                loading={busy === f.id}
+                onClick={async () => {
+                  setBusy(f.id);
+                  const r = await call('POST', `/v1/admin/reservations/refunds/${f.id}/retry`, {
+                    body: {},
+                  });
+                  setBusy(null);
+                  setNote(
+                    r.ok
+                      ? { tone: 'success', text: t('ah.refundRetried') }
+                      : { tone: 'danger', text: errorMessage(locale, r.errors) },
+                  );
+                  void load();
+                }}
+                data-testid="refund-retry"
+              >
+                {t('ah.refundRetry')}
+              </Button>
+            </div>
+          </div>
+        </Card>
+      ))}
     </div>
   );
 }
@@ -260,6 +380,7 @@ function Lookup() {
   const [busy, setBusy] = useState(false);
   const [cancelId, setCancelId] = useState<string | null>(null);
   const [reverseId, setReverseId] = useState<string | null>(null);
+  const [strikeId, setStrikeId] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
 
   const search = useCallback(async () => {
@@ -340,6 +461,16 @@ function Lookup() {
                   {t('ah.cancelRes')}
                 </Button>
               ) : null}
+              {r.status === 'EXPIRED' ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setStrikeId(r.id)}
+                  data-testid="found-strike-reset"
+                >
+                  {t('ah.resetStrike')}
+                </Button>
+              ) : null}
               {(reds[r.id] ?? [])
                 .filter((x) => x.status === 'REDEEMED')
                 .map((x) => (
@@ -390,6 +521,25 @@ function Lookup() {
             setReverseId(null);
             setNote(t('mm.reversed'));
             void search();
+            return null;
+          }
+          return errorMessage(locale, r.errors);
+        }}
+      />
+      <ReasonModal
+        open={!!strikeId}
+        title={t('ah.resetStrike')}
+        confirmLabel={t('ah.resetStrike')}
+        onClose={() => setStrikeId(null)}
+        onConfirm={async (reason) => {
+          const r = await call<{ reset: number }>(
+            'POST',
+            `/v1/admin/reservations/${strikeId}/strike-reset`,
+            { body: { reason } },
+          );
+          if (r.ok) {
+            setStrikeId(null);
+            setNote(t('ah.strikesReset', { n: r.data?.reset ?? 0 }));
             return null;
           }
           return errorMessage(locale, r.errors);

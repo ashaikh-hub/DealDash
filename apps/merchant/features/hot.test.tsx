@@ -454,7 +454,9 @@ describe('Exclusive Deal builder', () => {
       categoryId: CAT,
       mechanic: 'PERCENTAGE_OFF',
       valueNumber: 40,
-      reservationsEnabled: true,
+      // phase 4: a new Exclusive Deal starts with reservations OFF (walk-in) until the merchant chooses a commitment method
+      reservationsEnabled: false,
+      limitType: 'TIME',
     });
   });
 });
@@ -733,5 +735,232 @@ describe('Redemptions page', () => {
     );
     expect(await screen.findByText('عمليات الاسترداد')).toBeInTheDocument();
     expect(document.body.textContent).not.toMatch(/[٠-٩]/);
+  });
+});
+
+// ---------------------------------------------------------------- phase 4: reservation commitment (RC-20, RC-73/74, RC-80)
+const resPolicy = (over: Record<string, unknown> = {}) => ({
+  data: {
+    market: 'SA',
+    marketStatus: 'PILOT',
+    currency: 'SAR',
+    currencyDecimals: 2,
+    freeAllowed: false,
+    fields: {
+      freeAllowed: null,
+      allowedMethods: ['FULL_PREPAYMENT', 'DEPOSIT'],
+      depositMinMinor: 500,
+      depositMaxMinor: 5000,
+      nonRefundableDepositAllowed: true,
+      preauthMaxMinor: 10000,
+      cutoffMinMinutes: 15,
+      cutoffMaxMinutes: 60,
+      paymentWindowMinutes: 10,
+      prepaymentRefundMinPercent: 0,
+      prepaymentRefundMaxPercent: 100,
+      prepaymentRefundDefaultPercent: 50,
+      commissionBps: 1000,
+      additionalRedemptionFee: false,
+      preauthImmediateCapture: false,
+      preauthPartialCaptureAllowed: false,
+      preauthOnRedemption: 'RELEASE',
+      captureFailureAlertThreshold: 3,
+    },
+    source: {},
+    problems: [],
+    ...over,
+  },
+  meta: {},
+});
+
+describe('Exclusive Deal builder: reservation payment', () => {
+  const routes = (policy = resPolicy()): Record<string, R> => ({
+    '/commercial/case': { body: { data: readyCase('EXCLUSIVE', DEAL), meta: {} } },
+    '/hot-deal-reservation-policy': { body: policy },
+    '/hot-deal-choices': { body: choices },
+    '/hot-deal-options': { body: options },
+    '/branches': { body: branches },
+    '/preview': { status: 404, body: { errors: [{ code: 'NOT_FOUND', message: 'x' }], meta: {} } },
+    [`/hot-deals/${DEAL}`]: (c) =>
+      c.method === 'PUT'
+        ? { body: { data: { deal: view(), outcome: 'SAVED' }, meta: {} } }
+        : { body: { data: view(), meta: {} } },
+  });
+  const open = async () => {
+    render(
+      <Providers locale="en">
+        <HotDealBuilder dealId={DEAL} />
+      </Providers>,
+    );
+    const user = userEvent.setup();
+    await screen.findByTestId('hot-builder');
+    await user.click(
+      within(screen.getByRole('navigation', { name: 'Steps' })).getByText('Time & limits'),
+    );
+    return user;
+  };
+
+  it('offers only the methods the policy allows (no free method in a live market) and saves a fixed deposit', async () => {
+    const calls = stub(routes());
+    const user = await open();
+    const editor = await screen.findByTestId('commitment-editor');
+    expect(within(editor).getByTestId('commitment-FULL_PREPAYMENT')).toBeInTheDocument();
+    expect(within(editor).getByTestId('commitment-DEPOSIT')).toBeInTheDocument();
+    expect(within(editor).queryByTestId('commitment-FREE')).toBeNull();
+    expect(within(editor).queryByTestId('commitment-CARD_PREAUTH')).toBeNull();
+    await user.click(within(editor).getByTestId('commitment-DEPOSIT'));
+    expect(within(editor).getByText(/Allowed: SAR\s?5\.00 to SAR\s?50\.00/)).toBeInTheDocument();
+    await user.type(screen.getByLabelText(/Deposit per unit/), '15');
+    await user.click(screen.getByLabelText('Refund the deposit if the customer cancels in time'));
+    expect(screen.getByText(/non-refundable deposit is shown to the customer/)).toBeInTheDocument();
+    await user.clear(screen.getByLabelText(/Free cancellation cut-off/));
+    await user.type(screen.getByLabelText(/Free cancellation cut-off/), '30');
+    expect(editor).toHaveTextContent('DealDash commission on reservation money kept for you: 10%');
+    await user.click(screen.getByRole('button', { name: 'Save draft' }));
+    await waitFor(() => expect(calls.some((c) => c.method === 'PUT')).toBe(true));
+    const body = JSON.parse(calls.find((c) => c.method === 'PUT')!.body!);
+    expect(body.content.commitment).toEqual({
+      method: 'DEPOSIT',
+      amountMinor: 1500,
+      depositRefundable: false,
+      cancelCutoffMinutes: 30,
+      noShowRefundPercent: null,
+    });
+  });
+
+  it('a deposit can be set as a share of the price; turning reservations off hides the payment set-up', async () => {
+    stub(routes());
+    const user = await open();
+    const editor = await screen.findByTestId('commitment-editor');
+    await user.click(within(editor).getByTestId('commitment-DEPOSIT'));
+    await user.click(screen.getByLabelText('A share of the price'));
+    await user.type(screen.getByLabelText(/Full price per unit/), '50');
+    await user.type(screen.getByLabelText(/Deposit share/), '20');
+    expect(editor).toHaveTextContent(/Deposit per unit: SAR\s?10\.00/);
+    await user.click(screen.getByLabelText('Customers reserve for free'));
+    expect(screen.queryByTestId('commitment-editor')).toBeNull();
+    expect(screen.getByTestId('reservations-off-note')).toBeInTheDocument();
+  });
+
+  it('a reservable deal without a method is listed as incomplete on the review step (RC-21)', async () => {
+    stub(routes());
+    const user = await open();
+    await screen.findByTestId('commitment-editor');
+    await user.click(within(screen.getByRole('navigation', { name: 'Steps' })).getByText('Review'));
+    expect(
+      await screen.findByText(/Choose how customers commit to a reservation/),
+    ).toBeInTheDocument();
+  });
+});
+
+describe('Exclusive Deal reservations: payments (RC-80)', () => {
+  const paidRow = (over: Record<string, unknown>, money: Record<string, unknown>) => ({
+    id: 'p1',
+    codeLast4: 'PY11',
+    customerFirstName: 'Sara',
+    quantity: 1,
+    branch: { en: 'Olaya', ar: 'العليا' },
+    status: 'REDEEMED',
+    cancelledBy: null,
+    expiresAt: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    redeemedAt: new Date().toISOString(),
+    canCancel: false,
+    canReverse: false,
+    ...over,
+    money: {
+      method: 'FULL_PREPAYMENT',
+      paymentStatus: 'PAID',
+      amountMinor: 5000,
+      currency: 'SAR',
+      refundedMinor: 0,
+      refundPendingMinor: 0,
+      keptMinor: 5000,
+      feeMinor: 500,
+      netToMerchantMinor: 4500,
+      additionalFeeAllowed: false,
+      redemptionFeeMinor: 0,
+      authorisation: null,
+      ...money,
+    },
+  });
+
+  it('totals collected, refunded, kept, commission and net; a row opens its payment details', async () => {
+    stub({
+      '/monitor': { body: { data: monitor(), meta: {} } },
+      '/activity': { body: { data: [], meta: {} } },
+      '/reservations': {
+        body: {
+          data: [
+            paidRow({}, {}),
+            paidRow(
+              { id: 'p2', codeLast4: 'PY22', status: 'CANCELLED', redeemedAt: null },
+              {
+                method: 'DEPOSIT',
+                paymentStatus: 'REFUNDED',
+                amountMinor: 1000,
+                refundedMinor: 1000,
+                keptMinor: 0,
+                feeMinor: 0,
+                netToMerchantMinor: 0,
+                redemptionFeeMinor: null,
+              },
+            ),
+            paidRow(
+              { id: 'p3', codeLast4: 'PY33', status: 'HELD', redeemedAt: null },
+              {
+                method: 'CARD_PREAUTH',
+                paymentStatus: 'AUTHORISED',
+                amountMinor: 2000,
+                keptMinor: null,
+                feeMinor: null,
+                netToMerchantMinor: null,
+                redemptionFeeMinor: null,
+                authorisation: {
+                  status: 'AUTHORISED',
+                  amountMinor: 2000,
+                  capturedMinor: 0,
+                  releasedMinor: 0,
+                  authorisedAt: new Date().toISOString(),
+                  expiresAt: null,
+                  capturedAt: null,
+                  releasedAt: null,
+                },
+              },
+            ),
+          ],
+          meta: { nextCursor: null },
+        },
+      },
+      [`/hot-deals/${DEAL}`]: {
+        body: { data: view({ status: 'LIVE', inventory: monitor().inventory }), meta: {} },
+      },
+    });
+    render(
+      <Providers locale="en">
+        <HotDealDetail dealId={DEAL} />
+      </Providers>,
+    );
+    const user = userEvent.setup();
+    await screen.findByTestId('hot-monitor');
+    await user.click(screen.getByRole('tab', { name: 'Reservations' }));
+    const sum = await screen.findByTestId('res-money-summary');
+    // collected: the paid 50 and the refunded deposit 10 (a card hold is not collected money)
+    expect(within(sum).getByTestId('fin-collected')).toHaveTextContent(/60\.00/);
+    expect(within(sum).getByTestId('fin-refunded')).toHaveTextContent(/10\.00/);
+    expect(within(sum).getByTestId('fin-kept')).toHaveTextContent(/50\.00/);
+    expect(within(sum).getByTestId('fin-fee')).toHaveTextContent(/5\.00/);
+    expect(within(sum).getByTestId('fin-net')).toHaveTextContent(/45\.00/);
+    expect(within(sum).getByTestId('fin-holds')).toHaveTextContent(/20\.00/);
+    const rows = screen.getAllByTestId('res-row');
+    expect(within(rows[2]!).getByTestId('res-money')).toHaveTextContent('Card hold active');
+    expect(within(rows[1]!).getByText('Cancelled')).toBeInTheDocument();
+    await user.click(within(rows[0]!).getByRole('button', { name: /SAR/ }));
+    const details = screen.getByTestId('res-money-details');
+    expect(within(details).getByTestId('detail-net')).toHaveTextContent(/45\.00/);
+    // one fee per transaction: the paid reservation's commission is the only DealDash fee
+    expect(within(details).getByTestId('detail-redemption-fee')).toHaveTextContent(
+      'Not charged: the reservation commission is the only fee',
+    );
   });
 });

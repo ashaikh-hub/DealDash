@@ -15,6 +15,7 @@ import { AllExceptionsFilter, EnvelopeInterceptor, RequestContextMiddleware } fr
 import { IdempotencyInterceptor } from './common/idempotency.interceptor';
 import { CustomersModule } from './customers/customers.controller';
 import { DevModule } from './dev/dev.module';
+import { DevReservationPaymentsModule } from './hot-deals/dev-reservation-payments.module';
 import { HealthModule } from './health/health.module';
 import { HotDealsModule } from './hot-deals/hot-deals.module';
 import { IdentityModule } from './identity/identity.module';
@@ -88,7 +89,7 @@ export class AppModule implements NestModule {
         AnalyticsModule,
         JobsModule,
         HealthModule,
-        ...(env.NODE_ENV === 'production' ? [] : [DevModule]),
+        ...(env.NODE_ENV === 'production' ? [] : [DevModule, DevReservationPaymentsModule]),
         // launch readiness G-1: the staging test inbox is not even routed in any other tier
         ...(stagingTestInboxEnabled(env) ? [StagingTestInboxModule] : []),
       ],

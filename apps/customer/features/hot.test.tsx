@@ -2,7 +2,14 @@ import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Providers } from '../app/[locale]/providers';
-import { HotDealPage, HotListPage, HotRail, MyDealsPage, ReservationPage } from './hot';
+import {
+  HotDealPage,
+  HotListPage,
+  HotRail,
+  MyDealsPage,
+  ReservationPage,
+  ReservationReturnPage,
+} from './hot';
 
 const nav = vi.hoisted(() => ({ push: vi.fn(), params: new URLSearchParams() }));
 vi.mock('next/navigation', () => ({
@@ -612,5 +619,333 @@ describe('Reservation ticket and My Deals', () => {
     });
     mount(<MyDealsPage />, 'ar');
     expect(await screen.findByText('تم الاستخدام لدى نجد كيتشن: ذروة الغداء')).toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------- phase 4: paid reservations (RC-81)
+const terms = (over: Record<string, unknown> = {}) => ({
+  method: 'FULL_PREPAYMENT',
+  amountMinor: 4500,
+  currency: 'SAR',
+  depositRefundable: null,
+  cancelCutoffMinutes: 30,
+  noShowRefundPercent: 50,
+  paymentWindowMinutes: 10,
+  preauthOnRedemption: null,
+  preauthImmediateCapture: null,
+  ...over,
+});
+const payment = (over: Record<string, unknown> = {}) => ({
+  method: 'FULL_PREPAYMENT',
+  status: 'PAID',
+  amountMinor: 4500,
+  currency: 'SAR',
+  dueAt: null,
+  redirectUrl: null,
+  canRetry: false,
+  authorisation: null,
+  cancelCutoffAt: inMin(10),
+  depositRefundable: null,
+  noShowRefundPercent: 50,
+  keptMinor: null,
+  refunds: [],
+  ...over,
+});
+
+describe('Paid reservations: before paying', () => {
+  it('a prepaid deal shows the amount, who collects it, the cut-off, the late refund and the time to pay', async () => {
+    stub({ '/v1/app/hot-deals/': { body: { data: detail({ commitment: terms() }), meta: {} } } });
+    mount(<HotDealPage id={DEAL} />);
+    const panel = await screen.findByTestId('commitment-terms');
+    expect(screen.getByTestId('hot-bar-status')).toHaveTextContent('SAR 45.00 to reserve');
+    expect(within(panel).getByTestId('commitment-amount')).toHaveTextContent('SAR 45.00');
+    expect(panel).toHaveTextContent('DealDash collects this payment for Najd Kitchen');
+    expect(panel).toHaveTextContent(
+      'Cancel up to 30 min before your reservation ends for a full refund.',
+    );
+    expect(panel).toHaveTextContent('50% is refunded');
+    expect(panel).toHaveTextContent('Complete payment within 10 min');
+    expect(screen.getByText('Pay to reserve')).toBeInTheDocument();
+    expect(screen.queryByText('Free to reserve')).toBeNull();
+  });
+
+  it('deposit and card hold state their own terms (non-refundable deposit; amount charged from a hold)', async () => {
+    stub({
+      '/v1/app/hot-deals/': {
+        body: {
+          data: detail({
+            commitment: terms({
+              method: 'DEPOSIT',
+              amountMinor: 1000,
+              depositRefundable: false,
+              noShowRefundPercent: null,
+            }),
+          }),
+          meta: {},
+        },
+      },
+    });
+    const { unmount } = mount(<HotDealPage id={DEAL} />);
+    let panel = await screen.findByTestId('commitment-terms');
+    expect(panel).toHaveTextContent('This deposit is non-refundable, even if you cancel early.');
+    expect(panel).toHaveTextContent('your deposit is credited to your bill');
+    expect(panel).toHaveTextContent('the deposit is kept by the business');
+    unmount();
+    stub({
+      '/v1/app/hot-deals/': {
+        body: {
+          data: detail({
+            commitment: terms({
+              method: 'CARD_PREAUTH',
+              amountMinor: 2000,
+              noShowRefundPercent: 25,
+              preauthOnRedemption: 'RELEASE',
+              preauthImmediateCapture: false,
+            }),
+          }),
+          meta: {},
+        },
+      },
+    });
+    mount(<HotDealPage id={DEAL} />);
+    panel = await screen.findByTestId('commitment-terms');
+    expect(panel).toHaveTextContent('Held on your card, not charged');
+    expect(panel).toHaveTextContent('the hold is released and you pay as usual');
+    // 25% released: 75% of SAR 20 is charged
+    expect(panel).toHaveTextContent('SAR 15.00 is charged from the hold');
+  });
+
+  it('the customer must accept the terms; then one POST with acceptTerms and the return address, and off to the payment page', async () => {
+    const assign = vi.fn();
+    vi.stubGlobal('location', { origin: 'http://localhost:3001', assign });
+    const calls = stub({
+      '/v1/app/hot-deals/': (c) =>
+        c.method === 'POST'
+          ? {
+              status: 201,
+              body: {
+                data: reservation({
+                  status: 'PENDING_PAYMENT',
+                  displayState: 'PAYMENT_PENDING',
+                  code: null,
+                  payment: payment({
+                    status: 'PENDING',
+                    redirectUrl:
+                      'http://localhost:3001/en/reservations/return?mock_payment=mock_pay_1',
+                    dueAt: inMin(10),
+                  }),
+                }),
+                meta: {},
+              },
+            }
+          : { body: { data: detail({ commitment: terms() }), meta: {} } },
+    });
+    mount(<HotDealPage id={DEAL} />);
+    const user = userEvent.setup();
+    await user.click(await screen.findByTestId('hot-reserve'));
+    const sheet = await screen.findByTestId('reserve-sheet');
+    expect(within(sheet).getByText('Review and pay')).toBeInTheDocument();
+    expect(within(sheet).getByTestId('sheet-terms')).toBeInTheDocument();
+    const confirm = within(sheet).getByTestId('reserve-confirm');
+    expect(confirm).toHaveTextContent('Pay SAR 45.00 and reserve');
+    expect(confirm).toBeDisabled();
+    await user.click(within(sheet).getByTestId('reserve-accept'));
+    expect(confirm).toBeEnabled();
+    await user.click(confirm);
+    await waitFor(() => expect(assign).toHaveBeenCalled());
+    expect(assign.mock.calls[0]![0]).toContain('mock_payment=mock_pay_1');
+    const post = calls.find((c) => c.method === 'POST' && c.url.includes('/hot-deals/'))!;
+    expect(JSON.parse(post.body!)).toEqual({
+      branchId: BR1,
+      quantity: 1,
+      acceptTerms: true,
+      returnUrl: 'http://localhost:3001/en/reservations/return',
+    });
+    expect(nav.push).not.toHaveBeenCalled();
+  });
+
+  it('Arabic: the terms read right-to-left with Western digits', async () => {
+    stub({ '/v1/app/hot-deals/': { body: { data: detail({ commitment: terms() }), meta: {} } } });
+    mount(<HotDealPage id={DEAL} />, 'ar');
+    const panel = await screen.findByTestId('commitment-terms');
+    expect(panel).toHaveTextContent('ادفع المبلغ كاملاً للحجز');
+    expect(panel).toHaveTextContent('45.00 ر.س');
+    expect(document.body.textContent).not.toMatch(/[٠-٩]/);
+  });
+});
+
+describe('Paid reservations: after paying', () => {
+  it('confirmed prepayment: code, timer, payment status, the free-cancellation time and the late terms', async () => {
+    stub({
+      [`/v1/app/reservations/${RES}`]: {
+        body: { data: reservation({ payment: payment() }), meta: {} },
+      },
+    });
+    mount(<ReservationPage id={RES} />);
+    const money = await screen.findByTestId('reservation-money');
+    expect(screen.getByTestId('manual-code')).toHaveTextContent('K7QM-9T2X');
+    expect(within(money).getByTestId('payment-status')).toHaveTextContent('Paid');
+    expect(within(money).getByTestId('payment-amount')).toHaveTextContent('SAR 45.00');
+    expect(within(money).getByTestId('cutoff')).toHaveTextContent('Free cancellation until');
+    expect(money).toHaveTextContent('50% is refunded');
+  });
+
+  it('cancelling after the cut-off warns that the late terms apply; before it, that refunds are in full', async () => {
+    stub({
+      [`/v1/app/reservations/${RES}`]: {
+        body: { data: reservation({ payment: payment({ cancelCutoffAt: inMin(-1) }) }), meta: {} },
+      },
+    });
+    mount(<ReservationPage id={RES} />);
+    const user = userEvent.setup();
+    await user.click(await screen.findByTestId('ticket-cancel'));
+    expect(await screen.findByTestId('cancel-cutoff-note')).toHaveTextContent(
+      'The free cancellation time has passed',
+    );
+  });
+
+  it('a failed payment: nothing charged, time left, and "Try payment again" goes back to the payment page', async () => {
+    const assign = vi.fn();
+    vi.stubGlobal('location', { origin: 'http://localhost:3001', assign });
+    const pending = reservation({
+      status: 'PENDING_PAYMENT',
+      displayState: 'PAYMENT_PENDING',
+      code: null,
+      payment: payment({ status: 'FAILED', dueAt: inMin(6), canRetry: true }),
+    });
+    const calls = stub({
+      [`/v1/app/reservations/${RES}/pay`]: {
+        body: {
+          data: {
+            ...pending,
+            payment: payment({
+              status: 'PENDING',
+              dueAt: inMin(6),
+              redirectUrl: 'http://localhost:3001/en/reservations/return?mock_payment=mock_pay_2',
+            }),
+          },
+          meta: {},
+        },
+      },
+      [`/v1/app/reservations/${RES}`]: { body: { data: pending, meta: {} } },
+    });
+    mount(<ReservationPage id={RES} />);
+    const box = await screen.findByTestId('ticket-pay');
+    expect(box).toHaveTextContent('The payment did not go through and nothing was charged');
+    expect(screen.queryByTestId('manual-code')).toBeNull();
+    expect(screen.getByTestId('reservation-ticket')).toHaveTextContent('Waiting for payment');
+    const user = userEvent.setup();
+    await user.click(within(box).getByTestId('ticket-retry-pay'));
+    await waitFor(() => expect(assign).toHaveBeenCalled());
+    expect(assign.mock.calls[0]![0]).toContain('mock_payment=mock_pay_2');
+    const pay = calls.find((c) => c.method === 'POST' && c.url.endsWith('/pay'))!;
+    expect(JSON.parse(pay.body!)).toEqual({
+      returnUrl: 'http://localhost:3001/en/reservations/return',
+    });
+  });
+
+  it('a card hold shows the hold state; a cancelled prepayment lists its refund and status', async () => {
+    stub({
+      [`/v1/app/reservations/${RES}`]: {
+        body: {
+          data: reservation({
+            payment: payment({
+              method: 'CARD_PREAUTH',
+              status: 'AUTHORISED',
+              amountMinor: 2000,
+              noShowRefundPercent: 0,
+              authorisation: {
+                status: 'AUTHORISED',
+                amountMinor: 2000,
+                capturedMinor: 0,
+                releasedMinor: 0,
+                authorisedAt: inMin(-1),
+                expiresAt: inMin(60 * 24),
+                capturedAt: null,
+                releasedAt: null,
+              },
+            }),
+          }),
+          meta: {},
+        },
+      },
+    });
+    const { unmount } = mount(<ReservationPage id={RES} />);
+    const money = await screen.findByTestId('reservation-money');
+    expect(within(money).getByTestId('hold-status')).toHaveTextContent('Hold active');
+    expect(money).toHaveTextContent('Card hold · Held on card');
+    unmount();
+    stub({
+      [`/v1/app/reservations/${RES}`]: {
+        body: {
+          data: reservation({
+            status: 'CANCELLED',
+            displayState: 'CANCELLED_BY_YOU',
+            cancelledBy: 'CUSTOMER',
+            code: null,
+            canCancel: false,
+            payment: payment({
+              status: 'REFUNDED',
+              refunds: [
+                {
+                  reference: 'RRF-1',
+                  amountMinor: 4500,
+                  status: 'REFUNDED',
+                  reasonCode: 'CUSTOMER_CANCELLED_IN_TIME',
+                  refundedAt: inMin(-1),
+                },
+              ],
+            }),
+          }),
+          meta: {},
+        },
+      },
+    });
+    mount(<ReservationPage id={RES} />);
+    const refunds = await screen.findByTestId('refunds');
+    expect(refunds).toHaveTextContent('SAR 45.00');
+    expect(refunds).toHaveTextContent('Refunded');
+    expect(screen.getByTestId('payment-status')).toHaveTextContent('Refunded');
+  });
+});
+
+describe('Development payment page for reservations (mobile testing)', () => {
+  it('shows what is being paid and approving settles it through the development endpoint', async () => {
+    nav.params = new URLSearchParams('mock_payment=mock_pay_9');
+    const calls = stub({
+      '/v1/dev/reservations/mock_pay_9/complete': {
+        body: { data: { reservationId: RES, outcome: 'APPLIED' }, meta: {} },
+      },
+      '/v1/dev/reservations/mock_pay_9': {
+        body: { data: { reservationId: RES, kind: 'PAYMENT' }, meta: {} },
+      },
+      [`/v1/app/reservations/${RES}`]: {
+        body: {
+          data: reservation({
+            status: 'PENDING_PAYMENT',
+            displayState: 'PAYMENT_PENDING',
+            code: null,
+            payment: payment({ status: 'PENDING' }),
+          }),
+          meta: {},
+        },
+      },
+    });
+    mount(<ReservationReturnPage />);
+    const page = await screen.findByTestId('mock-reservation-pay');
+    expect(within(page).getByTestId('mock-amount')).toHaveTextContent('SAR 45.00');
+    expect(page).toHaveTextContent('Lunch rush: 40% off kabsa');
+    const user = userEvent.setup();
+    await user.click(screen.getByTestId('mock-approve'));
+    await waitFor(() =>
+      expect(
+        calls.some(
+          (c) => c.method === 'POST' && c.url.endsWith('/v1/dev/reservations/mock_pay_9/complete'),
+        ),
+      ).toBe(true),
+    );
+    expect(JSON.parse(calls.find((c) => c.url.endsWith('/complete'))!.body!)).toEqual({
+      outcome: 'SUCCEEDED',
+    });
   });
 });

@@ -2218,6 +2218,92 @@ html[lang='ar'] body,
   margin: 0;
   font-weight: 700;
 }
+/* reservation commitment (phase 4): terms before paying, payment state after */
+.dd-rsv-terms {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--dd-line);
+  border-radius: var(--dd-radius-input);
+  background: var(--dd-purple-50);
+}
+.dd-rsv-terms__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.dd-rsv-terms__icon {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 34px;
+  block-size: 34px;
+  border-radius: 50%;
+  background: var(--dd-lilac);
+  color: var(--dd-purple);
+  flex: none;
+}
+.dd-rsv-terms__amount {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--dd-ink);
+  white-space: nowrap;
+}
+.dd-rsv-terms__list {
+  margin: 0;
+  padding-inline-start: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--dd-ink-2);
+}
+.dd-rsv-accept {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+.dd-rsv-accept input {
+  inline-size: 20px;
+  block-size: 20px;
+  margin: 1px 0 0;
+  flex: none;
+  accent-color: var(--dd-purple);
+}
+.dd-rsv-money {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-block-start: 12px;
+  border-block-start: 1px solid var(--dd-line);
+}
+.dd-rsv-money__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.dd-staff-money {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  inline-size: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--dd-line);
+  border-radius: var(--dd-radius-input);
+  background: var(--dd-card);
+  text-align: start;
+}
+.dd-ticket__pay {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 0;
+}
 .dd-ticket__actions {
   display: flex;
   flex-wrap: wrap;

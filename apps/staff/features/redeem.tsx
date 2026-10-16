@@ -541,7 +541,84 @@ export function ResultView({
           </div>
         </dl>
       ) : null}
+      {r?.money ? <StaffMoney money={r.money} locale={locale} /> : null}
       {children}
+    </div>
+  );
+}
+
+const MONEY_TONE: Record<string, string> = {
+  PAID: 'success',
+  AUTHORISED: 'success',
+  CAPTURED: 'info',
+  PENDING: 'warning',
+  FAILED: 'danger',
+  REFUNDED: 'neutral',
+  PARTIALLY_REFUNDED: 'info',
+  FORFEITED: 'neutral',
+  VOIDED: 'neutral',
+};
+
+/**
+ * RC-60: what the customer already paid or holds for a paid reservation: "Paid in full", "Deposit X, credit it to the bill",
+ * "Card hold X", with the payment / hold status and any refund or kept amount. Read-only: staff never change financial rules.
+ */
+function StaffMoney({
+  money,
+  locale,
+}: {
+  money: NonNullable<NonNullable<Outcome['reservation']>['money']>;
+  locale: Locale;
+}) {
+  const t = createTranslator(locale);
+  const amount = formatMoney(locale, money.amountMinor, money.currency);
+  const notPaid = money.paymentStatus === 'PENDING' || money.paymentStatus === 'FAILED';
+  return (
+    <div
+      className="dd-staff-money"
+      data-testid="staff-money"
+      data-method={money.method}
+      data-status={money.paymentStatus}
+    >
+      <div className="dd-row" style={{ justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+        <strong>
+          {money.method === 'FULL_PREPAYMENT'
+            ? t('srsv.FULL_PREPAYMENT')
+            : t(`srsv.${money.method}` as DictionaryKey, { amount })}
+        </strong>
+        <span
+          className={`dd-chip dd-chip--${MONEY_TONE[money.paymentStatus] ?? 'neutral'}`}
+          data-testid="staff-money-status"
+        >
+          {money.holdStatus
+            ? t(`rsv.hold.${money.holdStatus}` as DictionaryKey)
+            : t(`rsv.status.${money.paymentStatus}` as DictionaryKey)}
+        </span>
+      </div>
+      {money.method === 'FULL_PREPAYMENT' ? (
+        <div className="dd-caption dd-ltr">{t('srsv.paidAmount', { amount })}</div>
+      ) : null}
+      {money.method === 'CARD_PREAUTH' && money.holdStatus === 'AUTHORISED' ? (
+        <div className="dd-caption">{t('srsv.holdRelease')}</div>
+      ) : null}
+      {money.refundedMinor > 0 ? (
+        <div className="dd-caption">
+          {t('srsv.refunded', {
+            amount: formatMoney(locale, money.refundedMinor, money.currency),
+          })}
+        </div>
+      ) : null}
+      {money.keptMinor ? (
+        <div className="dd-caption">
+          {t('srsv.kept', { amount: formatMoney(locale, money.keptMinor, money.currency) })}
+        </div>
+      ) : null}
+      {notPaid ? (
+        <Alert tone="danger">
+          <span>{t('srsv.notPaid')}</span>
+        </Alert>
+      ) : null}
+      <div className="dd-caption">{t('srsv.fixed')}</div>
     </div>
   );
 }

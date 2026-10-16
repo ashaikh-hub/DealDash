@@ -286,6 +286,11 @@ const P45 = {
   'vis.alert.TARGET_MILESTONE': ['Target milestone reached', 'تم بلوغ مرحلة من الهدف'],
   'vis.alert.CAMPAIGN_BEHIND_TARGET': ['Campaign behind target', 'الحملة متأخرة عن الهدف'],
   'vis.alert.CAMPAIGN_LOW_ACTIVITY': ['Little or no activity', 'نشاط ضعيف أو منعدم'],
+  // reservation commitment phase 3 (RC-96): repeated refused captures of a card hold
+  'vis.alert.RESERVATION_CAPTURE_FAILED': [
+    'A reservation card hold could not be charged',
+    'تعذر خصم مبلغ حجز على بطاقة العميل',
+  ],
   'vis.alert.BUDGET_PROJECTED_EXHAUST': ['Budget expected to run out', 'يُتوقع نفاد الميزانية'],
   'vis.alert.INVENTORY_PROJECTED_EXHAUST': ['Inventory expected to run out', 'يُتوقع نفاد المخزون'],
   'vis.alert.VOUCHER_INVENTORY_LOW': ['Voucher inventory low', 'مخزون القسائم منخفض'],

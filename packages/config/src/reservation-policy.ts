@@ -55,6 +55,8 @@ const policyFieldShape = {
   preauthPartialCaptureAllowed: z.boolean(),
   /** At redemption the hold is RELEASED (customer pays at the till, default) or CAPTURED as part payment (RC-61). */
   preauthOnRedemption: z.enum(['RELEASE', 'CAPTURE']),
+  /** After this many refused captures of one card hold a DealDash finance alert is raised (retries continue). */
+  captureFailureAlertThreshold: z.number().int().min(1).max(20),
 };
 
 export const reservationPolicyFieldsSchema = z.object(policyFieldShape).strict();
@@ -91,6 +93,7 @@ export const reservationPolicySchema = z
       preauthImmediateCapture: z.boolean().default(false),
       preauthPartialCaptureAllowed: z.boolean().default(false),
       preauthOnRedemption: z.enum(['RELEASE', 'CAPTURE']).default('RELEASE'),
+      captureFailureAlertThreshold: z.number().int().min(1).max(20).default(3),
     }),
     market: z.record(marketCode, reservationPolicyOverrideSchema).default({}),
     category: z.record(uuid, reservationPolicyOverrideSchema).default({}),
@@ -122,11 +125,25 @@ export const DEFAULT_RESERVATION_POLICY: ReservationPolicyConfig = {
     preauthImmediateCapture: false,
     preauthPartialCaptureAllowed: false,
     preauthOnRedemption: 'RELEASE',
+    captureFailureAlertThreshold: 3,
   },
   market: {},
   category: {},
   merchant: {},
 };
+
+/**
+ * RC-52 strike values (`reservation.noshow`, governed): this many no-shows within `windowDays` block new reservations for `blockDays`.
+ * Applies to free and paid reservations alike; a late cancellation is never a strike (RC-41).
+ */
+export const reservationNoShowSchema = z
+  .object({
+    threshold: z.number().int().min(1).max(20),
+    windowDays: z.number().int().min(1).max(365),
+    blockDays: z.number().int().min(1).max(365),
+  })
+  .strict();
+export type ReservationNoShowConfig = z.infer<typeof reservationNoShowSchema>;
 
 export type PolicyLevel = 'MERCHANT' | 'CATEGORY' | 'MARKET' | 'BASELINE';
 

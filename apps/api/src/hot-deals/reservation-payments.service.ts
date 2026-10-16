@@ -1,6 +1,8 @@
 import { randomBytes } from 'node:crypto';
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import type { ApiEnv } from '@dealdash/config';
+import { ModuleRef } from '@nestjs/core';
+import { AlertsService } from '../visibility/alerts.service';
+import { isAllowedBrowserOrigin, type ApiEnv } from '@dealdash/config';
 import {
   canTransitionPayment,
   type PaymentEventOutcome,
@@ -57,13 +59,16 @@ export interface IncomingEvent {
 export function policyOf(r: { termsSnapshot: Prisma.JsonValue | null }): {
   preauthImmediateCapture: boolean;
   preauthOnRedemption: 'RELEASE' | 'CAPTURE';
+  captureFailureAlertThreshold: number;
 } {
   const f =
     (r.termsSnapshot as { policy?: { fields?: Record<string, unknown> } } | null)?.policy?.fields ??
     {};
+  const threshold = Number(f.captureFailureAlertThreshold);
   return {
     preauthImmediateCapture: f.preauthImmediateCapture === true,
     preauthOnRedemption: f.preauthOnRedemption === 'CAPTURE' ? 'CAPTURE' : 'RELEASE',
+    captureFailureAlertThreshold: Number.isInteger(threshold) && threshold > 0 ? threshold : 3,
   };
 }
 
@@ -96,6 +101,7 @@ export class ReservationPaymentsService {
     private readonly audit: AuditService,
     @Inject(PAYMENT_PROVIDER) private readonly provider: PaymentProvider,
     @Inject(APP_ENV) private readonly env: ApiEnv,
+    private readonly moduleRef: ModuleRef,
   ) {}
 
   // ================================================================ notices
@@ -164,7 +170,18 @@ export class ReservationPaymentsService {
     });
   }
 
-  private returnUrl(reservationId: string) {
+  /**
+   * Where the provider's page returns to: the app's own address when it is one of DealDash's app origins (a phone on the local
+   * network in development is one too), never an arbitrary site (no open redirect); otherwise the reservation page.
+   */
+  private returnUrl(reservationId: string, candidate?: string) {
+    if (candidate) {
+      try {
+        if (isAllowedBrowserOrigin(this.env, new URL(candidate).origin)) return candidate;
+      } catch {
+        /* not a URL: the default below */
+      }
+    }
     return `${this.env.CORS_ORIGINS[0] ?? 'http://localhost:3001'}/en/reservations/${reservationId}`;
   }
 
@@ -235,7 +252,7 @@ export class ReservationPaymentsService {
   }
 
   /** Sends an opened attempt to the provider (after commit). A provider error fails the attempt; the customer may retry. */
-  async initiate(paymentId: string) {
+  async initiate(paymentId: string, returnTo?: string) {
     const p = await this.prisma.reservationPayment.findUniqueOrThrow({
       where: { id: paymentId },
       include: { reservation: { select: { id: true, reference: true } } },
@@ -246,7 +263,7 @@ export class ReservationPaymentsService {
         amountHalalas: p.amountMinor,
         currency: p.currency,
         idempotencyKey: p.idempotencyKey,
-        returnUrl: this.returnUrl(p.reservationId),
+        returnUrl: this.returnUrl(p.reservationId, returnTo),
       });
       await this.prisma.reservationPayment.updateMany({
         where: { id: p.id, status: 'CREATED' },
@@ -274,7 +291,13 @@ export class ReservationPaymentsService {
   }
 
   /** Customer retry inside the payment window (RC-31): a new attempt when the previous one did not go through. */
-  async retry(actor: Actor, reservationId: string, meta: RequestMeta, now = new Date()) {
+  async retry(
+    actor: Actor,
+    reservationId: string,
+    meta: RequestMeta,
+    now = new Date(),
+    returnTo?: string,
+  ) {
     const r = await this.prisma.reservation.findFirst({
       where: { id: reservationId, userId: actor.userId },
     });
@@ -298,7 +321,7 @@ export class ReservationPaymentsService {
         if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') return;
         throw e;
       }
-      await this.requestAuthorisation(authId);
+      await this.requestAuthorisation(authId, returnTo);
       return;
     }
     const open = await this.prisma.reservationPayment.findFirst({
@@ -312,7 +335,7 @@ export class ReservationPaymentsService {
       if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') return; // a concurrent tap opened it
       throw e;
     }
-    await this.initiate(paymentId);
+    await this.initiate(paymentId, returnTo);
   }
 
   // ================================================================ provider outcomes (webhook, reconciliation, sync)
@@ -1218,7 +1241,7 @@ export class ReservationPaymentsService {
   }
 
   /** Sends a hold request to the provider (after commit). A provider error fails the request; the customer may retry. */
-  async requestAuthorisation(authId: string) {
+  async requestAuthorisation(authId: string, returnTo?: string) {
     const holds = this.holdProvider();
     const a = await this.prisma.reservationAuthorisation.findUniqueOrThrow({
       where: { id: authId },
@@ -1231,7 +1254,7 @@ export class ReservationPaymentsService {
         amountMinor: a.amountMinor,
         currency: a.currency,
         idempotencyKey: a.idempotencyKey,
-        returnUrl: this.returnUrl(a.reservationId),
+        returnUrl: this.returnUrl(a.reservationId, returnTo),
       });
       await this.prisma.reservationAuthorisation.updateMany({
         where: { id: a.id, status: 'REQUESTED' },
@@ -1561,8 +1584,42 @@ export class ReservationPaymentsService {
         status: 'FAILED' as const,
         failureCode: `PROVIDER_ERROR: ${e.message}`.slice(0, 120),
       }));
+    const r = await this.prisma.reservation.findUniqueOrThrow({
+      where: { id: a.reservationId },
+      select: {
+        id: true,
+        reference: true,
+        organizationId: true,
+        dealId: true,
+        termsSnapshot: true,
+      },
+    });
     if (res.status === 'SUCCEEDED') {
-      await this.completeCapture(a.id, a.pendingCaptureMinor, res.captureReference, 'SYNC');
+      const done = await this.completeCapture(
+        a.id,
+        a.pendingCaptureMinor,
+        res.captureReference,
+        'SYNC',
+      );
+      // recovery after refusals is logged (and linked to the finance alert, if one was raised)
+      if (done && refusals > 0) {
+        const alert = await this.prisma.alertEvent.findFirst({
+          where: { code: 'RESERVATION_CAPTURE_FAILED', subjectId: a.id },
+          select: { id: true },
+        });
+        await this.audit.record({
+          action: 'reservation.capture_recovered',
+          entityType: 'ReservationAuthorisation',
+          entityId: a.id,
+          actorRole: 'SYSTEM',
+          subjectOrganizationId: r.organizationId,
+          newState: {
+            capturedMinor: a.pendingCaptureMinor,
+            refusalsBefore: refusals,
+            alertId: alert?.id ?? null,
+          },
+        });
+      }
       return;
     }
     await this.prisma.reservationAuthorisation.update({
@@ -1574,11 +1631,64 @@ export class ReservationPaymentsService {
       entityType: 'ReservationAuthorisation',
       entityId: a.id,
       actorRole: 'SYSTEM',
+      subjectOrganizationId: r.organizationId,
       newState: {
         pendingCaptureMinor: a.pendingCaptureMinor,
         failureCode: res.failureCode ?? null,
+        refusals: refusals + 1,
       },
     });
+    // RC-96: after the configured number of refusals DealDash finance is alerted (once per hold); retries continue meanwhile.
+    // No fee / commission is recognised: nothing is posted until a capture succeeds.
+    const threshold = policyOf(r).captureFailureAlertThreshold;
+    if (refusals + 1 >= threshold)
+      await this.raiseCaptureAlert(a, r, refusals + 1, res.failureCode);
+  }
+
+  private async raiseCaptureAlert(
+    a: { id: string; pendingCaptureMinor: number | null; currency: string },
+    r: { id: string; reference: string; organizationId: string; dealId: string },
+    refusals: number,
+    failureCode: string | undefined,
+  ) {
+    let alerts: AlertsService | null = null;
+    try {
+      alerts = this.moduleRef.get(AlertsService, { strict: false });
+    } catch {
+      alerts = null; // alerts are optional infrastructure: the audit record below always exists
+    }
+    const raised = await alerts
+      ?.raise({
+        code: 'RESERVATION_CAPTURE_FAILED',
+        organizationId: null, // DealDash finance / admin
+        subjectType: 'ReservationAuthorisation',
+        subjectId: a.id,
+        once: true,
+        product: 'EXCLUSIVE',
+        campaignId: r.dealId,
+        data: {
+          reservationId: r.id,
+          reservationReference: r.reference,
+          merchantOrganizationId: r.organizationId,
+          amountMinor: a.pendingCaptureMinor,
+          currency: a.currency,
+          refusals,
+          failureCode: failureCode ?? null,
+        },
+      })
+      .catch((e: Error) => {
+        this.logger.warn(`Capture alert for ${a.id} could not be raised: ${e.message}`);
+        return null;
+      });
+    if (raised?.created)
+      await this.audit.record({
+        action: 'reservation.capture_alert_raised',
+        entityType: 'ReservationAuthorisation',
+        entityId: a.id,
+        actorRole: 'SYSTEM',
+        subjectOrganizationId: r.organizationId,
+        newState: { alertId: raised.id, refusals },
+      });
   }
 
   /**

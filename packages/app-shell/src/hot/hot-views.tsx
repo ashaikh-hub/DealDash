@@ -22,6 +22,12 @@ import {
 } from '../deals/format';
 import { Countdown, useServerNow } from './countdown';
 import { QrCode } from './qr';
+import {
+  CommitmentTermsPanel,
+  ReservationMoneyPanel,
+  commitmentHeadline,
+  isPaidTerms,
+} from './reservation-money';
 
 const tr = (locale: Locale) =>
   createTranslator(locale) as (
@@ -142,7 +148,9 @@ export interface ReserveOutcome {
 
 /**
  * Exclusive Deal detail. `embedded` renders it inside the merchant/admin preview (no sticky bar, no actions).
- * Reserving is free: there is no payment step anywhere in this view.
+ * Reservation commitment (phase 4, RC-81): a paid deal shows its amount and terms on the page and again in the reserve sheet, where
+ * the customer accepts them before paying; the payment itself happens on the provider's page (`onReserve` sends them there).
+ * A FREE deal (development / testing markets only) keeps the original free flow.
  */
 export function HotDetailView({
   detail,
@@ -162,7 +170,7 @@ export function HotDetailView({
   embedded?: boolean;
   signedIn?: boolean;
   onBack?: () => void;
-  onReserve?: (branchId: string) => Promise<ReserveOutcome>;
+  onReserve?: (branchId: string, opts: { acceptTerms: boolean }) => Promise<ReserveOutcome>;
   onSignIn?: () => void;
   onViewReservation?: (reservationId: string) => void;
   onDirections?: (branchId: string) => void;
@@ -175,7 +183,11 @@ export function HotDetailView({
   const [picked, setPicked] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [accepted, setAccepted] = useState(false);
   const now = useServerNow(detail.serverNow);
+  const paid =
+    detail.reservationsEnabled && isPaidTerms(detail.commitment) ? detail.commitment : null;
+  const merchant = pickText(detail.merchantName, locale);
 
   const locked = detail.eligibility.result === 'LOCKED_UNLOCKABLE';
   const soldOut = detail.soldOut;
@@ -194,6 +206,8 @@ export function HotDetailView({
   useEffect(() => {
     if (sheet && !picked)
       setPicked(reservable.length === 1 ? reservable[0]!.id : (reservable[0]?.id ?? null));
+    // terms are accepted afresh each time the sheet opens
+    if (sheet) setAccepted(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sheet]);
 
@@ -204,13 +218,18 @@ export function HotDetailView({
   };
 
   const confirm = async () => {
-    if (!picked || !onReserve) return;
+    if (!picked || !onReserve || (paid && !accepted)) return;
     setBusy(true);
     setError(null);
-    const r = await onReserve(picked);
-    setBusy(false);
-    if (r.error) setError(r.error);
-    else setSheet(false);
+    const r = await onReserve(picked, { acceptTerms: !!paid && accepted });
+    // a paid reservation continues on the payment page: the sheet stays busy until the browser leaves
+    if (r.error) {
+      setBusy(false);
+      setError(r.error);
+    } else if (!paid) {
+      setBusy(false);
+      setSheet(false);
+    }
   };
 
   // what the sticky bar offers
@@ -218,11 +237,19 @@ export function HotDetailView({
   if (!embedded) {
     const status = (
       <div>
-        <strong>{detail.reservationsEnabled ? t('hot.free') : t('hot.walkIn')}</strong>
+        <strong data-testid="hot-bar-status">
+          {!detail.reservationsEnabled
+            ? t('hot.walkIn')
+            : paid
+              ? commitmentHeadline(paid, locale)
+              : t('hot.free')}
+        </strong>
         <div className="dd-caption">
-          {detail.reservationsEnabled
-            ? t('hot.holdInfo', { min: detail.holdMinutes })
-            : t('hot.walkInDetail')}
+          {!detail.reservationsEnabled
+            ? t('hot.walkInDetail')
+            : paid
+              ? t(`rsv.methodName.${paid.method}` as DictionaryKey)
+              : t('hot.holdInfo', { min: detail.holdMinutes })}
         </div>
       </div>
     );
@@ -363,7 +390,13 @@ export function HotDetailView({
         ) : null}
 
         <div className="dd-dd__badges">
-          <span className="dd-chip dd-chip--success">{t('hot.free')}</span>
+          {paid ? (
+            <span className="dd-chip dd-chip--info" data-testid="hot-commitment-chip">
+              {commitmentHeadline(paid, locale)}
+            </span>
+          ) : (
+            <span className="dd-chip dd-chip--success">{t('hot.free')}</span>
+          )}
           <span className="dd-chip dd-chip--info">
             <Icon name="tag" size={13} /> {t(`elig.${detail.eligibility.kind}` as DictionaryKey)}
           </span>
@@ -409,6 +442,15 @@ export function HotDetailView({
           </div>
         ) : null}
 
+        {paid ? (
+          <CommitmentTermsPanel
+            terms={paid}
+            locale={locale}
+            merchant={merchant}
+            holdMinutes={detail.holdMinutes}
+          />
+        ) : null}
+
         {detail.reservationsEnabled ? (
           <ol className="dd-hot-how" aria-label={t('hot.howTitle')}>
             {([1, 2, 3] as const).map((n) => (
@@ -420,9 +462,13 @@ export function HotDetailView({
                   <strong>
                     {n === 2
                       ? t('hot.how2', { min: detail.holdMinutes })
-                      : t(`hot.how${n}` as DictionaryKey)}
+                      : n === 1 && paid
+                        ? t(`rsv.how1.${paid.method}` as DictionaryKey)
+                        : t(`hot.how${n}` as DictionaryKey)}
                   </strong>
-                  <div className="dd-caption">{t(`hot.how${n}b` as DictionaryKey)}</div>
+                  <div className="dd-caption">
+                    {n === 1 && paid ? t('rsv.how1b') : t(`hot.how${n}b` as DictionaryKey)}
+                  </div>
                 </div>
               </li>
             ))}
@@ -541,7 +587,7 @@ export function HotDetailView({
             data-testid="reserve-sheet"
           >
             <div className="dd-sheet__head">
-              <h2 className="dd-title">{t('hot.confirmTitle')}</h2>
+              <h2 className="dd-title">{paid ? t('rsv.confirmTitle') : t('hot.confirmTitle')}</h2>
               <Button
                 variant="ghost"
                 size="sm"
@@ -552,7 +598,9 @@ export function HotDetailView({
                 <Icon name="x" size={18} />
               </Button>
             </div>
-            <p className="dd-muted">{t('hot.confirmBody', { min: detail.holdMinutes })}</p>
+            {paid ? null : (
+              <p className="dd-muted">{t('hot.confirmBody', { min: detail.holdMinutes })}</p>
+            )}
             {reservable.length > 1 ? (
               <fieldset className="dd-hot-branchpick">
                 <legend className="dd-label">{t('hot.chooseBranch')}</legend>
@@ -597,15 +645,47 @@ export function HotDetailView({
                 </div>
               </div>
             ) : null}
+            {paid ? (
+              <>
+                <CommitmentTermsPanel
+                  terms={paid}
+                  locale={locale}
+                  merchant={merchant}
+                  holdMinutes={detail.holdMinutes}
+                  testId="sheet-terms"
+                />
+                <label className="dd-rsv-accept">
+                  <input
+                    type="checkbox"
+                    checked={accepted}
+                    disabled={busy}
+                    onChange={(e) => setAccepted(e.target.checked)}
+                    data-testid="reserve-accept"
+                  />
+                  <span>{t('rsv.accept')}</span>
+                </label>
+                <p className="dd-caption" style={{ margin: 0 }}>
+                  <Icon name="lock" size={13} /> {t('rsv.secure')}
+                </p>
+              </>
+            ) : null}
             {error ? <Alert tone="danger">{error}</Alert> : null}
             <Button
               onClick={() => void confirm()}
               loading={busy}
-              disabled={!picked}
+              disabled={!picked || (!!paid && !accepted)}
               block
               data-testid="reserve-confirm"
             >
-              {busy ? t('hot.reserving') : t('hot.confirm')}
+              {paid
+                ? busy
+                  ? t('rsv.redirecting')
+                  : t(`rsv.cta.${paid.method}` as DictionaryKey, {
+                      amount: formatMoney(locale, paid.amountMinor!, paid.currency),
+                    })
+                : busy
+                  ? t('hot.reserving')
+                  : t('hot.confirm')}
             </Button>
             <Button variant="secondary" onClick={() => setSheet(false)} disabled={busy} block>
               {t('common.cancel')}
@@ -626,6 +706,7 @@ export function ReservationTicket({
   locale,
   justConfirmed,
   onCancel,
+  onRetryPayment,
   offerHref,
   reserveAgainHref,
   onDirections,
@@ -634,6 +715,8 @@ export function ReservationTicket({
   locale: Locale;
   justConfirmed?: boolean;
   onCancel?: () => Promise<string | null>;
+  /** Paid reservations: start another payment attempt (returns a translated error, or null when the browser moves on). */
+  onRetryPayment?: () => Promise<string | null>;
   offerHref?: string;
   reserveAgainHref?: string;
   onDirections?: () => void;
@@ -643,18 +726,36 @@ export function ReservationTicket({
   const now = useServerNow(r.serverNow);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [retrying, setRetrying] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [payErr, setPayErr] = useState<string | null>(null);
   const ms = new Date(r.expiresAt).getTime() - now;
   const stateNow = r.displayState === 'HELD' && ms <= 0 ? 'NOT_COMPLETED' : r.displayState;
   const live = stateNow === 'HELD' && !!r.code;
+  const pending = stateNow === 'PAYMENT_PENDING';
+  const pay = r.payment;
+  const attemptFailed = pending && pay?.status === 'FAILED';
+  const cutoffPassed = !!pay?.cancelCutoffAt && new Date(pay.cancelCutoffAt).getTime() <= now;
   const tone =
     stateNow === 'HELD'
       ? 'success'
       : stateNow === 'REDEEMED'
         ? 'info'
-        : stateNow === 'NOT_COMPLETED'
+        : stateNow === 'NOT_COMPLETED' || pending
           ? 'warning'
           : 'neutral';
+
+  const retry = async () => {
+    if (!onRetryPayment) return;
+    setRetrying(true);
+    setPayErr(null);
+    const e = await onRetryPayment();
+    // on success the browser goes to the payment page; stay busy until it does
+    if (e) {
+      setRetrying(false);
+      setPayErr(e);
+    }
+  };
   const lat = r.branch.latitude;
   const lng = r.branch.longitude;
 
@@ -712,6 +813,41 @@ export function ReservationTicket({
               </strong>
             </div>
           </>
+        ) : pending ? (
+          <div className="dd-ticket__pay" data-testid="ticket-pay">
+            <p style={{ margin: 0 }}>
+              {attemptFailed ? t('rsv.failedBody') : t('rsv.pendingBody')}
+            </p>
+            {pay?.dueAt ? (
+              <div className="dd-ticket__timer">
+                <span className="dd-caption">{t('rsv.payTimeLeft')}</span>
+                <strong className="dd-cd--urgent">
+                  <Countdown target={pay.dueAt} serverNow={r.serverNow} locale={locale} />
+                </strong>
+              </div>
+            ) : null}
+            {payErr ? <Alert tone="danger">{payErr}</Alert> : null}
+            {!attemptFailed && pay?.redirectUrl ? (
+              <a
+                className="dd-btn dd-btn--primary dd-btn--block"
+                href={pay.redirectUrl}
+                data-testid="ticket-continue-pay"
+              >
+                {t('rsv.continuePay')}
+              </a>
+            ) : null}
+            {pay?.canRetry && onRetryPayment ? (
+              <Button
+                block
+                variant={attemptFailed || !pay.redirectUrl ? 'primary' : 'outline'}
+                loading={retrying}
+                onClick={() => void retry()}
+                data-testid="ticket-retry-pay"
+              >
+                {t('rsv.retry')}
+              </Button>
+            ) : null}
+          </div>
         ) : (
           <div className="dd-ticket__past">
             <Icon
@@ -725,9 +861,11 @@ export function ReservationTicket({
                 ? t('res.usedOn', { date: dateLabel(locale, r.redeemedAt) })
                 : stateNow === 'NOT_COMPLETED'
                   ? t('res.notCompletedBody')
-                  : stateNow === 'CANCELLED_BY_MERCHANT'
-                    ? t('res.cancelledByMerchantBody')
-                    : t('res.cancelled')}
+                  : stateNow === 'PAYMENT_FAILED'
+                    ? t('rsv.expiredBody')
+                    : stateNow === 'CANCELLED_BY_MERCHANT'
+                      ? t('res.cancelledByMerchantBody')
+                      : t('res.cancelled')}
             </p>
             {stateNow === 'REDEEMED' ? <p className="dd-caption">{t('res.usedNote')}</p> : null}
           </div>
@@ -746,6 +884,8 @@ export function ReservationTicket({
         <p className="dd-caption" style={{ margin: 0 }}>
           {pickText(r.branch.address, locale)}
         </p>
+
+        <ReservationMoneyPanel reservation={r} locale={locale} />
 
         <div className="dd-ticket__actions">
           {lat !== null && lng !== null ? (
@@ -767,7 +907,7 @@ export function ReservationTicket({
         </div>
 
         {live ? <p className="dd-caption">{t('res.releaseNote')}</p> : null}
-        {live && r.canCancel && onCancel ? (
+        {(live || pending) && r.canCancel && onCancel ? (
           <Button
             variant="outline"
             block
@@ -813,6 +953,13 @@ export function ReservationTicket({
         }
       >
         <p>{t('res.cancelBody')}</p>
+        {live && pay ? (
+          <Alert tone={cutoffPassed ? 'warning' : 'info'}>
+            <span data-testid="cancel-cutoff-note">
+              {cutoffPassed ? t('rsv.cancelAfter') : t('rsv.cancelBefore')}
+            </span>
+          </Alert>
+        ) : null}
         {err ? <Alert tone="danger">{err}</Alert> : null}
       </Modal>
     </div>

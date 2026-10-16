@@ -730,6 +730,8 @@ export const ERROR_CODES = {
   // reservation commitment model (2026-10-15): FREE not allowed by the policy / the payment step is not available yet (phase 2)
   RESERVATION_METHOD_REQUIRED: 'RESERVATION_METHOD_REQUIRED',
   RESERVATION_PAYMENT_UNAVAILABLE: 'RESERVATION_PAYMENT_UNAVAILABLE',
+  /** RC-81: a paid reservation needs the customer to accept the payment, cancellation and no-show terms first. */
+  RESERVATION_TERMS_REQUIRED: 'RESERVATION_TERMS_REQUIRED',
   INVENTORY_BELOW_COMMITTED: 'INVENTORY_BELOW_COMMITTED',
   MATERIAL_EDIT_LOCKED: 'MATERIAL_EDIT_LOCKED',
   REVERSAL_NOT_ALLOWED: 'REVERSAL_NOT_ALLOWED',

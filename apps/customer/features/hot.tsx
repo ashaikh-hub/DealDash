@@ -13,9 +13,14 @@ import {
   useAuth,
   type ReserveOutcome,
 } from '@dealdash/app-shell';
-import { createTranslator, formatDateTime, type DictionaryKey } from '@dealdash/localization';
+import {
+  createTranslator,
+  formatDateTime,
+  formatMoney,
+  type DictionaryKey,
+} from '@dealdash/localization';
 import type { UnlockAction } from '@dealdash/types';
-import { Button, EmptyState, LoadingState, Skeleton } from '@dealdash/ui';
+import { Alert, Button, EmptyState, LoadingState, Skeleton } from '@dealdash/ui';
 import type { HotDealCard, HotDealDetail, ReservationView } from '@dealdash/validation';
 import { useCustomer, useImpression } from './customer-context';
 import { CardSkeletons, CityBar, LoadError, SectionHead, useHref, useT } from './parts';
@@ -196,12 +201,24 @@ export function HotDealPage({ id }: { id: string }) {
   }, [viewed]);
 
   const back = () => (window.history.length > 1 ? router.back() : router.push(href('/hot')));
-  const reserve = async (branchId: string): Promise<ReserveOutcome> => {
+  const reserve = async (
+    branchId: string,
+    opts: { acceptTerms: boolean },
+  ): Promise<ReserveOutcome> => {
     const r = await call<ReservationView>('POST', `/v1/app/hot-deals/${id}/reservations`, {
-      body: { branchId, quantity: 1 },
+      body: {
+        branchId,
+        quantity: 1,
+        ...(opts.acceptTerms ? { acceptTerms: true, returnUrl: reservationReturnUrl(href) } : {}),
+      },
       idempotent: true,
     });
     if (r.ok && r.data) {
+      // paid: continue on the provider's payment page; it returns to /reservations/return
+      if (r.data.displayState === 'PAYMENT_PENDING' && r.data.payment?.redirectUrl) {
+        window.location.assign(r.data.payment.redirectUrl);
+        return { error: null };
+      }
       router.push(`${href(`/reservations/${r.data.id}`)}?new=1`);
       return { error: null };
     }
@@ -273,6 +290,12 @@ interface NotificationItem {
     | 'RESERVATION_EXPIRING'
     | 'RESERVATION_EXPIRED'
     | 'RESERVATION_CANCELLED'
+    // reservation commitment (payments, refunds, card holds)
+    | 'RESERVATION_PAYMENT_FAILED'
+    | 'RESERVATION_REFUND_UPDATED'
+    | 'RESERVATION_FORFEITED'
+    | 'RESERVATION_HOLD_RELEASED'
+    | 'RESERVATION_HOLD_CAPTURED'
     | 'REDEMPTION_SUCCESS'
     | 'PURCHASE_SUCCEEDED'
     | 'PAYMENT_FAILED'
@@ -306,7 +329,7 @@ function ReservationRow({ r }: { r: ReservationView }) {
       ? 'success'
       : r.displayState === 'REDEEMED'
         ? 'info'
-        : r.displayState === 'NOT_COMPLETED'
+        : r.displayState === 'NOT_COMPLETED' || r.displayState === 'PAYMENT_PENDING'
           ? 'warning'
           : 'neutral';
   return (
@@ -332,6 +355,11 @@ function ReservationRow({ r }: { r: ReservationView }) {
           <span className={`dd-chip dd-chip--${tone}`}>
             {t(`res.state.${r.displayState}` as DictionaryKey)}
           </span>
+          {r.payment ? (
+            <span className="dd-chip dd-chip--neutral" style={{ marginInlineStart: 6 }}>
+              {t(`rsv.status.${r.payment.status}` as DictionaryKey)}
+            </span>
+          ) : null}
         </div>
       </div>
       <Icon name="forward" size={18} />
@@ -556,13 +584,27 @@ export function ReservationPage({ id }: { id: string }) {
   useEffect(() => {
     void load();
   }, [load]);
-  // staff may redeem it, or the hold may lapse, while the customer is looking at the QR
+  // staff may redeem it, or the hold may lapse, while the customer is looking at the QR; a payment may confirm meanwhile
   useEffect(() => {
     const timer = setInterval(() => {
-      if (current.current?.displayState === 'HELD') void load(true);
+      const s = current.current?.displayState;
+      if (s === 'HELD' || s === 'PAYMENT_PENDING') void load(true);
     }, 8_000);
     return () => clearInterval(timer);
   }, [load]);
+
+  const retryPayment = async (): Promise<string | null> => {
+    const res = await call<ReservationView>('POST', `/v1/app/reservations/${id}/pay`, {
+      body: { returnUrl: reservationReturnUrl(href) },
+      idempotent: true,
+    });
+    if (res.ok && res.data?.payment?.redirectUrl) {
+      window.location.assign(res.data.payment.redirectUrl);
+      return null;
+    }
+    void load(true);
+    return res.ok ? null : errorMessage(locale, res.errors);
+  };
 
   const cancel = async (): Promise<string | null> => {
     const res = await call<ReservationView>('POST', `/v1/app/reservations/${id}/cancel`, {
@@ -610,8 +652,143 @@ export function ReservationPage({ id }: { id: string }) {
         locale={locale}
         justConfirmed={isNew}
         onCancel={cancel}
+        onRetryPayment={retryPayment}
         offerHref={href(`/hot/${r.deal.id}`)}
       />
     </div>
   );
 }
+
+/** Where the payment page returns to: one route for every reservation (the id is not known before the reservation exists). */
+function reservationReturnUrl(href: (p: string) => string) {
+  return `${window.location.origin}${href('/reservations/return')}`;
+}
+
+// ------------------------------------------------------------------ return from the payment page (+ the development mock page)
+/**
+ * The provider's payment page returns here. In development the mock provider sends `?mock_payment=` (prepayment / deposit) or
+ * `?mock_hold=` (card hold): this page then stands in for the provider (approve or decline, so the flow can be tested on a phone)
+ * and settles it through the same signed webhook path. A real provider's return simply goes to My Deals, where the reservation
+ * shows its payment state (confirmation always comes from the provider's verified result, never from this page).
+ */
+export function ReservationReturnPage() {
+  const { t, locale } = useT();
+  const { call } = useApi();
+  const { status } = useAuth();
+  const router = useRouter();
+  const href = useHref();
+  const params = useSearchParams();
+  const ref = params.get('mock_payment') ?? params.get('mock_hold');
+  const isHold = !!params.get('mock_hold');
+  const [r, setR] = useState<ReservationView | null>(null);
+  const [state, setState] = useState<'loading' | 'ready' | 'missing'>('loading');
+  const [busy, setBusy] = useState<'' | 'ok' | 'no'>('');
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (status !== 'authenticated') return;
+    if (!ref) {
+      router.replace(href('/reservations'));
+      return;
+    }
+    let alive = true;
+    void (async () => {
+      const found = await call<{ reservationId: string }>(
+        'GET',
+        `/v1/dev/reservations/${encodeURIComponent(ref)}`,
+      );
+      const res =
+        found.ok && found.data
+          ? await call<ReservationView>('GET', `/v1/app/reservations/${found.data.reservationId}`)
+          : null;
+      if (!alive) return;
+      if (res?.ok && res.data) {
+        setR(res.data);
+        setState('ready');
+      } else setState('missing');
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [call, ref, status, router, href]);
+
+  const finish = async (outcome: 'SUCCEEDED' | 'FAILED') => {
+    if (!ref || !r) return;
+    setBusy(outcome === 'SUCCEEDED' ? 'ok' : 'no');
+    setError('');
+    const res = await call('POST', `/v1/dev/reservations/${encodeURIComponent(ref)}/complete`, {
+      body: { outcome },
+    });
+    if (res.ok) router.replace(`${href(`/reservations/${r.id}`)}?new=1`);
+    else {
+      setBusy('');
+      setError(errorMessage(locale, res.errors));
+    }
+  };
+
+  if (status === 'loading' || (status === 'authenticated' && state === 'loading'))
+    return <LoadingState label={t('state.loading')} />;
+  if (status !== 'authenticated')
+    return (
+      <EmptyState
+        title={t('res.signIn')}
+        action={
+          <Link className="dd-btn dd-btn--primary" href={href('/profile')}>
+            {t('auth.signIn')}
+          </Link>
+        }
+      />
+    );
+  if (!r || !r.payment) return <EmptyState title={t('res.notFound')} />;
+  const p = r.payment;
+  return (
+    <div className="dd-stack" style={{ gap: 14 }} data-testid="mock-reservation-pay">
+      <Alert tone="info" title={t('pay.mock.title')}>
+        {t('pay.mock.body')}
+      </Alert>
+      <div className="dd-rsv-terms">
+        <div className="dd-rsv-terms__head">
+          <div className="dd-grow">
+            <strong>{pickContent(r.deal.title, locale)}</strong>
+            <div className="dd-caption">
+              {pickContent(r.deal.merchantName, locale)} · {pickContent(r.branch.name, locale)}
+            </div>
+            <div className="dd-caption">
+              {t(`rsv.methodName.${p.method}` as DictionaryKey)} ·{' '}
+              {isHold ? t('rsv.holdNow') : t('rsv.payNow')}
+            </div>
+          </div>
+          <strong className="dd-rsv-terms__amount dd-ltr" data-testid="mock-amount">
+            {formatMoney(locale, p.amountMinor, p.currency)}
+          </strong>
+        </div>
+      </div>
+      {error ? <Alert tone="danger">{error}</Alert> : null}
+      <Button
+        block
+        loading={busy === 'ok'}
+        disabled={busy === 'no'}
+        onClick={() => void finish('SUCCEEDED')}
+        data-testid="mock-approve"
+      >
+        {t('pay.mock.approve')}
+      </Button>
+      <Button
+        block
+        variant="danger"
+        loading={busy === 'no'}
+        disabled={busy === 'ok'}
+        onClick={() => void finish('FAILED')}
+        data-testid="mock-decline"
+      >
+        {t('pay.mock.decline')}
+      </Button>
+      <Link className="dd-btn dd-btn--ghost dd-btn--block" href={href(`/reservations/${r.id}`)}>
+        {t('pay.mock.back')}
+      </Link>
+    </div>
+  );
+}
+
+const pickContent = (x: { en: string; ar: string }, locale: string) =>
+  (locale === 'ar' ? x.ar : x.en) || x.en || x.ar;

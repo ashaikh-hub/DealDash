@@ -16078,6 +16078,8 @@ export interface components {
             data: {
                 market: string;
                 marketStatus: string | null;
+                currency: string | null;
+                currencyDecimals: number;
                 freeAllowed: boolean;
                 fields: {
                     freeAllowed: boolean | null;
@@ -16098,6 +16100,7 @@ export interface components {
                     preauthPartialCaptureAllowed: boolean;
                     /** @enum {string} */
                     preauthOnRedemption: "RELEASE" | "CAPTURE";
+                    captureFailureAlertThreshold: number;
                 };
                 source: {
                     [key: string]: "MERCHANT" | "CATEGORY" | "MARKET" | "BASELINE";
@@ -17838,6 +17841,19 @@ export interface components {
                 /** @enum {string} */
                 availability: "AVAILABLE" | "SOLD_OUT" | "ENDED" | "PAUSED" | "UNAVAILABLE" | "SCHEDULED";
                 serverNow: string;
+                commitment: {
+                    /** @enum {string} */
+                    method: "FREE" | "FULL_PREPAYMENT" | "DEPOSIT" | "CARD_PREAUTH";
+                    amountMinor: number | null;
+                    currency: string | null;
+                    depositRefundable: boolean | null;
+                    cancelCutoffMinutes: number | null;
+                    noShowRefundPercent: number | null;
+                    paymentWindowMinutes: number | null;
+                    /** @enum {string|null} */
+                    preauthOnRedemption: "RELEASE" | "CAPTURE" | null;
+                    preauthImmediateCapture: boolean | null;
+                } | null;
                 description: {
                     en: string;
                     ar: string;
@@ -18710,6 +18726,19 @@ export interface components {
                     /** @enum {string} */
                     availability: "AVAILABLE" | "SOLD_OUT" | "ENDED" | "PAUSED" | "UNAVAILABLE" | "SCHEDULED";
                     serverNow: string;
+                    commitment: {
+                        /** @enum {string} */
+                        method: "FREE" | "FULL_PREPAYMENT" | "DEPOSIT" | "CARD_PREAUTH";
+                        amountMinor: number | null;
+                        currency: string | null;
+                        depositRefundable: boolean | null;
+                        cancelCutoffMinutes: number | null;
+                        noShowRefundPercent: number | null;
+                        paymentWindowMinutes: number | null;
+                        /** @enum {string|null} */
+                        preauthOnRedemption: "RELEASE" | "CAPTURE" | null;
+                        preauthImmediateCapture: boolean | null;
+                    } | null;
                     description: {
                         en: string;
                         ar: string;
@@ -19103,6 +19132,19 @@ export interface components {
                 /** @enum {string} */
                 availability: "AVAILABLE" | "SOLD_OUT" | "ENDED" | "PAUSED" | "UNAVAILABLE" | "SCHEDULED";
                 serverNow: string;
+                commitment: {
+                    /** @enum {string} */
+                    method: "FREE" | "FULL_PREPAYMENT" | "DEPOSIT" | "CARD_PREAUTH";
+                    amountMinor: number | null;
+                    currency: string | null;
+                    depositRefundable: boolean | null;
+                    cancelCutoffMinutes: number | null;
+                    noShowRefundPercent: number | null;
+                    paymentWindowMinutes: number | null;
+                    /** @enum {string|null} */
+                    preauthOnRedemption: "RELEASE" | "CAPTURE" | null;
+                    preauthImmediateCapture: boolean | null;
+                } | null;
                 description: {
                     en: string;
                     ar: string;
@@ -19188,6 +19230,9 @@ export interface components {
             branchId: string;
             /** @default 1 */
             quantity: number;
+            acceptTerms?: boolean;
+            /** Format: uri */
+            returnUrl?: string;
         };
         ReservationListResponse: {
             data: {
@@ -19288,6 +19333,10 @@ export interface components {
                 nextCursor?: string | null;
             };
         };
+        ReservationPayDto: {
+            /** Format: uri */
+            returnUrl?: string;
+        };
         CustomerCancelDto: {
             reason?: string;
         };
@@ -19379,6 +19428,19 @@ export interface components {
                      * @enum {string}
                      */
                     kind: "RESERVATION" | "VOUCHER";
+                    money?: {
+                        /** @enum {string} */
+                        method: "FULL_PREPAYMENT" | "DEPOSIT" | "CARD_PREAUTH";
+                        /** @enum {string} */
+                        paymentStatus: "NOT_REQUIRED" | "PENDING" | "PAID" | "AUTHORISED" | "CAPTURED" | "VOIDED" | "FAILED" | "PARTIALLY_REFUNDED" | "REFUNDED" | "FORFEITED";
+                        amountMinor: number;
+                        currency: string;
+                        depositRefundable: boolean | null;
+                        /** @enum {string|null} */
+                        holdStatus: "REQUESTED" | "AUTHORISED" | "FAILED" | "CANCELLED" | "EXPIRED" | "RELEASED" | "CAPTURED" | "PARTIALLY_CAPTURED" | null;
+                        refundedMinor: number;
+                        keptMinor: number | null;
+                    } | null;
                     /** @default null */
                     faceValueHalalas: number | null;
                     ref: string;
@@ -19437,6 +19499,19 @@ export interface components {
                      * @enum {string}
                      */
                     kind: "RESERVATION" | "VOUCHER";
+                    money?: {
+                        /** @enum {string} */
+                        method: "FULL_PREPAYMENT" | "DEPOSIT" | "CARD_PREAUTH";
+                        /** @enum {string} */
+                        paymentStatus: "NOT_REQUIRED" | "PENDING" | "PAID" | "AUTHORISED" | "CAPTURED" | "VOIDED" | "FAILED" | "PARTIALLY_REFUNDED" | "REFUNDED" | "FORFEITED";
+                        amountMinor: number;
+                        currency: string;
+                        depositRefundable: boolean | null;
+                        /** @enum {string|null} */
+                        holdStatus: "REQUESTED" | "AUTHORISED" | "FAILED" | "CANCELLED" | "EXPIRED" | "RELEASED" | "CAPTURED" | "PARTIALLY_CAPTURED" | null;
+                        refundedMinor: number;
+                        keptMinor: number | null;
+                    } | null;
                     /** @default null */
                     faceValueHalalas: number | null;
                     ref: string;
@@ -32880,7 +32955,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReservationPayDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {

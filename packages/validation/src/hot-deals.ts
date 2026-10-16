@@ -418,6 +418,13 @@ export const hotDiscoveryQuerySchema = z.object({
 export const reservationCreateSchema = z.object({
   branchId: uuid,
   quantity: z.number().int().min(1).max(100).default(1),
+  /** Paid methods (RC-81): the customer accepted the payment, cancellation and no-show terms shown before paying. */
+  acceptTerms: z.boolean().optional(),
+  /** Where the payment page returns to (must be one of DealDash's own app addresses; otherwise the default is used). */
+  returnUrl: z.string().url().max(500).optional(),
+});
+export const reservationPaySchema = z.object({
+  returnUrl: z.string().url().max(500).optional(),
 });
 export const reservationListQuerySchema = z.object({
   tab: z.enum(['active', 'past']).default('active'),
@@ -498,7 +505,30 @@ export const myReservationBriefSchema = z.object({
 
 export type MyReservationBrief = z.infer<typeof myReservationBriefSchema>;
 
+/**
+ * What a customer commits to when reserving (RC-81): shown BEFORE paying and accepted with the reservation. Amounts are per unit,
+ * minor units of `currency`. Null on the deal detail for walk-in and FREE deals (nothing to pay).
+ */
+export const commitmentTermsSchema = z.object({
+  method: z.enum(COMMITMENT_METHODS),
+  amountMinor: z.number().int().nullable(),
+  currency: z.string().nullable(),
+  depositRefundable: z.boolean().nullable(),
+  /** Minutes before the hold ends after which a cancellation no longer returns refundable amounts. */
+  cancelCutoffMinutes: z.number().int().nullable(),
+  /** Prepayment: share refunded on a late cancellation / no-show; card hold: share released (not charged). */
+  noShowRefundPercent: z.number().int().nullable(),
+  /** Minutes to complete the payment / card hold before the units are released. */
+  paymentWindowMinutes: z.number().int().nullable(),
+  /** Card hold: released or charged at redemption; and whether it is charged at once. */
+  preauthOnRedemption: z.enum(['RELEASE', 'CAPTURE']).nullable(),
+  preauthImmediateCapture: z.boolean().nullable(),
+});
+export type CommitmentTerms = z.infer<typeof commitmentTermsSchema>;
+
 export const hotDealDetailSchema = hotDealCardSchema.extend({
+  /** Reservation commitment (2026-10-15): what reserving costs and the cancellation / no-show terms. */
+  commitment: commitmentTermsSchema.nullable(),
   description: biText,
   terms: z.object({ blocks: dealTermsBlocksSchema, text: biText }),
   media: z.array(z.object({ url: z.string(), alt: biText })),
@@ -828,6 +858,23 @@ export const adminRestrictionRowSchema = restrictionViewSchema.extend({
 export const staffReservationSummarySchema = z.object({
   /** What is being redeemed: a free Exclusive Deal reservation or a purchased voucher (Stage 5). */
   kind: z.enum(['RESERVATION', 'VOUCHER']).default('RESERVATION'),
+  /**
+   * Reservation commitment (2026-10-15, RC-60): what the customer already paid or holds, read-only for staff (staff never change
+   * financial rules). Null for FREE reservations and vouchers.
+   */
+  money: z
+    .object({
+      method: z.enum(PAID_COMMITMENT_METHODS),
+      paymentStatus: z.enum(RESERVATION_PAYMENT_STATUSES),
+      amountMinor: z.number().int(),
+      currency: z.string(),
+      depositRefundable: z.boolean().nullable(),
+      holdStatus: z.enum(RESERVATION_AUTH_STATUSES).nullable(),
+      refundedMinor: z.number().int(),
+      keptMinor: z.number().int().nullable(),
+    })
+    .nullable()
+    .optional(),
   /** Vouchers only: the value staff honour at the counter (integer halalas). */
   faceValueHalalas: z.number().int().nullable().default(null),
   ref: z.string(),
@@ -889,6 +936,7 @@ export type StaffReservationSummary = z.infer<typeof staffReservationSummarySche
 export type StaffValidation = z.infer<typeof staffValidationSchema>;
 export type StaffRedeem = z.infer<typeof staffRedeemSchema>;
 export type HotDealRow = z.infer<typeof hotDealRowSchema>;
+export type MerchantReservationRow = z.infer<typeof merchantReservationRowSchema>;
 export type AdminHotRow = z.infer<typeof adminHotRowSchema>;
 export type HotDealCardList = z.infer<typeof hotDealCardSchema>[];
 export type StaffMe = z.infer<typeof staffMeSchema>;

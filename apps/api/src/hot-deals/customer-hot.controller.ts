@@ -30,6 +30,7 @@ import {
   MarkReadDto,
   NotificationListResponse,
   ReservationCreateDto,
+  ReservationPayDto,
   ReservationListQueryDto,
   ReservationListResponse,
   ReservationResponse,
@@ -110,10 +111,11 @@ export class CustomerHotController {
   @ApiOkResponse({ type: ReservationResponse })
   pay(
     @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: ReservationPayDto,
     @CurrentActor() actor: Actor,
     @Meta() meta: RequestMeta,
   ) {
-    return this.reservations.retryPayment(actor, id, meta);
+    return this.reservations.retryPayment(actor, id, meta, new Date(), body?.returnUrl);
   }
 
   @Post('reservations/:id/cancel')

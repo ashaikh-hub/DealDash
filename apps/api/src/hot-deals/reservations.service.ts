@@ -42,6 +42,15 @@ const RES_INCLUDE = {
   authorisations: { orderBy: { attemptNo: 'desc' as const }, take: 1 },
 } satisfies Prisma.ReservationInclude;
 
+export interface ReserveInput {
+  branchId: string;
+  quantity: number;
+  /** Paid methods: the customer accepted the terms shown before paying (RC-81). */
+  acceptTerms?: boolean;
+  /** Where the provider's payment page returns to (checked against DealDash's own app addresses). */
+  returnUrl?: string;
+}
+
 /** Statuses that hold units and count toward the customer's limits (a reservation waiting for payment holds its units). */
 const LIVE_STATUSES = ['HELD', 'PENDING_PAYMENT'] as const;
 export type ResRow = Prisma.ReservationGetPayload<{ include: typeof RES_INCLUDE }>;
@@ -214,7 +223,7 @@ export class ReservationsService {
   async reserve(
     actor: Actor,
     dealId: string,
-    input: { branchId: string; quantity: number },
+    input: ReserveInput,
     meta: RequestMeta,
     now = new Date(),
   ): Promise<ReservationView> {
@@ -233,7 +242,7 @@ export class ReservationsService {
   private async reserveOnce(
     actor: Actor,
     dealId: string,
-    input: { branchId: string; quantity: number },
+    input: ReserveInput,
     meta: RequestMeta,
     now: Date,
   ): Promise<ReservationView> {
@@ -319,6 +328,14 @@ export class ReservationsService {
         409,
       );
     const paid = method !== 'FREE';
+    // RC-81: the customer saw and accepted the payment, cancellation and no-show terms before paying
+    if (paid && input.acceptTerms !== true)
+      throw new AppError(
+        'RESERVATION_TERMS_REQUIRED',
+        'Please accept the reservation terms to continue.',
+        422,
+        'acceptTerms',
+      );
     const unitAmount = dealContent.commitment.amountMinor;
     if (paid && (!unitAmount || unitAmount < 1))
       throw new AppError('OFFER_UNAVAILABLE', 'This offer cannot be reserved right now.', 409);
@@ -483,6 +500,7 @@ export class ReservationsService {
                 }
               : {}),
             noShow: 'A reservation not used before it ends counts as a no-show (RC-50, RC-52).',
+            ...(paid ? { termsAcceptedAt: now.toISOString() } : {}),
             policy: this.policy.snapshot(effectivePolicy, now),
           } as Prisma.InputJsonValue,
         },
@@ -528,8 +546,8 @@ export class ReservationsService {
       return { created, paymentId, authId, sent: [...lazyNotices, ...sent] };
     });
     await this.notifications.dispatch(out.sent);
-    if (out.paymentId) await this.money.initiate(out.paymentId);
-    if (out.authId) await this.money.requestAuthorisation(out.authId);
+    if (out.paymentId) await this.money.initiate(out.paymentId, input.returnUrl);
+    if (out.authId) await this.money.requestAuthorisation(out.authId, input.returnUrl);
     const fresh = await this.prisma.reservation.findUniqueOrThrow({
       where: { id: out.created.id },
       include: RES_INCLUDE,
@@ -538,8 +556,14 @@ export class ReservationsService {
   }
 
   /** Customer: another payment attempt inside the payment window (the previous one failed or was abandoned). */
-  async retryPayment(actor: Actor, id: string, meta: RequestMeta, now = new Date()) {
-    await this.money.retry(actor, id, meta, now);
+  async retryPayment(
+    actor: Actor,
+    id: string,
+    meta: RequestMeta,
+    now = new Date(),
+    returnUrl?: string,
+  ) {
+    await this.money.retry(actor, id, meta, now, returnUrl);
     return this.getMine(actor.userId, id, now);
   }
 

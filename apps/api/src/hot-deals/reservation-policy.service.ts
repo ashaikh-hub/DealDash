@@ -19,6 +19,8 @@ import { SystemConfigService } from '../system-config/system-config.service';
 export interface EffectiveReservationPolicy extends ResolvedReservationPolicy {
   market: string;
   marketStatus: string | null;
+  currency: string | null;
+  currencyDecimals: number;
   /** RC-05, already decided for this environment and market. */
   freeAllowed: boolean;
   /** The shape the commitment check (`commitmentIssues`) takes. */
@@ -59,7 +61,7 @@ export class ReservationPolicyService {
     const resolved = resolveReservationPolicy(await this.policyConfig(), { ...scope, market });
     const m = await this.prisma.countryConfiguration.findUnique({
       where: { code: market },
-      select: { status: true },
+      select: { status: true, currency: true, currencyDecimals: true },
     });
     const marketStatus = m?.status ?? null;
     const freeAllowed = freeReservationAllowed(resolved.fields.freeAllowed, {
@@ -70,6 +72,9 @@ export class ReservationPolicyService {
       ...resolved,
       market,
       marketStatus,
+      // amounts in the policy are minor units of the market's currency (screens format them with it)
+      currency: m?.currency ?? null,
+      currencyDecimals: m?.currencyDecimals ?? 2,
       freeAllowed,
       commitment: { ...resolved.fields, freeAllowed },
     };

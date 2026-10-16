@@ -383,6 +383,12 @@ export const ALERT_CODES = {
   },
   RESTRICTION_PLACED: { category: 'OPERATIONS', severity: 'CRITICAL', action: 'VIEW_CASES' },
   RESTRICTION_LIFTED: { category: 'OPERATIONS', severity: 'INFO', action: 'VIEW_CASES' },
+  /** Reservation card hold (2026-10-15): a capture kept failing past the configured retry threshold (finance follow-up). */
+  RESERVATION_CAPTURE_FAILED: {
+    category: 'FINANCE',
+    severity: 'CRITICAL',
+    action: 'VIEW_RECONCILIATION',
+  },
 } as const satisfies Record<
   string,
   { category: AlertCategory; severity: AlertSeverity; action: string }

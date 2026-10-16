@@ -34,6 +34,9 @@ const RES_INCLUDE = {
   },
   branch: true,
   redemption: { where: { status: 'REDEEMED' as const } },
+  // reservation commitment (staff see the money state, read-only)
+  refunds: { where: { status: 'REFUNDED' as const }, select: { amountMinor: true } },
+  authorisations: { orderBy: { attemptNo: 'desc' as const }, take: 1, select: { status: true } },
 } satisfies Prisma.ReservationInclude;
 type Row = Prisma.ReservationGetPayload<{ include: typeof RES_INCLUDE }>;
 
@@ -264,6 +267,20 @@ export class RedemptionService {
     return {
       kind: 'RESERVATION' as const,
       faceValueHalalas: null,
+      // RC-60: paid in full / deposit to credit / card hold — what the customer already paid or holds (staff cannot change it)
+      money:
+        row.commitmentMethod !== 'FREE' && row.amountMinor && row.currency
+          ? {
+              method: row.commitmentMethod,
+              paymentStatus: row.paymentStatus,
+              amountMinor: row.amountMinor * row.quantity,
+              currency: row.currency,
+              depositRefundable: row.depositRefundable,
+              holdStatus: row.authorisations[0]?.status ?? null,
+              refundedMinor: row.refunds.reduce((n, f) => n + f.amountMinor, 0),
+              keptMinor: row.keptMinor,
+            }
+          : null,
       ref: row.reference,
       quantity: row.quantity,
       dealTitle: c.title,

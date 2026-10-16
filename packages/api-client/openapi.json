@@ -6908,6 +6908,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReservationPayDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "",
@@ -46634,6 +46644,17 @@
                   "null"
                 ]
               },
+              "currency": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "currencyDecimals": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
               "freeAllowed": {
                 "type": "boolean"
               },
@@ -46720,6 +46741,11 @@
                       "RELEASE",
                       "CAPTURE"
                     ]
+                  },
+                  "captureFailureAlertThreshold": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
                   }
                 },
                 "required": [
@@ -46739,7 +46765,8 @@
                   "additionalRedemptionFee",
                   "preauthImmediateCapture",
                   "preauthPartialCaptureAllowed",
-                  "preauthOnRedemption"
+                  "preauthOnRedemption",
+                  "captureFailureAlertThreshold"
                 ]
               },
               "source": {
@@ -46764,6 +46791,8 @@
             "required": [
               "market",
               "marketStatus",
+              "currency",
+              "currencyDecimals",
               "freeAllowed",
               "fields",
               "source",
@@ -51702,6 +51731,83 @@
               "serverNow": {
                 "type": "string"
               },
+              "commitment": {
+                "type": "object",
+                "properties": {
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "FREE",
+                      "FULL_PREPAYMENT",
+                      "DEPOSIT",
+                      "CARD_PREAUTH"
+                    ]
+                  },
+                  "amountMinor": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991,
+                    "nullable": true
+                  },
+                  "currency": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "depositRefundable": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
+                  "cancelCutoffMinutes": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991,
+                    "nullable": true
+                  },
+                  "noShowRefundPercent": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991,
+                    "nullable": true
+                  },
+                  "paymentWindowMinutes": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991,
+                    "nullable": true
+                  },
+                  "preauthOnRedemption": {
+                    "type": "string",
+                    "enum": [
+                      "RELEASE",
+                      "CAPTURE",
+                      null
+                    ],
+                    "nullable": true
+                  },
+                  "preauthImmediateCapture": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "method",
+                  "amountMinor",
+                  "currency",
+                  "depositRefundable",
+                  "cancelCutoffMinutes",
+                  "noShowRefundPercent",
+                  "paymentWindowMinutes",
+                  "preauthOnRedemption",
+                  "preauthImmediateCapture"
+                ],
+                "nullable": true
+              },
               "description": {
                 "type": "object",
                 "properties": {
@@ -52036,6 +52142,7 @@
               "eligibility",
               "availability",
               "serverNow",
+              "commitment",
               "description",
               "terms",
               "media",
@@ -55208,6 +55315,83 @@
                   "serverNow": {
                     "type": "string"
                   },
+                  "commitment": {
+                    "type": "object",
+                    "properties": {
+                      "method": {
+                        "type": "string",
+                        "enum": [
+                          "FREE",
+                          "FULL_PREPAYMENT",
+                          "DEPOSIT",
+                          "CARD_PREAUTH"
+                        ]
+                      },
+                      "amountMinor": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991,
+                        "nullable": true
+                      },
+                      "currency": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "depositRefundable": {
+                        "type": [
+                          "boolean",
+                          "null"
+                        ]
+                      },
+                      "cancelCutoffMinutes": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991,
+                        "nullable": true
+                      },
+                      "noShowRefundPercent": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991,
+                        "nullable": true
+                      },
+                      "paymentWindowMinutes": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991,
+                        "nullable": true
+                      },
+                      "preauthOnRedemption": {
+                        "type": "string",
+                        "enum": [
+                          "RELEASE",
+                          "CAPTURE",
+                          null
+                        ],
+                        "nullable": true
+                      },
+                      "preauthImmediateCapture": {
+                        "type": [
+                          "boolean",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "method",
+                      "amountMinor",
+                      "currency",
+                      "depositRefundable",
+                      "cancelCutoffMinutes",
+                      "noShowRefundPercent",
+                      "paymentWindowMinutes",
+                      "preauthOnRedemption",
+                      "preauthImmediateCapture"
+                    ],
+                    "nullable": true
+                  },
                   "description": {
                     "type": "object",
                     "properties": {
@@ -55542,6 +55726,7 @@
                   "eligibility",
                   "availability",
                   "serverNow",
+                  "commitment",
                   "description",
                   "terms",
                   "media",
@@ -56933,6 +57118,83 @@
               "serverNow": {
                 "type": "string"
               },
+              "commitment": {
+                "type": "object",
+                "properties": {
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "FREE",
+                      "FULL_PREPAYMENT",
+                      "DEPOSIT",
+                      "CARD_PREAUTH"
+                    ]
+                  },
+                  "amountMinor": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991,
+                    "nullable": true
+                  },
+                  "currency": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "depositRefundable": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
+                  "cancelCutoffMinutes": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991,
+                    "nullable": true
+                  },
+                  "noShowRefundPercent": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991,
+                    "nullable": true
+                  },
+                  "paymentWindowMinutes": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991,
+                    "nullable": true
+                  },
+                  "preauthOnRedemption": {
+                    "type": "string",
+                    "enum": [
+                      "RELEASE",
+                      "CAPTURE",
+                      null
+                    ],
+                    "nullable": true
+                  },
+                  "preauthImmediateCapture": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "method",
+                  "amountMinor",
+                  "currency",
+                  "depositRefundable",
+                  "cancelCutoffMinutes",
+                  "noShowRefundPercent",
+                  "paymentWindowMinutes",
+                  "preauthOnRedemption",
+                  "preauthImmediateCapture"
+                ],
+                "nullable": true
+              },
               "description": {
                 "type": "object",
                 "properties": {
@@ -57267,6 +57529,7 @@
               "eligibility",
               "availability",
               "serverNow",
+              "commitment",
               "description",
               "terms",
               "media",
@@ -57318,6 +57581,14 @@
             "type": "integer",
             "minimum": 1,
             "maximum": 100
+          },
+          "acceptTerms": {
+            "type": "boolean"
+          },
+          "returnUrl": {
+            "type": "string",
+            "maxLength": 500,
+            "format": "uri"
           }
         },
         "required": [
@@ -57814,6 +58085,16 @@
           "meta"
         ]
       },
+      "ReservationPayDto": {
+        "type": "object",
+        "properties": {
+          "returnUrl": {
+            "type": "string",
+            "maxLength": 500,
+            "format": "uri"
+          }
+        }
+      },
       "CustomerCancelDto": {
         "type": "object",
         "properties": {
@@ -58165,6 +58446,85 @@
                       "VOUCHER"
                     ]
                   },
+                  "money": {
+                    "type": "object",
+                    "properties": {
+                      "method": {
+                        "type": "string",
+                        "enum": [
+                          "FULL_PREPAYMENT",
+                          "DEPOSIT",
+                          "CARD_PREAUTH"
+                        ]
+                      },
+                      "paymentStatus": {
+                        "type": "string",
+                        "enum": [
+                          "NOT_REQUIRED",
+                          "PENDING",
+                          "PAID",
+                          "AUTHORISED",
+                          "CAPTURED",
+                          "VOIDED",
+                          "FAILED",
+                          "PARTIALLY_REFUNDED",
+                          "REFUNDED",
+                          "FORFEITED"
+                        ]
+                      },
+                      "amountMinor": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "currency": {
+                        "type": "string"
+                      },
+                      "depositRefundable": {
+                        "type": [
+                          "boolean",
+                          "null"
+                        ]
+                      },
+                      "holdStatus": {
+                        "type": "string",
+                        "enum": [
+                          "REQUESTED",
+                          "AUTHORISED",
+                          "FAILED",
+                          "CANCELLED",
+                          "EXPIRED",
+                          "RELEASED",
+                          "CAPTURED",
+                          "PARTIALLY_CAPTURED",
+                          null
+                        ],
+                        "nullable": true
+                      },
+                      "refundedMinor": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "keptMinor": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991,
+                        "nullable": true
+                      }
+                    },
+                    "required": [
+                      "method",
+                      "paymentStatus",
+                      "amountMinor",
+                      "currency",
+                      "depositRefundable",
+                      "holdStatus",
+                      "refundedMinor",
+                      "keptMinor"
+                    ],
+                    "nullable": true
+                  },
                   "faceValueHalalas": {
                     "type": "integer",
                     "minimum": -9007199254740991,
@@ -58412,6 +58772,85 @@
                       "RESERVATION",
                       "VOUCHER"
                     ]
+                  },
+                  "money": {
+                    "type": "object",
+                    "properties": {
+                      "method": {
+                        "type": "string",
+                        "enum": [
+                          "FULL_PREPAYMENT",
+                          "DEPOSIT",
+                          "CARD_PREAUTH"
+                        ]
+                      },
+                      "paymentStatus": {
+                        "type": "string",
+                        "enum": [
+                          "NOT_REQUIRED",
+                          "PENDING",
+                          "PAID",
+                          "AUTHORISED",
+                          "CAPTURED",
+                          "VOIDED",
+                          "FAILED",
+                          "PARTIALLY_REFUNDED",
+                          "REFUNDED",
+                          "FORFEITED"
+                        ]
+                      },
+                      "amountMinor": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "currency": {
+                        "type": "string"
+                      },
+                      "depositRefundable": {
+                        "type": [
+                          "boolean",
+                          "null"
+                        ]
+                      },
+                      "holdStatus": {
+                        "type": "string",
+                        "enum": [
+                          "REQUESTED",
+                          "AUTHORISED",
+                          "FAILED",
+                          "CANCELLED",
+                          "EXPIRED",
+                          "RELEASED",
+                          "CAPTURED",
+                          "PARTIALLY_CAPTURED",
+                          null
+                        ],
+                        "nullable": true
+                      },
+                      "refundedMinor": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "keptMinor": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991,
+                        "nullable": true
+                      }
+                    },
+                    "required": [
+                      "method",
+                      "paymentStatus",
+                      "amountMinor",
+                      "currency",
+                      "depositRefundable",
+                      "holdStatus",
+                      "refundedMinor",
+                      "keptMinor"
+                    ],
+                    "nullable": true
                   },
                   "faceValueHalalas": {
                     "type": "integer",

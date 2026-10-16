@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import {
   CommercialPanel,
   Countdown,
@@ -14,6 +14,7 @@ import {
   createTranslator,
   displayTimeZone,
   formatDateTime,
+  formatMoney,
   withLocale,
   type DictionaryKey,
 } from '@dealdash/localization';
@@ -30,7 +31,9 @@ import {
   Tabs,
   Textarea,
 } from '@dealdash/ui';
-import type { HotDealView, HotMonitor } from '@dealdash/validation';
+import type { HotDealView, HotMonitor, MerchantReservationRow } from '@dealdash/validation';
+
+type ResMoney = NonNullable<MerchantReservationRow['money']>;
 import { useOrgId, when } from './deal-utils';
 import { HotStatusChip, pct } from './hot-utils';
 
@@ -49,14 +52,25 @@ interface ResRow {
   customerFirstName: string | null;
   quantity: number;
   branch: { en: string; ar: string };
-  status: 'HELD' | 'REDEEMED' | 'EXPIRED' | 'CANCELLED';
+  status: 'HELD' | 'REDEEMED' | 'EXPIRED' | 'CANCELLED' | 'PENDING_PAYMENT' | 'PAYMENT_FAILED';
   cancelledBy: string | null;
   expiresAt: string;
   createdAt: string;
   redeemedAt: string | null;
   canCancel: boolean;
   canReverse: boolean;
+  /** RC-80: paid reservations only. */
+  money?: ResMoney;
 }
+
+const RES_TONE: Record<ResRow['status'], string> = {
+  HELD: 'success',
+  REDEEMED: 'info',
+  EXPIRED: 'warning',
+  CANCELLED: 'neutral',
+  PENDING_PAYMENT: 'warning',
+  PAYMENT_FAILED: 'neutral',
+};
 
 export function HotDealDetail({ dealId }: { dealId: string }) {
   return (
@@ -686,7 +700,9 @@ function Reservations({
   const [branchId, setBranchId] = useState('');
   const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading');
   const [cancelId, setCancelId] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
   const seq = useRef(0);
+  const paidAny = rows.some((r) => !!r.money);
 
   const load = useCallback(async () => {
     const mine = ++seq.current;
@@ -717,7 +733,16 @@ function Reservations({
           style={{ maxInlineSize: 200 }}
         >
           <option value="">{t('mm.filterAll')}</option>
-          {(['HELD', 'REDEEMED', 'EXPIRED', 'CANCELLED'] as const).map((s) => (
+          {(
+            [
+              'HELD',
+              'PENDING_PAYMENT',
+              'REDEEMED',
+              'EXPIRED',
+              'CANCELLED',
+              'PAYMENT_FAILED',
+            ] as const
+          ).map((s) => (
             <option key={s} value={s}>
               {t(`resstatus.${s}` as DictionaryKey)}
             </option>
@@ -744,64 +769,112 @@ function Reservations({
       ) : rows.length === 0 ? (
         <EmptyState title={t('mm.noReservations')} />
       ) : (
-        <Card className="dd-card--flat" style={{ padding: 0 }}>
-          <div className="dd-table-wrap" style={{ border: 0 }}>
-            <table className="dd-table">
-              <thead>
-                <tr>
-                  <th scope="col">{t('mm.col.code')}</th>
-                  <th scope="col">{t('mm.col.customer')}</th>
-                  <th scope="col">{t('mm.col.branch')}</th>
-                  <th scope="col" className="dd-num">
-                    {t('mm.col.qty')}
-                  </th>
-                  <th scope="col">{t('mm.col.status')}</th>
-                  <th scope="col">{t('mm.col.time')}</th>
-                  <th scope="col" />
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((r) => (
-                  <tr key={r.id} data-testid="res-row">
-                    <td className="dd-ltr">…{r.codeLast4}</td>
-                    <td>{r.customerFirstName ?? '–'}</td>
-                    <td>{bn(r.branch, locale)}</td>
-                    <td className="dd-num">{r.quantity}</td>
-                    <td>
-                      <span
-                        className={`dd-chip dd-chip--${r.status === 'HELD' ? 'success' : r.status === 'REDEEMED' ? 'info' : r.status === 'EXPIRED' ? 'warning' : 'neutral'}`}
-                      >
-                        {t(`resstatus.${r.status}` as DictionaryKey)}
-                      </span>
-                    </td>
-                    <td className="dd-caption">
-                      {when(
-                        locale,
-                        r.redeemedAt ?? (r.status === 'HELD' ? r.expiresAt : r.createdAt),
-                      )}
-                    </td>
-                    <td>
-                      {r.canCancel ? (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => setCancelId(r.id)}
-                          data-testid="res-cancel"
-                        >
-                          {t('mm.cancelRes')}
-                        </Button>
-                      ) : r.canReverse && orgId ? (
-                        <Link className="dd-link" href={withLocale('/redemptions', locale)}>
-                          {t('mm.redemptionsTitle')}
-                        </Link>
-                      ) : null}
-                    </td>
+        <>
+          <MoneySummary rows={rows} />
+          <Card className="dd-card--flat" style={{ padding: 0 }}>
+            <div className="dd-table-wrap" style={{ border: 0 }}>
+              <table className="dd-table">
+                <thead>
+                  <tr>
+                    <th scope="col">{t('mm.col.code')}</th>
+                    <th scope="col">{t('mm.col.customer')}</th>
+                    <th scope="col">{t('mm.col.branch')}</th>
+                    <th scope="col" className="dd-num">
+                      {t('mm.col.qty')}
+                    </th>
+                    <th scope="col">{t('mm.col.status')}</th>
+                    {paidAny ? <th scope="col">{t('mrsv.col.payment')}</th> : null}
+                    <th scope="col">{t('mm.col.time')}</th>
+                    <th scope="col" />
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+                </thead>
+                <tbody>
+                  {rows.map((r) => (
+                    <Fragment key={r.id}>
+                      <tr data-testid="res-row">
+                        <td className="dd-ltr">…{r.codeLast4}</td>
+                        <td>{r.customerFirstName ?? '–'}</td>
+                        <td>{bn(r.branch, locale)}</td>
+                        <td className="dd-num">{r.quantity}</td>
+                        <td>
+                          <span className={`dd-chip dd-chip--${RES_TONE[r.status] ?? 'neutral'}`}>
+                            {t(`resstatus.${r.status}` as DictionaryKey)}
+                          </span>
+                        </td>
+                        {paidAny ? (
+                          <td data-testid="res-money">
+                            {r.money ? (
+                              <button
+                                type="button"
+                                className="dd-link"
+                                style={{
+                                  background: 'none',
+                                  border: 0,
+                                  padding: 0,
+                                  cursor: 'pointer',
+                                }}
+                                aria-expanded={openId === r.id}
+                                onClick={() => setOpenId(openId === r.id ? null : r.id)}
+                              >
+                                <span className="dd-ltr">
+                                  {formatMoney(locale, r.money.amountMinor, r.money.currency)}
+                                </span>{' '}
+                                · {t(`rsv.status.${r.money.paymentStatus}` as DictionaryKey)}
+                              </button>
+                            ) : (
+                              '–'
+                            )}
+                          </td>
+                        ) : null}
+                        <td className="dd-caption">
+                          {when(
+                            locale,
+                            r.redeemedAt ?? (r.status === 'HELD' ? r.expiresAt : r.createdAt),
+                          )}
+                        </td>
+                        <td>
+                          {r.canCancel ? (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setCancelId(r.id)}
+                              data-testid="res-cancel"
+                            >
+                              {t('mm.cancelRes')}
+                            </Button>
+                          ) : r.canReverse && orgId ? (
+                            <Link className="dd-link" href={withLocale('/redemptions', locale)}>
+                              {t('mm.redemptionsTitle')}
+                            </Link>
+                          ) : null}
+                        </td>
+                      </tr>
+                    </Fragment>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+          {/* the chosen reservation's money, outside the scrolling table so it reads in full on a phone */}
+          {(() => {
+            const open = rows.find((x) => x.id === openId && x.money);
+            return open?.money ? (
+              <Card data-testid="res-money-details">
+                <div className="dd-stack" style={{ gap: 8 }}>
+                  <div className="dd-row" style={{ justifyContent: 'space-between', gap: 8 }}>
+                    <h3 className="dd-title-sm" style={{ margin: 0 }}>
+                      {t('mrsv.details')} <span className="dd-ltr">…{open.codeLast4}</span>
+                    </h3>
+                    <Button size="sm" variant="ghost" onClick={() => setOpenId(null)}>
+                      {t('mrsv.hideDetails')}
+                    </Button>
+                  </div>
+                  <MoneyDetails money={open.money} />
+                </div>
+              </Card>
+            ) : null;
+          })()}
+        </>
       )}
       <ConfirmReason
         open={!!cancelId}
@@ -824,6 +897,108 @@ function Reservations({
           return errorMessage(locale, r.errors);
         }}
       />
+    </div>
+  );
+}
+
+/**
+ * RC-80: the merchant's financial view of the reservations listed: collected, refunded, refunds pending, kept for the merchant,
+ * DealDash's commission and the net. Shown only when some listed reservation was paid.
+ */
+function MoneySummary({ rows }: { rows: ResRow[] }) {
+  const { locale } = useAuth();
+  const t = createTranslator(locale);
+  const paid = rows.filter((r) => r.money);
+  if (!paid.length) return null;
+  const ccy = paid[0]!.money!.currency;
+  const sum = (f: (m: ResMoney) => number | null) =>
+    paid.reduce((n, r) => n + (f(r.money!) ?? 0), 0);
+  const collected = sum((m) =>
+    m.method === 'CARD_PREAUTH'
+      ? (m.authorisation?.capturedMinor ?? 0)
+      : m.paymentStatus === 'PENDING' || m.paymentStatus === 'FAILED'
+        ? 0
+        : m.amountMinor,
+  );
+  const holds = sum((m) =>
+    m.authorisation?.status === 'AUTHORISED' ? m.authorisation.amountMinor : 0,
+  );
+  const tiles: Array<[string, number, string]> = [
+    ['mrsv.fin.collected', collected, 'fin-collected'],
+    ['mrsv.fin.refunded', sum((m) => m.refundedMinor), 'fin-refunded'],
+    ['mrsv.fin.pending', sum((m) => m.refundPendingMinor), 'fin-pending'],
+    ['mrsv.fin.kept', sum((m) => m.keptMinor), 'fin-kept'],
+    ['mrsv.fin.fee', sum((m) => m.feeMinor), 'fin-fee'],
+    ['mrsv.fin.net', sum((m) => m.netToMerchantMinor), 'fin-net'],
+  ];
+  if (holds > 0) tiles.push(['mrsv.fin.holds', holds, 'fin-holds']);
+  return (
+    <Card data-testid="res-money-summary">
+      <div className="dd-stack" style={{ gap: 10 }}>
+        <div>
+          <h3 className="dd-title-sm" style={{ margin: 0 }}>
+            {t('mrsv.fin.title')}
+          </h3>
+          <p className="dd-caption" style={{ margin: 0 }}>
+            {t('mrsv.fin.note')}
+          </p>
+        </div>
+        <div className="dd-kpis">
+          {tiles.map(([k, v, id]) => (
+            <div className="dd-kpi" key={k} data-testid={id}>
+              <div className="dd-kpi__n dd-ltr">{formatMoney(locale, v, ccy)}</div>
+              <div className="dd-kpi__l">{t(k as DictionaryKey)}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+/** One paid reservation's money: amount, status, hold, refunds, kept, commission, net and the per-redemption fee rule (RC-73/74). */
+function MoneyDetails({ money: m }: { money: ResMoney }) {
+  const { locale } = useAuth();
+  const t = createTranslator(locale);
+  const fmt = (v: number | null | undefined) =>
+    v === null || v === undefined ? '–' : formatMoney(locale, v, m.currency);
+  const line = (label: string, value: string, id?: string) => (
+    <div className="dd-row" style={{ justifyContent: 'space-between', gap: 12 }} data-testid={id}>
+      <span className="dd-caption">{label}</span>
+      <strong className="dd-ltr">{value}</strong>
+    </div>
+  );
+  return (
+    <div className="dd-stack" style={{ gap: 4, maxInlineSize: 440 }}>
+      {line(
+        t(`rsv.methodName.${m.method === 'FREE' ? 'FULL_PREPAYMENT' : m.method}` as DictionaryKey),
+        `${fmt(m.amountMinor)} · ${t(`rsv.status.${m.paymentStatus}` as DictionaryKey)}`,
+      )}
+      {m.authorisation
+        ? line(
+            t('rsv.methodName.CARD_PREAUTH'),
+            t(`rsv.hold.${m.authorisation.status}` as DictionaryKey),
+            'detail-hold',
+          )
+        : null}
+      {m.authorisation && m.authorisation.capturedMinor > 0
+        ? line(t('mrsv.captured'), fmt(m.authorisation.capturedMinor))
+        : null}
+      {m.authorisation && m.authorisation.releasedMinor > 0
+        ? line(t('mrsv.released'), fmt(m.authorisation.releasedMinor))
+        : null}
+      {m.refundedMinor > 0 ? line(t('mrsv.fin.refunded'), fmt(m.refundedMinor)) : null}
+      {m.refundPendingMinor > 0 ? line(t('mrsv.fin.pending'), fmt(m.refundPendingMinor)) : null}
+      {line(t('mrsv.fin.kept'), fmt(m.keptMinor))}
+      {line(t('mrsv.fin.fee'), fmt(m.feeMinor), 'detail-fee')}
+      {line(t('mrsv.fin.net'), fmt(m.netToMerchantMinor), 'detail-net')}
+      {m.redemptionFeeMinor !== null
+        ? line(
+            t('mrsv.redemptionFee'),
+            m.redemptionFeeMinor > 0 ? fmt(m.redemptionFeeMinor) : t('mrsv.redemptionFeeNone'),
+            'detail-redemption-fee',
+          )
+        : null}
     </div>
   );
 }
