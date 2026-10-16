@@ -29,6 +29,7 @@ import {
   benefitsOverviewSchema,
   benefitUsageItemSchema,
   benefitUsageQuerySchema,
+  brandCardSchema,
   envelope,
 } from '@dealdash/validation';
 import { APP_ENV } from '../common/env';
@@ -37,6 +38,8 @@ import {
   CurrentActor,
   Idempotent,
   Meta,
+  OptionalActor,
+  Public,
   RequirePermissions,
 } from '../common/decorators';
 import type { Actor, RequestMeta } from '../common/request-context';
@@ -162,10 +165,33 @@ export class CustomerBenefitsController {
   }
 }
 
+const brandQuerySchema = z.object({
+  city: z.string().trim().max(40).optional(),
+  lat: z.coerce.number().min(-90).max(90).optional(),
+  lng: z.coerce.number().min(-180).max(180).optional(),
+});
+class BrandQueryDto extends createZodDto(brandQuerySchema) {}
+class BrandListResponse extends createZodDto(envelope(z.array(brandCardSchema))) {}
+
+/** "Browse offers by brand" (public: guests browse too; a signed-in customer's eligibility applies). */
+@ApiTags('customer-discovery')
+@Controller('app')
+@Audiences('customer')
+export class CustomerBrandsController {
+  constructor(private readonly benefits: BenefitsService) {}
+
+  @Get('brands')
+  @Public()
+  @ApiOkResponse({ type: BrandListResponse })
+  brands(@Query() q: BrandQueryDto, @OptionalActor() actor?: Actor) {
+    return this.benefits.brands(actor?.userType === 'CUSTOMER' ? actor.userId : null, q);
+  }
+}
+
 /** Customer "My benefits": employer work-email verification, added cards, benefit offers, usage and history. */
 @Module({
   imports: [LiveDealsModule, HotDealsModule, VouchersModule, JobsModule],
-  controllers: [CustomerBenefitsController],
+  controllers: [CustomerBenefitsController, CustomerBrandsController],
   providers: [BenefitsService],
   exports: [BenefitsService],
 })

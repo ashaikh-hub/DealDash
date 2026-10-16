@@ -109,6 +109,24 @@ export const ELIGIBILITY_KINDS = [
 ] as const;
 export type EligibilityKind = (typeof ELIGIBILITY_KINDS)[number];
 
+/** "Browse offers by" (customer discovery): offers tied to a bank card / card scheme, or to an employer. */
+export const BENEFIT_SOURCES = ['card', 'employer'] as const;
+export type BenefitSource = (typeof BENEFIT_SOURCES)[number];
+const SOURCE_ATTRS: Record<BenefitSource, readonly string[]> = {
+  card: ['CARD', 'SCHEME', 'CARD_PRODUCT', 'CARD_TIER'],
+  employer: ['EMPLOYER'],
+};
+/** Whether an offer's eligibility rule names that benefit source (simple kinds, or any condition of a composite rule). */
+export function matchesBenefitSource(
+  kind: EligibilityKind,
+  conditionAttrTypes: readonly string[],
+  source: BenefitSource,
+): boolean {
+  if (source === 'card' && (kind === 'BANK_CARD' || kind === 'SCHEME')) return true;
+  if (source === 'employer' && kind === 'EMPLOYER') return true;
+  return kind === 'COMPOSITE' && conditionAttrTypes.some((a) => SOURCE_ATTRS[source].includes(a));
+}
+
 /** Customer-side attribute types of the shared eligibility engine (card attributes are issuer/product/tier only; never PAN/CVV). */
 export const ELIGIBILITY_ATTRIBUTE_TYPES = [
   'GEOGRAPHY',

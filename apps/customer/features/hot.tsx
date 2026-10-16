@@ -23,6 +23,7 @@ import type { UnlockAction } from '@dealdash/types';
 import { Alert, Button, EmptyState, LoadingState, Skeleton } from '@dealdash/ui';
 import type { HotDealCard, HotDealDetail, ReservationView } from '@dealdash/validation';
 import { useCustomer, useImpression } from './customer-context';
+import { STATUS_TONE, customerStatus, statusKey, useRating } from './cx-parts';
 import { CardSkeletons, CityBar, LoadError, SectionHead, useHref, useT } from './parts';
 import { curate, presentCard, presentDetail } from './presentation';
 import { useDealList } from './use-deals';
@@ -159,6 +160,7 @@ export function HotDealPage({ id }: { id: string }) {
   const { city, coords, approximate, track } = useCustomer();
   const [detail, setDetail] = useState<HotDealDetail | null>(null);
   const [state, setState] = useState<'loading' | 'ready' | 'missing' | 'error'>('loading');
+  const rating = useRating(detail?.merchantId);
 
   const load = useCallback(
     async (quiet = false) => {
@@ -277,6 +279,7 @@ export function HotDealPage({ id }: { id: string }) {
         }
         onUnlock={unlock}
         merchantHref={`${href(`/merchants/${detail.merchantId}`)}`}
+        rating={rating}
       />
     </div>
   );
@@ -320,24 +323,23 @@ interface NotificationItem {
   readAt: string | null;
 }
 
+/**
+ * One reservation in My Deals: merchant, deal, status in the customer's words, method and amount paid or held, expiry, and the
+ * manual code while it can be used (the QR is one tap away on the ticket).
+ */
 function ReservationRow({ r }: { r: ReservationView }) {
-  const { t } = useT();
+  const { t, locale } = useT();
   const href = useHref();
   const { pick } = usePick();
-  const tone =
-    r.displayState === 'HELD'
-      ? 'success'
-      : r.displayState === 'REDEEMED'
-        ? 'info'
-        : r.displayState === 'NOT_COMPLETED' || r.displayState === 'PAYMENT_PENDING'
-          ? 'warning'
-          : 'neutral';
+  const st = customerStatus(r);
+  const p = r.payment;
   return (
     <Link
       href={href(`/reservations/${r.id}`)}
       className="dd-staffrow"
-      style={{ textDecoration: 'none', color: 'inherit' }}
+      style={{ textDecoration: 'none', color: 'inherit', alignItems: 'flex-start' }}
       data-testid="reservation-row"
+      data-status={st}
     >
       {r.deal.imageUrl ? (
         <img className="dd-logo" src={r.deal.imageUrl} alt="" />
@@ -346,21 +348,39 @@ function ReservationRow({ r }: { r: ReservationView }) {
           <Icon name="ticket" />
         </span>
       )}
-      <div className="dd-grow">
+      <div className="dd-grow" style={{ minInlineSize: 0 }}>
         <strong>{pick(r.deal.title)}</strong>
         <div className="dd-caption">
           {pick(r.deal.merchantName)} · {pick(r.branch.name)}
         </div>
-        <div style={{ marginBlockStart: 4 }}>
-          <span className={`dd-chip dd-chip--${tone}`}>
-            {t(`res.state.${r.displayState}` as DictionaryKey)}
+        <div className="dd-row" style={{ gap: 6, flexWrap: 'wrap', marginBlockStart: 6 }}>
+          <span className={`dd-chip dd-chip--${STATUS_TONE[st]}`} data-testid="row-status">
+            {t(statusKey(st))}
           </span>
-          {r.payment ? (
-            <span className="dd-chip dd-chip--neutral" style={{ marginInlineStart: 6 }}>
-              {t(`rsv.status.${r.payment.status}` as DictionaryKey)}
+          {p ? (
+            <span className="dd-caption" data-testid="row-money">
+              {t(`rsv.methodName.${p.method}` as DictionaryKey)} ·{' '}
+              <span className="dd-ltr">{formatMoney(locale, p.amountMinor, p.currency)}</span>
             </span>
           ) : null}
         </div>
+        {st === 'ACTIVE' ? (
+          <div className="dd-caption" style={{ marginBlockStart: 4 }}>
+            {t('cx.row.expires', { time: formatDateTime(locale, r.expiresAt) })}
+            {r.code ? (
+              <>
+                {' · '}
+                <strong className="dd-ltr" data-testid="row-code">
+                  {r.code.manual}
+                </strong>
+              </>
+            ) : null}
+          </div>
+        ) : st === 'RESERVED' ? (
+          <div className="dd-caption" style={{ marginBlockStart: 4 }}>
+            {t('cx.row.pay')}
+          </div>
+        ) : null}
       </div>
       <Icon name="forward" size={18} />
     </Link>

@@ -347,6 +347,11 @@ export class HotViewService {
         })),
       branches: branches as HotDealDetail['branches'],
       holdMinutes: hold,
+      unitsTotal: c.reservationsEnabled
+        ? this.activeInventory(r.inventory)
+            .filter((i) => i.tracked)
+            .reduce((n, i) => n + i.total, 0) || null
+        : null,
       perCustomerLimit: c.perCustomerLimit,
       commitment: await this.commitmentTerms(r.organizationId, c),
       ...extra,

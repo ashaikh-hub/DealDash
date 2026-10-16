@@ -11,16 +11,28 @@ import {
   formatDistance,
   openStatus,
   pickText,
+  shareLink,
   useApi,
   useAuth,
+  whatsappHref,
 } from '@dealdash/app-shell';
 import { createTranslator, isolateLtr } from '@dealdash/localization';
 import type { UnlockAction } from '@dealdash/types';
 import { Button, Card, EmptyState, ErrorState, LoadingState, Skeleton } from '@dealdash/ui';
-import type { DealCard, DealDetail, MerchantPage, PublicBranch } from '@dealdash/validation';
+import type {
+  DealCard,
+  DealDetail,
+  HotDealCard,
+  MerchantPage,
+  PublicBranch,
+  VoucherCard,
+} from '@dealdash/validation';
 import { LanguageCard, SetupBanner } from './account';
 import { MerchantReviews } from './care';
 import { useCustomer } from './customer-context';
+import { RatingChip, useRating } from './cx-parts';
+import { TrackedHotCard } from './hot';
+import { TrackedVoucherCard } from './vouchers';
 import {
   CardSkeletons,
   LoadError,
@@ -310,6 +322,56 @@ export function MerchantPageView({ id }: { id: string }) {
   const [page, setPage] = useState<MerchantPage | null>(null);
   const [state, setState] = useState<'loading' | 'ready' | 'missing' | 'error'>('loading');
   const [tab, setTab] = useState<'offers' | 'info' | 'reviews'>('offers');
+  const { status } = useAuth();
+  const rating = useRating(page?.id);
+  const [hot, setHot] = useState<HotDealCard[]>([]);
+  const [vouchers, setVouchers] = useState<VoucherCard[]>([]);
+  const [note, setNote] = useState<string | null>(null);
+  const [following, setFollowing] = useState<{ following: boolean; followers: number } | null>(
+    null,
+  );
+  // every offer type of this merchant together: Exclusive Deals and Vouchers come from their own lists
+  useEffect(() => {
+    let alive = true;
+    const query = {
+      city,
+      merchantId: id,
+      lat: approximate ? undefined : coords.lat,
+      lng: approximate ? undefined : coords.lng,
+      limit: 20,
+    };
+    void Promise.all([
+      call<HotDealCard[]>('GET', '/v1/app/hot-deals', { query }),
+      call<VoucherCard[]>('GET', '/v1/app/vouchers', { query }),
+    ]).then(([h, v]) => {
+      if (!alive) return;
+      setHot(h.ok ? (h.data ?? []) : []);
+      setVouchers(v.ok ? (v.data ?? []) : []);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [call, id, city, coords.lat, coords.lng, approximate]);
+  const toggleFollow = async () => {
+    if (status !== 'authenticated') {
+      router.push(href('/profile') + '?reason=follow');
+      return;
+    }
+    const now = following?.following ?? page?.following ?? false;
+    const r = await call<{ following: boolean; followers: number }>(
+      now ? 'DELETE' : 'PUT',
+      `/v1/app/merchants/${id}/follow`,
+    );
+    if (r.ok && r.data) setFollowing(r.data);
+  };
+  const share = async () => {
+    if (!page) return;
+    const res = await shareLink({
+      title: t('cx.m.shareText', { merchant: pickText(page.name, locale) }),
+      url: window.location.href,
+    });
+    if (res === 'copied') setNote(t('cx.m.copied'));
+  };
 
   const load = useCallback(async () => {
     setState('loading');
@@ -353,6 +415,11 @@ export function MerchantPageView({ id }: { id: string }) {
       ? `https://www.google.com/maps/dir/?api=1&destination=${nearest.latitude},${nearest.longitude}`
       : null;
   const phone = nearest?.phone ?? page.phone;
+  // WhatsApp: the business number first (branch numbers are often landlines)
+  const wa = whatsappHref(page.phone) ?? whatsappHref(nearest?.phone);
+  const follow = following ?? { following: page.following, followers: page.followers };
+  const dist = formatDistance(locale, nearest?.distanceMeters ?? null);
+  const offerCount = page.deals.length + hot.length + vouchers.length;
   return (
     <div className="dd-stack" style={{ gap: 14 }} data-testid="customer-merchant">
       <div className="dd-mp__head">
@@ -383,13 +450,42 @@ export function MerchantPageView({ id }: { id: string }) {
           )}
           {page.logoUrl ? <img className="dd-logo" src={page.logoUrl} alt="" /> : null}
         </div>
-        <div className="dd-mp__actions">
+        <div className="dd-mp__meta" data-testid="merchant-meta">
+          <RatingChip rating={rating} />
+          {dist ? (
+            <span className="dd-ltr">
+              <Icon name="pin" size={13} /> {dist}
+            </span>
+          ) : null}
+          <span data-testid="followers">{t('cx.m.followers', { n: follow.followers })}</span>
+        </div>
+        <div className="dd-mp__actions dd-mp__actions--five">
+          <button
+            type="button"
+            className="dd-mp__action"
+            aria-pressed={follow.following}
+            onClick={() => void toggleFollow()}
+            data-testid="merchant-follow"
+          >
+            <Icon name="heart" filled={follow.following} />
+            {follow.following ? t('cx.m.following') : t('cx.m.follow')}
+          </button>
           <a
             className="dd-mp__action"
             href={phone ? `tel:${phone}` : undefined}
             aria-disabled={!phone}
           >
             <Icon name="phone" /> {t('merch.call')}
+          </a>
+          <a
+            className="dd-mp__action"
+            href={wa ?? undefined}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-disabled={!wa}
+            data-testid="merchant-whatsapp"
+          >
+            <Icon name="chat" /> {t('cx.m.whatsapp')}
           </a>
           <a
             className="dd-mp__action"
@@ -404,7 +500,20 @@ export function MerchantPageView({ id }: { id: string }) {
           >
             <Icon name="pin" /> {t('merch.directions')}
           </a>
+          <button
+            type="button"
+            className="dd-mp__action"
+            onClick={() => void share()}
+            data-testid="merchant-share"
+          >
+            <Icon name="share" /> {t('cx.m.share')}
+          </button>
         </div>
+        {note ? (
+          <p className="dd-caption" role="status" style={{ margin: 0 }}>
+            {note}
+          </p>
+        ) : null}
       </div>
       <div className="dd-dd__tabs" role="tablist" style={{ marginInline: 0 }}>
         {(['offers', 'info', 'reviews'] as const).map((k) => (
@@ -417,7 +526,7 @@ export function MerchantPageView({ id }: { id: string }) {
             onClick={() => setTab(k)}
           >
             {k === 'offers'
-              ? t('merch.offers', { n: page.deals.length })
+              ? t('merch.offers', { n: offerCount })
               : k === 'info'
                 ? t('merch.info')
                 : t('s8.rev.title')}
@@ -427,20 +536,47 @@ export function MerchantPageView({ id }: { id: string }) {
       {tab === 'reviews' ? (
         <MerchantReviews merchantId={page.id} />
       ) : tab === 'offers' ? (
-        page.deals.length ? (
-          <div className="dd-cardgrid">
-            {page.deals.map((d) => (
-              <TrackedCard
-                key={d.id}
-                deal={d}
-                variant="list"
-                onChange={(n) =>
-                  setPage((p) =>
-                    p ? { ...p, deals: p.deals.map((x) => (x.id === n.id ? n : x)) } : p,
-                  )
-                }
-              />
-            ))}
+        offerCount ? (
+          <div className="dd-stack" style={{ gap: 18 }} data-testid="merchant-offers">
+            {hot.length ? (
+              <section className="dd-stack" data-testid="merchant-offers-hot">
+                <h2 className="dd-title">{t('cx.browse.hot')}</h2>
+                <div className="dd-cardgrid">
+                  {hot.map((d) => (
+                    <TrackedHotCard key={d.id} deal={d} variant="list" />
+                  ))}
+                </div>
+              </section>
+            ) : null}
+            {page.deals.length ? (
+              <section className="dd-stack" data-testid="merchant-offers-live">
+                <h2 className="dd-title">{t('cx.browse.live')}</h2>
+                <div className="dd-cardgrid">
+                  {page.deals.map((d) => (
+                    <TrackedCard
+                      key={d.id}
+                      deal={d}
+                      variant="list"
+                      onChange={(n) =>
+                        setPage((p) =>
+                          p ? { ...p, deals: p.deals.map((x) => (x.id === n.id ? n : x)) } : p,
+                        )
+                      }
+                    />
+                  ))}
+                </div>
+              </section>
+            ) : null}
+            {vouchers.length ? (
+              <section className="dd-stack" data-testid="merchant-offers-vouchers">
+                <h2 className="dd-title">{t('cx.browse.vouchers')}</h2>
+                <div className="dd-cardgrid">
+                  {vouchers.map((v) => (
+                    <TrackedVoucherCard key={v.id} voucher={v} variant="list" />
+                  ))}
+                </div>
+              </section>
+            ) : null}
           </div>
         ) : (
           <EmptyState title={t('merch.noOffers')} description={t('merch.noOffersBody')} />

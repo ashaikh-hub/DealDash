@@ -21,7 +21,7 @@ import {
   merchantDisplayName,
   type CardContext,
 } from './deal-presenter.service';
-import type { EligibilityKind } from '@dealdash/types';
+import { matchesBenefitSource, type BenefitSource, type EligibilityKind } from '@dealdash/types';
 import {
   EligibilityService,
   evaluateEligibility,
@@ -43,9 +43,13 @@ export interface DiscoveryParams {
   eligibility?: 'all' | 'unlocked';
   /** My benefits: only partner-benefit offers, either already unlocked or still to unlock. Absent = every offer (unchanged). */
   benefit?: 'unlocked' | 'locked';
+  /** Browse offers by card / employer: only offers whose rule names that benefit source. */
+  source?: BenefitSource;
   limit: number;
   cursor?: string;
   organizationId?: string;
+  /** Customer query name for `organizationId` (one merchant's offers). */
+  merchantId?: string;
   onlyWithEndDate?: boolean;
 }
 
@@ -80,6 +84,22 @@ export function benefitMatch(
   return benefit === 'unlocked'
     ? outcome.result === 'ELIGIBLE'
     : outcome.result === 'LOCKED_UNLOCKABLE';
+}
+
+/** Browse offers by card / employer, shared by Live Deals, Exclusive Deals and Vouchers. */
+export function sourceMatch(
+  row: {
+    eligibilityKind: EligibilityKind;
+    ruleSet?: { conditions: Array<{ attrType: string }> } | null;
+  },
+  source: BenefitSource | undefined,
+): boolean {
+  if (!source) return true;
+  return matchesBenefitSource(
+    row.eligibilityKind,
+    (row.ruleSet?.conditions ?? []).map((c) => c.attrType),
+    source,
+  );
 }
 
 /**
@@ -277,6 +297,7 @@ export class DiscoveryService {
    * into the ordered candidate list, which keeps paging stable while eligibility filtering happens.
    */
   async list(p: DiscoveryParams, userId: string | null, now = new Date()): Promise<Page<DealCard>> {
+    if (p.merchantId && !p.organizationId) p = { ...p, organizationId: p.merchantId };
     const { city, enabled } = await this.resolveCity(p.city);
     if (!enabled) return new Page<DealCard>([], null);
     const ctx = await this.eligibility.contextFor(userId, city, now);
@@ -306,6 +327,7 @@ export class DiscoveryService {
         if (outcome.result === 'HIDDEN') continue;
         if (p.eligibility === 'unlocked' && outcome.result !== 'ELIGIBLE') continue;
         if (p.benefit && !benefitMatch(row, outcome, p.benefit)) continue;
+        if (!sourceMatch(row, p.source)) continue;
         kept.push({ row, cand, outcome });
         if (kept.length === p.limit) break;
       }
@@ -539,6 +561,7 @@ export class DiscoveryService {
         .map((b) => this.presenter.publicBranch(b, distances.get(b.id) ?? null))
         .sort((a, b) => (a.distanceMeters ?? Infinity) - (b.distanceMeters ?? Infinity)),
       deals: deals.items,
+      ...(await this.followState(userId, org.id)),
     };
   }
 
@@ -679,5 +702,42 @@ export class DiscoveryService {
       if (deal) await this.events.recordDirect('UNSAVE', deal, userId);
     }
     return { saved: false };
+  }
+
+  // ---------------------------------------------------------------- follow a merchant (customer app)
+  /** A followed merchant is a saved item of type MERCHANT (same table and erasure as saved deals). */
+  async follow(userId: string, organizationId: string) {
+    const org = await this.prisma.organization.findFirst({
+      where: { id: organizationId, type: 'MERCHANT', status: 'ACTIVE' },
+      select: { id: true },
+    });
+    if (!org) throw AppError.notFound();
+    await this.prisma.savedItem.upsert({
+      where: {
+        userId_objectType_objectId: { userId, objectType: 'MERCHANT', objectId: organizationId },
+      },
+      create: { userId, objectType: 'MERCHANT', objectId: organizationId },
+      update: {},
+    });
+    return this.followState(userId, organizationId);
+  }
+
+  async unfollow(userId: string, organizationId: string) {
+    await this.prisma.savedItem.deleteMany({
+      where: { userId, objectType: 'MERCHANT', objectId: organizationId },
+    });
+    return this.followState(userId, organizationId);
+  }
+
+  async followState(userId: string | null, organizationId: string) {
+    const [followers, mine] = await Promise.all([
+      this.prisma.savedItem.count({ where: { objectType: 'MERCHANT', objectId: organizationId } }),
+      userId
+        ? this.prisma.savedItem.count({
+            where: { userId, objectType: 'MERCHANT', objectId: organizationId },
+          })
+        : Promise.resolve(0),
+    ]);
+    return { following: mine > 0, followers };
   }
 }

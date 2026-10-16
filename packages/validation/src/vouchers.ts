@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { commercialInputSchema } from './commercial';
 import {
+  BENEFIT_SOURCES,
   ORDER_STATUSES,
   PAYABLE_EVENT_TYPES,
   PAYMENT_EVENT_OUTCOMES,
@@ -280,6 +281,8 @@ export const voucherDiscoveryQuerySchema = z.object({
   radiusMeters: z.coerce.number().int().min(100).max(100_000).optional(),
   sort: z.enum(['newest', 'price_low', 'price_high', 'savings', 'nearest']).optional(),
   eligibility: z.enum(['all', 'unlocked']).default('all'),
+  merchantId: uuid.optional(),
+  source: z.enum(BENEFIT_SOURCES).optional(),
 });
 
 /** Terms version the customer accepted at checkout (snapshotted on the order). */

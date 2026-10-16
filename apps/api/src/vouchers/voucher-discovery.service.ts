@@ -4,7 +4,13 @@ import { Prisma } from '../generated/prisma/client';
 import { AppError } from '../common/errors';
 import { decodeCursor, encodeCursor, Page } from '../common/pagination';
 import type { CardContext } from '../live-deals/deal-presenter.service';
-import { benefitMatch, DiscoveryService, searchTokens } from '../live-deals/discovery.service';
+import type { BenefitSource } from '@dealdash/types';
+import {
+  benefitMatch,
+  DiscoveryService,
+  searchTokens,
+  sourceMatch,
+} from '../live-deals/discovery.service';
 import {
   EligibilityService,
   evaluateEligibility,
@@ -26,6 +32,9 @@ export interface VoucherDiscoveryParams {
   eligibility?: 'all' | 'unlocked';
   /** My benefits: only partner-benefit offers, already unlocked or still to unlock. Absent = every offer (unchanged). */
   benefit?: 'unlocked' | 'locked';
+  /** Browse offers by card / employer, or one merchant's offers. */
+  source?: BenefitSource;
+  merchantId?: string;
   limit: number;
   cursor?: string;
 }
@@ -124,6 +133,7 @@ export class VoucherDiscoveryService {
           AND (v."saleStartAt" IS NULL OR v."saleStartAt" <= ${nowTs})
           AND (v."saleEndAt" IS NULL OR v."saleEndAt" > ${nowTs})
           ${p.category ? Prisma.sql`AND c."code" = ${p.category} AND c."active"` : Prisma.empty}
+          ${p.merchantId ? Prisma.sql`AND v."organizationId" = ${p.merchantId}::uuid` : Prisma.empty}
           ${point && p.radiusMeters ? Prisma.sql`AND ST_DWithin(b."location", ${point}, ${p.radiusMeters}::float8)` : Prisma.empty}
       ), best AS (
         SELECT DISTINCT ON (id) * FROM cand ORDER BY id, dist ASC NULLS LAST
@@ -167,6 +177,7 @@ export class VoucherDiscoveryService {
         if (outcome.result === 'HIDDEN') continue;
         if (p.eligibility === 'unlocked' && outcome.result !== 'ELIGIBLE') continue;
         if (p.benefit && !benefitMatch(row, outcome, p.benefit)) continue;
+        if (!sourceMatch(row, p.source)) continue;
         kept.push({ row, cand, outcome });
         if (kept.length === p.limit) break;
       }

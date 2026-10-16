@@ -3,14 +3,25 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Icon, categoryIcon, pickText, useApi, useAuth } from '@dealdash/app-shell';
+import { Icon, categoryIcon, formatDistance, pickText, useApi, useAuth } from '@dealdash/app-shell';
 import { withLocale } from '@dealdash/localization';
-import { Button } from '@dealdash/ui';
-import type { DealCard } from '@dealdash/validation';
+import { Button, EmptyState } from '@dealdash/ui';
+import type { BrandCard, DealCard, HotDealCard, VoucherCard } from '@dealdash/validation';
 import { useCustomer } from './customer-context';
+import { TrackedHotCard } from './hot';
 import { DealsMap } from './map';
-import { CardSkeletons, CityBar, LoadError, NoDeals, SearchBox, TrackedCard, useT } from './parts';
+import {
+  CardSkeletons,
+  CityBar,
+  LoadError,
+  NoDeals,
+  SearchBox,
+  TrackedCard,
+  useHref,
+  useT,
+} from './parts';
 import { useDealList } from './use-deals';
+import { TrackedVoucherCard } from './vouchers';
 
 interface Cat {
   id: string;
@@ -69,11 +80,48 @@ export function ExplorePage() {
     (elig === 'unlocked' ? 1 : 0) +
     (sort !== 'nearest' && sort !== 'newest' ? 1 : 0);
 
+  const by = (['card', 'employer', 'brand'] as const).find((b) => b === params.get('by')) ?? 'all';
+  const browse = (
+    <div>
+      <h2 className="dd-label" style={{ marginBlockEnd: 6 }}>
+        {t('cx.browse.title')}
+      </h2>
+      <div
+        className="dd-browse"
+        role="group"
+        aria-label={t('cx.browse.title')}
+        data-testid="browse-by"
+      >
+        {(['all', 'card', 'employer', 'brand'] as const).map((b) => (
+          <button
+            key={b}
+            type="button"
+            aria-pressed={by === b}
+            onClick={() => set({ by: b === 'all' ? null : b })}
+            data-testid={`browse-${b}`}
+          >
+            {t(`cx.browse.${b}` as never)}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+  if (by !== 'all')
+    return (
+      <div className="dd-stack" style={{ gap: 14 }} data-testid="customer-explore">
+        <CityBar />
+        <h1 className="dd-title-xl">{t('cust.explore.title')}</h1>
+        {browse}
+        {by === 'brand' ? <BrandGrid /> : <BySource source={by} />}
+      </div>
+    );
+
   return (
     <div className="dd-stack" style={{ gap: 14 }} data-testid="customer-explore">
       <CityBar />
       <h1 className="dd-title-xl">{t('cust.explore.title')}</h1>
       <SearchBox />
+      {browse}
       <div className="dd-hscroll" role="tablist" aria-label={t('filter.category')}>
         <Link
           href={`${withLocale('/explore', locale)}${params.get('sort') ? `?sort=${params.get('sort')}` : ''}`}
@@ -246,6 +294,144 @@ export function ExplorePage() {
           </div>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+/** Offers tied to a card / scheme or to an employer, across the three offer types (the products' own lists, filtered). */
+function BySource({ source }: { source: 'card' | 'employer' }) {
+  const { t } = useT();
+  const href = useHref();
+  const { city, coords, approximate } = useCustomer();
+  const where = {
+    city,
+    source,
+    lat: approximate ? undefined : coords.lat,
+    lng: approximate ? undefined : coords.lng,
+  };
+  const hot = useDealList<HotDealCard>('/v1/app/hot-deals', { ...where, limit: 10 });
+  const live = useDealList('/v1/app/deals', { ...where, limit: 12 });
+  const vouchers = useDealList<VoucherCard>('/v1/app/vouchers', { ...where, limit: 10 });
+  const loading = hot.loading || live.loading || vouchers.loading;
+  const empty = !hot.items.length && !live.items.length && !vouchers.items.length;
+  return (
+    <div className="dd-stack" style={{ gap: 16 }} data-testid={`by-${source}`}>
+      <div className="dd-row" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 6 }}>
+        <span className="dd-caption">
+          {source === 'card' ? t('cx.browse.cardHint') : t('cx.browse.employerHint')}
+        </span>
+        <Link
+          className="dd-link"
+          href={href(source === 'card' ? '/benefits?add=card' : '/benefits?add=employer')}
+        >
+          {source === 'card' ? t('cx.browse.addCard') : t('cx.browse.addEmployer')}
+        </Link>
+      </div>
+      {loading ? (
+        <CardSkeletons />
+      ) : hot.failed || live.failed || vouchers.failed ? (
+        <LoadError
+          onRetry={() => {
+            void hot.reload();
+            void live.reload();
+            void vouchers.reload();
+          }}
+        />
+      ) : empty ? (
+        <EmptyState title={t('cx.browse.none')} />
+      ) : (
+        <>
+          {hot.items.length ? (
+            <section className="dd-stack">
+              <h2 className="dd-title">{t('cx.browse.hot')}</h2>
+              <div className="dd-cardgrid">
+                {hot.items.map((d) => (
+                  <TrackedHotCard key={d.id} deal={d} variant="list" />
+                ))}
+              </div>
+            </section>
+          ) : null}
+          {live.items.length ? (
+            <section className="dd-stack">
+              <h2 className="dd-title">{t('cx.browse.live')}</h2>
+              <div className="dd-cardgrid">
+                {live.items.map((d: DealCard) => (
+                  <TrackedCard key={d.id} deal={d} variant="list" onChange={live.patch} />
+                ))}
+              </div>
+            </section>
+          ) : null}
+          {vouchers.items.length ? (
+            <section className="dd-stack">
+              <h2 className="dd-title">{t('cx.browse.vouchers')}</h2>
+              <div className="dd-cardgrid">
+                {vouchers.items.map((v) => (
+                  <TrackedVoucherCard key={v.id} voucher={v} variant="list" />
+                ))}
+              </div>
+            </section>
+          ) : null}
+        </>
+      )}
+    </div>
+  );
+}
+
+/** Merchants with offers the customer can see here, most offers first. */
+function BrandGrid() {
+  const { t, locale } = useT();
+  const { call } = useApi();
+  const href = useHref();
+  const { city, coords, approximate } = useCustomer();
+  const [brands, setBrands] = useState<BrandCard[] | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    let alive = true;
+    setBrands(null);
+    setFailed(false);
+    void call<BrandCard[]>('GET', '/v1/app/brands', {
+      query: {
+        city,
+        lat: approximate ? undefined : coords.lat,
+        lng: approximate ? undefined : coords.lng,
+      },
+    }).then((r) => {
+      if (!alive) return;
+      if (r.ok) setBrands(r.data ?? []);
+      else setFailed(true);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [call, city, coords.lat, coords.lng, approximate, attempt]);
+  if (failed) return <LoadError onRetry={() => setAttempt((n) => n + 1)} />;
+  if (!brands) return <CardSkeletons />;
+  if (!brands.length) return <EmptyState title={t('cx.browse.none')} />;
+  return (
+    <div className="dd-brandgrid" data-testid="brand-grid">
+      {brands.map((b) => (
+        <Link
+          key={b.id}
+          className="dd-brand"
+          href={href(`/merchants/${b.id}`)}
+          data-testid="brand-card"
+        >
+          {b.logoUrl ? (
+            <img src={b.logoUrl} alt="" />
+          ) : (
+            <span className="dd-brand__ph" aria-hidden="true" />
+          )}
+          <strong>{pickText(b.name, locale)}</strong>
+          <span className="dd-caption">{b.category ? pickText(b.category.name, locale) : ''}</span>
+          <span className="dd-caption">
+            {t('cx.brand.offers', { n: b.offerCount })}
+            {b.distanceMeters !== null ? (
+              <span className="dd-ltr"> · {formatDistance(locale, b.distanceMeters)}</span>
+            ) : null}
+          </span>
+        </Link>
+      ))}
     </div>
   );
 }

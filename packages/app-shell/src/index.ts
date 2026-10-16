@@ -35,6 +35,7 @@ export {
   type OpenStatus,
 } from './deals/format';
 export { QrCode } from './hot/qr';
+export { shareLink, whatsappHref } from './hot/share';
 export {
   ActivityPanel,
   CasesPanel,

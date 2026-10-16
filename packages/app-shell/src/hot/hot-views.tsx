@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { useEffect, useState, type ReactNode } from 'react';
 import {
   createTranslator,
+  formatDateTime,
   formatMoney,
   isolateLtr,
   type DictionaryKey,
@@ -22,6 +23,7 @@ import {
 } from '../deals/format';
 import { Countdown, useServerNow } from './countdown';
 import { QrCode } from './qr';
+import { shareLink, whatsappHref } from './share';
 import {
   CommitmentTermsPanel,
   ReservationMoneyPanel,
@@ -164,9 +166,12 @@ export function HotDetailView({
   onDirections,
   onUnlock,
   merchantHref,
+  rating,
 }: {
   detail: HotDealDetail;
   locale: Locale;
+  /** The merchant's review summary, when known (customer app). */
+  rating?: { average: number | null; count: number } | null;
   embedded?: boolean;
   signedIn?: boolean;
   onBack?: () => void;
@@ -232,6 +237,13 @@ export function HotDetailView({
     }
   };
 
+  // never a generic or "free" reserve where money or a card hold is involved
+  const reserveLabel = paid
+    ? t(`rsv.cta.${paid.method}` as DictionaryKey, {
+        amount: formatMoney(locale, paid.amountMinor!, paid.currency),
+      })
+    : t('hot.reserve');
+
   // what the sticky bar offers
   let bar: ReactNode = null;
   if (!embedded) {
@@ -290,11 +302,11 @@ export function HotDetailView({
         </Button>
       );
     else if (restricted || limitReached)
-      action = <Button disabled>{limitReached ? t('hot.limitReached') : t('hot.reserve')}</Button>;
+      action = <Button disabled>{limitReached ? t('hot.limitReached') : reserveLabel}</Button>;
     else
       action = (
         <Button onClick={() => setSheet(true)} data-testid="hot-reserve">
-          {t('hot.reserve')}
+          {reserveLabel}
         </Button>
       );
     bar = (
@@ -383,10 +395,61 @@ export function HotDetailView({
             </div>
           ) : null}
         </div>
+        {/* scarcity: units left against what the deal started with (only when the stock is shown) */}
+        {!soldOut && detail.unitsTotal && detail.remainingTotal !== null ? (
+          <div className="dd-hot-scarcity" data-testid="hot-scarcity">
+            <div className="dd-hot-scarcity__bar" aria-hidden="true">
+              <span
+                style={{
+                  inlineSize: `${Math.max(4, Math.min(100, (detail.remainingTotal / detail.unitsTotal) * 100))}%`,
+                }}
+              />
+            </div>
+            <span className="dd-caption">
+              {t('cx.hot.left', { n: detail.remainingTotal, total: detail.unitsTotal })}
+            </span>
+          </div>
+        ) : null}
+        <dl className="dd-hot-when" data-testid="hot-when">
+          {detail.startsAt ? (
+            <div>
+              <dt>{t('cx.hot.starts')}</dt>
+              <dd>{formatDateTime(locale, detail.startsAt)}</dd>
+            </div>
+          ) : null}
+          <div>
+            <dt>{t('cx.hot.ends')}</dt>
+            <dd>{detail.endsAt ? formatDateTime(locale, detail.endsAt) : t('hot.noEnd')}</dd>
+          </div>
+          {rating ? (
+            <div>
+              <dt>
+                <Icon name="star" size={13} />
+              </dt>
+              <dd data-testid="hot-rating">
+                {rating.average !== null && rating.count > 0 ? (
+                  <>
+                    <span className="dd-ltr">{rating.average.toFixed(1)}</span>{' '}
+                    <span className="dd-caption">{t('cx.m.reviews', { n: rating.count })}</span>
+                  </>
+                ) : (
+                  <span className="dd-caption">{t('cx.m.noRating')}</span>
+                )}
+              </dd>
+            </div>
+          ) : null}
+        </dl>
         {soldOut ? (
           <Alert tone="warning">
             <span> {t('hot.soldOutBody')}</span>
           </Alert>
+        ) : null}
+
+        {/* "Open to everyone" is the eligibility chip below; a restricted offer states its requirement here */}
+        {detail.eligibility.kind !== 'PUBLIC' && detail.eligibility.message && !locked ? (
+          <p className="dd-hot-elig" data-testid="hot-elig">
+            <Icon name="tag" size={14} /> {pickText(detail.eligibility.message, locale)}
+          </p>
         ) : null}
 
         <div className="dd-dd__badges">
@@ -647,6 +710,29 @@ export function HotDetailView({
             ) : null}
             {paid ? (
               <>
+                <dl className="dd-pay-summary" data-testid="pay-summary">
+                  <div>
+                    <dt>{t('cx.pay.offer')}</dt>
+                    <dd>
+                      <strong>{pickText(detail.offerLabel, locale)}</strong>
+                      <span className="dd-caption"> · {merchant}</span>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>{t('cx.pay.method')}</dt>
+                    <dd>{t('cx.pay.methodValue')}</dd>
+                  </div>
+                  <div>
+                    <dt>
+                      {paid.method === 'CARD_PREAUTH' && !paid.preauthImmediateCapture
+                        ? t('cx.pay.held')
+                        : t('cx.pay.charged')}
+                    </dt>
+                    <dd className="dd-ltr">
+                      <strong>{formatMoney(locale, paid.amountMinor!, paid.currency)}</strong>
+                    </dd>
+                  </div>
+                </dl>
                 <CommitmentTermsPanel
                   terms={paid}
                   locale={locale}
@@ -880,10 +966,32 @@ export function ReservationTicket({
             <dt>{t('res.quantity')}</dt>
             <dd className="dd-ltr">{r.quantity}</dd>
           </div>
+          {live ? (
+            <div style={{ gridColumn: '1 / -1' }}>
+              <dt>{t('cx.t.valid')}</dt>
+              <dd data-testid="ticket-validity">
+                {formatDateTime(locale, r.createdAt)} – {formatDateTime(locale, r.expiresAt)}
+              </dd>
+            </div>
+          ) : null}
         </dl>
         <p className="dd-caption" style={{ margin: 0 }}>
           {pickText(r.branch.address, locale)}
         </p>
+
+        {live ? (
+          <section className="dd-ticket__steps" data-testid="ticket-steps">
+            <h2 className="dd-dd__h" style={{ margin: 0 }}>
+              {t('cx.t.howTitle')}
+            </h2>
+            <ol>
+              <li>{t('cx.t.step1', { merchant: pickText(r.deal.merchantName, locale) })}</li>
+              <li>{t('cx.t.step2')}</li>
+              <li>{t('cx.t.step3')}</li>
+              <li>{t(`cx.t.step4.${r.payment?.method ?? 'FREE'}` as DictionaryKey)}</li>
+            </ol>
+          </section>
+        ) : null}
 
         <ReservationMoneyPanel reservation={r} locale={locale} />
 
@@ -903,6 +1011,37 @@ export function ReservationTicket({
             <a className="dd-btn dd-btn--outline" href={`tel:${r.branch.phone}`}>
               <Icon name="phone" size={16} /> {t('res.call')}
             </a>
+          ) : null}
+          {whatsappHref(r.branch.phone) ? (
+            <a
+              className="dd-btn dd-btn--outline"
+              href={whatsappHref(r.branch.phone)!}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="ticket-whatsapp"
+            >
+              <Icon name="chat" size={16} /> {t('cx.m.whatsapp')}
+            </a>
+          ) : null}
+          {offerHref ? (
+            <button
+              type="button"
+              className="dd-btn dd-btn--outline"
+              data-testid="ticket-share"
+              onClick={() =>
+                void shareLink({
+                  title: pickText(r.deal.title, locale),
+                  url: `${window.location.origin}${offerHref}`,
+                })
+              }
+            >
+              <Icon name="share" size={16} /> {t('cx.m.share')}
+            </button>
+          ) : null}
+          {offerHref && live ? (
+            <Link className="dd-btn dd-btn--ghost" href={offerHref} data-testid="ticket-terms">
+              {t('cx.t.terms')}
+            </Link>
           ) : null}
         </div>
 

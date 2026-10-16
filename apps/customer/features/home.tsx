@@ -7,6 +7,7 @@ import { formatNumber, type DictionaryKey } from '@dealdash/localization';
 import { Skeleton } from '@dealdash/ui';
 import type { DealCard, RewardSummary } from '@dealdash/validation';
 import { SetupBanner } from './account';
+import { EntryGate } from './cx-parts';
 import { useCustomer } from './customer-context';
 import { curate, presentCard } from './presentation';
 import { HotRail } from './hot';
@@ -173,6 +174,7 @@ export function HomePage() {
 
   return (
     <div className="dd-stack dd-home" data-testid="customer-home">
+      <EntryGate />
       <SearchBox />
       {/* only for a signed-in customer whose profile set-up is unfinished ("Continue setting up") */}
       <SetupBanner />

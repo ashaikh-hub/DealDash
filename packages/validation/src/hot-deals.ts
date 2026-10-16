@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { commercialInputSchema } from './commercial';
 import {
+  BENEFIT_SOURCES,
   CANCELLED_BY,
   COMMITMENT_METHODS,
   type CommitmentMethod,
@@ -414,6 +415,8 @@ export const hotDiscoveryQuerySchema = z.object({
   radiusMeters: z.coerce.number().int().min(100).max(100_000).optional(),
   sort: z.enum(['ending_soon', 'nearest', 'newest']).optional(),
   eligibility: z.enum(['all', 'unlocked']).default('all'),
+  merchantId: uuid.optional(),
+  source: z.enum(BENEFIT_SOURCES).optional(),
 });
 export const reservationCreateSchema = z.object({
   branchId: uuid,
@@ -534,6 +537,8 @@ export const hotDealDetailSchema = hotDealCardSchema.extend({
   media: z.array(z.object({ url: z.string(), alt: biText })),
   branches: z.array(hotBranchViewSchema),
   holdMinutes: z.number().int(),
+  /** Units the deal started with across its tracked branches (scarcity bar against `remainingTotal`); null for walk-in deals. */
+  unitsTotal: z.number().int().nullable(),
   perCustomerLimit: z.number().int(),
   /** Units this customer may still reserve (limit minus held and redeemed). */
   remainingForMe: z.number().int().nullable(),

@@ -1668,6 +1668,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/app/merchants/{id}/follow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["CustomerDiscoveryController_follow_v1"];
+        post?: never;
+        delete: operations["CustomerDiscoveryController_unfollow_v1"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/merchants/{orgId}/hot-deal-options": {
         parameters: {
             query?: never;
@@ -10532,6 +10548,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/app/brands": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerBrandsController_brands_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/analytics/events": {
         parameters: {
             query?: never;
@@ -15924,6 +15956,8 @@ export interface components {
                      */
                     availability: "AVAILABLE" | "SCHEDULED" | "PAUSED" | "ENDED" | "UNAVAILABLE";
                 }[];
+                following: boolean;
+                followers: number;
             };
             meta: {
                 requestId?: string;
@@ -16047,6 +16081,18 @@ export interface components {
         SavedStateResponse: {
             data: {
                 saved: boolean;
+            };
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
+        };
+        FollowStateResponse: {
+            data: {
+                following: boolean;
+                followers: number;
             };
             meta: {
                 requestId?: string;
@@ -17911,6 +17957,7 @@ export interface components {
                     blockedReason: "SOLD_OUT" | "BRANCH_CLOSED" | null;
                 }[];
                 holdMinutes: number;
+                unitsTotal: number | null;
                 perCustomerLimit: number;
                 remainingForMe: number | null;
                 myReservations: {
@@ -18796,6 +18843,7 @@ export interface components {
                         blockedReason: "SOLD_OUT" | "BRANCH_CLOSED" | null;
                     }[];
                     holdMinutes: number;
+                    unitsTotal: number | null;
                     perCustomerLimit: number;
                     remainingForMe: number | null;
                     myReservations: {
@@ -19202,6 +19250,7 @@ export interface components {
                     blockedReason: "SOLD_OUT" | "BRANCH_CLOSED" | null;
                 }[];
                 holdMinutes: number;
+                unitsTotal: number | null;
                 perCustomerLimit: number;
                 remainingForMe: number | null;
                 myReservations: {
@@ -28435,6 +28484,32 @@ export interface components {
             /** Format: uuid */
             programId: string;
         };
+        BrandListResponse: {
+            data: {
+                /** Format: uuid */
+                id: string;
+                name: {
+                    en: string;
+                    ar: string;
+                };
+                logoUrl: string | null;
+                category: {
+                    code: string;
+                    name: {
+                        en: string;
+                        ar: string;
+                    };
+                } | null;
+                offerCount: number;
+                distanceMeters: number | null;
+            }[];
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
+        };
         AnalyticsBatchDto: {
             events: {
                 /** @enum {string} */
@@ -31524,6 +31599,8 @@ export interface operations {
                 radiusMeters?: number;
                 sort?: "nearest" | "newest" | "ending_soon" | "relevance";
                 eligibility?: "all" | "unlocked";
+                merchantId?: string;
+                source?: "card" | "employer";
             };
             header?: never;
             path?: never;
@@ -31554,6 +31631,8 @@ export interface operations {
                 radiusMeters?: number;
                 sort?: "nearest" | "newest" | "ending_soon" | "relevance";
                 eligibility?: "all" | "unlocked";
+                merchantId?: string;
+                source?: "card" | "employer";
             };
             header?: never;
             path?: never;
@@ -31584,6 +31663,8 @@ export interface operations {
                 radiusMeters?: number;
                 sort?: "nearest" | "newest" | "ending_soon" | "relevance";
                 eligibility?: "all" | "unlocked";
+                merchantId?: string;
+                source?: "card" | "employer";
             };
             header?: never;
             path?: never;
@@ -31731,6 +31812,48 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SavedStateResponse"];
+                };
+            };
+        };
+    };
+    CustomerDiscoveryController_follow_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowStateResponse"];
+                };
+            };
+        };
+    };
+    CustomerDiscoveryController_unfollow_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowStateResponse"];
                 };
             };
         };
@@ -32836,6 +32959,8 @@ export interface operations {
                 radiusMeters?: number;
                 sort?: "ending_soon" | "nearest" | "newest";
                 eligibility?: "all" | "unlocked";
+                merchantId?: string;
+                source?: "card" | "employer";
             };
             header?: never;
             path?: never;
@@ -34154,6 +34279,8 @@ export interface operations {
                 radiusMeters?: number;
                 sort?: "newest" | "price_low" | "price_high" | "savings" | "nearest";
                 eligibility?: "all" | "unlocked";
+                merchantId?: string;
+                source?: "card" | "employer";
             };
             header?: never;
             path?: never;
@@ -45113,6 +45240,29 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OverviewResponse"];
+                };
+            };
+        };
+    };
+    CustomerBrandsController_brands_v1: {
+        parameters: {
+            query?: {
+                city?: string;
+                lat?: number;
+                lng?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrandListResponse"];
                 };
             };
         };

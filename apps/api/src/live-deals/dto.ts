@@ -36,6 +36,7 @@ import {
   performanceQuerySchema,
   performanceSchema,
   savedItemsSchema,
+  followStateSchema,
   searchResultSchema,
   uploadIntentResultSchema,
   uploadIntentSchema,
@@ -93,6 +94,7 @@ export class MerchantPageResponse extends createZodDto(envelope(merchantPageSche
 export class HomeFeedResponse extends createZodDto(envelope(homeFeedSchema)) {}
 export class SearchResponse extends createZodDto(envelope(searchResultSchema)) {}
 export class SavedItemsResponse extends createZodDto(envelope(savedItemsSchema)) {}
+export class FollowStateResponse extends createZodDto(envelope(followStateSchema)) {}
 export class SavedStateResponse extends createZodDto(envelope(z.object({ saved: z.boolean() }))) {}
 export class EventsAcceptedResponse extends createZodDto(
   envelope(z.object({ accepted: z.number().int() })),

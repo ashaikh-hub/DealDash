@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import {
+  BENEFIT_SOURCES,
   DEAL_EVENT_TYPES,
   ELIGIBILITY_ATTRIBUTE_TYPES,
   ELIGIBILITY_KINDS,
@@ -414,6 +415,9 @@ export const discoveryQuerySchema = z.object({
   sort: z.enum(['nearest', 'newest', 'ending_soon', 'relevance']).optional(),
   /** `unlocked` shows only deals the customer can use right now; `all` also shows locked deals with an unlock action. */
   eligibility: z.enum(['all', 'unlocked']).default('all'),
+  /** Browse offers by: one merchant's offers, or offers tied to a card / scheme or to an employer. */
+  merchantId: uuid.optional(),
+  source: z.enum(BENEFIT_SOURCES).optional(),
 });
 
 export const nearbyDealsQuerySchema = discoveryQuerySchema.extend({
@@ -536,8 +540,23 @@ export const merchantPageSchema = z.object({
   phone: z.string().nullable(),
   branches: z.array(publicBranchSchema),
   deals: z.array(dealCardSchema),
+  /** Customer app: whether the signed-in customer follows this merchant, and how many customers do. */
+  following: z.boolean(),
+  followers: z.number().int(),
 });
 export type MerchantPage = z.infer<typeof merchantPageSchema>;
+export const followStateSchema = z.object({ following: z.boolean(), followers: z.number().int() });
+
+/** "Browse offers by brand": merchants with offers the customer can see in the city, with their offer counts. */
+export const brandCardSchema = z.object({
+  id: uuid,
+  name: biText,
+  logoUrl: z.string().nullable(),
+  category: z.object({ code: z.string(), name: biText }).nullable(),
+  offerCount: z.number().int(),
+  distanceMeters: z.number().nullable(),
+});
+export type BrandCard = z.infer<typeof brandCardSchema>;
 
 export const homeFeedSchema = z.object({
   city: z.string(),

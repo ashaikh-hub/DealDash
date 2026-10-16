@@ -4117,6 +4117,28 @@
                 "unlocked"
               ]
             }
+          },
+          {
+            "name": "merchantId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "source",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "card",
+                "employer"
+              ]
+            }
           }
         ],
         "responses": {
@@ -4244,6 +4266,28 @@
                 "unlocked"
               ]
             }
+          },
+          {
+            "name": "merchantId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "source",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "card",
+                "employer"
+              ]
+            }
           }
         ],
         "responses": {
@@ -4368,6 +4412,28 @@
               "enum": [
                 "all",
                 "unlocked"
+              ]
+            }
+          },
+          {
+            "name": "merchantId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "source",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "card",
+                "employer"
               ]
             }
           }
@@ -4607,6 +4673,64 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SavedStateResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-discovery"
+        ]
+      }
+    },
+    "/v1/app/merchants/{id}/follow": {
+      "put": {
+        "operationId": "CustomerDiscoveryController_follow_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FollowStateResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-discovery"
+        ]
+      },
+      "delete": {
+        "operationId": "CustomerDiscoveryController_unfollow_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FollowStateResponse"
                 }
               }
             }
@@ -6699,6 +6823,28 @@
               "enum": [
                 "all",
                 "unlocked"
+              ]
+            }
+          },
+          {
+            "name": "merchantId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "source",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "card",
+                "employer"
               ]
             }
           }
@@ -9104,6 +9250,28 @@
               "enum": [
                 "all",
                 "unlocked"
+              ]
+            }
+          },
+          {
+            "name": "merchantId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "source",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "card",
+                "employer"
               ]
             }
           }
@@ -25899,6 +26067,57 @@
         },
         "tags": [
           "customer-benefits"
+        ]
+      }
+    },
+    "/v1/app/brands": {
+      "get": {
+        "operationId": "CustomerBrandsController_brands_v1",
+        "parameters": [
+          {
+            "name": "city",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 40,
+              "type": "string"
+            }
+          },
+          {
+            "name": "lat",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": -90,
+              "maximum": 90,
+              "type": "number"
+            }
+          },
+          {
+            "name": "lng",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": -180,
+              "maximum": 180,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrandListResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-discovery"
         ]
       }
     },
@@ -46016,6 +46235,14 @@
                     "saved"
                   ]
                 }
+              },
+              "following": {
+                "type": "boolean"
+              },
+              "followers": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
               }
             },
             "required": [
@@ -46027,7 +46254,9 @@
               "category",
               "phone",
               "branches",
-              "deals"
+              "deals",
+              "following",
+              "followers"
             ]
           },
           "meta": {
@@ -46527,6 +46756,53 @@
             },
             "required": [
               "saved"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string"
+              },
+              "locale": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "ar"
+                ]
+              },
+              "nextCursor": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "FollowStateResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "following": {
+                "type": "boolean"
+              },
+              "followers": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "following",
+              "followers"
             ]
           },
           "meta": {
@@ -52050,6 +52326,12 @@
                 "minimum": -9007199254740991,
                 "maximum": 9007199254740991
               },
+              "unitsTotal": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991,
+                "nullable": true
+              },
               "perCustomerLimit": {
                 "type": "integer",
                 "minimum": -9007199254740991,
@@ -52148,6 +52430,7 @@
               "media",
               "branches",
               "holdMinutes",
+              "unitsTotal",
               "perCustomerLimit",
               "remainingForMe",
               "myReservations",
@@ -55634,6 +55917,12 @@
                     "minimum": -9007199254740991,
                     "maximum": 9007199254740991
                   },
+                  "unitsTotal": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991,
+                    "nullable": true
+                  },
                   "perCustomerLimit": {
                     "type": "integer",
                     "minimum": -9007199254740991,
@@ -55732,6 +56021,7 @@
                   "media",
                   "branches",
                   "holdMinutes",
+                  "unitsTotal",
                   "perCustomerLimit",
                   "remainingForMe",
                   "myReservations",
@@ -57437,6 +57727,12 @@
                 "minimum": -9007199254740991,
                 "maximum": 9007199254740991
               },
+              "unitsTotal": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991,
+                "nullable": true
+              },
               "perCustomerLimit": {
                 "type": "integer",
                 "minimum": -9007199254740991,
@@ -57535,6 +57831,7 @@
               "media",
               "branches",
               "holdMinutes",
+              "unitsTotal",
               "perCustomerLimit",
               "remainingForMe",
               "myReservations",
@@ -92082,6 +92379,117 @@
         },
         "required": [
           "programId"
+        ]
+      },
+      "BrandListResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "name": {
+                  "type": "object",
+                  "properties": {
+                    "en": {
+                      "type": "string"
+                    },
+                    "ar": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "en",
+                    "ar"
+                  ]
+                },
+                "logoUrl": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "category": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "object",
+                      "properties": {
+                        "en": {
+                          "type": "string"
+                        },
+                        "ar": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "en",
+                        "ar"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "name"
+                  ],
+                  "nullable": true
+                },
+                "offerCount": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "distanceMeters": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "logoUrl",
+                "category",
+                "offerCount",
+                "distanceMeters"
+              ]
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string"
+              },
+              "locale": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "ar"
+                ]
+              },
+              "nextCursor": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
         ]
       },
       "AnalyticsBatchDto": {

@@ -7,6 +7,7 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Put,
   Query,
 } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
@@ -29,6 +30,7 @@ import {
   DealEventBatchDto,
   DiscoveryQueryDto,
   EventsAcceptedResponse,
+  FollowStateResponse,
   HomeFeedResponse,
   HomeQueryDto,
   MerchantPageResponse,
@@ -148,5 +150,20 @@ export class CustomerDiscoveryController {
   @ApiOkResponse({ type: SavedStateResponse })
   unsave(@Param('id', ParseUUIDPipe) id: string, @CurrentActor() actor: Actor) {
     return this.discovery.unsave(actor.userId, id);
+  }
+
+  // ---- follow a merchant (signed-in customers)
+  @Put('merchants/:id/follow')
+  @RequirePermissions('customer.saved.manage')
+  @ApiOkResponse({ type: FollowStateResponse })
+  follow(@Param('id', ParseUUIDPipe) id: string, @CurrentActor() actor: Actor) {
+    return this.discovery.follow(actor.userId, id);
+  }
+
+  @Delete('merchants/:id/follow')
+  @RequirePermissions('customer.saved.manage')
+  @ApiOkResponse({ type: FollowStateResponse })
+  unfollow(@Param('id', ParseUUIDPipe) id: string, @CurrentActor() actor: Actor) {
+    return this.discovery.unfollow(actor.userId, id);
   }
 }

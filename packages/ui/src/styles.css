@@ -2218,6 +2218,208 @@ html[lang='ar'] body,
   margin: 0;
   font-weight: 700;
 }
+/* customer experience gap closure: scarcity, timing, eligibility line, pay summary, ticket steps, merchant actions, browse-by */
+.dd-hot-scarcity {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.dd-hot-scarcity__bar {
+  block-size: 8px;
+  border-radius: var(--dd-radius-chip);
+  background: var(--dd-lilac);
+  overflow: hidden;
+}
+.dd-hot-scarcity__bar > span {
+  display: block;
+  block-size: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--dd-amber), #ff6b3d);
+}
+.dd-hot-when {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 0;
+  font-size: 13px;
+}
+.dd-hot-when > div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dd-hot-when dt {
+  color: var(--dd-ink-2);
+}
+.dd-hot-when dd {
+  margin: 0;
+  font-weight: 700;
+}
+.dd-hot-elig {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--dd-success);
+}
+.dd-pay-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: var(--dd-radius-input);
+  background: var(--dd-slate-100);
+}
+.dd-pay-summary > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+.dd-pay-summary dt {
+  font-size: 13px;
+  color: var(--dd-ink-2);
+  flex: none;
+}
+.dd-pay-summary dd {
+  margin: 0;
+  text-align: end;
+}
+.dd-ticket__steps ol {
+  margin: 8px 0 0;
+  padding-inline-start: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+}
+.dd-mp__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  font-size: 13px;
+  color: var(--dd-ink-2);
+}
+.dd-mp__rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+  color: var(--dd-ink);
+}
+.dd-mp__rating .dd-ic {
+  color: var(--dd-amber);
+}
+.dd-mp__actions--five {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+.dd-mp__actions--five .dd-mp__action {
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11.5px;
+  letter-spacing: -0.01em;
+  padding: 10px 2px;
+  min-inline-size: 0;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.dd-mp__action[aria-pressed='true'] {
+  background: var(--dd-purple);
+  color: #fff;
+}
+.dd-browse {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  padding: 4px;
+  border-radius: var(--dd-radius-input);
+  background: var(--dd-lilac);
+}
+.dd-browse button {
+  border: 0;
+  border-radius: 10px;
+  padding: 9px 4px;
+  background: transparent;
+  color: var(--dd-ink-2);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.dd-browse button[aria-pressed='true'] {
+  background: var(--dd-card);
+  color: var(--dd-purple);
+  box-shadow: var(--dd-shadow-flat);
+}
+.dd-brandgrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.dd-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid var(--dd-line);
+  border-radius: var(--dd-radius-card);
+  background: var(--dd-card);
+  color: inherit;
+  text-decoration: none;
+  min-inline-size: 0;
+}
+.dd-brand img,
+.dd-brand__ph {
+  inline-size: 44px;
+  block-size: 44px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: var(--dd-lilac);
+}
+.dd-brand strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dd-entry {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background: linear-gradient(180deg, var(--dd-navy) 0%, var(--dd-purple) 100%);
+  overflow-y: auto;
+}
+.dd-entry__brand {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px 24px 20px;
+  color: #fff;
+}
+.dd-entry__brand h1 {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.2;
+}
+.dd-entry__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 16px 28px;
+  border-start-start-radius: var(--dd-radius-sheet);
+  border-start-end-radius: var(--dd-radius-sheet);
+  background: var(--dd-card);
+}
 /* reservation commitment (phase 4): terms before paying, payment state after */
 .dd-rsv-terms {
   display: flex;

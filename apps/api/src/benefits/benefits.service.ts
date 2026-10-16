@@ -15,6 +15,7 @@ import type {
   BenefitOptions,
   BenefitsOverview,
   BenefitUsageItem,
+  BrandCard,
 } from '@dealdash/validation';
 import { AuditService } from '../audit/audit.service';
 import { encryptField, hmacSha256, safeEqual, sha256 } from '../common/crypto';
@@ -776,6 +777,56 @@ export class BenefitsService {
         card,
       })),
     ];
+  }
+
+  /**
+   * "Browse offers by brand": the merchants behind the offers this customer (or guest) can see in the city, across Live Deals,
+   * Exclusive Deals and Vouchers, through the products' own discovery (same visibility and eligibility). Most offers first.
+   */
+  async brands(
+    userId: string | null,
+    q: { city?: string; lat?: number; lng?: number },
+  ): Promise<BrandCard[]> {
+    const base = { city: q.city, lat: q.lat, lng: q.lng, limit: 50 } as const;
+    // every page of each list (bounded), so a busy city still lists every merchant with a visible offer
+    const all = async <T>(
+      page: (cursor?: string) => Promise<{ items: T[]; nextCursor: string | null }>,
+    ) => {
+      const out: T[] = [];
+      let cursor: string | undefined;
+      for (let i = 0; i < 20; i++) {
+        const p = await page(cursor);
+        out.push(...p.items);
+        if (!p.nextCursor) break;
+        cursor = p.nextCursor;
+      }
+      return out;
+    };
+    const [live, hot, vouchers] = await Promise.all([
+      all((cursor) => this.live.list({ ...base, cursor }, userId)),
+      all((cursor) => this.hot.list({ ...base, cursor }, userId)),
+      all((cursor) => this.vouchers.list({ ...base, cursor }, userId)),
+    ]);
+    const byMerchant = new Map<string, BrandCard>();
+    for (const c of [...live, ...hot, ...vouchers]) {
+      const cur = byMerchant.get(c.merchantId);
+      if (cur) {
+        cur.offerCount++;
+        if (c.distanceMeters !== null)
+          cur.distanceMeters = Math.min(cur.distanceMeters ?? Infinity, c.distanceMeters);
+      } else
+        byMerchant.set(c.merchantId, {
+          id: c.merchantId,
+          name: c.merchantName,
+          logoUrl: c.merchantLogoUrl,
+          category: c.category,
+          offerCount: 1,
+          distanceMeters: c.distanceMeters,
+        });
+    }
+    return [...byMerchant.values()].sort(
+      (a, b) => b.offerCount - a.offerCount || a.name.en.localeCompare(b.name.en),
+    );
   }
 
   /** Which partners an offer's rule names (employers, issuers, schemes; card products / tiers resolve to their issuer). */

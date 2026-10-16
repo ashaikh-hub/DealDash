@@ -582,7 +582,10 @@ describe('Reservation ticket and My Deals', () => {
     stub({ '/v1/app/reservations': { body: { data: [reservation()], meta: {} } } });
     const { unmount } = mount(<MyDealsPage />);
     const row = await screen.findByTestId('reservation-row');
-    expect(within(row).getByText('Reserved')).toBeInTheDocument();
+    // a confirmed reservation that can be used now reads "Active", with its expiry and backup code
+    expect(within(row).getByTestId('row-status')).toHaveTextContent('Active');
+    expect(row).toHaveTextContent('Expires');
+    expect(within(row).getByTestId('row-code')).toHaveTextContent('K7QM-9T2X');
     expect(row).toHaveAttribute('href', `/en/reservations/${RES}`);
     unmount();
     stub({}, null);
