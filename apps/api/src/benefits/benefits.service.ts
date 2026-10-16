@@ -16,6 +16,7 @@ import type {
   BenefitsOverview,
   BenefitUsageItem,
   BrandCard,
+  EmployeePass,
 } from '@dealdash/validation';
 import { AuditService } from '../audit/audit.service';
 import { encryptField, hmacSha256, safeEqual, sha256 } from '../common/crypto';
@@ -71,6 +72,7 @@ const EVENT_OF_ACTION: Record<string, BenefitHistoryEvent> = {
   'benefit.employer.removed': 'EMPLOYER_REMOVED',
   'benefit.card.added': 'CARD_ADDED',
   'benefit.card.removed': 'CARD_REMOVED',
+  'benefit.offer.activated': 'OFFER_ACTIVATED',
 };
 
 type Bi = { en: string; ar: string };
@@ -716,6 +718,49 @@ export class BenefitsService {
         },
       ];
     });
+  }
+
+  /**
+   * Employee Pass (customer experience, 2026-10-16): the customer's verified employer shown as a pass. Active while the work-email
+   * verification is valid (including the renewal grace period). The pass number is stable per customer and employer and is not a
+   * secret: it is never accepted as proof on its own (offers are still checked by the eligibility engine).
+   */
+  async employeePass(userId: string, now = new Date()): Promise<EmployeePass> {
+    const employer = await this.employerView(userId, now);
+    const customer = await this.prisma.customer.findUnique({
+      where: { userId },
+      select: { firstName: true, lastName: true },
+    });
+    const holderName =
+      [customer?.firstName, customer?.lastName].filter(Boolean).join(' ').trim() || null;
+    const reason: EmployeePass['reason'] = !employer
+      ? 'NONE'
+      : employer.status === 'VERIFIED'
+        ? 'VERIFIED'
+        : employer.status === 'REVERIFICATION_DUE'
+          ? 'RENEWAL_DUE'
+          : employer.status === 'EXPIRED'
+            ? 'EXPIRED'
+            : 'PENDING';
+    const active = reason === 'VERIFIED' || reason === 'RENEWAL_DUE';
+    const digest = employer
+      ? hmacSha256(this.env.FIELD_ENCRYPTION_KEY, `employee-pass:${userId}:${employer.partner.id}`)
+          .replace(/[^0-9a-f]/gi, '')
+          .slice(0, 8)
+          .toUpperCase()
+      : null;
+    return {
+      status: active ? 'ACTIVE' : 'INACTIVE',
+      reason,
+      employer: employer ? employer.partner : null,
+      programName: employer?.programName ?? null,
+      holderName,
+      maskedEmail: employer?.maskedEmail ?? null,
+      verifiedAt: employer?.verifiedAt ?? null,
+      validUntil: employer?.expiresAt ?? null,
+      passNumber: digest ? `EP-${digest.slice(0, 4)}-${digest.slice(4)}` : null,
+      serverNow: now.toISOString(),
+    };
   }
 
   async overview(userId: string, city?: string, now = new Date()): Promise<BenefitsOverview> {

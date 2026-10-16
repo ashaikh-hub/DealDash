@@ -23,8 +23,15 @@ import {
 import type { UnlockAction } from '@dealdash/types';
 import { Alert, Button, EmptyState, LoadingState, Skeleton } from '@dealdash/ui';
 import type { HotDealCard, HotDealDetail, OrderView, ReservationView } from '@dealdash/validation';
-import { MerchantReviews } from './care';
 import { useCustomer, useImpression } from './customer-context';
+import { PayWith, cardLabel, useMockCard, useSavedCards } from './cx-account';
+import {
+  CardOfferPanel,
+  DealReviewsPanel,
+  LogSaving,
+  SavingsBanner,
+  useDealReviews,
+} from './cx-benefits';
 import {
   MerchantVideo,
   STATUS_TONE,
@@ -169,8 +176,19 @@ export function HotDealPage({ id }: { id: string }) {
   const { city, coords, approximate, track } = useCustomer();
   const [detail, setDetail] = useState<HotDealDetail | null>(null);
   const [state, setState] = useState<'loading' | 'ready' | 'missing' | 'error'>('loading');
-  const rating = useRating(detail?.merchantId);
+  const merchantRating = useRating(detail?.merchantId);
   const eligibilityNote = useEligibilityNote(detail?.eligibility.kind, detail?.eligibility.result);
+  const openTab = useSearchParams().get('tab') === 'reviews' ? 'reviews' : undefined;
+  // the deal's own rating when customers reviewed it, otherwise the merchant's
+  const dealReviews = useDealReviews('hot-deals', id);
+  const ds = dealReviews.data?.summary;
+  const rating = ds && ds.count > 0 ? { average: ds.average, count: ds.count } : merchantRating;
+  // saved cards: the default card is chosen; "a new card" pays on the provider's page as before
+  const saved = useSavedCards(status === 'authenticated');
+  const [payCard, setPayCard] = useState<string | null | undefined>(undefined);
+  const usableCards = (saved.data?.items ?? []).filter((c) => !c.expired);
+  const defaultCard = usableCards.find((c) => c.isDefault)?.id ?? usableCards[0]?.id ?? null;
+  const chosenCard = payCard === undefined ? defaultCard : payCard;
 
   const load = useCallback(
     async (quiet = false) => {
@@ -221,7 +239,13 @@ export function HotDealPage({ id }: { id: string }) {
       body: {
         branchId,
         quantity: opts.quantity,
-        ...(opts.acceptTerms ? { acceptTerms: true, returnUrl: reservationReturnUrl(href) } : {}),
+        ...(opts.acceptTerms
+          ? {
+              acceptTerms: true,
+              returnUrl: reservationReturnUrl(href),
+              ...(chosenCard ? { paymentMethodId: chosenCard } : {}),
+            }
+          : {}),
       },
       idempotent: true,
     });
@@ -291,9 +315,25 @@ export function HotDealPage({ id }: { id: string }) {
         onUnlock={unlock}
         merchantHref={`${href(`/merchants/${detail.merchantId}`)}`}
         rating={rating}
-        reviews={<MerchantReviews merchantId={detail.merchantId} />}
+        reviews={
+          <DealReviewsPanel
+            product="hot-deals"
+            dealId={detail.id}
+            merchantId={detail.merchantId}
+            merchantName={pickContent(detail.merchantName, locale)}
+            reviews={dealReviews.data}
+            reload={dealReviews.reload}
+          />
+        }
+        initialTab={openTab}
         merchantMedia={<MerchantVideo merchantId={detail.merchantId} />}
         eligibilityNote={eligibilityNote}
+        benefit={<CardOfferPanel product="hot" offerId={detail.id} />}
+        payWith={
+          status === 'authenticated' && saved.data?.canSave ? (
+            <PayWith cards={saved.data.items} value={chosenCard} onChange={setPayCard} />
+          ) : undefined
+        }
       />
     </div>
   );
@@ -712,6 +752,7 @@ export function MyDealsPage() {
           </button>
         ))}
       </div>
+      {tab === 'active' || tab === 'past' ? <SavingsBanner /> : null}
       {tab === 'payments' ? (
         <PaymentsPanel />
       ) : state === 'loading' ? (
@@ -919,6 +960,19 @@ export function ReservationPage({ id }: { id: string }) {
         offerHref={href(`/hot/${r.deal.id}`)}
         doneHref={href('/reservations')}
       />
+      {/* after the visit: log what was saved, and rate the deal (reference post-reservation actions) */}
+      {r.displayState === 'REDEEMED' ? (
+        <>
+          <LogSaving sourceType="RESERVATION" sourceId={r.id} />
+          <Link
+            className="dd-btn dd-btn--outline dd-btn--block"
+            href={`${href(`/hot/${r.deal.id}`)}?tab=reviews`}
+            data-testid="rate-deal"
+          >
+            <Icon name="star" size={18} /> {t('cx.rv.rate')}
+          </Link>
+        </>
+      ) : null}
     </div>
   );
 }
@@ -963,6 +1017,8 @@ export function ReservationReturnPage() {
   const params = useSearchParams();
   const ref = params.get('mock_payment') ?? params.get('mock_hold');
   const isHold = !!params.get('mock_hold');
+  // a saved card: the provider charges its token (the mock page shows which card)
+  const savedCard = useMockCard(params.get('mock_card'));
   const [r, setR] = useState<ReservationView | null>(null);
   const [state, setState] = useState<'loading' | 'ready' | 'missing'>('loading');
   const [busy, setBusy] = useState<'' | 'ok' | 'no'>('');
@@ -1044,6 +1100,11 @@ export function ReservationReturnPage() {
               {t(`rsv.methodName.${p.method}` as DictionaryKey)} ·{' '}
               {isHold ? t('rsv.holdNow') : t('rsv.payNow')}
             </div>
+            {savedCard ? (
+              <div className="dd-caption" data-testid="mock-paying-card">
+                {t('cx.pm.paying', { card: cardLabel(t, savedCard) })}
+              </div>
+            ) : null}
           </div>
           <strong className="dd-rsv-terms__amount dd-ltr" data-testid="mock-amount">
             {formatMoney(locale, p.amountMinor, p.currency)}

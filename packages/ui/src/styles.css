@@ -2563,6 +2563,434 @@ html[lang='ar'] body,
   background: rgba(255, 255, 255, 0.94);
   box-shadow: var(--dd-shadow-overlay);
 }
+/* ---- customer experience part 2: Google / Apple sign-in */
+.dd-social__btn {
+  gap: 10px;
+  min-block-size: 50px;
+  border: 1px solid var(--dd-line);
+  background: var(--dd-card);
+  color: var(--dd-ink);
+  font-weight: 700;
+}
+.dd-social__btn--apple {
+  background: #000;
+  border-color: #000;
+  color: #fff;
+}
+.dd-social__btn:disabled {
+  opacity: 0.6;
+}
+.dd-social__mark {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 36px;
+  block-size: 36px;
+  border-radius: 50%;
+  background: var(--dd-slate-100);
+  flex: none;
+}
+.dd-entry__or {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--dd-ink-3);
+  font-size: 13px;
+}
+.dd-entry__or::before,
+.dd-entry__or::after {
+  content: '';
+  flex: 1;
+  border-block-start: 1px solid var(--dd-line);
+}
+.dd-mockauth__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--dd-radius-card);
+  background: var(--dd-card);
+  box-shadow: var(--dd-shadow-flat);
+}
+.dd-mockauth__head--apple {
+  background: #000;
+  color: #fff;
+}
+.dd-mockauth__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.dd-mockauth__account {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  inline-size: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--dd-line);
+  border-radius: var(--dd-radius-input);
+  background: var(--dd-card);
+  color: var(--dd-ink);
+  text-align: start;
+  font: inherit;
+  cursor: pointer;
+}
+.dd-mockauth__avatar {
+  display: grid;
+  place-items: center;
+  inline-size: 36px;
+  block-size: 36px;
+  border-radius: 50%;
+  background: var(--dd-lilac);
+  color: var(--dd-purple);
+  font-weight: 800;
+  flex: none;
+}
+/* saved cards */
+.dd-cardbrand {
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: 48px;
+  block-size: 32px;
+  padding-inline: 6px;
+  border-radius: 8px;
+  background: var(--dd-navy);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  flex: none;
+}
+.dd-cardbrand--visa {
+  background: #1a1f71;
+}
+.dd-cardbrand--mastercard {
+  background: #252525;
+  color: #ffb000;
+}
+.dd-cardbrand--mada {
+  background: #004b87;
+}
+.dd-cardbrand--amex {
+  background: #2e77bc;
+}
+.dd-cardbrand--other {
+  background: var(--dd-lilac);
+  color: var(--dd-purple);
+}
+.dd-pmlist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.dd-pmcard {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--dd-radius-card);
+  background: var(--dd-card);
+  box-shadow: var(--dd-shadow-card);
+}
+.dd-pmcard__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.dd-paywith {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: var(--dd-radius-input);
+  background: var(--dd-slate-100);
+}
+.dd-paywith__row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+.dd-paywith__choice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-inline-size: 0;
+}
+/* card-linked offer */
+.dd-cardoffer {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  border: 1px dashed var(--dd-purple-300);
+  border-radius: var(--dd-radius-input);
+  background: var(--dd-purple-50);
+}
+.dd-cardoffer--on {
+  border-style: solid;
+  border-color: var(--dd-success);
+  background: var(--dd-success-bg);
+}
+.dd-cardoffer__icon {
+  display: grid;
+  place-items: center;
+  inline-size: 34px;
+  block-size: 34px;
+  border-radius: 50%;
+  background: var(--dd-card);
+  color: var(--dd-purple);
+  flex: none;
+}
+.dd-cardoffer--on .dd-cardoffer__icon {
+  color: var(--dd-success);
+}
+/* Log my saving */
+.dd-saving {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--dd-radius-card);
+  background: var(--dd-card);
+  box-shadow: var(--dd-shadow-card);
+}
+.dd-saving--done {
+  background: var(--dd-success-bg);
+  box-shadow: none;
+}
+.dd-saving__icon {
+  display: grid;
+  place-items: center;
+  inline-size: 40px;
+  block-size: 40px;
+  border-radius: 50%;
+  background: var(--dd-success-bg);
+  color: var(--dd-success);
+  flex: none;
+}
+.dd-saving--done .dd-saving__icon {
+  background: var(--dd-card);
+}
+.dd-savingsbanner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--dd-radius-card);
+  background: var(--dd-success-bg);
+  color: var(--dd-success);
+  text-decoration: none;
+}
+.dd-savingsbanner strong {
+  color: var(--dd-ink);
+}
+/* Employee Pass */
+.dd-epass {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 24px;
+  color: #fff;
+  background: linear-gradient(140deg, #3a14c9 0%, var(--dd-navy) 70%);
+  box-shadow: var(--dd-shadow-overlay);
+}
+.dd-epass--inactive {
+  background: linear-gradient(140deg, #6f7296 0%, #3d3f5c 80%);
+}
+.dd-epass--active::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.16) 50%,
+    transparent 60%
+  );
+  animation: dd-epass-shine 3.2s linear infinite;
+  pointer-events: none;
+}
+@keyframes dd-epass-shine {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dd-epass--active::after {
+    animation: none;
+  }
+}
+.dd-epass__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.dd-epass__brand {
+  font-weight: 800;
+  font-size: 18px;
+}
+.dd-epass__brand span {
+  color: var(--dd-purple-300);
+}
+.dd-epass__status {
+  padding: 4px 12px;
+  border-radius: var(--dd-radius-chip);
+  background: rgba(31, 191, 143, 0.25);
+  color: #b8ffe6;
+  font-size: 13px;
+  font-weight: 700;
+}
+.dd-epass--inactive .dd-epass__status {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+.dd-epass__employer {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.dd-epass__employer strong {
+  display: block;
+  font-size: 22px;
+  line-height: 1.2;
+}
+.dd-epass__label,
+.dd-epass__grid dt {
+  display: block;
+  font-size: 12px;
+  opacity: 0.75;
+}
+.dd-epass__sub {
+  display: block;
+  font-size: 13px;
+  opacity: 0.85;
+}
+.dd-epass__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+.dd-epass__grid dd {
+  margin: 0;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.dd-epass__valid {
+  margin: 0;
+  font-size: 13px;
+  opacity: 0.85;
+}
+.dd-epass__live {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.dd-epass__dot {
+  inline-size: 9px;
+  block-size: 9px;
+  border-radius: 50%;
+  background: var(--dd-mint);
+  box-shadow: 0 0 0 4px rgba(31, 191, 143, 0.3);
+}
+/* per-deal reviews */
+.dd-revsum {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 14px;
+  border-radius: var(--dd-radius-input);
+  background: var(--dd-slate-100);
+}
+.dd-revsum__avg {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  flex: none;
+}
+.dd-revsum__avg strong {
+  font-size: 32px;
+  line-height: 1;
+}
+.dd-revsum__bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+  flex: 1;
+  min-inline-size: 0;
+}
+.dd-revsum__bars li {
+  display: grid;
+  grid-template-columns: 12px 1fr 24px;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.dd-revsum__bar {
+  block-size: 6px;
+  border-radius: 99px;
+  background: var(--dd-line);
+  overflow: hidden;
+}
+.dd-revsum__bar span {
+  display: block;
+  block-size: 100%;
+  background: var(--dd-amber);
+}
+.dd-starpick {
+  display: flex;
+  gap: 4px;
+}
+.dd-starpick button {
+  padding: 4px;
+  border: 0;
+  background: none;
+  color: var(--dd-amber);
+  cursor: pointer;
+}
+/* merchant gallery */
+.dd-mp__gallery {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.dd-mp__gallery::-webkit-scrollbar {
+  display: none;
+}
+.dd-mp__gallery button {
+  position: relative;
+  flex: 0 0 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  scroll-snap-align: center;
+  cursor: zoom-in;
+}
+/* the shade and title sit over the photos: swipes and taps go through to the gallery */
+.dd-mp__head .dd-mp__shade,
+.dd-mp__head .dd-mp__title {
+  pointer-events: none;
+}
+.dd-mp__ph {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 80% 20%, rgba(126, 77, 255, 0.55), transparent 55%),
+    linear-gradient(135deg, #5b1afc, #0f0c42);
+}
 .dd-paytotal {
   display: flex;
   justify-content: space-between;

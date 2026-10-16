@@ -51,6 +51,7 @@ import {
   type OnboardingStep,
 } from '@dealdash/validation';
 import { useCustomer } from './customer-context';
+import { LinkedAccounts } from './cx-account';
 import { useHref, useT } from './parts';
 
 /**
@@ -767,6 +768,7 @@ export function WelcomePage() {
 // ------------------------------------------------------------------ account settings (CS-05 / CS-06)
 export function AccountSettingsPage() {
   const { t, locale } = useT();
+  const href = useHref();
   const { status } = useAuth();
   const { profile, set, reload } = useAccount();
   useEffect(() => {
@@ -787,6 +789,18 @@ export function AccountSettingsPage() {
       <SetupBanner />
       <PersonalDetails profile={profile} onSaved={set} />
       <MobileNumber profile={profile} onSaved={set} />
+      <LinkedAccounts />
+      <Card flat>
+        <Link
+          className="dd-row"
+          href={href('/payment-methods')}
+          data-testid="account-payment-methods"
+        >
+          <Icon name="card" size={20} />
+          <strong className="dd-grow">{t('cx.pm.title')}</strong>
+          <Icon name="forward" size={18} />
+        </Link>
+      </Card>
       <LanguageCard current={locale} />
       <NotificationSettings />
       <PrivacyCard profile={profile} onSaved={set} />

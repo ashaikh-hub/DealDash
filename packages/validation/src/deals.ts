@@ -535,6 +535,8 @@ export const merchantPageSchema = z.object({
   name: biText,
   logoUrl: z.string().nullable(),
   coverUrl: z.string().nullable(),
+  /** The merchant's own gallery photos (approved profile media, in the merchant's order); empty when it has none. */
+  gallery: z.array(z.string()),
   description: biNullable,
   category: z.object({ code: z.string(), name: biText }).nullable(),
   phone: z.string().nullable(),

@@ -170,9 +170,18 @@ export function HotDetailView({
   reviews,
   merchantMedia,
   eligibilityNote,
+  payWith,
+  benefit,
+  initialTab,
 }: {
   detail: HotDealDetail;
   locale: Locale;
+  /** Customer app: how the customer pays (their saved card or a new card on the payment page), shown in the pay sheet. */
+  payWith?: ReactNode;
+  /** Customer app: card-linked offer activation, shown under who can use the offer. */
+  benefit?: ReactNode;
+  /** Open on a tab (a "Rate this deal" link opens Reviews). */
+  initialTab?: 'overview' | 'details' | 'reviews';
   /** The merchant's Watch & Earn video, when it has one (customer app), shown under "From <merchant>". */
   merchantMedia?: ReactNode;
   /** For an offer the customer already qualifies for: which of their benefits it is ("Verified: Aramco"). */
@@ -195,7 +204,9 @@ export function HotDetailView({
   merchantHref?: string;
 }) {
   const t = tr(locale);
-  const [tab, setTab] = useState<'overview' | 'details' | 'reviews'>('overview');
+  const [tab, setTab] = useState<'overview' | 'details' | 'reviews'>(
+    initialTab === 'reviews' && !reviews ? 'overview' : (initialTab ?? 'overview'),
+  );
   const [photo, setPhoto] = useState(0);
   const [viewer, setViewer] = useState<number | null>(null);
   const [qty, setQty] = useState(1);
@@ -532,6 +543,7 @@ export function HotDetailView({
             </div>
           </div>
         ) : null}
+        {benefit && !embedded ? benefit : null}
 
         <div className="dd-dd__badges">
           {paid ? (
@@ -943,10 +955,13 @@ export function HotDetailView({
                       <span className="dd-caption"> · {merchant}</span>
                     </dd>
                   </div>
-                  <div>
-                    <dt>{t('cx.pay.method')}</dt>
-                    <dd>{t('cx.pay.methodValue')}</dd>
-                  </div>
+                  {/* the customer app shows the chosen card below instead */}
+                  {payWith ? null : (
+                    <div>
+                      <dt>{t('cx.pay.method')}</dt>
+                      <dd>{t('cx.pay.methodValue')}</dd>
+                    </div>
+                  )}
                   <div>
                     <dt>
                       {paid.method === 'CARD_PREAUTH' && !paid.preauthImmediateCapture
@@ -960,6 +975,7 @@ export function HotDetailView({
                     </dd>
                   </div>
                 </dl>
+                {payWith ?? null}
                 <CommitmentTermsPanel
                   terms={paid}
                   locale={locale}

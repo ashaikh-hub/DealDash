@@ -425,9 +425,12 @@ export const reservationCreateSchema = z.object({
   acceptTerms: z.boolean().optional(),
   /** Where the payment page returns to (must be one of DealDash's own app addresses; otherwise the default is used). */
   returnUrl: z.string().url().max(500).optional(),
+  /** Pay with one of the customer's saved cards (the provider's token is used; the card details never pass through DealDash). */
+  paymentMethodId: uuid.optional(),
 });
 export const reservationPaySchema = z.object({
   returnUrl: z.string().url().max(500).optional(),
+  paymentMethodId: uuid.optional(),
 });
 export const reservationListQuerySchema = z.object({
   tab: z.enum(['active', 'past']).default('active'),

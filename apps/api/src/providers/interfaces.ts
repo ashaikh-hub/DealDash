@@ -48,6 +48,8 @@ export interface PaymentInitiation {
   currency: string;
   idempotencyKey: string;
   returnUrl: string;
+  /** Pay with a card the customer saved earlier: the provider's own token (the provider may still ask for 3-D Secure). */
+  savedCardToken?: string;
 }
 export interface PaymentInitiationResult {
   providerReference: string;
@@ -113,6 +115,7 @@ export interface CardHoldRequest {
   currency: string;
   idempotencyKey: string;
   returnUrl: string;
+  savedCardToken?: string;
 }
 export interface CardHoldProvider {
   readonly holdCapabilities: CardHoldCapabilities;
@@ -129,6 +132,61 @@ export interface CardHoldProvider {
   release(providerReference: string): Promise<{ status: CardHoldStatus }>;
   getHoldStatus(providerReference: string): Promise<CardHoldStatus>;
 }
+// ---- Saved cards (customer experience). Optional provider capability: the card is entered on the PROVIDER's hosted page and the
+// provider returns a token plus display details (brand, last 4 digits, expiry). DealDash never sees or stores a card number or CVV.
+export type CardBrand = 'VISA' | 'MASTERCARD' | 'MADA' | 'AMEX' | 'OTHER';
+export interface SavedCardDetails {
+  token: string;
+  /** Same card saved twice gives the same fingerprint (no duplicates). */
+  fingerprint: string;
+  brand: CardBrand;
+  last4: string;
+  expMonth: number;
+  expYear: number;
+}
+export type CardSetupStatus = 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'CANCELLED';
+export interface CardVaultProvider {
+  /** Opens the provider's hosted "add a card" page; the customer comes back to `returnUrl`. */
+  startCardSetup(input: {
+    setupId: string;
+    returnUrl: string;
+  }): Promise<{ providerSetupRef: string; redirectUrl: string }>;
+  /** The outcome of a hosted card setup, read server-side after the customer returns (never trusted from the browser). */
+  getCardSetup(
+    providerSetupRef: string,
+  ): Promise<{ status: CardSetupStatus; card?: SavedCardDetails; failureCode?: string }>;
+  /** Deletes the token at the provider (a removed card can no longer be charged). */
+  deleteCard(token: string): Promise<void>;
+  /** Display details of a saved token (the hosted payment page shows which card is used). */
+  describeCard?(token: string): Promise<Pick<SavedCardDetails, 'brand' | 'last4'> | null>;
+}
+export const supportsCardVault = (p: PaymentProvider): p is PaymentProvider & CardVaultProvider =>
+  typeof (p as Partial<CardVaultProvider>).startCardSetup === 'function';
+
+// ---- Social sign-in (customer experience: Google / Apple). Production client ids, secrets and Apple keys are EXTERNAL configuration;
+// until they exist the development adapter stands in (never in production unless mock providers are explicitly allowed).
+export type SocialProviderId = 'GOOGLE' | 'APPLE';
+export interface SocialProfile {
+  /** The provider's stable user id ("sub"). */
+  subject: string;
+  email: string | null;
+  emailVerified: boolean;
+  name: string | null;
+}
+export interface SocialAuthProvider {
+  readonly name: string;
+  /** Whether the provider can be offered at all (credentials configured, or the development adapter). */
+  available(provider: SocialProviderId): boolean;
+  authorizeUrl(input: { provider: SocialProviderId; state: string; callbackUrl: string }): string;
+  /** Exchanges the authorization code for the verified profile; null when the code is not valid. */
+  exchange(input: {
+    provider: SocialProviderId;
+    code: string;
+    callbackUrl: string;
+  }): Promise<SocialProfile | null>;
+}
+export const SOCIAL_AUTH_PROVIDER = Symbol('SOCIAL_AUTH_PROVIDER');
+
 export const supportsCardHolds = (p: PaymentProvider): p is PaymentProvider & CardHoldProvider =>
   typeof (p as Partial<CardHoldProvider>).authorise === 'function' &&
   !!(p as Partial<CardHoldProvider>).holdCapabilities?.cardHolds;

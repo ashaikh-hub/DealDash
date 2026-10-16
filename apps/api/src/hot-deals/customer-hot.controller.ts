@@ -115,7 +115,14 @@ export class CustomerHotController {
     @CurrentActor() actor: Actor,
     @Meta() meta: RequestMeta,
   ) {
-    return this.reservations.retryPayment(actor, id, meta, new Date(), body?.returnUrl);
+    return this.reservations.retryPayment(
+      actor,
+      id,
+      meta,
+      new Date(),
+      body?.returnUrl,
+      body?.paymentMethodId,
+    );
   }
 
   @Post('reservations/:id/cancel')

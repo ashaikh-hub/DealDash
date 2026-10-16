@@ -20,6 +20,18 @@ import type { Actor, RequestMeta } from '../common/request-context';
 import { AuthService, type AuthResult } from './auth.service';
 import { SessionService } from './session.service';
 
+/** The session cookie every sign-in sets (phone, password, and Google / Apple). */
+export function setSessionCookie(env: ApiEnv, res: Response, audience: Audience, token: string) {
+  const def = AUDIENCE_DEFINITIONS[audience];
+  res.cookie(def.cookieName, token, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: 14 * 24 * 3600 * 1000,
+  });
+}
+
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
@@ -30,14 +42,7 @@ export class AuthController {
   ) {}
 
   private setSessionCookie(res: Response, audience: Audience, token: string) {
-    const def = AUDIENCE_DEFINITIONS[audience];
-    res.cookie(def.cookieName, token, {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: this.env.NODE_ENV === 'production',
-      path: '/',
-      maxAge: 14 * 24 * 3600 * 1000,
-    });
+    setSessionCookie(this.env, res, audience, token);
   }
 
   private result(r: AuthResult) {

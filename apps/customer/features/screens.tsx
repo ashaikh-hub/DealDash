@@ -30,6 +30,14 @@ import type {
 import { LanguageCard, SetupBanner } from './account';
 import { MerchantReviews } from './care';
 import { useCustomer } from './customer-context';
+import { SocialButtons } from './cx-account';
+import {
+  CardOfferPanel,
+  MerchantHeroGallery,
+  MerchantPhotoGrid,
+  PhotoViewer,
+  merchantPhotos,
+} from './cx-benefits';
 import { RatingChip, useRating } from './cx-parts';
 import { TrackedHotCard } from './hot';
 import { TrackedVoucherCard } from './vouchers';
@@ -258,6 +266,7 @@ export function DealPage({ id }: { id: string }) {
         onDirections={directions}
         onUnlock={unlock}
         merchantHref={`${href(`/merchants/${detail.merchantId}`)}?from=${detail.id}`}
+        benefit={<CardOfferPanel product="live" offerId={detail.id} />}
       />
       <PartnerBenefits dealId={detail.id} city={city} />
     </div>
@@ -324,6 +333,7 @@ export function MerchantPageView({ id }: { id: string }) {
   const [page, setPage] = useState<MerchantPage | null>(null);
   const [state, setState] = useState<'loading' | 'ready' | 'missing' | 'error'>('loading');
   const [tab, setTab] = useState<'offers' | 'info' | 'reviews'>('offers');
+  const [viewer, setViewer] = useState<number | null>(null);
   const { status } = useAuth();
   const rating = useRating(page?.id);
   const [hot, setHot] = useState<HotDealCard[]>([]);
@@ -422,10 +432,12 @@ export function MerchantPageView({ id }: { id: string }) {
   const follow = following ?? { following: page.following, followers: page.followers };
   const dist = formatDistance(locale, nearest?.distanceMeters ?? null);
   const offerCount = page.deals.length + hot.length + vouchers.length;
+  const photos = merchantPhotos(page);
   return (
     <div className="dd-stack" style={{ gap: 14 }} data-testid="customer-merchant">
       <div className="dd-mp__head">
-        {page.coverUrl ? <img src={page.coverUrl} alt="" /> : null}
+        {/* reference "Merchant page": the merchant's own photos, swipeable, with a counter */}
+        <MerchantHeroGallery photos={photos} onOpen={setViewer} />
         <div className="dd-mp__shade" />
         <button type="button" className="dd-dd__back" onClick={back} aria-label={t('cust.back')}>
           <Icon name="back" size={20} />
@@ -578,6 +590,7 @@ export function MerchantPageView({ id }: { id: string }) {
               <p>{pickText(page.description as { en: string; ar: string }, locale)}</p>
             </Card>
           ) : null}
+          <MerchantPhotoGrid photos={photos} onOpen={setViewer} />
           <h2 className="dd-title">{t('merch.branches')}</h2>
           {page.branches.map((b) => (
             <BranchCard key={b.id} b={b} />
@@ -590,6 +603,9 @@ export function MerchantPageView({ id }: { id: string }) {
           ) : null}
         </div>
       )}
+      {viewer !== null && photos.length ? (
+        <PhotoViewer photos={photos} start={viewer} onClose={() => setViewer(null)} />
+      ) : null}
     </div>
   );
 }
@@ -719,6 +735,10 @@ export function ProfilePage() {
                     ? t('cx.signin.follow')
                     : t('profile.signInPrompt')}
           </p>
+          <SocialButtons next={next} />
+          <span className="dd-entry__or" aria-hidden="true">
+            {t('cx.so.or')}
+          </span>
           <LoginPanel />
         </>
       ) : (
@@ -731,6 +751,23 @@ export function ProfilePage() {
             </Link>
             <Link className="dd-link" href={href('/benefits')} data-testid="my-benefits-link">
               {t('profile.benefits')}
+            </Link>
+            <Link
+              className="dd-link"
+              href={href('/employee-pass')}
+              data-testid="employee-pass-link"
+            >
+              {t('cx.menu.pass')}
+            </Link>
+            <Link
+              className="dd-link"
+              href={href('/payment-methods')}
+              data-testid="payment-methods-link"
+            >
+              {t('cx.menu.payments')}
+            </Link>
+            <Link className="dd-link" href={href('/savings')} data-testid="savings-link">
+              {t('cx.menu.savings')}
             </Link>
             <Link
               className="dd-link"

@@ -34,7 +34,14 @@ interface PublicReview {
   createdAt: string;
 }
 
-export function MerchantReviews({ merchantId }: { merchantId: string }) {
+export function MerchantReviews({
+  merchantId,
+  hideTitle,
+}: {
+  merchantId: string;
+  /** The deal page already titles this section ("Reviews of <merchant>"). */
+  hideTitle?: boolean;
+}) {
   const { t, locale } = useT();
   const { status } = useAuth();
   const { call } = useApi();
@@ -78,7 +85,7 @@ export function MerchantReviews({ merchantId }: { merchantId: string }) {
   };
   return (
     <section className="dd-stack" style={{ gap: 10 }} data-testid="merchant-reviews-public">
-      <h2 className="dd-title">{t('s8.rev.title')}</h2>
+      {hideTitle ? null : <h2 className="dd-title">{t('s8.rev.title')}</h2>}
       {banner ? <Alert tone={banner.tone}>{banner.text}</Alert> : null}
       {res.loading && !res.data ? (
         <LoadingState label={t('state.loading')} />

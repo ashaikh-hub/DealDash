@@ -49,6 +49,8 @@ export interface ReserveInput {
   acceptTerms?: boolean;
   /** Where the provider's payment page returns to (checked against DealDash's own app addresses). */
   returnUrl?: string;
+  /** One of the customer's own saved cards: its provider token is handed to the provider (never card details). */
+  paymentMethodId?: string;
 }
 
 /** Statuses that hold units and count toward the customer's limits (a reservation waiting for payment holds its units). */
@@ -336,6 +338,11 @@ export class ReservationsService {
         422,
         'acceptTerms',
       );
+    // a saved card must be the customer's own active card (checked before anything is reserved)
+    const savedCard =
+      paid && input.paymentMethodId
+        ? await this.money.savedCardToken(userId, input.paymentMethodId)
+        : undefined;
     const unitAmount = dealContent.commitment.amountMinor;
     if (paid && (!unitAmount || unitAmount < 1))
       throw new AppError('OFFER_UNAVAILABLE', 'This offer cannot be reserved right now.', 409);
@@ -546,8 +553,8 @@ export class ReservationsService {
       return { created, paymentId, authId, sent: [...lazyNotices, ...sent] };
     });
     await this.notifications.dispatch(out.sent);
-    if (out.paymentId) await this.money.initiate(out.paymentId, input.returnUrl);
-    if (out.authId) await this.money.requestAuthorisation(out.authId, input.returnUrl);
+    if (out.paymentId) await this.money.initiate(out.paymentId, input.returnUrl, savedCard);
+    if (out.authId) await this.money.requestAuthorisation(out.authId, input.returnUrl, savedCard);
     const fresh = await this.prisma.reservation.findUniqueOrThrow({
       where: { id: out.created.id },
       include: RES_INCLUDE,
@@ -562,8 +569,12 @@ export class ReservationsService {
     meta: RequestMeta,
     now = new Date(),
     returnUrl?: string,
+    paymentMethodId?: string,
   ) {
-    await this.money.retry(actor, id, meta, now, returnUrl);
+    const savedCard = paymentMethodId
+      ? await this.money.savedCardToken(actor.userId, paymentMethodId)
+      : undefined;
+    await this.money.retry(actor, id, meta, now, returnUrl, savedCard);
     return this.getMine(actor.userId, id, now);
   }
 

@@ -26,6 +26,7 @@ import {
   type WalletItem,
 } from '@dealdash/validation';
 import { useCustomer, useImpression } from './customer-context';
+import { CardOfferPanel, LogSaving } from './cx-benefits';
 import { CardSkeletons, CityBar, LoadError, SectionHead, signInPath, useHref, useT } from './parts';
 import { curate, presentCard, presentDetail } from './presentation';
 import { useDealList } from './use-deals';
@@ -291,6 +292,7 @@ export function VoucherPage({ id }: { id: string }) {
           track({ type: 'DIRECTIONS_CLICK', dealId: id, branchId, product: 'VOUCHER' })
         }
         merchantHref={href(`/merchants/${detail.merchantId}`)}
+        benefit={<CardOfferPanel product="voucher" offerId={detail.id} />}
       />
     </div>
   );
@@ -867,6 +869,8 @@ export function WalletVoucherPage({ id }: { id: string }) {
         }
         offerHref={href(`/vouchers/${v.voucherId}`)}
       />
+      {/* "Log my saving": once the voucher has been used */}
+      {v.state === 'USED' ? <LogSaving sourceType="VOUCHER" sourceId={v.id} /> : null}
     </div>
   );
 }

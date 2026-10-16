@@ -305,3 +305,4 @@ export * from './markets';
 export * from './partners';
 export * from './benefits';
 export * from './customer-account';
+export * from './customer-experience';

@@ -170,9 +170,12 @@ export function VoucherDetailView({
   onUnlock,
   onDirections,
   merchantHref,
+  benefit,
 }: {
   detail: VoucherDetail;
   locale: Locale;
+  /** Customer app: card-linked offer activation (shown under the voucher's badges). */
+  benefit?: ReactNode;
   embedded?: boolean;
   signedIn?: boolean;
   onBack?: () => void;
@@ -338,6 +341,7 @@ export function VoucherDetailView({
             </span>
           ) : null}
         </div>
+        {benefit && !embedded ? benefit : null}
 
         {soldOut ? (
           <Alert tone="warning">

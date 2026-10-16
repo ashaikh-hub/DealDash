@@ -122,6 +122,129 @@ export class ReviewsService {
     };
   }
 
+  // ---------------------------------------------------------------- per-deal reviews (customer experience, 2026-10-16)
+  private async dealOf(product: 'HOT' | 'VOUCHER', dealId: string) {
+    const deal =
+      product === 'HOT'
+        ? await this.prisma.hotDeal.findUnique({
+            where: { id: dealId },
+            select: { organizationId: true },
+          })
+        : await this.prisma.voucher.findUnique({
+            where: { id: dealId },
+            select: { organizationId: true },
+          });
+    if (!deal) throw AppError.notFound();
+    return deal;
+  }
+
+  /**
+   * Who may review a deal: only a customer who USED it (a redeemed reservation / voucher of this deal), once per deal, and within
+   * the existing one-review-per-merchant-per-period rule.
+   */
+  private async dealReviewState(
+    userId: string,
+    product: 'HOT' | 'VOUCHER',
+    dealId: string,
+    merchantOrganizationId: string,
+  ): Promise<{ canReview: boolean; reason: 'NOT_REDEEMED' | 'ALREADY_REVIEWED' | 'LIMIT' | null }> {
+    const subjectType = product === 'HOT' ? 'EXCLUSIVE' : 'VOUCHER';
+    if (
+      await this.prisma.review.count({
+        where: {
+          customerUserId: userId,
+          subjectType,
+          subjectId: dealId,
+          status: { not: 'REMOVED' },
+        },
+      })
+    )
+      return { canReview: false, reason: 'ALREADY_REVIEWED' };
+    const used =
+      product === 'HOT'
+        ? await this.prisma.reservation.count({ where: { userId, dealId, status: 'REDEEMED' } })
+        : await this.prisma.voucherInstance.count({
+            where: { ownerUserId: userId, voucherId: dealId, status: 'REDEEMED' },
+          });
+    if (!used) return { canReview: false, reason: 'NOT_REDEEMED' };
+    const cfg = await opsConfig(this.config);
+    const since = new Date(Date.now() - cfg.reviews.perMerchantDays * D);
+    if (
+      await this.prisma.review.count({
+        where: {
+          customerUserId: userId,
+          merchantOrganizationId,
+          createdAt: { gte: since },
+          status: { not: 'REMOVED' },
+        },
+      })
+    )
+      return { canReview: false, reason: 'LIMIT' };
+    return { canReview: true, reason: null };
+  }
+
+  /** A deal's own reviews (public), its rating summary with the star distribution, and what the signed-in customer can do. */
+  async listForDeal(product: 'HOT' | 'VOUCHER', dealId: string, userId: string | null) {
+    const deal = await this.dealOf(product, dealId);
+    const rows = await this.prisma.review.findMany({
+      where: {
+        subjectType: product === 'HOT' ? 'EXCLUSIVE' : 'VOUCHER',
+        subjectId: dealId,
+        status: { in: VISIBLE },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
+    const names = await this.firstNames(rows.map((r) => r.customerUserId));
+    const distribution = [5, 4, 3, 2, 1].map((n) => rows.filter((r) => r.rating === n).length);
+    return {
+      summary: {
+        count: rows.length,
+        average: rows.length
+          ? Math.round((rows.reduce((n, r) => n + r.rating, 0) / rows.length) * 10) / 10
+          : null,
+        distribution,
+      },
+      items: rows.map((r) => {
+        const v = this.publicView(r, names);
+        return {
+          id: v.id,
+          rating: v.rating,
+          text: v.text,
+          verified: v.verified,
+          author: v.author,
+          createdAt: v.createdAt,
+        };
+      }),
+      mine: userId
+        ? await this.dealReviewState(userId, product, dealId, deal.organizationId)
+        : null,
+    };
+  }
+
+  /** A customer who used the deal reviews it (the merchant-level rules and moderation apply unchanged). */
+  async createForDeal(
+    actor: Actor,
+    product: 'HOT' | 'VOUCHER',
+    dealId: string,
+    b: { rating: number; text: string; locale?: string },
+    meta: RequestMeta,
+  ) {
+    const deal = await this.dealOf(product, dealId);
+    const s = await this.dealReviewState(actor.userId, product, dealId, deal.organizationId);
+    if (s.reason === 'ALREADY_REVIEWED')
+      throw new AppError('REVIEW_ALREADY_EXISTS', 'You have already reviewed this deal', 409);
+    if (s.reason === 'NOT_REDEEMED')
+      throw new AppError('REVIEW_NOT_ALLOWED', 'You can review this deal after you use it', 403);
+    // LIMIT: create() refuses with its own message
+    return this.create(
+      actor,
+      deal.organizationId,
+      { ...b, subjectType: product === 'HOT' ? 'EXCLUSIVE' : 'VOUCHER', subjectId: dealId },
+      meta,
+    );
+  }
+
   /** A signed-in customer writes a review (one per merchant per configured period). */
   async create(
     actor: Actor,
@@ -163,7 +286,23 @@ export class ReviewsService {
       );
     const ev = await this.evidence(actor.userId, merchantOrganizationId);
     const status = cfg.reviews.mode === 'PRE_MODERATION' ? 'PENDING_REVIEW' : 'PUBLISHED';
+    // a deal review: the same customer and deal at most once, even under a double submission
+    const lockKey = b.subjectId ? `review:${actor.userId}:${b.subjectType}:${b.subjectId}` : null;
     const r = await this.prisma.$transaction(async (tx) => {
+      if (lockKey) {
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))`;
+        if (
+          await tx.review.count({
+            where: {
+              customerUserId: actor.userId,
+              subjectType: b.subjectType,
+              subjectId: b.subjectId,
+              status: { not: 'REMOVED' },
+            },
+          })
+        )
+          throw new AppError('REVIEW_ALREADY_EXISTS', 'You have already reviewed this deal', 409);
+      }
       const row = await tx.review.create({
         data: {
           merchantOrganizationId,

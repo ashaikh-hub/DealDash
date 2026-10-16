@@ -10,10 +10,11 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import { CONFIG_KEYS, operationsConfigSchema } from '@dealdash/config';
+import { dealReviewCreateSchema, dealReviewsSchema, envelope } from '@dealdash/validation';
 import {
   ADJUSTMENT_DIRECTIONS,
   ADJUSTMENT_KINDS,
@@ -208,6 +209,9 @@ class OrderRefundDto extends createZodDto(orderRefundSchema) {}
 class LinkCaseDto extends createZodDto(linkCaseSchema) {}
 class DataRequestDto extends createZodDto(dataRequestSchema) {}
 class ReviewDto extends createZodDto(reviewSchema) {}
+class DealReviewDto extends createZodDto(dealReviewCreateSchema) {}
+class DealReviewsResponse extends createZodDto(envelope(dealReviewsSchema)) {}
+const customerOf = (actor?: Actor) => (actor?.userType === 'CUSTOMER' ? actor.userId : null);
 class ReportDto extends createZodDto(reportSchema) {}
 class ContentReportDto extends createZodDto(contentReportSchema) {}
 class MyDataRequestDto extends createZodDto(myDataRequestSchema) {}
@@ -923,6 +927,45 @@ export class CustomerOpsController {
     @Meta() meta: RequestMeta,
   ) {
     return this.reviews.create(actor, orgId, b, meta);
+  }
+
+  /** Per-deal reviews (Exclusive Deals and vouchers): public reading; the signed-in customer also sees whether they can review. */
+  @Get('hot-deals/:id/reviews')
+  @Public()
+  @ApiOkResponse({ type: DealReviewsResponse })
+  hotReviews(@Param('id', ParseUUIDPipe) id: string, @OptionalActor() actor?: Actor) {
+    return this.reviews.listForDeal('HOT', id, customerOf(actor));
+  }
+
+  @Post('hot-deals/:id/reviews')
+  @Idempotent()
+  @RequirePermissions('customer.reviews.manage')
+  writeHotReview(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: DealReviewDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
+    return this.reviews.createForDeal(actor, 'HOT', id, b, meta);
+  }
+
+  @Get('vouchers/:id/reviews')
+  @Public()
+  @ApiOkResponse({ type: DealReviewsResponse })
+  voucherReviews(@Param('id', ParseUUIDPipe) id: string, @OptionalActor() actor?: Actor) {
+    return this.reviews.listForDeal('VOUCHER', id, customerOf(actor));
+  }
+
+  @Post('vouchers/:id/reviews')
+  @Idempotent()
+  @RequirePermissions('customer.reviews.manage')
+  writeVoucherReview(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: DealReviewDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
+    return this.reviews.createForDeal(actor, 'VOUCHER', id, b, meta);
   }
 
   @Post('reviews/:id/report')

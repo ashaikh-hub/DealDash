@@ -356,6 +356,150 @@
         ]
       }
     },
+    "/v1/auth/social/start": {
+      "post": {
+        "operationId": "SocialAuthController_start_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SocialStartDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SocialStartResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v1/auth/social/callback": {
+      "post": {
+        "operationId": "SocialAuthController_callback_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SocialCallbackDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SocialCallbackResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v1/auth/social/complete": {
+      "post": {
+        "operationId": "SocialAuthController_complete_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SocialCompleteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SocialCompleteResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v1/app/me/identities": {
+      "get": {
+        "operationId": "CustomerIdentitiesController_list_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentitiesResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-account"
+        ]
+      }
+    },
+    "/v1/app/me/identities/{provider}": {
+      "delete": {
+        "operationId": "CustomerIdentitiesController_unlink_v1",
+        "parameters": [
+          {
+            "name": "provider",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentitiesResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-account"
+        ]
+      }
+    },
     "/v1/app/me/profile": {
       "get": {
         "operationId": "CustomerAccountController_profile_v1",
@@ -25279,6 +25423,128 @@
         ]
       }
     },
+    "/v1/app/hot-deals/{id}/reviews": {
+      "get": {
+        "operationId": "CustomerOpsController_hotReviews_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DealReviewsResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-ops"
+        ]
+      },
+      "post": {
+        "operationId": "CustomerOpsController_writeHotReview_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DealReviewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "customer-ops"
+        ]
+      }
+    },
+    "/v1/app/vouchers/{id}/reviews": {
+      "get": {
+        "operationId": "CustomerOpsController_voucherReviews_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DealReviewsResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-ops"
+        ]
+      },
+      "post": {
+        "operationId": "CustomerOpsController_writeVoucherReview_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DealReviewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "customer-ops"
+        ]
+      }
+    },
     "/v1/app/reviews/{id}/report": {
       "post": {
         "operationId": "CustomerOpsController_report_v1",
@@ -25926,6 +26192,27 @@
         ]
       }
     },
+    "/v1/app/benefits/employee-pass": {
+      "get": {
+        "operationId": "CustomerBenefitsController_employeePass_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeePassResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-benefits"
+        ]
+      }
+    },
     "/v1/app/benefits/employer/code": {
       "post": {
         "operationId": "CustomerBenefitsController_employerStart_v1",
@@ -26118,6 +26405,343 @@
         },
         "tags": [
           "customer-discovery"
+        ]
+      }
+    },
+    "/v1/app/card-offers": {
+      "get": {
+        "operationId": "CustomerCardOffersController_list_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CardOfferListResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-benefits"
+        ]
+      }
+    },
+    "/v1/app/card-offers/{product}/{id}": {
+      "get": {
+        "operationId": "CustomerCardOffersController_state_v1",
+        "parameters": [
+          {
+            "name": "product",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CardOfferStateResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-benefits"
+        ]
+      }
+    },
+    "/v1/app/card-offers/{product}/{id}/activate": {
+      "post": {
+        "operationId": "CustomerCardOffersController_activate_v1",
+        "parameters": [
+          {
+            "name": "product",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CardOfferActivateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CardOfferStateResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-benefits"
+        ]
+      }
+    },
+    "/v1/app/payment-methods": {
+      "get": {
+        "operationId": "CustomerPaymentMethodsController_list_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CardListResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-payment-methods"
+        ]
+      }
+    },
+    "/v1/app/payment-methods/setups": {
+      "post": {
+        "operationId": "CustomerPaymentMethodsController_start_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetupStartDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupStartResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-payment-methods"
+        ]
+      }
+    },
+    "/v1/app/payment-methods/setups/{id}/finish": {
+      "post": {
+        "operationId": "CustomerPaymentMethodsController_finish_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupResultResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-payment-methods"
+        ]
+      }
+    },
+    "/v1/app/payment-methods/{id}/default": {
+      "put": {
+        "operationId": "CustomerPaymentMethodsController_setDefault_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CardListResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-payment-methods"
+        ]
+      }
+    },
+    "/v1/app/payment-methods/{id}": {
+      "delete": {
+        "operationId": "CustomerPaymentMethodsController_remove_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CardListResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-payment-methods"
+        ]
+      }
+    },
+    "/v1/app/savings": {
+      "get": {
+        "operationId": "CustomerSavingsController_summary_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavingsResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-savings"
+        ]
+      },
+      "post": {
+        "operationId": "CustomerSavingsController_log_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SavingLogDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavingStateResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-savings"
+        ]
+      }
+    },
+    "/v1/app/savings/{sourceType}/{sourceId}": {
+      "get": {
+        "operationId": "CustomerSavingsController_state_v1",
+        "parameters": [
+          {
+            "name": "sourceType",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sourceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavingStateResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-savings"
         ]
       }
     },
@@ -28915,6 +29539,360 @@
         },
         "required": [
           "organizationId"
+        ]
+      },
+      "SocialStartDto": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "enum": [
+              "GOOGLE",
+              "APPLE"
+            ]
+          },
+          "intent": {
+            "default": "SIGN_IN",
+            "type": "string",
+            "enum": [
+              "SIGN_IN",
+              "LINK"
+            ]
+          },
+          "callbackUrl": {
+            "type": "string",
+            "maxLength": 500,
+            "format": "uri"
+          }
+        },
+        "required": [
+          "provider",
+          "callbackUrl"
+        ]
+      },
+      "SocialStartResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "authorizeUrl": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "authorizeUrl"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string"
+              },
+              "locale": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "ar"
+                ]
+              },
+              "nextCursor": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "SocialCallbackDto": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "minLength": 16,
+            "maxLength": 200
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "error": {
+            "type": "string",
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "state"
+        ]
+      },
+      "SocialCallbackResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "SIGNED_IN",
+                  "NEEDS_PHONE",
+                  "LINKED",
+                  "CANCELLED",
+                  "FAILED",
+                  "CONFLICT"
+                ]
+              },
+              "provider": {
+                "type": "string",
+                "enum": [
+                  "GOOGLE",
+                  "APPLE"
+                ]
+              },
+              "intent": {
+                "type": "string",
+                "enum": [
+                  "SIGN_IN",
+                  "LINK"
+                ]
+              },
+              "linkToken": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "profile": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "email": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "name",
+                  "email"
+                ],
+                "nullable": true
+              },
+              "csrfToken": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "status",
+              "provider",
+              "intent",
+              "linkToken",
+              "profile",
+              "csrfToken"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string"
+              },
+              "locale": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "ar"
+                ]
+              },
+              "nextCursor": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "SocialCompleteDto": {
+        "type": "object",
+        "properties": {
+          "linkToken": {
+            "type": "string",
+            "minLength": 16,
+            "maxLength": 200
+          },
+          "mobile": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 20
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^\\d{6}$"
+          }
+        },
+        "required": [
+          "linkToken",
+          "mobile",
+          "code"
+        ]
+      },
+      "SocialCompleteResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "csrfToken": {
+                "type": "string"
+              },
+              "account": {
+                "type": "string",
+                "enum": [
+                  "EXISTING",
+                  "NEW",
+                  "NOT_LINKED"
+                ]
+              },
+              "provider": {
+                "type": "string",
+                "enum": [
+                  "GOOGLE",
+                  "APPLE"
+                ]
+              }
+            },
+            "required": [
+              "csrfToken",
+              "account",
+              "provider"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string"
+              },
+              "locale": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "ar"
+                ]
+              },
+              "nextCursor": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "IdentitiesResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "provider": {
+                      "type": "string",
+                      "enum": [
+                        "GOOGLE",
+                        "APPLE"
+                      ]
+                    },
+                    "email": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "linkedAt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "provider",
+                    "email",
+                    "linkedAt"
+                  ]
+                }
+              },
+              "available": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "GOOGLE",
+                    "APPLE"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "items",
+              "available"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string"
+              },
+              "locale": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "ar"
+                ]
+              },
+              "nextCursor": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
         ]
       },
       "ProfileResponse": {
@@ -45781,6 +46759,12 @@
                   "null"
                 ]
               },
+              "gallery": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
               "description": {
                 "type": "object",
                 "properties": {
@@ -46250,6 +47234,7 @@
               "name",
               "logoUrl",
               "coverUrl",
+              "gallery",
               "description",
               "category",
               "phone",
@@ -57886,6 +58871,11 @@
             "type": "string",
             "maxLength": 500,
             "format": "uri"
+          },
+          "paymentMethodId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
           }
         },
         "required": [
@@ -58389,6 +59379,11 @@
             "type": "string",
             "maxLength": 500,
             "format": "uri"
+          },
+          "paymentMethodId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
           }
         }
       },
@@ -90264,6 +91259,165 @@
           "text"
         ]
       },
+      "DealReviewsResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "summary": {
+                "type": "object",
+                "properties": {
+                  "count": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "average": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "distribution": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    }
+                  }
+                },
+                "required": [
+                  "count",
+                  "average",
+                  "distribution"
+                ]
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "rating": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "text": {
+                      "type": "string"
+                    },
+                    "verified": {
+                      "type": "boolean"
+                    },
+                    "author": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "rating",
+                    "text",
+                    "verified",
+                    "author",
+                    "createdAt"
+                  ]
+                }
+              },
+              "mine": {
+                "type": "object",
+                "properties": {
+                  "canReview": {
+                    "type": "boolean"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "enum": [
+                      "NOT_REDEEMED",
+                      "ALREADY_REVIEWED",
+                      "LIMIT",
+                      null
+                    ],
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "canReview",
+                  "reason"
+                ],
+                "nullable": true
+              }
+            },
+            "required": [
+              "summary",
+              "items",
+              "mine"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string"
+              },
+              "locale": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "ar"
+                ]
+              },
+              "nextCursor": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "DealReviewDto": {
+        "type": "object",
+        "properties": {
+          "rating": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "ar"
+            ]
+          }
+        },
+        "required": [
+          "rating",
+          "text"
+        ]
+      },
       "ContentReportDto": {
         "type": "object",
         "properties": {
@@ -92214,7 +93368,8 @@
                     "EMPLOYER_EXPIRED",
                     "EMPLOYER_REMOVED",
                     "CARD_ADDED",
-                    "CARD_REMOVED"
+                    "CARD_REMOVED",
+                    "OFFER_ACTIVATED"
                   ]
                 },
                 "name": {
@@ -92242,6 +93397,149 @@
                 "at"
               ]
             }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string"
+              },
+              "locale": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "ar"
+                ]
+              },
+              "nextCursor": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "EmployeePassResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ACTIVE",
+                  "INACTIVE"
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "VERIFIED",
+                  "RENEWAL_DUE",
+                  "EXPIRED",
+                  "PENDING",
+                  "NONE"
+                ]
+              },
+              "employer": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "name": {
+                    "type": "object",
+                    "properties": {
+                      "en": {
+                        "type": "string"
+                      },
+                      "ar": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "en",
+                      "ar"
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "name"
+                ],
+                "nullable": true
+              },
+              "programName": {
+                "type": "object",
+                "properties": {
+                  "en": {
+                    "type": "string"
+                  },
+                  "ar": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "en",
+                  "ar"
+                ],
+                "nullable": true
+              },
+              "holderName": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "maskedEmail": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "verifiedAt": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "validUntil": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "passNumber": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "serverNow": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "status",
+              "reason",
+              "employer",
+              "programName",
+              "holderName",
+              "maskedEmail",
+              "verifiedAt",
+              "validUntil",
+              "passNumber",
+              "serverNow"
+            ]
           },
           "meta": {
             "type": "object",
@@ -92490,6 +93788,855 @@
         "required": [
           "data",
           "meta"
+        ]
+      },
+      "CardOfferListResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "product": {
+                  "type": "string",
+                  "enum": [
+                    "LIVE",
+                    "HOT",
+                    "VOUCHER"
+                  ]
+                },
+                "offerId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "title": {
+                  "type": "object",
+                  "properties": {
+                    "en": {
+                      "type": "string"
+                    },
+                    "ar": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "en",
+                    "ar"
+                  ]
+                },
+                "merchantName": {
+                  "type": "object",
+                  "properties": {
+                    "en": {
+                      "type": "string"
+                    },
+                    "ar": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "en",
+                    "ar"
+                  ]
+                },
+                "cardName": {
+                  "type": "object",
+                  "properties": {
+                    "en": {
+                      "type": "string"
+                    },
+                    "ar": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "en",
+                    "ar"
+                  ]
+                },
+                "activatedAt": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "ACTIVE",
+                    "ENDED",
+                    "CARD_REMOVED"
+                  ]
+                }
+              },
+              "required": [
+                "product",
+                "offerId",
+                "title",
+                "merchantName",
+                "cardName",
+                "activatedAt",
+                "status"
+              ]
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string"
+              },
+              "locale": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "ar"
+                ]
+              },
+              "nextCursor": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "CardOfferStateResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "state": {
+                "type": "string",
+                "enum": [
+                  "NOT_CARD_OFFER",
+                  "NEEDS_CARD",
+                  "AVAILABLE",
+                  "ACTIVATED",
+                  "UNAVAILABLE"
+                ]
+              },
+              "cards": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "programId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "name": {
+                      "type": "object",
+                      "properties": {
+                        "en": {
+                          "type": "string"
+                        },
+                        "ar": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "en",
+                        "ar"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "programId",
+                    "name"
+                  ]
+                }
+              },
+              "issuers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "name": {
+                      "type": "object",
+                      "properties": {
+                        "en": {
+                          "type": "string"
+                        },
+                        "ar": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "en",
+                        "ar"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name"
+                  ]
+                }
+              },
+              "activation": {
+                "type": "object",
+                "properties": {
+                  "programId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "cardName": {
+                    "type": "object",
+                    "properties": {
+                      "en": {
+                        "type": "string"
+                      },
+                      "ar": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "en",
+                      "ar"
+                    ]
+                  },
+                  "activatedAt": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "programId",
+                  "cardName",
+                  "activatedAt"
+                ],
+                "nullable": true
+              }
+            },
+            "required": [
+              "state",
+              "cards",
+              "issuers",
+              "activation"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string"
+              },
+              "locale": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "ar"
+                ]
+              },
+              "nextCursor": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "CardOfferActivateDto": {
+        "type": "object",
+        "properties": {
+          "programId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "programId"
+        ]
+      },
+      "CardListResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "brand": {
+                      "type": "string",
+                      "enum": [
+                        "VISA",
+                        "MASTERCARD",
+                        "MADA",
+                        "AMEX",
+                        "OTHER"
+                      ]
+                    },
+                    "last4": {
+                      "type": "string"
+                    },
+                    "expMonth": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "expYear": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "expired": {
+                      "type": "boolean"
+                    },
+                    "isDefault": {
+                      "type": "boolean"
+                    },
+                    "addedAt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "brand",
+                    "last4",
+                    "expMonth",
+                    "expYear",
+                    "expired",
+                    "isDefault",
+                    "addedAt"
+                  ]
+                }
+              },
+              "canSave": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "items",
+              "canSave"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string"
+              },
+              "locale": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "ar"
+                ]
+              },
+              "nextCursor": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "SetupStartDto": {
+        "type": "object",
+        "properties": {
+          "returnUrl": {
+            "type": "string",
+            "maxLength": 500,
+            "format": "uri"
+          },
+          "makeDefault": {
+            "default": false,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "returnUrl"
+        ]
+      },
+      "SetupStartResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "setupId": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "redirectUrl": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "setupId",
+              "redirectUrl"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string"
+              },
+              "locale": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "ar"
+                ]
+              },
+              "nextCursor": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "SetupResultResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "PENDING",
+                  "COMPLETED",
+                  "CANCELLED",
+                  "FAILED"
+                ]
+              },
+              "failureCode": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "card": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "brand": {
+                    "type": "string",
+                    "enum": [
+                      "VISA",
+                      "MASTERCARD",
+                      "MADA",
+                      "AMEX",
+                      "OTHER"
+                    ]
+                  },
+                  "last4": {
+                    "type": "string"
+                  },
+                  "expMonth": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "expYear": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "expired": {
+                    "type": "boolean"
+                  },
+                  "isDefault": {
+                    "type": "boolean"
+                  },
+                  "addedAt": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "brand",
+                  "last4",
+                  "expMonth",
+                  "expYear",
+                  "expired",
+                  "isDefault",
+                  "addedAt"
+                ],
+                "nullable": true
+              },
+              "duplicate": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "status",
+              "failureCode",
+              "card",
+              "duplicate"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string"
+              },
+              "locale": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "ar"
+                ]
+              },
+              "nextCursor": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "SavingsResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "totals": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "currency": {
+                      "type": "string"
+                    },
+                    "amountMinor": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "count": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "currency",
+                    "amountMinor",
+                    "count"
+                  ]
+                }
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "sourceType": {
+                      "type": "string",
+                      "enum": [
+                        "RESERVATION",
+                        "VOUCHER"
+                      ]
+                    },
+                    "sourceId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "title": {
+                      "type": "object",
+                      "properties": {
+                        "en": {
+                          "type": "string"
+                        },
+                        "ar": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "en",
+                        "ar"
+                      ]
+                    },
+                    "merchantName": {
+                      "type": "object",
+                      "properties": {
+                        "en": {
+                          "type": "string"
+                        },
+                        "ar": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "en",
+                        "ar"
+                      ]
+                    },
+                    "amountMinor": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "currency": {
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "sourceType",
+                    "sourceId",
+                    "title",
+                    "merchantName",
+                    "amountMinor",
+                    "currency",
+                    "createdAt"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "totals",
+              "items"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string"
+              },
+              "locale": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "ar"
+                ]
+              },
+              "nextCursor": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "SavingStateResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "canLog": {
+                "type": "boolean"
+              },
+              "logged": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "sourceType": {
+                    "type": "string",
+                    "enum": [
+                      "RESERVATION",
+                      "VOUCHER"
+                    ]
+                  },
+                  "sourceId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "title": {
+                    "type": "object",
+                    "properties": {
+                      "en": {
+                        "type": "string"
+                      },
+                      "ar": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "en",
+                      "ar"
+                    ]
+                  },
+                  "merchantName": {
+                    "type": "object",
+                    "properties": {
+                      "en": {
+                        "type": "string"
+                      },
+                      "ar": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "en",
+                      "ar"
+                    ]
+                  },
+                  "amountMinor": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "currency": {
+                    "type": "string"
+                  },
+                  "createdAt": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "sourceType",
+                  "sourceId",
+                  "title",
+                  "merchantName",
+                  "amountMinor",
+                  "currency",
+                  "createdAt"
+                ],
+                "nullable": true
+              },
+              "currency": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "suggestedMinor": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991,
+                "nullable": true
+              }
+            },
+            "required": [
+              "canLog",
+              "logged",
+              "currency",
+              "suggestedMinor"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string"
+              },
+              "locale": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "ar"
+                ]
+              },
+              "nextCursor": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "SavingLogDto": {
+        "type": "object",
+        "properties": {
+          "sourceType": {
+            "type": "string",
+            "enum": [
+              "RESERVATION",
+              "VOUCHER"
+            ]
+          },
+          "sourceId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "amountMinor": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10000000
+          }
+        },
+        "required": [
+          "sourceType",
+          "sourceId",
+          "amountMinor"
         ]
       },
       "AnalyticsBatchDto": {

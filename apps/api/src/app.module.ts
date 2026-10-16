@@ -40,6 +40,10 @@ import { PartnersModule } from './partners/partners.module';
 import { OpsModule } from './ops/ops.module';
 import { BenefitsModule } from './benefits/benefits.module';
 import { CustomerAccountModule } from './customer-account/customer-account.module';
+import {
+  CustomerExperienceModule,
+  DevCustomerExperienceModule,
+} from './customer-experience/customer-experience.module';
 import { StagingTestInboxModule } from './staging/test-inbox';
 
 @Global()
@@ -86,10 +90,13 @@ export class AppModule implements NestModule {
         OpsModule,
         CustomersModule,
         BenefitsModule,
+        CustomerExperienceModule,
         AnalyticsModule,
         JobsModule,
         HealthModule,
-        ...(env.NODE_ENV === 'production' ? [] : [DevModule, DevReservationPaymentsModule]),
+        ...(env.NODE_ENV === 'production'
+          ? []
+          : [DevModule, DevReservationPaymentsModule, DevCustomerExperienceModule]),
         // launch readiness G-1: the staging test inbox is not even routed in any other tier
         ...(stagingTestInboxEnabled(env) ? [StagingTestInboxModule] : []),
       ],

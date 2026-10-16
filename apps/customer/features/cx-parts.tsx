@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { Icon, LoginPanel, pickText, useApi, useAuth } from '@dealdash/app-shell';
 import type { DictionaryKey } from '@dealdash/localization';
 import type { BenefitsOverview, ReservationView, WatchCard, WatchHub } from '@dealdash/validation';
+import { SocialButtons } from './cx-account';
 import { useCustomer } from './customer-context';
 import { useHref, useT } from './parts';
 
@@ -249,14 +250,21 @@ export function EntryGate() {
         {phone ? (
           <LoginPanel />
         ) : (
-          <button
-            type="button"
-            className="dd-btn dd-btn--outline dd-btn--block dd-entry__choice"
-            onClick={() => setPhone(true)}
-            data-testid="entry-phone"
-          >
-            <Icon name="phone" size={18} /> {t('cx.entry.phone')}
-          </button>
+          <>
+            {/* reference "01 Sign in": Google, Apple, then the phone number */}
+            <SocialButtons />
+            <span className="dd-entry__or" aria-hidden="true">
+              {t('cx.so.or')}
+            </span>
+            <button
+              type="button"
+              className="dd-btn dd-btn--outline dd-btn--block dd-entry__choice"
+              onClick={() => setPhone(true)}
+              data-testid="entry-phone"
+            >
+              <Icon name="phone" size={18} /> {t('cx.entry.phone')}
+            </button>
+          </>
         )}
         <button
           type="button"

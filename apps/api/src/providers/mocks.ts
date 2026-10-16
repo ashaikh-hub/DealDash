@@ -1,10 +1,17 @@
 import { Logger } from '@nestjs/common';
 import { createHmac, randomUUID } from 'node:crypto';
 import type {
+  CardBrand,
   CardHoldCapabilities,
   CardHoldProvider,
   CardHoldRequest,
   CardHoldStatus,
+  CardSetupStatus,
+  CardVaultProvider,
+  SavedCardDetails,
+  SocialAuthProvider,
+  SocialProfile,
+  SocialProviderId,
   EmailMessage,
   EmailProvider,
   GeocodeResult,
@@ -130,9 +137,78 @@ export class MockPushProvider implements PushProvider {
   }
 }
 
-export class MockPaymentProvider implements PaymentProvider, CardHoldProvider {
+/**
+ * Development test cards for the mock "add a card" page. Chosen from a list: no card number is ever typed, sent or kept (a real
+ * provider's hosted page collects it). DECLINED exercises the failure path.
+ */
+export const MOCK_TEST_CARDS = {
+  VISA_4242: { brand: 'VISA', last4: '4242' },
+  MASTERCARD_5454: { brand: 'MASTERCARD', last4: '5454' },
+  MADA_1234: { brand: 'MADA', last4: '1234' },
+  DECLINED: null,
+} as const satisfies Record<string, { brand: CardBrand; last4: string } | null>;
+export type MockTestCard = keyof typeof MOCK_TEST_CARDS;
+
+export class MockPaymentProvider implements PaymentProvider, CardHoldProvider, CardVaultProvider {
   static readonly WEBHOOK_SECRET = 'mock-webhook-secret';
   readonly name = 'mock';
+
+  // ---- saved cards (customer experience)
+  private readonly setups = new Map<
+    string,
+    { status: CardSetupStatus; card?: SavedCardDetails; failureCode?: string }
+  >();
+  private readonly vault = new Map<string, SavedCardDetails>();
+
+  async startCardSetup(input: { setupId: string; returnUrl: string }) {
+    const providerSetupRef = `mock-setup-${randomUUID()}`;
+    this.setups.set(providerSetupRef, { status: 'PENDING' });
+    const url = new URL(input.returnUrl);
+    url.searchParams.set('mock_setup', providerSetupRef);
+    return { providerSetupRef, redirectUrl: url.toString() };
+  }
+
+  /** Test / dev helper: the customer finished (or left) the hosted card page. Nothing here sees a card number. */
+  completeCardSetup(providerSetupRef: string, outcome: 'SAVED' | 'CANCELLED', card: MockTestCard) {
+    const s = this.setups.get(providerSetupRef);
+    if (!s || s.status !== 'PENDING') return false;
+    if (outcome === 'CANCELLED') {
+      s.status = 'CANCELLED';
+      return true;
+    }
+    const test = MOCK_TEST_CARDS[card];
+    if (!test) {
+      s.status = 'FAILED';
+      s.failureCode = 'CARD_DECLINED';
+      return true;
+    }
+    const token = `mock_tok_${randomUUID()}`;
+    const details: SavedCardDetails = {
+      token,
+      fingerprint: `mock_fp_${card}`,
+      brand: test.brand,
+      last4: test.last4,
+      expMonth: 12,
+      expYear: new Date().getUTCFullYear() + 3,
+    };
+    this.vault.set(token, details);
+    s.status = 'SUCCEEDED';
+    s.card = details;
+    return true;
+  }
+
+  async getCardSetup(providerSetupRef: string) {
+    return this.setups.get(providerSetupRef) ?? { status: 'PENDING' as const };
+  }
+
+  async deleteCard(token: string) {
+    this.vault.delete(token);
+  }
+
+  async describeCard(token: string) {
+    const c = this.vault.get(token);
+    return c ? { brand: c.brand, last4: c.last4 } : null;
+  }
   /** Phase 3 card holds. Test / development switches: validity, partial capture support, failing captures. */
   holdCapabilities: CardHoldCapabilities = {
     cardHolds: true,
@@ -164,7 +240,7 @@ export class MockPaymentProvider implements PaymentProvider, CardHoldProvider {
     return {
       providerReference,
       status: 'PENDING' as const,
-      redirectUrl: `${input.returnUrl}?mock_hold=${providerReference}`,
+      redirectUrl: `${input.returnUrl}?mock_hold=${providerReference}${input.savedCardToken ? `&mock_card=${encodeURIComponent(input.savedCardToken)}` : ''}`,
     };
   }
 
@@ -244,7 +320,7 @@ export class MockPaymentProvider implements PaymentProvider, CardHoldProvider {
     return {
       providerReference,
       status: 'PENDING',
-      redirectUrl: `${input.returnUrl}?mock_payment=${providerReference}`,
+      redirectUrl: `${input.returnUrl}?mock_payment=${providerReference}${input.savedCardToken ? `&mock_card=${encodeURIComponent(input.savedCardToken)}` : ''}`,
     };
   }
 
@@ -303,6 +379,57 @@ export class MockPaymentProvider implements PaymentProvider, CardHoldProvider {
     } catch {
       return null;
     }
+  }
+}
+
+/**
+ * Development stand-in for Google / Apple sign-in. `authorizeUrl` points at the app's own callback page with `mock_social`, where a
+ * development chooser plays the provider's consent screen (approve, cancel or fail). Codes are single use and short lived.
+ */
+export class MockSocialAuthProvider implements SocialAuthProvider {
+  readonly name = 'mock';
+  private readonly codes = new Map<
+    string,
+    { provider: SocialProviderId; profile: SocialProfile; expiresAt: number }
+  >();
+
+  available() {
+    return true;
+  }
+
+  authorizeUrl(input: { provider: SocialProviderId; state: string; callbackUrl: string }) {
+    const url = new URL(input.callbackUrl);
+    url.searchParams.set('mock_social', input.provider);
+    url.searchParams.set('state', input.state);
+    return url.toString();
+  }
+
+  /** Dev helper: the customer approved on the (mock) provider screen; returns the authorization code. */
+  approve(provider: SocialProviderId, profile: SocialProfile) {
+    const code = `mock_code_${randomUUID()}`;
+    this.codes.set(code, { provider, profile, expiresAt: Date.now() + 5 * 60_000 });
+    return code;
+  }
+
+  async exchange(input: { provider: SocialProviderId; code: string }) {
+    const c = this.codes.get(input.code);
+    this.codes.delete(input.code);
+    if (!c || c.provider !== input.provider || c.expiresAt < Date.now()) return null;
+    return c.profile;
+  }
+}
+
+/** Production without Google / Apple credentials (an external dependency): sign-in with them is simply not offered. */
+export class UnconfiguredSocialAuthProvider implements SocialAuthProvider {
+  readonly name = 'none';
+  available() {
+    return false;
+  }
+  authorizeUrl(): string {
+    throw new Error('social sign-in is not configured');
+  }
+  async exchange() {
+    return null;
   }
 }
 

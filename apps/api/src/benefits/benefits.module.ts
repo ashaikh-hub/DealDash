@@ -6,6 +6,7 @@ import {
   HttpCode,
   Inject,
   Module,
+  NotFoundException,
   Param,
   ParseUUIDPipe,
   Post,
@@ -30,7 +31,12 @@ import {
   benefitUsageItemSchema,
   benefitUsageQuerySchema,
   brandCardSchema,
+  cardOfferActivateSchema,
+  cardOfferActivationItemSchema,
+  cardOfferStateSchema,
+  employeePassSchema,
   envelope,
+  type OfferProduct,
 } from '@dealdash/validation';
 import { APP_ENV } from '../common/env';
 import {
@@ -50,6 +56,7 @@ import { JobsService } from '../jobs/jobs.service';
 import { LiveDealsModule } from '../live-deals/live-deals.module';
 import { VouchersModule } from '../vouchers/vouchers.module';
 import { BenefitsService } from './benefits.service';
+import { CardOffersService } from './card-offers.service';
 
 // ---- DTOs
 class EmployerStartDto extends createZodDto(benefitEmployerStartSchema) {}
@@ -64,6 +71,12 @@ class StartResponse extends createZodDto(envelope(benefitEmployerStartResultSche
 class OffersResponse extends createZodDto(envelope(z.array(benefitOfferSchema))) {}
 class UsageResponse extends createZodDto(envelope(z.array(benefitUsageItemSchema))) {}
 class HistoryResponse extends createZodDto(envelope(z.array(benefitHistoryItemSchema))) {}
+class EmployeePassResponse extends createZodDto(envelope(employeePassSchema)) {}
+class CardOfferStateResponse extends createZodDto(envelope(cardOfferStateSchema)) {}
+class CardOfferListResponse extends createZodDto(
+  envelope(z.array(cardOfferActivationItemSchema)),
+) {}
+class CardOfferActivateDto extends createZodDto(cardOfferActivateSchema) {}
 
 /**
  * Customer "My benefits". Every route acts on the signed-in customer only (keyed by the session, never by a client id).
@@ -108,6 +121,14 @@ export class CustomerBenefitsController {
   @ApiOkResponse({ type: HistoryResponse })
   history(@CurrentActor() actor: Actor) {
     return this.benefits.history(actor.userId);
+  }
+
+  /** Employee Pass: the verified employer shown as a pass (active / inactive). */
+  @Get('employee-pass')
+  @RequirePermissions('customer.profile.read')
+  @ApiOkResponse({ type: EmployeePassResponse })
+  employeePass(@CurrentActor() actor: Actor) {
+    return this.benefits.employeePass(actor.userId);
   }
 
   @Post('employer/code')
@@ -188,12 +209,65 @@ export class CustomerBrandsController {
   }
 }
 
+const productParam = z.enum(['live', 'hot', 'voucher']);
+const productOf = (p: string): OfferProduct => {
+  const r = productParam.safeParse(p);
+  if (!r.success) throw new NotFoundException();
+  return r.data.toUpperCase() as OfferProduct;
+};
+
+/** Card-linked offers: the activation state on an offer page (guests see which cards open it), activation, and the history. */
+@ApiTags('customer-benefits')
+@Controller('app/card-offers')
+@Audiences('customer')
+export class CustomerCardOffersController {
+  constructor(private readonly cardOffers: CardOffersService) {}
+
+  @Get()
+  @RequirePermissions('customer.profile.read')
+  @ApiOkResponse({ type: CardOfferListResponse })
+  list(@CurrentActor() actor: Actor) {
+    return this.cardOffers.list(actor.userId);
+  }
+
+  @Get(':product/:id')
+  @Public()
+  @ApiOkResponse({ type: CardOfferStateResponse })
+  state(
+    @Param('product') product: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @OptionalActor() actor?: Actor,
+  ) {
+    return this.cardOffers.state(
+      actor?.userType === 'CUSTOMER' ? actor.userId : null,
+      productOf(product),
+      id,
+    );
+  }
+
+  @Post(':product/:id/activate')
+  @Idempotent()
+  @HttpCode(200)
+  @RequirePermissions('customer.profile.write')
+  @UseGuards(CustomerAllowedGuard)
+  @ApiOkResponse({ type: CardOfferStateResponse })
+  activate(
+    @Param('product') product: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: CardOfferActivateDto,
+    @CurrentActor() actor: Actor,
+    @Meta() meta: RequestMeta,
+  ) {
+    return this.cardOffers.activate(actor, productOf(product), id, b.programId, meta);
+  }
+}
+
 /** Customer "My benefits": employer work-email verification, added cards, benefit offers, usage and history. */
 @Module({
   imports: [LiveDealsModule, HotDealsModule, VouchersModule, JobsModule],
-  controllers: [CustomerBenefitsController, CustomerBrandsController],
-  providers: [BenefitsService],
-  exports: [BenefitsService],
+  controllers: [CustomerBenefitsController, CustomerBrandsController, CustomerCardOffersController],
+  providers: [BenefitsService, CardOffersService],
+  exports: [BenefitsService, CardOffersService],
 })
 export class BenefitsModule implements OnModuleInit {
   constructor(

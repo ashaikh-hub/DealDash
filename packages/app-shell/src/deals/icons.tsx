@@ -148,6 +148,22 @@ const ICONS: Record<string, ReactNode> = {
     </>
   ),
   chat: P('M20.5 11.6a8.4 8.4 0 0 1-12.5 7.3L3.5 20l1.2-4.3A8.4 8.4 0 1 1 20.5 11.6z'),
+  card: (
+    <>
+      <rect x="2.5" y="5" width="19" height="14" rx="2.5" />
+      {P('M2.5 10h19M6 15h4')}
+    </>
+  ),
+  badge: (
+    <>
+      <rect x="4" y="3" width="16" height="18" rx="2.5" />
+      <circle cx="12" cy="10" r="3" />
+      {P('M8 17a4 4 0 0 1 8 0M10 3v2h4V3')}
+    </>
+  ),
+  piggy: P(
+    'M5 11a7 6 0 0 1 12-3l3-1-1 3.5a6 6 0 0 1 1 3.5h1v3h-2a7 6 0 0 1-3 2v2h-3v-1.5a8 8 0 0 1-2 0V22H8v-2.5A6 6 0 0 1 5 15H3v-3h2zM15 11h.01',
+  ),
   plus: P('M12 5v14M5 12h14'),
   minus: P('M5 12h14'),
   locate: (

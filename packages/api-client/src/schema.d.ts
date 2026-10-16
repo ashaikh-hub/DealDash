@@ -164,6 +164,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/auth/social/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["SocialAuthController_start_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/social/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["SocialAuthController_callback_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/social/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["SocialAuthController_complete_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/me/identities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerIdentitiesController_list_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/me/identities/{provider}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["CustomerIdentitiesController_unlink_v1"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/app/me/profile": {
         parameters: {
             query?: never;
@@ -10100,6 +10180,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/app/hot-deals/{id}/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerOpsController_hotReviews_v1"];
+        put?: never;
+        post: operations["CustomerOpsController_writeHotReview_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/vouchers/{id}/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerOpsController_voucherReviews_v1"];
+        put?: never;
+        post: operations["CustomerOpsController_writeVoucherReview_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/app/reviews/{id}/report": {
         parameters: {
             query?: never;
@@ -10468,6 +10580,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/app/benefits/employee-pass": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerBenefitsController_employeePass_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/app/benefits/employer/code": {
         parameters: {
             query?: never;
@@ -10556,6 +10684,166 @@ export interface paths {
             cookie?: never;
         };
         get: operations["CustomerBrandsController_brands_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/card-offers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerCardOffersController_list_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/card-offers/{product}/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerCardOffersController_state_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/card-offers/{product}/{id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CustomerCardOffersController_activate_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/payment-methods": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerPaymentMethodsController_list_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/payment-methods/setups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CustomerPaymentMethodsController_start_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/payment-methods/setups/{id}/finish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CustomerPaymentMethodsController_finish_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/payment-methods/{id}/default": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["CustomerPaymentMethodsController_setDefault_v1"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/payment-methods/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["CustomerPaymentMethodsController_remove_v1"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/savings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerSavingsController_summary_v1"];
+        put?: never;
+        post: operations["CustomerSavingsController_log_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/savings/{sourceType}/{sourceId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerSavingsController_state_v1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -11359,6 +11647,92 @@ export interface components {
             organizationId: string;
             /** Format: uuid */
             branchId?: string;
+        };
+        SocialStartDto: {
+            /** @enum {string} */
+            provider: "GOOGLE" | "APPLE";
+            /**
+             * @default SIGN_IN
+             * @enum {string}
+             */
+            intent: "SIGN_IN" | "LINK";
+            /** Format: uri */
+            callbackUrl: string;
+        };
+        SocialStartResponse: {
+            data: {
+                authorizeUrl: string;
+            };
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
+        };
+        SocialCallbackDto: {
+            state: string;
+            code?: string;
+            error?: string;
+        };
+        SocialCallbackResponse: {
+            data: {
+                /** @enum {string} */
+                status: "SIGNED_IN" | "NEEDS_PHONE" | "LINKED" | "CANCELLED" | "FAILED" | "CONFLICT";
+                /** @enum {string} */
+                provider: "GOOGLE" | "APPLE";
+                /** @enum {string} */
+                intent: "SIGN_IN" | "LINK";
+                linkToken: string | null;
+                profile: {
+                    name: string | null;
+                    email: string | null;
+                } | null;
+                csrfToken: string | null;
+            };
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
+        };
+        SocialCompleteDto: {
+            linkToken: string;
+            mobile: string;
+            code: string;
+        };
+        SocialCompleteResponse: {
+            data: {
+                csrfToken: string;
+                /** @enum {string} */
+                account: "EXISTING" | "NEW" | "NOT_LINKED";
+                /** @enum {string} */
+                provider: "GOOGLE" | "APPLE";
+            };
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
+        };
+        IdentitiesResponse: {
+            data: {
+                items: {
+                    /** @enum {string} */
+                    provider: "GOOGLE" | "APPLE";
+                    email: string | null;
+                    linkedAt: string;
+                }[];
+                available: ("GOOGLE" | "APPLE")[];
+            };
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
         };
         ProfileResponse: {
             data: {
@@ -15853,6 +16227,7 @@ export interface components {
                 };
                 logoUrl: string | null;
                 coverUrl: string | null;
+                gallery: string[];
                 description: {
                     en: string | null;
                     ar: string | null;
@@ -19282,6 +19657,8 @@ export interface components {
             acceptTerms?: boolean;
             /** Format: uri */
             returnUrl?: string;
+            /** Format: uuid */
+            paymentMethodId?: string;
         };
         ReservationListResponse: {
             data: {
@@ -19385,6 +19762,8 @@ export interface components {
         ReservationPayDto: {
             /** Format: uri */
             returnUrl?: string;
+            /** Format: uuid */
+            paymentMethodId?: string;
         };
         CustomerCancelDto: {
             reason?: string;
@@ -27982,6 +28361,41 @@ export interface components {
             /** Format: uuid */
             subjectId?: string | null;
         };
+        DealReviewsResponse: {
+            data: {
+                summary: {
+                    count: number;
+                    average: number | null;
+                    distribution: number[];
+                };
+                items: {
+                    /** Format: uuid */
+                    id: string;
+                    rating: number;
+                    text: string;
+                    verified: boolean;
+                    author: string | null;
+                    createdAt: string;
+                }[];
+                mine: {
+                    canReview: boolean;
+                    /** @enum {string|null} */
+                    reason: "NOT_REDEEMED" | "ALREADY_REVIEWED" | "LIMIT" | null;
+                } | null;
+            };
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
+        };
+        DealReviewDto: {
+            rating: number;
+            text: string;
+            /** @enum {string} */
+            locale?: "en" | "ar";
+        };
         ContentReportDto: {
             /** @enum {string} */
             subjectType: "MERCHANT_PROFILE" | "CAMPAIGN" | "MEDIA";
@@ -28440,13 +28854,45 @@ export interface components {
         HistoryResponse: {
             data: {
                 /** @enum {string} */
-                event: "EMPLOYER_CODE_SENT" | "EMPLOYER_VERIFIED" | "EMPLOYER_RENEWAL_DUE" | "EMPLOYER_EXPIRED" | "EMPLOYER_REMOVED" | "CARD_ADDED" | "CARD_REMOVED";
+                event: "EMPLOYER_CODE_SENT" | "EMPLOYER_VERIFIED" | "EMPLOYER_RENEWAL_DUE" | "EMPLOYER_EXPIRED" | "EMPLOYER_REMOVED" | "CARD_ADDED" | "CARD_REMOVED" | "OFFER_ACTIVATED";
                 name: {
                     en: string;
                     ar: string;
                 };
                 at: string;
             }[];
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
+        };
+        EmployeePassResponse: {
+            data: {
+                /** @enum {string} */
+                status: "ACTIVE" | "INACTIVE";
+                /** @enum {string} */
+                reason: "VERIFIED" | "RENEWAL_DUE" | "EXPIRED" | "PENDING" | "NONE";
+                employer: {
+                    /** Format: uuid */
+                    id: string;
+                    name: {
+                        en: string;
+                        ar: string;
+                    };
+                } | null;
+                programName: {
+                    en: string;
+                    ar: string;
+                } | null;
+                holderName: string | null;
+                maskedEmail: string | null;
+                verifiedAt: string | null;
+                validUntil: string | null;
+                passNumber: string | null;
+                serverNow: string;
+            };
             meta: {
                 requestId?: string;
                 /** @enum {string} */
@@ -28509,6 +28955,217 @@ export interface components {
                 locale?: "en" | "ar";
                 nextCursor?: string | null;
             };
+        };
+        CardOfferListResponse: {
+            data: {
+                /** @enum {string} */
+                product: "LIVE" | "HOT" | "VOUCHER";
+                /** Format: uuid */
+                offerId: string;
+                title: {
+                    en: string;
+                    ar: string;
+                };
+                merchantName: {
+                    en: string;
+                    ar: string;
+                };
+                cardName: {
+                    en: string;
+                    ar: string;
+                };
+                activatedAt: string;
+                /** @enum {string} */
+                status: "ACTIVE" | "ENDED" | "CARD_REMOVED";
+            }[];
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
+        };
+        CardOfferStateResponse: {
+            data: {
+                /** @enum {string} */
+                state: "NOT_CARD_OFFER" | "NEEDS_CARD" | "AVAILABLE" | "ACTIVATED" | "UNAVAILABLE";
+                cards: {
+                    /** Format: uuid */
+                    programId: string;
+                    name: {
+                        en: string;
+                        ar: string;
+                    };
+                }[];
+                issuers: {
+                    /** Format: uuid */
+                    id: string;
+                    name: {
+                        en: string;
+                        ar: string;
+                    };
+                }[];
+                activation: {
+                    /** Format: uuid */
+                    programId: string;
+                    cardName: {
+                        en: string;
+                        ar: string;
+                    };
+                    activatedAt: string;
+                } | null;
+            };
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
+        };
+        CardOfferActivateDto: {
+            /** Format: uuid */
+            programId: string;
+        };
+        CardListResponse: {
+            data: {
+                items: {
+                    /** Format: uuid */
+                    id: string;
+                    /** @enum {string} */
+                    brand: "VISA" | "MASTERCARD" | "MADA" | "AMEX" | "OTHER";
+                    last4: string;
+                    expMonth: number;
+                    expYear: number;
+                    expired: boolean;
+                    isDefault: boolean;
+                    addedAt: string;
+                }[];
+                canSave: boolean;
+            };
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
+        };
+        SetupStartDto: {
+            /** Format: uri */
+            returnUrl: string;
+            /** @default false */
+            makeDefault: boolean;
+        };
+        SetupStartResponse: {
+            data: {
+                /** Format: uuid */
+                setupId: string;
+                redirectUrl: string;
+            };
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
+        };
+        SetupResultResponse: {
+            data: {
+                /** @enum {string} */
+                status: "PENDING" | "COMPLETED" | "CANCELLED" | "FAILED";
+                failureCode: string | null;
+                card: {
+                    /** Format: uuid */
+                    id: string;
+                    /** @enum {string} */
+                    brand: "VISA" | "MASTERCARD" | "MADA" | "AMEX" | "OTHER";
+                    last4: string;
+                    expMonth: number;
+                    expYear: number;
+                    expired: boolean;
+                    isDefault: boolean;
+                    addedAt: string;
+                } | null;
+                duplicate: boolean;
+            };
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
+        };
+        SavingsResponse: {
+            data: {
+                totals: {
+                    currency: string;
+                    amountMinor: number;
+                    count: number;
+                }[];
+                items: {
+                    /** Format: uuid */
+                    id: string;
+                    /** @enum {string} */
+                    sourceType: "RESERVATION" | "VOUCHER";
+                    /** Format: uuid */
+                    sourceId: string;
+                    title: {
+                        en: string;
+                        ar: string;
+                    };
+                    merchantName: {
+                        en: string;
+                        ar: string;
+                    };
+                    amountMinor: number;
+                    currency: string;
+                    createdAt: string;
+                }[];
+            };
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
+        };
+        SavingStateResponse: {
+            data: {
+                canLog: boolean;
+                logged: {
+                    /** Format: uuid */
+                    id: string;
+                    /** @enum {string} */
+                    sourceType: "RESERVATION" | "VOUCHER";
+                    /** Format: uuid */
+                    sourceId: string;
+                    title: {
+                        en: string;
+                        ar: string;
+                    };
+                    merchantName: {
+                        en: string;
+                        ar: string;
+                    };
+                    amountMinor: number;
+                    currency: string;
+                    createdAt: string;
+                } | null;
+                currency: string | null;
+                suggestedMinor: number | null;
+            };
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
+        };
+        SavingLogDto: {
+            /** @enum {string} */
+            sourceType: "RESERVATION" | "VOUCHER";
+            /** Format: uuid */
+            sourceId: string;
+            amountMinor: number;
         };
         AnalyticsBatchDto: {
             events: {
@@ -29407,6 +30064,115 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AcceptedResponse"];
+                };
+            };
+        };
+    };
+    SocialAuthController_start_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SocialStartDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SocialStartResponse"];
+                };
+            };
+        };
+    };
+    SocialAuthController_callback_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SocialCallbackDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SocialCallbackResponse"];
+                };
+            };
+        };
+    };
+    SocialAuthController_complete_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SocialCompleteDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SocialCompleteResponse"];
+                };
+            };
+        };
+    };
+    CustomerIdentitiesController_list_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdentitiesResponse"];
+                };
+            };
+        };
+    };
+    CustomerIdentitiesController_unlink_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdentitiesResponse"];
                 };
             };
         };
@@ -44629,6 +45395,94 @@ export interface operations {
             };
         };
     };
+    CustomerOpsController_hotReviews_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DealReviewsResponse"];
+                };
+            };
+        };
+    };
+    CustomerOpsController_writeHotReview_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DealReviewDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CustomerOpsController_voucherReviews_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DealReviewsResponse"];
+                };
+            };
+        };
+    };
+    CustomerOpsController_writeVoucherReview_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DealReviewDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     CustomerOpsController_report_v1: {
         parameters: {
             query?: never;
@@ -45135,6 +45989,25 @@ export interface operations {
             };
         };
     };
+    CustomerBenefitsController_employeePass_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmployeePassResponse"];
+                };
+            };
+        };
+    };
     CustomerBenefitsController_employerStart_v1: {
         parameters: {
             query?: never;
@@ -45263,6 +46136,242 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BrandListResponse"];
+                };
+            };
+        };
+    };
+    CustomerCardOffersController_list_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CardOfferListResponse"];
+                };
+            };
+        };
+    };
+    CustomerCardOffersController_state_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                product: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CardOfferStateResponse"];
+                };
+            };
+        };
+    };
+    CustomerCardOffersController_activate_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                product: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CardOfferActivateDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CardOfferStateResponse"];
+                };
+            };
+        };
+    };
+    CustomerPaymentMethodsController_list_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CardListResponse"];
+                };
+            };
+        };
+    };
+    CustomerPaymentMethodsController_start_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetupStartDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupStartResponse"];
+                };
+            };
+        };
+    };
+    CustomerPaymentMethodsController_finish_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupResultResponse"];
+                };
+            };
+        };
+    };
+    CustomerPaymentMethodsController_setDefault_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CardListResponse"];
+                };
+            };
+        };
+    };
+    CustomerPaymentMethodsController_remove_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CardListResponse"];
+                };
+            };
+        };
+    };
+    CustomerSavingsController_summary_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavingsResponse"];
+                };
+            };
+        };
+    };
+    CustomerSavingsController_log_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SavingLogDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavingStateResponse"];
+                };
+            };
+        };
+    };
+    CustomerSavingsController_state_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sourceType: string;
+                sourceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavingStateResponse"];
                 };
             };
         };

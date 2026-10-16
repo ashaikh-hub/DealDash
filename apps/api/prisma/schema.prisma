@@ -451,6 +451,125 @@ model CustomerConsent {
   @@index([userId, kind, createdAt])
 }
 
+// ---------------------------------------------------------------- customer experience (2026-10-16 gap closure)
+/// A Google / Apple account linked to a customer. Only the provider's stable user id and what it reported; never provider tokens.
+/// The customer's phone number stays the account key: a new social sign-in is finished by confirming a phone number.
+model UserIdentity {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  userId        String    @db.Uuid
+  /// GOOGLE | APPLE
+  provider      String
+  subject       String
+  email         String?
+  emailVerified Boolean   @default(false)
+  displayName   String?
+  linkedAt      DateTime  @default(now())
+  lastUsedAt    DateTime?
+
+  @@unique([provider, subject])
+  @@unique([userId, provider])
+}
+
+/// One Google / Apple sign-in attempt: the state sent to the provider (hashed), then the verified profile while the customer
+/// confirms a phone number. Single use; expires.
+model SocialSignIn {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  provider      String
+  stateHash     String    @unique
+  /// SIGN_IN | LINK (a signed-in customer links the provider to their account)
+  intent        String
+  userId        String?   @db.Uuid
+  callbackUrl   String
+  /// STARTED | NEEDS_PHONE | COMPLETED | LINKED | CANCELLED | FAILED | CONFLICT
+  status        String    @default("STARTED")
+  subject       String?
+  email         String?
+  emailVerified Boolean   @default(false)
+  displayName   String?
+  linkTokenHash String?   @unique
+  failureCode   String?
+  expiresAt     DateTime
+  createdAt     DateTime  @default(now())
+  completedAt   DateTime?
+
+  @@index([status, expiresAt])
+}
+
+/// A customer's saved card: the payment provider's token and display details only (brand, last 4 digits, expiry month / year).
+/// Never a card number (PAN) or CVV (database CHECK on last4).
+model CustomerPaymentMethod {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  userId        String    @db.Uuid
+  provider      String
+  providerToken String
+  fingerprint   String
+  /// VISA | MASTERCARD | MADA | AMEX | OTHER
+  brand         String
+  last4         String
+  expMonth      Int
+  expYear       Int
+  isDefault     Boolean   @default(false)
+  /// ACTIVE | REMOVED
+  status        String    @default("ACTIVE")
+  createdAt     DateTime  @default(now())
+  removedAt     DateTime?
+
+  @@unique([provider, providerToken])
+  @@index([userId, status])
+}
+
+/// One "add a card" visit to the provider's hosted card page (the card details are entered there, never in DealDash).
+model PaymentMethodSetup {
+  id               String    @id @default(uuid(7)) @db.Uuid
+  userId           String    @db.Uuid
+  provider         String
+  providerSetupRef String?   @unique
+  /// STARTED | COMPLETED | CANCELLED | FAILED
+  status           String    @default("STARTED")
+  makeDefault      Boolean   @default(false)
+  paymentMethodId  String?   @db.Uuid
+  failureCode      String?
+  expiresAt        DateTime
+  createdAt        DateTime  @default(now())
+  completedAt      DateTime?
+
+  @@index([userId, createdAt])
+}
+
+/// A card-linked offer the customer activated on one of their added cards (My benefits). One activation per customer and offer.
+model CardOfferActivation {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  userId        String    @db.Uuid
+  /// LIVE | HOT | VOUCHER
+  product       String
+  offerId       String    @db.Uuid
+  /// The customer's card (PartnerCardProgram) the offer is activated on
+  programId     String    @db.Uuid
+  /// ACTIVE | DEACTIVATED
+  status        String    @default("ACTIVE")
+  activatedAt   DateTime  @default(now())
+  deactivatedAt DateTime?
+
+  @@unique([userId, product, offerId])
+  @@index([userId, activatedAt])
+}
+
+/// "Log my saving": what the customer says they saved with a redeemed reservation or voucher. Once per redemption.
+model CustomerSaving {
+  id                     String   @id @default(uuid(7)) @db.Uuid
+  userId                 String   @db.Uuid
+  /// RESERVATION | VOUCHER
+  sourceType             String
+  sourceId               String   @db.Uuid
+  merchantOrganizationId String   @db.Uuid
+  amountMinor            Int
+  currency               String
+  createdAt              DateTime @default(now())
+
+  @@unique([userId, sourceType, sourceId])
+  @@index([userId, createdAt])
+}
+
 // ---------------------------------------------------------------- audit (append-only; enforced by DB triggers)
 model AuditLog {
   id                    String   @id @default(uuid(7)) @db.Uuid

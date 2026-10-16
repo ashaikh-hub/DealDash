@@ -179,6 +179,7 @@ export const BENEFIT_HISTORY_EVENTS = [
   'EMPLOYER_REMOVED',
   'CARD_ADDED',
   'CARD_REMOVED',
+  'OFFER_ACTIVATED',
 ] as const;
 export type BenefitHistoryEvent = (typeof BENEFIT_HISTORY_EVENTS)[number];
 

@@ -163,9 +163,12 @@ export function DealDetailView({
   onBack,
   merchantHref,
   heroFooter,
+  benefit,
 }: {
   detail: DealDetail;
   locale: Locale;
+  /** Customer app: card-linked offer activation (shown under the offer's badges). */
+  benefit?: ReactNode;
   now?: Date;
   embedded?: boolean;
   signedIn?: boolean;
@@ -267,6 +270,7 @@ export function DealDetailView({
             </span>
           ) : null}
         </div>
+        {benefit && !embedded ? benefit : null}
 
         {locked ? (
           <div className="dd-dd__locked" role="status">

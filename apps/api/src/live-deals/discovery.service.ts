@@ -538,7 +538,14 @@ export class DiscoveryService {
       userId,
       now,
     );
-    const urls = await this.files.signedUrls([org.merchant.logoFileId, org.merchant.coverFileId]);
+    const galleryIds = Array.isArray(org.merchant.galleryFileIds)
+      ? (org.merchant.galleryFileIds as unknown[]).filter((g): g is string => typeof g === 'string')
+      : [];
+    const urls = await this.files.signedUrls([
+      org.merchant.logoFileId,
+      org.merchant.coverFileId,
+      ...galleryIds,
+    ]);
     // the merchant's category is the one most of its live deals use
     const catCount = new Map<string, { n: number; cat: NonNullable<DealCard['category']> }>();
     for (const d of deals.items)
@@ -553,6 +560,7 @@ export class DiscoveryService {
       name: merchantDisplayName(org as unknown as DealRow['organization']),
       logoUrl: this.presenter.urlOf(urls, org.merchant.logoFileId),
       coverUrl: this.presenter.urlOf(urls, org.merchant.coverFileId),
+      gallery: galleryIds.map((g) => this.presenter.urlOf(urls, g)).filter((u): u is string => !!u),
       description: { en: org.merchant.descriptionEn, ar: org.merchant.descriptionAr },
       category: top?.cat ?? null,
       // Only public display information: the business phone, never e-mail, registration or settlement details.

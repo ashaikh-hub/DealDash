@@ -25,12 +25,21 @@ import {
   Tabs,
 } from '@dealdash/ui';
 import { useCustomer } from './customer-context';
+import { ActivatedOffers } from './cx-benefits';
 import { TrackedHotCard } from './hot';
 import { TrackedCard, useHref, useT } from './parts';
 import { TrackedVoucherCard } from './vouchers';
 
-type Section = 'unlocked' | 'available' | 'active' | 'used' | 'expired' | 'history';
-const SECTIONS: Section[] = ['unlocked', 'available', 'active', 'used', 'expired', 'history'];
+type Section = 'unlocked' | 'available' | 'active' | 'used' | 'expired' | 'activated' | 'history';
+const SECTIONS: Section[] = [
+  'unlocked',
+  'available',
+  'active',
+  'used',
+  'expired',
+  'activated',
+  'history',
+];
 
 const EMPLOYER_TONE = {
   PENDING: 'warning',
@@ -132,7 +141,7 @@ export function BenefitsPage() {
     new Date(employer.renewFrom).getTime() <= Date.now();
   const counts = overview?.counts;
   const tabLabel = (s: Section) => {
-    const n = counts && s !== 'history' ? counts[s] : null;
+    const n = counts && s !== 'history' && s !== 'activated' ? counts[s] : null;
     return n
       ? `${t(`ben.tab.${s}` as DictionaryKey)} · ${formatNumber(locale, n)}`
       : t(`ben.tab.${s}` as DictionaryKey);
@@ -215,6 +224,13 @@ export function BenefitsPage() {
                 {employer.status === 'EXPIRED' ? (
                   <span className="dd-help">{t('ben.employer.expiredHelp')}</span>
                 ) : null}
+                <Link
+                  className="dd-link"
+                  href={href('/employee-pass')}
+                  data-testid="employee-pass-open"
+                >
+                  <Icon name="badge" size={16} /> {t('cx.ep.open')}
+                </Link>
                 <div className="dd-row" style={{ marginBlockStart: 6 }}>
                   {employer.status === 'VERIFIED' && !renewSoon ? null : (
                     <Button size="sm" onClick={() => setSheet('employer')}>
@@ -335,6 +351,8 @@ export function BenefitsPage() {
             />
           ) : section === 'history' ? (
             <HistorySection />
+          ) : section === 'activated' ? (
+            <ActivatedOffers />
           ) : (
             <UsageSection tab={section} />
           )}

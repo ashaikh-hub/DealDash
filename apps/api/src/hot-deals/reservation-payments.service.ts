@@ -251,8 +251,32 @@ export class ReservationPaymentsService {
     return p.id;
   }
 
+  /**
+   * The provider token of one of the customer's own ACTIVE saved cards (customer experience: saved cards). Only the token leaves
+   * DealDash; the card details live at the provider. Unknown, removed or another customer's card: not found.
+   */
+  async savedCardToken(userId: string, paymentMethodId: string): Promise<string> {
+    const m = await this.prisma.customerPaymentMethod.findFirst({
+      where: { id: paymentMethodId, userId, status: 'ACTIVE', provider: this.provider.name },
+      select: { providerToken: true, expYear: true, expMonth: true },
+    });
+    if (!m)
+      throw new AppError('PAYMENT_METHOD_NOT_FOUND', 'Choose another card or add a new one', 404);
+    const now = new Date();
+    if (
+      m.expYear < now.getUTCFullYear() ||
+      (m.expYear === now.getUTCFullYear() && m.expMonth < now.getUTCMonth() + 1)
+    )
+      throw new AppError(
+        'PAYMENT_METHOD_EXPIRED',
+        'This card has expired. Choose another card.',
+        422,
+      );
+    return m.providerToken;
+  }
+
   /** Sends an opened attempt to the provider (after commit). A provider error fails the attempt; the customer may retry. */
-  async initiate(paymentId: string, returnTo?: string) {
+  async initiate(paymentId: string, returnTo?: string, savedCardToken?: string) {
     const p = await this.prisma.reservationPayment.findUniqueOrThrow({
       where: { id: paymentId },
       include: { reservation: { select: { id: true, reference: true } } },
@@ -264,6 +288,7 @@ export class ReservationPaymentsService {
         currency: p.currency,
         idempotencyKey: p.idempotencyKey,
         returnUrl: this.returnUrl(p.reservationId, returnTo),
+        ...(savedCardToken ? { savedCardToken } : {}),
       });
       await this.prisma.reservationPayment.updateMany({
         where: { id: p.id, status: 'CREATED' },
@@ -297,6 +322,7 @@ export class ReservationPaymentsService {
     meta: RequestMeta,
     now = new Date(),
     returnTo?: string,
+    savedCardToken?: string,
   ) {
     const r = await this.prisma.reservation.findFirst({
       where: { id: reservationId, userId: actor.userId },
@@ -321,7 +347,7 @@ export class ReservationPaymentsService {
         if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') return;
         throw e;
       }
-      await this.requestAuthorisation(authId, returnTo);
+      await this.requestAuthorisation(authId, returnTo, savedCardToken);
       return;
     }
     const open = await this.prisma.reservationPayment.findFirst({
@@ -335,7 +361,7 @@ export class ReservationPaymentsService {
       if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') return; // a concurrent tap opened it
       throw e;
     }
-    await this.initiate(paymentId, returnTo);
+    await this.initiate(paymentId, returnTo, savedCardToken);
   }
 
   // ================================================================ provider outcomes (webhook, reconciliation, sync)
@@ -1241,7 +1267,7 @@ export class ReservationPaymentsService {
   }
 
   /** Sends a hold request to the provider (after commit). A provider error fails the request; the customer may retry. */
-  async requestAuthorisation(authId: string, returnTo?: string) {
+  async requestAuthorisation(authId: string, returnTo?: string, savedCardToken?: string) {
     const holds = this.holdProvider();
     const a = await this.prisma.reservationAuthorisation.findUniqueOrThrow({
       where: { id: authId },
@@ -1255,6 +1281,7 @@ export class ReservationPaymentsService {
         currency: a.currency,
         idempotencyKey: a.idempotencyKey,
         returnUrl: this.returnUrl(a.reservationId, returnTo),
+        ...(savedCardToken ? { savedCardToken } : {}),
       });
       await this.prisma.reservationAuthorisation.updateMany({
         where: { id: a.id, status: 'REQUESTED' },

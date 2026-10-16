@@ -11,6 +11,7 @@ import {
   PAYOUT_PROVIDER,
   PUSH_PROVIDER,
   SMS_PROVIDER,
+  SOCIAL_AUTH_PROVIDER,
   STORAGE_PROVIDER,
   VIDEO_PROVIDER,
 } from './interfaces';
@@ -23,8 +24,10 @@ import {
   MockPaymentProvider,
   MockPushProvider,
   MockSmsProvider,
+  MockSocialAuthProvider,
   MockStorageProvider,
   MockVideoProvider,
+  UnconfiguredSocialAuthProvider,
   type MockMessagingOptions,
 } from './mocks';
 
@@ -87,6 +90,16 @@ const messagingOptions = (env: ApiEnv, prisma: PrismaService): MockMessagingOpti
     },
     { provide: VIDEO_PROVIDER, useClass: MockVideoProvider },
     { provide: MAPS_PROVIDER, useClass: MockMapsProvider },
+    // customer experience: Google / Apple sign-in. Real credentials are an external dependency; the development adapter is used
+    // everywhere except production, where it needs the explicit staging opt-in (as every other development adapter).
+    {
+      provide: SOCIAL_AUTH_PROVIDER,
+      inject: [APP_ENV],
+      useFactory: (env: ApiEnv) =>
+        env.NODE_ENV !== 'production' || env.ALLOW_MOCK_PROVIDERS
+          ? new MockSocialAuthProvider()
+          : new UnconfiguredSocialAuthProvider(),
+    },
   ],
   exports: [
     SMS_PROVIDER,
@@ -98,6 +111,7 @@ const messagingOptions = (env: ApiEnv, prisma: PrismaService): MockMessagingOpti
     VIDEO_PROVIDER,
     MAPS_PROVIDER,
     PAYOUT_PROVIDER,
+    SOCIAL_AUTH_PROVIDER,
   ],
 })
 export class ProvidersModule {}
