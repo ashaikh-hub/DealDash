@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Icon,
   Points,
+  QrCode,
   RewardEntryRow,
   RewardItemCard,
   RewardSummaryCard,
@@ -16,8 +17,8 @@ import {
   useApi,
   useAuth,
 } from '@dealdash/app-shell';
-import { formatNumber, type DictionaryKey } from '@dealdash/localization';
-import { Alert, Button, EmptyState, Modal, Skeleton } from '@dealdash/ui';
+import { formatDateTime, formatNumber, type DictionaryKey } from '@dealdash/localization';
+import { Alert, Button, EmptyState, LoadingState, Modal, Skeleton } from '@dealdash/ui';
 import type {
   RewardEntryView,
   RewardItemView,
@@ -28,9 +29,19 @@ import type {
   WatchHub,
   WatchOutcomeView,
   WatchViewStarted,
+  WonPrize,
 } from '@dealdash/validation';
 import { useCustomer, useImpression } from './customer-context';
-import { CardSkeletons, CityBar, LoadError, RailEmpty, SectionHead, useHref, useT } from './parts';
+import {
+  CardSkeletons,
+  CityBar,
+  LoadError,
+  RailEmpty,
+  SectionHead,
+  signInPath,
+  useHref,
+  useT,
+} from './parts';
 import { RAIL_SIZE, curate, presentWatch } from './presentation';
 import { useDealList } from './use-deals';
 
@@ -58,20 +69,38 @@ export function TrackedWatchCard({
   category,
 }: {
   campaign: WatchCard;
-  variant: 'carousel' | 'list';
+  variant: 'carousel' | 'list' | 'immersive';
   /** The merchant's category when known (picture for a video without its own thumbnail). */
   category?: string | null;
 }) {
-  const { uiLocale: locale } = useAuth();
+  const { uiLocale: locale, status } = useAuth();
+  const { call } = useApi();
+  const router = useRouter();
   const href = useHref();
   const ref = useImpression(campaign.id, undefined, 'WATCH');
+  const [saved, setSaved] = useState(!!campaign.saved);
+  useEffect(() => setSaved(!!campaign.saved), [campaign.saved]);
+  // favourites: a guest is asked to sign in first; the change is undone if the server refuses it
+  const toggle = async () => {
+    if (status !== 'authenticated') {
+      router.push(signInPath(href, 'save'));
+      return;
+    }
+    const next = !saved;
+    setSaved(next);
+    const res = await call(next ? 'POST' : 'DELETE', `/v1/app/saved/watch/${campaign.id}`, {
+      body: next ? {} : undefined,
+    });
+    if (!res.ok) setSaved(!next);
+  };
   return (
     <WatchCardView
-      campaign={presentWatch(campaign, category)}
+      campaign={{ ...presentWatch(campaign, category), saved }}
       locale={locale}
       variant={variant}
       href={href(`/watch/${campaign.id}`)}
       imageRef={ref}
+      onToggleSave={variant === 'immersive' ? () => void toggle() : undefined}
     />
   );
 }
@@ -79,17 +108,25 @@ export function TrackedWatchCard({
 function useHub() {
   const { call } = useApi();
   const { status } = useAuth();
-  const { city } = useCustomer();
+  const { city, coords, approximate } = useCustomer();
   const [hub, setHub] = useState<WatchHub | null>(null);
   const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading');
   const load = useCallback(async () => {
     setState('loading');
-    const r = await call<WatchHub>('GET', '/v1/app/watch', { query: { city, limit: 30 } });
+    // the customer's position (when known) lets each card show the distance to the merchant's nearest branch
+    const r = await call<WatchHub>('GET', '/v1/app/watch', {
+      query: {
+        city,
+        limit: 30,
+        lat: approximate ? undefined : coords.lat,
+        lng: approximate ? undefined : coords.lng,
+      },
+    });
     if (r.ok && r.data) {
       setHub(r.data);
       setState('ready');
     } else setState('error');
-  }, [call, city]);
+  }, [call, city, coords.lat, coords.lng, approximate]);
   useEffect(() => {
     void load();
   }, [load, status]);
@@ -140,12 +177,12 @@ export function WatchRail({ categories }: { categories?: Map<string, string> } =
         }
       />
       {/* compact carousel (founder direction 2026-10-16): up to five videos, the next one peeking, the rest behind See all */}
-      <div className="dd-hscroll dd-rail" data-testid="watch-rail-items">
+      <div className="dd-hscroll dd-rail dd-rail--watch" data-testid="watch-rail-items">
         {curate([cards], RAIL_SIZE).map((c) => (
           <TrackedWatchCard
             key={c.id}
             campaign={c}
-            variant="carousel"
+            variant="immersive"
             category={categories?.get(c.merchantId)}
           />
         ))}
@@ -155,11 +192,29 @@ export function WatchRail({ categories }: { categories?: Map<string, string> } =
 }
 
 // ------------------------------------------------------------------ hub (tab)
+const WATCH_SORTS = ['recommended', 'near', 'reward', 'ending'] as const;
+type WatchSort = (typeof WATCH_SORTS)[number];
+/** Orders the returned campaigns for a merchandising view; "recommended" keeps DealDash's order. */
+function sortWatch(cards: WatchCard[], sort: WatchSort): WatchCard[] {
+  const list = [...cards];
+  const far = Number.POSITIVE_INFINITY;
+  if (sort === 'near') list.sort((a, b) => (a.distanceMeters ?? far) - (b.distanceMeters ?? far));
+  else if (sort === 'reward') list.sort((a, b) => b.rewardPoints - a.rewardPoints);
+  else if (sort === 'ending')
+    list.sort(
+      (a, b) =>
+        (a.endsAt ? new Date(a.endsAt).getTime() : far) -
+        (b.endsAt ? new Date(b.endsAt).getTime() : far),
+    );
+  return list;
+}
+
 export function WatchHubPage() {
   const { t, locale } = useT();
   const href = useHref();
   const { status } = useAuth();
   const { hub, state, reload } = useHub();
+  const [sort, setSort] = useState<WatchSort>('recommended');
   const signedIn = status === 'authenticated';
   return (
     <div className="dd-stack" style={{ gap: 16 }} data-testid="watch-hub">
@@ -202,11 +257,28 @@ export function WatchHubPage() {
       ) : hub.campaigns.length === 0 ? (
         <EmptyState title={t('wat.empty')} description={t('wat.emptyBody')} />
       ) : (
-        <div className="dd-cardgrid">
-          {hub.campaigns.map((c) => (
-            <TrackedWatchCard key={c.id} campaign={c} variant="list" />
-          ))}
-        </div>
+        <>
+          {/* merchandising views over the campaigns DealDash returned (ordering only: nothing is added or filtered) */}
+          <div className="dd-row dd-optrow" role="group" aria-label={t('wat.title')}>
+            {WATCH_SORTS.map((s) => (
+              <button
+                key={s}
+                type="button"
+                className={`dd-pill ${sort === s ? 'dd-pill--active' : ''}`}
+                aria-pressed={sort === s}
+                onClick={() => setSort(s)}
+                data-testid={`watch-sort-${s}`}
+              >
+                {t(`wat.sort.${s}` as DictionaryKey)}
+              </button>
+            ))}
+          </div>
+          <div className="dd-wgrid" data-testid="watch-grid">
+            {sortWatch(hub.campaigns, sort).map((c) => (
+              <TrackedWatchCard key={c.id} campaign={c} variant="immersive" />
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
@@ -634,6 +706,7 @@ export function WatchPlayerPage({ id }: { id: string }) {
                 </p>
               ) : null}
               <p className="dd-caption">{t('rew.notCash')}</p>
+              {outcome.prize ? <PrizeResult result={outcome.prize} /> : null}
             </>
           ) : (
             <>
@@ -659,6 +732,160 @@ export function WatchPlayerPage({ id }: { id: string }) {
           </div>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+// ------------------------------------------------------------------ instant prizes (FDR-19)
+/** The server's instant-prize decision on the outcome screen: the prize and its code when won, an honest "not this time" otherwise. */
+function PrizeResult({ result }: { result: NonNullable<WatchOutcomeView['prize']> }) {
+  const { t } = useT();
+  if (!result.won || !result.prize)
+    return (
+      <p className="dd-muted" data-testid="prize-not-won">
+        {t('wprize.notWon')}
+      </p>
+    );
+  return <PrizeCard prize={result.prize} won />;
+}
+
+/** One won prize: what it is, where and until when, and the code staff scan or type. */
+export function PrizeCard({
+  prize,
+  won,
+  viewHref,
+}: {
+  prize: WonPrize;
+  won?: boolean;
+  /** In a list: a link to the prize instead of its code (the code is one tap away). */
+  viewHref?: string;
+}) {
+  const { t, locale } = useT();
+  return (
+    <div className="dd-stack" style={{ gap: 10, inlineSize: '100%' }} data-testid="prize-card">
+      <div className="dd-prize">
+        <span className="dd-prize__icon" aria-hidden="true">
+          <Icon name="gift" size={20} />
+        </span>
+        <div className="dd-grow">
+          <strong data-testid="prize-title">
+            {won ? t('wprize.won') : t(`wprize.status.${prize.status}` as DictionaryKey)}
+          </strong>
+          <div>
+            {t('wprize.wonBody', {
+              prize: pickText(prize.title, locale),
+              merchant: pickText(prize.merchantName, locale),
+            })}
+          </div>
+          <div className="dd-caption" style={{ color: 'inherit' }}>
+            {t('wprize.validUntil', { date: formatDateTime(locale, prize.expiresAt) })}
+            {prize.branches.length
+              ? ` · ${t('wprize.at', { branches: prize.branches.map((b) => pickText(b, locale)).join(', ') })}`
+              : ''}
+          </div>
+        </div>
+      </div>
+      {viewHref ? (
+        <Link
+          className="dd-btn dd-btn--secondary dd-btn--sm"
+          href={viewHref}
+          data-testid="prize-view"
+          style={{ alignSelf: 'flex-start' }}
+        >
+          {t('wprize.view')}
+        </Link>
+      ) : prize.code ? (
+        <div className="dd-prize__code" data-testid="prize-code">
+          <QrCode text={prize.code.qr} size={150} label={t('wprize.show')} />
+          <span className="dd-caption">{t('wprize.show')}</span>
+          <strong className="dd-prize__manual dd-ltr" data-testid="prize-manual">
+            {`${prize.code.manual.slice(0, 4)}-${prize.code.manual.slice(4)}`}
+          </strong>
+          <span className="dd-caption dd-ltr">{prize.reference}</span>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/** Rewards -> Your prizes: every prize the customer won, newest first. */
+function YourPrizes() {
+  const { t } = useT();
+  const { call } = useApi();
+  const href = useHref();
+  const [items, setItems] = useState<WonPrize[] | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void call<WonPrize[]>('GET', '/v1/app/watch/prizes').then((r) => {
+      if (alive) setItems(r.ok && Array.isArray(r.data) ? r.data : []);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [call]);
+  if (!items) return null;
+  return (
+    <section className="dd-section" data-testid="your-prizes">
+      <SectionHead icon="gift" title={t('wprize.yours')} />
+      {items.length ? (
+        <div className="dd-stack" style={{ gap: 12 }}>
+          {items.map((p) => (
+            <PrizeCard key={p.id} prize={p} viewHref={href(`/rewards/prizes/${p.id}`)} />
+          ))}
+        </div>
+      ) : (
+        <p className="dd-caption">{t('wprize.yoursEmpty')}</p>
+      )}
+    </section>
+  );
+}
+
+/** Rewards -> one prize (the winner notification opens it): what was won, where and until when, and the code staff scan or type. */
+export function PrizePage({ id }: { id: string }) {
+  const { t } = useT();
+  const { call } = useApi();
+  const { status } = useAuth();
+  const href = useHref();
+  const [prize, setPrize] = useState<WonPrize | null>(null);
+  const [state, setState] = useState<'loading' | 'ready' | 'missing' | 'error'>('loading');
+  const load = useCallback(async () => {
+    if (status !== 'authenticated') return;
+    setState('loading');
+    const r = await call<WonPrize>('GET', `/v1/app/watch/prizes/${id}`);
+    if (r.ok && r.data) {
+      setPrize(r.data);
+      setState('ready');
+    } else setState(r.status === 404 ? 'missing' : 'error');
+  }, [call, id, status]);
+  useEffect(() => {
+    void load();
+  }, [load]);
+  if (status === 'loading') return <LoadingState label={t('state.loading')} />;
+  if (status !== 'authenticated')
+    return (
+      <EmptyState
+        title={t('rew.signInTitle')}
+        action={
+          <Link className="dd-btn dd-btn--primary" href={signInPath(href, 'earn')}>
+            {t('auth.signIn')}
+          </Link>
+        }
+      />
+    );
+  return (
+    <div className="dd-stack" style={{ gap: 14 }} data-testid="prize-page">
+      <Link className="dd-link" href={href('/rewards')}>
+        {t('wprize.yours')}
+      </Link>
+      {state === 'loading' ? (
+        <LoadingState label={t('state.loading')} />
+      ) : state === 'missing' ? (
+        <EmptyState title={t('wprize.notFound')} />
+      ) : state === 'error' || !prize ? (
+        <LoadError onRetry={() => void load()} />
+      ) : (
+        <PrizeCard prize={prize} />
+      )}
     </div>
   );
 }
@@ -763,6 +990,8 @@ export function RewardsPage() {
           </span>
         </Alert>
       ) : null}
+      {/* instant prizes won from Watch & Earn (FDR-19), with their codes for the branch */}
+      {signedIn ? <YourPrizes /> : null}
       <section className="dd-section" aria-label={t('rew.catalogue')}>
         <SectionHead icon="gift" title={t('rew.catalogue')} sub={t('rew.catalogueSub')} />
         {items.length === 0 ? (

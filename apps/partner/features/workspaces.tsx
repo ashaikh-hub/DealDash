@@ -19,7 +19,7 @@ import {
 } from '@dealdash/app-shell';
 import { createTranslator, formatMoney, formatNumber } from '@dealdash/localization';
 import { PARTNER_DRILL_LEVELS } from '@dealdash/types';
-import { Alert, Button, Card, Field, Input, Select, Tabs } from '@dealdash/ui';
+import { Alert, Button, Card, Checkbox, Field, Input, Select, Tabs } from '@dealdash/ui';
 import { Chip, Loaded, PartnerPage, k, pbase, useCmd, usePerms, useT } from './utils';
 
 // ================================================================ Watch & Earn sponsorship (shared loyalty rules)
@@ -89,6 +89,33 @@ function OwnedWatch({ orgId }: { orgId: string }) {
     start: isoIn(1),
     end: isoIn(30),
   });
+  // optional instant prize (FDR-19): the sponsor funds it, the merchant fulfils it; DealDash decides every prize server-side
+  const [prize, setPrize] = useState({
+    on: false,
+    titleEn: '',
+    titleAr: '',
+    inventory: '20',
+    pct: '10',
+    validity: '14',
+    value: '0',
+    ack: false,
+  });
+  const prizeContent = prize.on
+    ? {
+        title: { en: prize.titleEn, ar: prize.titleAr },
+        kind: 'FREE_ITEM',
+        inventory: Math.max(1, Math.floor(Number(prize.inventory) || 1)),
+        winProbabilityBps: Math.min(
+          10_000,
+          Math.max(1, Math.round((Number(prize.pct) || 0) * 100)),
+        ),
+        perCustomerLimit: 1,
+        validityDays: Math.max(1, Math.floor(Number(prize.validity) || 1)),
+        branchIds: [],
+        unitValueMinor: Math.max(0, Math.round((Number(prize.value) || 0) * 100)),
+        acknowledged: prize.ack,
+      }
+    : null;
   const merchant = f.merchant || registered[0]?.organizationId || '';
   const assets = useResource<{
     images: Array<{ fileId: string }>;
@@ -123,6 +150,7 @@ function OwnedWatch({ orgId }: { orgId: string }) {
           },
           frequency: { repeatWindowHours: null },
           paidViews: Number(f.views),
+          prize: prizeContent,
         },
       },
       t('pt.watch.ownCreated'),
@@ -277,6 +305,71 @@ function OwnedWatch({ orgId }: { orgId: string }) {
           <Field label={t('pt.offers.until')} htmlFor="wo-end">
             <Input id="wo-end" type="date" value={f.end} onChange={set('end')} />
           </Field>
+          <fieldset
+            style={{ gridColumn: '1 / -1', border: 0, padding: 0, margin: 0 }}
+            data-testid="pt-watch-prize"
+          >
+            <legend className="dd-label">{t('pt.watch.prize')}</legend>
+            <Checkbox
+              label={t('mprize.add')}
+              checked={prize.on}
+              onChange={(e) => setPrize({ ...prize, on: e.target.checked })}
+            />
+            {prize.on ? (
+              <div
+                style={{
+                  display: 'grid',
+                  gap: 8,
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+                  marginTop: 8,
+                }}
+              >
+                <Field label={`${t('mprize.name')} (EN)`} htmlFor="wo-pen">
+                  <Input
+                    id="wo-pen"
+                    value={prize.titleEn}
+                    onChange={(e) => setPrize({ ...prize, titleEn: e.target.value })}
+                  />
+                </Field>
+                <Field label={`${t('mprize.name')} (AR)`} htmlFor="wo-par">
+                  <Input
+                    id="wo-par"
+                    dir="rtl"
+                    value={prize.titleAr}
+                    onChange={(e) => setPrize({ ...prize, titleAr: e.target.value })}
+                  />
+                </Field>
+                {(
+                  [
+                    ['inventory', 'mprize.inventory'],
+                    ['pct', 'mprize.pct'],
+                    ['validity', 'mprize.validity'],
+                    ['value', 'mprize.unitValue'],
+                  ] as const
+                ).map(([key, label]) => (
+                  <Field key={key} label={t(label)} htmlFor={`wo-p-${key}`}>
+                    <Input
+                      id={`wo-p-${key}`}
+                      dir="ltr"
+                      inputMode="decimal"
+                      value={prize[key]}
+                      onChange={(e) => setPrize({ ...prize, [key]: e.target.value })}
+                    />
+                  </Field>
+                ))}
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <p className="dd-muted" style={{ margin: '0 0 6px' }}>
+                    {t('mprize.help')}
+                  </p>
+                  <Checkbox
+                    label={t('mprize.ack')}
+                    checked={prize.ack}
+                    onChange={(e) => setPrize({ ...prize, ack: e.target.checked })}
+                  />
+                </div>
+              </div>
+            ) : null}
+          </fieldset>
           <div>
             <Button
               onClick={() => void create()}
@@ -287,7 +380,8 @@ function OwnedWatch({ orgId }: { orgId: string }) {
                 !f.titleEn ||
                 !f.titleAr ||
                 !f.descEn ||
-                !f.descAr
+                !f.descAr ||
+                (prize.on && (!prize.titleEn || !prize.titleAr || !prize.ack))
               }
               data-testid="pt-watch-own-create"
             >

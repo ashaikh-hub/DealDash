@@ -89,6 +89,9 @@ async function open(width, locale, path) {
     isMobile: true,
     hasTouch: true,
     storageState: session,
+    // a phone in central Riyadh that shares its location (cards then show distances)
+    geolocation: { latitude: 24.7136, longitude: 46.6753 },
+    permissions: ['geolocation'],
   });
   const page = await ctx.newPage();
   const errors = [];
@@ -258,8 +261,18 @@ async function myVouchers(width, locale) {
   await ctx.close();
 }
 
+/** The full Watch & Earn page (same card language as Home). */
+async function watchPage(width, locale) {
+  const { ctx, page, errors } = await open(width, locale, '/watch');
+  const cards = await page.locator('[data-testid="watch-grid"] [data-testid="watch-card"]').count();
+  log(`${tag(width, locale)} 06b-watch-page: ${await shot(page, `06b-watch-page-${tag(width, locale)}.png`, '[data-testid="watch-grid"]', { viewport: true })} cards=${cards} overflow=${(await checks(page)).overflow} pageErrors=${errors.length}`);
+  await ctx.close();
+}
+
 // main review set: 390 px English
 await homeSet(390, 'en');
+await watchPage(390, 'en');
+await watchPage(390, 'ar');
 await myVouchers(390, 'en');
 await journey(390, 'en', freeDeal, 'free');
 await journey(390, 'en', paidDeal, 'paid');

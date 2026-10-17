@@ -53,6 +53,8 @@ import {
   watchViewStartSchema,
   watchViewStartedSchema,
   watchCompleteSchema,
+  watchCardSchema,
+  wonPrizeSchema,
 } from '@dealdash/validation';
 
 const uuid = z.string().uuid();
@@ -143,6 +145,9 @@ export class WatchDetailResponse extends createZodDto(envelope(watchDetailSchema
 export class WatchViewStartedResponse extends createZodDto(envelope(watchViewStartedSchema)) {}
 export class WatchEventsResponse extends createZodDto(envelope(watchEventsResultSchema)) {}
 export class WatchOutcomeResponse extends createZodDto(envelope(watchOutcomeSchema)) {}
+export class WatchCardsResponse extends createZodDto(envelope(z.array(watchCardSchema))) {}
+export class WonPrizesResponse extends createZodDto(envelope(z.array(wonPrizeSchema))) {}
+export class WonPrizeResponse extends createZodDto(envelope(wonPrizeSchema)) {}
 export class RewardSummaryResponse extends createZodDto(envelope(rewardSummarySchema)) {}
 export class RewardActivityResponse extends createZodDto(
   envelope(z.array(rewardEntryViewSchema)),

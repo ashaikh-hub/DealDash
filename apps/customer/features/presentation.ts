@@ -129,14 +129,38 @@ export function presentDetail<
   };
 }
 
+/** Merchant onboarding categories use their own codes; the picture follows the matching deal category (presentation only). */
+const MERCHANT_TO_DEAL_CATEGORY: Record<string, string> = {
+  restaurants: 'dining',
+  restaurant: 'dining',
+  food: 'dining',
+  bakery: 'cafes',
+  coffee: 'cafes',
+  retail: 'shopping',
+  beauty: 'beauty_wellness',
+  gym: 'fitness',
+};
+const asDealCategory = (code: string | null | undefined) =>
+  code ? (MERCHANT_TO_DEAL_CATEGORY[code] ?? code) : null;
+
 /**
  * Watch & Earn: the merchant's real thumbnail always. Without one: the merchant's category picture when it is known (development
  * review: approved food photography for dining / cafés, category art otherwise — never a restaurant photo for a gym), else the
  * video art. `category` is the merchant's category from offers on the same page (presentation only).
  */
 export function presentWatch<
-  T extends { id?: string; title: BilingualText; thumbnailUrl: string | null },
->(c: T, category?: string | null): T {
+  T extends {
+    id?: string;
+    title: BilingualText;
+    thumbnailUrl: string | null;
+    merchantCategory?: string | null;
+    merchantLogoUrl?: string | null;
+  },
+>(c: T, pageCategory?: string | null): T {
+  // development review: a seed placeholder logo gives way to the product badge (a real uploaded logo is always shown)
+  const logo =
+    c.merchantLogoUrl && REVIEW && isSeedPlaceholder(c.merchantLogoUrl) ? null : c.merchantLogoUrl;
+  const category = pageCategory ?? asDealCategory(c.merchantCategory);
   const placeholder =
     !c.thumbnailUrl || (REVIEW && (isQaRecord(c.title) || isSeedPlaceholder(c.thumbnailUrl)));
   const fallback =
@@ -149,6 +173,7 @@ export function presentWatch<
     ...c,
     title: reviewTitle(c.title),
     thumbnailUrl: placeholder ? fallback : c.thumbnailUrl,
+    ...(c.merchantLogoUrl !== undefined ? { merchantLogoUrl: logo } : {}),
   };
 }
 

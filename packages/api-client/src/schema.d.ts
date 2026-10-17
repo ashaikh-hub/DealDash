@@ -7092,6 +7092,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/app/saved/watch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerWatchController_savedWatch_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/saved/watch/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CustomerWatchController_saveWatch_v1"];
+        delete: operations["CustomerWatchController_unsaveWatch_v1"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/watch/prizes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerWatchController_prizes_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/watch/prizes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerWatchController_prize_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/app/rewards": {
         parameters: {
             query?: never;
@@ -19839,7 +19903,7 @@ export interface components {
                     /** Format: uuid */
                     id: string;
                     /** @enum {string} */
-                    type: "RESERVATION_CONFIRMED" | "RESERVATION_EXPIRING" | "RESERVATION_EXPIRED" | "RESERVATION_CANCELLED" | "REDEMPTION_SUCCESS" | "PURCHASE_SUCCEEDED" | "PAYMENT_FAILED" | "VOUCHER_ISSUED" | "VOUCHER_EXPIRING" | "REFUND_UPDATED" | "VOUCHER_REDEEMED" | "REWARD_EARNED" | "REWARD_HELD" | "REWARD_RELEASED" | "REWARD_REVERSED" | "REWARD_EXPIRING" | "CAMPAIGN_COMPLETED" | "ALERT" | "CASE_UPDATED" | "ACCOUNT_RESTRICTION" | "BENEFIT_UPDATED" | "ACCOUNT_WELCOME" | "RESERVATION_PAYMENT_FAILED" | "RESERVATION_REFUND_UPDATED" | "RESERVATION_FORFEITED" | "RESERVATION_HOLD_RELEASED" | "RESERVATION_HOLD_CAPTURED";
+                    type: "RESERVATION_CONFIRMED" | "RESERVATION_EXPIRING" | "RESERVATION_EXPIRED" | "RESERVATION_CANCELLED" | "REDEMPTION_SUCCESS" | "PURCHASE_SUCCEEDED" | "PAYMENT_FAILED" | "VOUCHER_ISSUED" | "VOUCHER_EXPIRING" | "REFUND_UPDATED" | "VOUCHER_REDEEMED" | "REWARD_EARNED" | "REWARD_HELD" | "REWARD_RELEASED" | "REWARD_REVERSED" | "REWARD_EXPIRING" | "CAMPAIGN_COMPLETED" | "ALERT" | "CASE_UPDATED" | "ACCOUNT_RESTRICTION" | "BENEFIT_UPDATED" | "ACCOUNT_WELCOME" | "RESERVATION_PAYMENT_FAILED" | "RESERVATION_REFUND_UPDATED" | "RESERVATION_FORFEITED" | "RESERVATION_HOLD_RELEASED" | "RESERVATION_HOLD_CAPTURED" | "PRIZE_WON";
                     data: {
                         [key: string]: unknown;
                     };
@@ -19919,7 +19983,7 @@ export interface components {
                      * @default RESERVATION
                      * @enum {string}
                      */
-                    kind: "RESERVATION" | "VOUCHER";
+                    kind: "RESERVATION" | "VOUCHER" | "PRIZE";
                     money?: {
                         /** @enum {string} */
                         method: "FULL_PREPAYMENT" | "DEPOSIT" | "CARD_PREAUTH";
@@ -19991,7 +20055,7 @@ export interface components {
                      * @default RESERVATION
                      * @enum {string}
                      */
-                    kind: "RESERVATION" | "VOUCHER";
+                    kind: "RESERVATION" | "VOUCHER" | "PRIZE";
                     money?: {
                         /** @enum {string} */
                         method: "FULL_PREPAYMENT" | "DEPOSIT" | "CARD_PREAUTH";
@@ -20077,7 +20141,7 @@ export interface components {
                      * @default RESERVATION
                      * @enum {string}
                      */
-                    kind: "RESERVATION" | "VOUCHER";
+                    kind: "RESERVATION" | "VOUCHER" | "PRIZE";
                 }[];
             };
             meta: {
@@ -25444,6 +25508,14 @@ export interface components {
                 minRepeatWindowHours: number;
                 cities: string[];
                 unusedBudgetTreatment: string;
+                prizeGuardrails?: {
+                    enabled: boolean;
+                    maxWinProbabilityBps: number;
+                    maxInventory: number;
+                    maxPerCustomer: number;
+                    maxValidityDays: number;
+                    maxLiabilityMinor: number;
+                };
             };
             meta: {
                 requestId?: string;
@@ -25645,6 +25717,40 @@ export interface components {
                 };
                 /** @default 0 */
                 paidViews: number;
+                /** @default null */
+                prize: {
+                    /**
+                     * @default {
+                     *       "en": "",
+                     *       "ar": ""
+                     *     }
+                     */
+                    title: {
+                        /** @default  */
+                        en: string;
+                        /** @default  */
+                        ar: string;
+                    };
+                    /**
+                     * @default FREE_ITEM
+                     * @enum {string}
+                     */
+                    kind: "FREE_ITEM" | "DISCOUNT" | "EXPERIENCE";
+                    /** @default 10 */
+                    inventory: number;
+                    /** @default 1000 */
+                    winProbabilityBps: number;
+                    /** @default 1 */
+                    perCustomerLimit: number;
+                    /** @default 14 */
+                    validityDays: number;
+                    /** @default [] */
+                    branchIds: string[];
+                    /** @default 0 */
+                    unitValueMinor: number;
+                    /** @default false */
+                    acknowledged: boolean;
+                } | null;
             };
         };
         WatchResponse__schema0: {
@@ -25801,6 +25907,40 @@ export interface components {
                     };
                     /** @default 0 */
                     paidViews: number;
+                    /** @default null */
+                    prize: {
+                        /**
+                         * @default {
+                         *       "en": "",
+                         *       "ar": ""
+                         *     }
+                         */
+                        title: {
+                            /** @default  */
+                            en: string;
+                            /** @default  */
+                            ar: string;
+                        };
+                        /**
+                         * @default FREE_ITEM
+                         * @enum {string}
+                         */
+                        kind: "FREE_ITEM" | "DISCOUNT" | "EXPERIENCE";
+                        /** @default 10 */
+                        inventory: number;
+                        /** @default 1000 */
+                        winProbabilityBps: number;
+                        /** @default 1 */
+                        perCustomerLimit: number;
+                        /** @default 14 */
+                        validityDays: number;
+                        /** @default [] */
+                        branchIds: string[];
+                        /** @default 0 */
+                        unitValueMinor: number;
+                        /** @default false */
+                        acknowledged: boolean;
+                    } | null;
                 };
                 videoUrl: string | null;
                 thumbnailUrl: string | null;
@@ -26008,6 +26148,40 @@ export interface components {
                 };
                 /** @default 0 */
                 paidViews: number;
+                /** @default null */
+                prize: {
+                    /**
+                     * @default {
+                     *       "en": "",
+                     *       "ar": ""
+                     *     }
+                     */
+                    title: {
+                        /** @default  */
+                        en: string;
+                        /** @default  */
+                        ar: string;
+                    };
+                    /**
+                     * @default FREE_ITEM
+                     * @enum {string}
+                     */
+                    kind: "FREE_ITEM" | "DISCOUNT" | "EXPERIENCE";
+                    /** @default 10 */
+                    inventory: number;
+                    /** @default 1000 */
+                    winProbabilityBps: number;
+                    /** @default 1 */
+                    perCustomerLimit: number;
+                    /** @default 14 */
+                    validityDays: number;
+                    /** @default [] */
+                    branchIds: string[];
+                    /** @default 0 */
+                    unitValueMinor: number;
+                    /** @default false */
+                    acknowledged: boolean;
+                } | null;
             };
             expectedVersion?: number;
         };
@@ -26166,6 +26340,40 @@ export interface components {
                         };
                         /** @default 0 */
                         paidViews: number;
+                        /** @default null */
+                        prize: {
+                            /**
+                             * @default {
+                             *       "en": "",
+                             *       "ar": ""
+                             *     }
+                             */
+                            title: {
+                                /** @default  */
+                                en: string;
+                                /** @default  */
+                                ar: string;
+                            };
+                            /**
+                             * @default FREE_ITEM
+                             * @enum {string}
+                             */
+                            kind: "FREE_ITEM" | "DISCOUNT" | "EXPERIENCE";
+                            /** @default 10 */
+                            inventory: number;
+                            /** @default 1000 */
+                            winProbabilityBps: number;
+                            /** @default 1 */
+                            perCustomerLimit: number;
+                            /** @default 14 */
+                            validityDays: number;
+                            /** @default [] */
+                            branchIds: string[];
+                            /** @default 0 */
+                            unitValueMinor: number;
+                            /** @default false */
+                            acknowledged: boolean;
+                        } | null;
                     };
                     videoUrl: string | null;
                     thumbnailUrl: string | null;
@@ -26388,6 +26596,40 @@ export interface components {
                         };
                         /** @default 0 */
                         paidViews: number;
+                        /** @default null */
+                        prize: {
+                            /**
+                             * @default {
+                             *       "en": "",
+                             *       "ar": ""
+                             *     }
+                             */
+                            title: {
+                                /** @default  */
+                                en: string;
+                                /** @default  */
+                                ar: string;
+                            };
+                            /**
+                             * @default FREE_ITEM
+                             * @enum {string}
+                             */
+                            kind: "FREE_ITEM" | "DISCOUNT" | "EXPERIENCE";
+                            /** @default 10 */
+                            inventory: number;
+                            /** @default 1000 */
+                            winProbabilityBps: number;
+                            /** @default 1 */
+                            perCustomerLimit: number;
+                            /** @default 14 */
+                            validityDays: number;
+                            /** @default [] */
+                            branchIds: string[];
+                            /** @default 0 */
+                            unitValueMinor: number;
+                            /** @default false */
+                            acknowledged: boolean;
+                        } | null;
                     };
                     videoUrl: string | null;
                     thumbnailUrl: string | null;
@@ -26491,6 +26733,7 @@ export interface components {
                     ar: string;
                 };
                 merchantLogoUrl: string | null;
+                merchantCategory?: string | null;
                 title: {
                     en: string;
                     ar: string;
@@ -26519,6 +26762,17 @@ export interface components {
                     /** @enum {string|null} */
                     unlockAction: "SIGN_IN" | "VERIFY_EMPLOYER" | "ADD_BANK_BENEFIT" | "JOIN_SCHEME" | null;
                 };
+                instantPrize?: {
+                    title: {
+                        en: string;
+                        ar: string;
+                    };
+                    /** @enum {string} */
+                    kind: "FREE_ITEM" | "DISCOUNT" | "EXPERIENCE";
+                    remaining: number;
+                    guaranteed: boolean;
+                } | null;
+                saved?: boolean;
                 serverNow: string;
                 ctaLabel: {
                     en: string;
@@ -26595,6 +26849,18 @@ export interface components {
                     rewardedViews: number;
                     pointsIssued: number;
                     heldViews: number;
+                };
+                prizes?: {
+                    inventory: number;
+                    awarded: number;
+                    remaining: number;
+                    issued: number;
+                    redeemed: number;
+                    expired: number;
+                    notWon: number;
+                    ineligible: number;
+                    winProbabilityBps: number;
+                    liabilityMinor: number;
                 };
                 /** @enum {string} */
                 disclaimerKey: "views_and_verified_spend_only";
@@ -26914,6 +27180,40 @@ export interface components {
                     };
                     /** @default 0 */
                     paidViews: number;
+                    /** @default null */
+                    prize: {
+                        /**
+                         * @default {
+                         *       "en": "",
+                         *       "ar": ""
+                         *     }
+                         */
+                        title: {
+                            /** @default  */
+                            en: string;
+                            /** @default  */
+                            ar: string;
+                        };
+                        /**
+                         * @default FREE_ITEM
+                         * @enum {string}
+                         */
+                        kind: "FREE_ITEM" | "DISCOUNT" | "EXPERIENCE";
+                        /** @default 10 */
+                        inventory: number;
+                        /** @default 1000 */
+                        winProbabilityBps: number;
+                        /** @default 1 */
+                        perCustomerLimit: number;
+                        /** @default 14 */
+                        validityDays: number;
+                        /** @default [] */
+                        branchIds: string[];
+                        /** @default 0 */
+                        unitValueMinor: number;
+                        /** @default false */
+                        acknowledged: boolean;
+                    } | null;
                 };
                 videoUrl: string | null;
                 thumbnailUrl: string | null;
@@ -27005,6 +27305,7 @@ export interface components {
                         ar: string;
                     };
                     merchantLogoUrl: string | null;
+                    merchantCategory?: string | null;
                     title: {
                         en: string;
                         ar: string;
@@ -27033,6 +27334,17 @@ export interface components {
                         /** @enum {string|null} */
                         unlockAction: "SIGN_IN" | "VERIFY_EMPLOYER" | "ADD_BANK_BENEFIT" | "JOIN_SCHEME" | null;
                     };
+                    instantPrize?: {
+                        title: {
+                            en: string;
+                            ar: string;
+                        };
+                        /** @enum {string} */
+                        kind: "FREE_ITEM" | "DISCOUNT" | "EXPERIENCE";
+                        remaining: number;
+                        guaranteed: boolean;
+                    } | null;
+                    saved?: boolean;
                     serverNow: string;
                     ctaLabel: {
                         en: string;
@@ -27419,6 +27731,7 @@ export interface components {
                         ar: string;
                     };
                     merchantLogoUrl: string | null;
+                    merchantCategory?: string | null;
                     title: {
                         en: string;
                         ar: string;
@@ -27447,6 +27760,17 @@ export interface components {
                         /** @enum {string|null} */
                         unlockAction: "SIGN_IN" | "VERIFY_EMPLOYER" | "ADD_BANK_BENEFIT" | "JOIN_SCHEME" | null;
                     };
+                    instantPrize?: {
+                        title: {
+                            en: string;
+                            ar: string;
+                        };
+                        /** @enum {string} */
+                        kind: "FREE_ITEM" | "DISCOUNT" | "EXPERIENCE";
+                        remaining: number;
+                        guaranteed: boolean;
+                    } | null;
+                    saved?: boolean;
                     serverNow: string;
                 }[];
                 daily: {
@@ -27478,6 +27802,7 @@ export interface components {
                     ar: string;
                 };
                 merchantLogoUrl: string | null;
+                merchantCategory?: string | null;
                 title: {
                     en: string;
                     ar: string;
@@ -27506,6 +27831,17 @@ export interface components {
                     /** @enum {string|null} */
                     unlockAction: "SIGN_IN" | "VERIFY_EMPLOYER" | "ADD_BANK_BENEFIT" | "JOIN_SCHEME" | null;
                 };
+                instantPrize?: {
+                    title: {
+                        en: string;
+                        ar: string;
+                    };
+                    /** @enum {string} */
+                    kind: "FREE_ITEM" | "DISCOUNT" | "EXPERIENCE";
+                    remaining: number;
+                    guaranteed: boolean;
+                } | null;
+                saved?: boolean;
                 serverNow: string;
                 ctaLabel: {
                     en: string;
@@ -27611,7 +27947,182 @@ export interface components {
                     /** Format: uuid */
                     id: string | null;
                 } | null;
+                prize?: {
+                    won: boolean;
+                    prize: {
+                        /** Format: uuid */
+                        id: string;
+                        reference: string;
+                        title: {
+                            en: string;
+                            ar: string;
+                        };
+                        /** @enum {string} */
+                        kind: "FREE_ITEM" | "DISCOUNT" | "EXPERIENCE";
+                        merchantName: {
+                            en: string;
+                            ar: string;
+                        };
+                        campaignTitle: {
+                            en: string;
+                            ar: string;
+                        };
+                        /** @enum {string} */
+                        status: "NOT_WON" | "ISSUED" | "REDEEMED" | "EXPIRED";
+                        code: {
+                            qr: string;
+                            manual: string;
+                        } | null;
+                        branches: {
+                            en: string;
+                            ar: string;
+                        }[];
+                        wonAt: string;
+                        expiresAt: string;
+                        redeemedAt: string | null;
+                    } | null;
+                } | null;
                 serverNow: string;
+            };
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
+        };
+        WatchCardsResponse: {
+            data: {
+                /** Format: uuid */
+                id: string;
+                /** Format: uuid */
+                merchantId: string;
+                merchantName: {
+                    en: string;
+                    ar: string;
+                };
+                merchantLogoUrl: string | null;
+                merchantCategory?: string | null;
+                title: {
+                    en: string;
+                    ar: string;
+                };
+                description: {
+                    en: string;
+                    ar: string;
+                };
+                thumbnailUrl: string | null;
+                durationSec: number;
+                rewardPoints: number;
+                /** @enum {string} */
+                availability: "AVAILABLE" | "ALREADY_EARNED" | "DAILY_CAP" | "BUDGET_EXHAUSTED" | "ENDED" | "NOT_ELIGIBLE" | "UNAVAILABLE";
+                availableAgainAt: string | null;
+                endsAt: string | null;
+                distanceMeters: number | null;
+                eligibility: {
+                    /** @enum {string} */
+                    result: "ELIGIBLE" | "LOCKED_UNLOCKABLE" | "HIDDEN";
+                    /** @enum {string} */
+                    kind: "PUBLIC" | "GEOGRAPHY" | "EMPLOYER" | "BANK_CARD" | "SCHEME" | "COMPOSITE";
+                    message: {
+                        en: string;
+                        ar: string;
+                    } | null;
+                    /** @enum {string|null} */
+                    unlockAction: "SIGN_IN" | "VERIFY_EMPLOYER" | "ADD_BANK_BENEFIT" | "JOIN_SCHEME" | null;
+                };
+                instantPrize?: {
+                    title: {
+                        en: string;
+                        ar: string;
+                    };
+                    /** @enum {string} */
+                    kind: "FREE_ITEM" | "DISCOUNT" | "EXPERIENCE";
+                    remaining: number;
+                    guaranteed: boolean;
+                } | null;
+                saved?: boolean;
+                serverNow: string;
+            }[];
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
+        };
+        WonPrizesResponse: {
+            data: {
+                /** Format: uuid */
+                id: string;
+                reference: string;
+                title: {
+                    en: string;
+                    ar: string;
+                };
+                /** @enum {string} */
+                kind: "FREE_ITEM" | "DISCOUNT" | "EXPERIENCE";
+                merchantName: {
+                    en: string;
+                    ar: string;
+                };
+                campaignTitle: {
+                    en: string;
+                    ar: string;
+                };
+                /** @enum {string} */
+                status: "NOT_WON" | "ISSUED" | "REDEEMED" | "EXPIRED";
+                code: {
+                    qr: string;
+                    manual: string;
+                } | null;
+                branches: {
+                    en: string;
+                    ar: string;
+                }[];
+                wonAt: string;
+                expiresAt: string;
+                redeemedAt: string | null;
+            }[];
+            meta: {
+                requestId?: string;
+                /** @enum {string} */
+                locale?: "en" | "ar";
+                nextCursor?: string | null;
+            };
+        };
+        WonPrizeResponse: {
+            data: {
+                /** Format: uuid */
+                id: string;
+                reference: string;
+                title: {
+                    en: string;
+                    ar: string;
+                };
+                /** @enum {string} */
+                kind: "FREE_ITEM" | "DISCOUNT" | "EXPERIENCE";
+                merchantName: {
+                    en: string;
+                    ar: string;
+                };
+                campaignTitle: {
+                    en: string;
+                    ar: string;
+                };
+                /** @enum {string} */
+                status: "NOT_WON" | "ISSUED" | "REDEEMED" | "EXPIRED";
+                code: {
+                    qr: string;
+                    manual: string;
+                } | null;
+                branches: {
+                    en: string;
+                    ar: string;
+                }[];
+                wonAt: string;
+                expiresAt: string;
+                redeemedAt: string | null;
             };
             meta: {
                 requestId?: string;
@@ -40757,6 +41268,8 @@ export interface operations {
             query?: {
                 city?: string;
                 limit?: number;
+                lat?: number;
+                lng?: number;
             };
             header?: never;
             path?: never;
@@ -40889,6 +41402,112 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["WatchOutcomeResponse"];
+                };
+            };
+        };
+    };
+    CustomerWatchController_savedWatch_v1: {
+        parameters: {
+            query?: {
+                city?: string;
+                limit?: number;
+                lat?: number;
+                lng?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WatchCardsResponse"];
+                };
+            };
+        };
+    };
+    CustomerWatchController_saveWatch_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedStateResponse"];
+                };
+            };
+        };
+    };
+    CustomerWatchController_unsaveWatch_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedStateResponse"];
+                };
+            };
+        };
+    };
+    CustomerWatchController_prizes_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WonPrizesResponse"];
+                };
+            };
+        };
+    };
+    CustomerWatchController_prize_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WonPrizeResponse"];
                 };
             };
         };

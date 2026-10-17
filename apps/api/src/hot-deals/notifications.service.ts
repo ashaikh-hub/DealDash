@@ -72,6 +72,7 @@ const TITLES: Record<NotificationType, { en: string; ar: string }> = {
     en: 'An amount was charged from the hold on your card',
     ar: 'تم خصم مبلغ من الحجز على بطاقتك',
   },
+  PRIZE_WON: { en: 'You won a prize', ar: 'لقد فزت بجائزة' },
 };
 
 interface NotificationOpsConfig {

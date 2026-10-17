@@ -26,8 +26,10 @@ import type {
   MerchantPage,
   PublicBranch,
   VoucherCard,
+  WatchCard,
 } from '@dealdash/validation';
 import { LanguageCard, SetupBanner } from './account';
+import { TrackedWatchCard } from './watch';
 import { MerchantReviews } from './care';
 import { useCustomer } from './customer-context';
 import { SocialButtons } from './cx-account';
@@ -701,7 +703,36 @@ export function SavedPage() {
           ))}
         </div>
       )}
+      {/* Watch & Earn favourites (2026-10-17) */}
+      <SavedWatch />
     </div>
+  );
+}
+
+function SavedWatch() {
+  const { t } = useT();
+  const { call } = useApi();
+  const { city } = useCustomer();
+  const [items, setItems] = useState<WatchCard[]>([]);
+  useEffect(() => {
+    let alive = true;
+    void call<WatchCard[]>('GET', '/v1/app/saved/watch', { query: { city } }).then((r) => {
+      if (alive) setItems(r.ok && Array.isArray(r.data) ? r.data : []);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [call, city]);
+  if (!items.length) return null;
+  return (
+    <section className="dd-section" data-testid="saved-watch">
+      <SectionHead icon="play" title={t('wsave.section')} />
+      <div className="dd-wgrid">
+        {items.map((c) => (
+          <TrackedWatchCard key={c.id} campaign={c} variant="immersive" />
+        ))}
+      </div>
+    </section>
   );
 }
 

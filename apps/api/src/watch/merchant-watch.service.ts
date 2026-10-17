@@ -82,6 +82,7 @@ export class MerchantWatchService {
       minRepeatWindowHours: f.minRepeatWindowHours,
       cities: await this.core.enabledCities(),
       unusedBudgetTreatment: await this.core.unusedTreatment(),
+      prizeGuardrails: await this.core.prizeGuardrails(),
     };
   }
 
@@ -333,7 +334,10 @@ export class MerchantWatchService {
         material[0],
         material.map((f) => ({ code: 'MATERIAL_EDIT_LOCKED', message: f, field: f })),
       );
-    const issues = watchIssues(next, { limits: await this.core.limits() });
+    const issues = watchIssues(next, {
+      limits: await this.core.limits(),
+      prizeGuardrails: await this.core.prizeGuardrails(),
+    });
     if (issues.length) incomplete(issues);
     const changed = diffFields(live, next);
     if (!changed.length) return done('SAVED');
@@ -391,6 +395,7 @@ export class MerchantWatchService {
       now,
       limits: await this.core.limits(),
       minRepeatWindowHours: f.minRepeatWindowHours,
+      prizeGuardrails: await this.core.prizeGuardrails(),
     });
     if (issues.length) incomplete(issues);
     await this.core.validateReferences(organizationId, content);

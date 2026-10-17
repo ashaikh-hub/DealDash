@@ -3,6 +3,8 @@ import { CONFIG_KEYS } from '@dealdash/config';
 import { canTransitionWatch, type WatchAction, type WatchStatus } from '@dealdash/types';
 import {
   DEFAULT_WATCH_LIMITS,
+  DEFAULT_WATCH_PRIZE_GUARDRAILS,
+  type WatchPrizeGuardrails,
   type WatchBudget,
   type WatchContent,
   type WatchLimits,
@@ -213,6 +215,10 @@ export class WatchCoreService {
   enabledCities() {
     return this.liveCore.enabledCities();
   }
+  /** City centres (configuration): distances are measured from here when the customer did not share a position. */
+  cityCenters() {
+    return this.liveCore.cityCenters();
+  }
   async limits(): Promise<WatchLimits> {
     const l = (await this.config.get<Partial<WatchLimits>>(CONFIG_KEYS.WATCH_LIMITS)) ?? {};
     return { ...DEFAULT_WATCH_LIMITS, ...l };
@@ -288,6 +294,15 @@ export class WatchCoreService {
       (await this.config.get<string>(CONFIG_KEYS.WATCH_UNUSED_BUDGET_TREATMENT)) ??
       'UNDECIDED_VALIDATE_KSA'
     );
+  }
+  /** Instant-prize guardrails (FDR-19): DealDash's limits on what a merchant may configure. */
+  async prizeGuardrails(): Promise<WatchPrizeGuardrails> {
+    return {
+      ...DEFAULT_WATCH_PRIZE_GUARDRAILS,
+      ...((await this.config.get<Partial<WatchPrizeGuardrails>>(
+        CONFIG_KEYS.WATCH_PRIZE_GUARDRAILS,
+      )) ?? {}),
+    };
   }
   async reviewAbovePaidViews(): Promise<number> {
     const g = await this.config.get<{ reviewAbovePaidViews?: number }>(

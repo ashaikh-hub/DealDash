@@ -62,6 +62,7 @@ type Tab =
   | 'notify'
   | 'reviews'
   | 'platform'
+  | 'prizes'
   | 'launch'
   | 'history';
 
@@ -93,6 +94,7 @@ function Controls() {
           'notify',
           'reviews',
           'platform',
+          'prizes',
           'launch',
           'history',
         ] as const
@@ -123,6 +125,10 @@ function Controls() {
               return <Requests open={d.open} recent={d.recent} onChanged={reload} />;
             if (tab === 'history') return <History configs={d.configs} onChanged={reload} />;
             if (tab === 'platform') return <Platform configs={d.configs} onChanged={reload} />;
+            if (tab === 'prizes') {
+              const g = cfg('watch.prize_guardrails');
+              return g ? <PrizeGuardrails c={g} onChanged={reload} /> : null;
+            }
             if (tab === 'launch') return <Launch c={cfg('launch.controls')!} onChanged={reload} />;
             if (!ops) return null;
             if (tab === 'reasons') return <Reasons c={ops} onChanged={reload} />;
@@ -960,6 +966,81 @@ function ReviewsPolicy({ c, onChanged }: { c: GovernedConfig; onChanged: () => v
       <Propose
         cfgKey="operations"
         section="reviews"
+        value={next}
+        baseVersion={c.version}
+        onChanged={onChanged}
+        invalid={invalid}
+      />
+    </Section>
+  );
+}
+
+// ---------------------------------------------------------------- Watch & Earn instant prizes (FDR-19 guardrails)
+function PrizeGuardrails({ c, onChanged }: { c: GovernedConfig; onChanged: () => void }) {
+  const { t } = useT();
+  const v = c.value as {
+    enabled: boolean;
+    maxWinProbabilityBps: number;
+    maxInventory: number;
+    maxPerCustomer: number;
+    maxValidityDays: number;
+    maxLiabilityMinor: number;
+  };
+  const [g, setG] = useState({
+    enabled: v.enabled,
+    pct: String(v.maxWinProbabilityBps / 100),
+    inventory: String(v.maxInventory),
+    perCustomer: String(v.maxPerCustomer),
+    validity: String(v.maxValidityDays),
+    liability: String(v.maxLiabilityMinor / 100),
+  });
+  const next = {
+    enabled: g.enabled,
+    maxWinProbabilityBps: Math.round(num(g.pct) * 100),
+    maxInventory: num(g.inventory),
+    maxPerCustomer: num(g.perCustomer),
+    maxValidityDays: num(g.validity),
+    maxLiabilityMinor: Math.round(num(g.liability) * 100),
+  };
+  const invalid =
+    !(next.maxWinProbabilityBps >= 1 && next.maxWinProbabilityBps <= 10_000) ||
+    !(next.maxInventory >= 1) ||
+    !(next.maxPerCustomer >= 1 && next.maxPerCustomer <= 10) ||
+    !(next.maxValidityDays >= 1 && next.maxValidityDays <= 365) ||
+    !(next.maxLiabilityMinor >= 0);
+  const field = (key: keyof typeof g, label: string) => (
+    <Field label={label} htmlFor={`cfg-prize-${key}`}>
+      <Input
+        id={`cfg-prize-${key}`}
+        className="dd-ltr"
+        inputMode="decimal"
+        value={String(g[key])}
+        onChange={(e) => setG({ ...g, [key]: e.target.value })}
+      />
+    </Field>
+  );
+  return (
+    <Section title={t('s9.cfg.tab.prizes')} testId="cfg-prizes">
+      <p className="dd-caption">{t('aprize.intro')}</p>
+      <label className="dd-row" style={{ gap: 8 }}>
+        <input
+          type="checkbox"
+          checked={g.enabled}
+          onChange={(e) => setG({ ...g, enabled: e.target.checked })}
+          data-testid="cfg-prize-enabled"
+        />
+        <span>{t('aprize.enabled')}</span>
+      </label>
+      <div className="dd-row" style={{ flexWrap: 'wrap' }}>
+        {field('pct', t('aprize.maxPct'))}
+        {field('inventory', t('aprize.maxInventory'))}
+        {field('perCustomer', t('aprize.maxPerCustomer'))}
+        {field('validity', t('aprize.maxValidity'))}
+        {field('liability', t('aprize.maxLiability'))}
+      </div>
+      <Propose
+        cfgKey="watch.prize_guardrails"
+        section="prizes"
         value={next}
         baseVersion={c.version}
         onChanged={onChanged}

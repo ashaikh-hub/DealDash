@@ -22,6 +22,7 @@ import type {
 } from '@dealdash/validation';
 import { Icon } from '../deals/icons';
 import { dateLabel, formatDistance, pickText } from '../deals/format';
+import { SaveButton } from '../deals/deal-views';
 
 type T = (key: DictionaryKey, vars?: Record<string, string | number>) => string;
 const tr = (locale: Locale) => createTranslator(locale) as T;
@@ -70,12 +71,16 @@ export function WatchCardView({
   variant = 'carousel',
   href,
   imageRef,
+  onToggleSave,
 }: {
   campaign: WatchCard;
   locale: Locale;
-  variant?: 'carousel' | 'list';
+  /** `immersive`: the founder-approved Watch & Earn card (full-bleed image, overlay copy, reward pill) for Home and the hub. */
+  variant?: 'carousel' | 'list' | 'immersive';
   href?: string;
   imageRef?: (el: HTMLElement | null) => void;
+  /** Favourites (immersive card): the heart toggles the customer's saved state. */
+  onToggleSave?: () => void;
 }) {
   const t = tr(locale);
   const a = campaign.availability;
@@ -88,6 +93,96 @@ export function WatchCardView({
     ENDED: 'wat.state.ended',
     UNAVAILABLE: 'wat.state.unavailable',
   };
+  if (variant === 'immersive') {
+    const distance = formatDistance(locale, campaign.distanceMeters);
+    const prize = campaign.instantPrize ?? null;
+    const inner = (
+      <>
+        <div className="dd-wcard__media">
+          {campaign.thumbnailUrl ? (
+            <img className="dd-wcard__img" src={campaign.thumbnailUrl} alt="" loading="lazy" />
+          ) : (
+            <div className="dd-wcard__img dd-dc__ph" aria-hidden="true" />
+          )}
+          <span className="dd-wcard__shade" aria-hidden="true" />
+          {/* top-left: a state the customer must know (already earned, locked...) first; else the advertiser's logo when
+              uploaded, else the product badge. Top-right is the favourite heart. */}
+          {stateKey[a] ? (
+            <span className="dd-wcard__state">{t(stateKey[a]!)}</span>
+          ) : locked ? (
+            <span className="dd-wcard__state">
+              <Icon name="lock" size={12} /> {t('elig.locked')}
+            </span>
+          ) : campaign.merchantLogoUrl ? (
+            <img className="dd-wcard__logo" src={campaign.merchantLogoUrl} alt="" />
+          ) : (
+            <span className="dd-wcard__badge">
+              <Icon name="play" size={11} /> {t('wat.badge')}
+            </span>
+          )}
+          <div className="dd-wcard__over">
+            <h3 className="dd-wcard__title">{pickText(campaign.title, locale)}</h3>
+            <span className="dd-wcard__watch" data-testid="watch-prop">
+              <Icon name="play" size={12} filled />{' '}
+              {t('wat.watchFor', { sec: formatNumber(locale, campaign.durationSec) })}
+            </span>
+            {/* what THIS campaign gives, from its configuration: an instant-prize opportunity when it has prizes left
+                ("Instant reward" only when every qualified view wins; otherwise a chance), and always DealDash's points */}
+            {prize ? (
+              <span className="dd-wcard__reward" data-testid="watch-instant">
+                <Icon name="gift" size={12} />{' '}
+                {prize.guaranteed ? t('wprize.instant') : t('wprize.chance')}
+              </span>
+            ) : null}
+            <span
+              className={prize ? 'dd-wcard__points' : 'dd-wcard__reward'}
+              data-testid="watch-points"
+            >
+              {prize ? null : <Icon name="gift" size={12} />}{' '}
+              <Points n={campaign.rewardPoints} locale={locale} signed />
+            </span>
+          </div>
+        </div>
+        <div className="dd-wcard__meta">
+          <span className="dd-wcard__merchant">{pickText(campaign.merchantName, locale)}</span>
+          {distance ? (
+            <span className="dd-wcard__dist">
+              <Icon name="pin" size={12} /> <span className="dd-ltr">{distance}</span>
+            </span>
+          ) : null}
+        </div>
+      </>
+    );
+    return (
+      <article
+        className={`dd-wcard ${unavailable ? 'dd-wcard--off' : ''}`}
+        data-watch-id={campaign.id}
+        data-availability={a}
+        data-testid="watch-card"
+        ref={imageRef}
+      >
+        {href ? (
+          <Link
+            href={href}
+            className="dd-wcard__link"
+            aria-label={pickText(campaign.title, locale)}
+          >
+            {inner}
+          </Link>
+        ) : (
+          <div className="dd-wcard__link">{inner}</div>
+        )}
+        {onToggleSave ? (
+          <SaveButton
+            saved={!!campaign.saved}
+            onToggle={onToggleSave}
+            locale={locale}
+            className="dd-wcard__save"
+          />
+        ) : null}
+      </article>
+    );
+  }
   const body = (
     <>
       <div className="dd-dc__media">
@@ -279,6 +374,30 @@ export function WatchDetailView({
                 : ''}
             </span>
           </Alert>
+        ) : null}
+        {detail.instantPrize ? (
+          // FDR-19: the prize opportunity exactly as configured (never a promise unless every qualified view wins)
+          <div className="dd-prize" data-testid="watch-prize-note">
+            <span className="dd-prize__icon" aria-hidden="true">
+              <Icon name="gift" size={20} />
+            </span>
+            <div>
+              <strong>
+                {detail.instantPrize.guaranteed ? t('wprize.instant') : t('wprize.chance')}
+              </strong>
+              <div className="dd-caption" style={{ color: 'inherit' }}>
+                {t(
+                  detail.instantPrize.guaranteed
+                    ? 'wprize.detailBodyGuaranteed'
+                    : 'wprize.detailBody',
+                  {
+                    prize: pickText(detail.instantPrize.title, locale),
+                    n: formatNumber(locale, detail.instantPrize.remaining),
+                  },
+                )}
+              </div>
+            </div>
+          </div>
         ) : null}
         <h3 className="dd-dd__h">{t('wat.howTitle')}</h3>
         <ol className="dd-hot-how" aria-label={t('wat.howTitle')}>
@@ -619,6 +738,35 @@ export function WatchMonitorView({ mon, locale }: { mon: WatchMonitor; locale: L
         </dl>
         <p className="dd-caption">{t('wmon.rewardsNote')}</p>
       </Card>
+      {mon.prizes ? (
+        // instant prizes (FDR-19): stock and every decision's outcome (merchant and DealDash see the same numbers)
+        <Card flat>
+          <h2 className="dd-title">{t('wprize.mon.title')}</h2>
+          <dl className="dd-kv" style={{ marginBlockStart: 8 }} data-testid="prize-monitor">
+            {(
+              [
+                ['wprize.mon.remaining', `${n(mon.prizes.remaining)} / ${n(mon.prizes.inventory)}`],
+                ['wprize.mon.awarded', n(mon.prizes.awarded)],
+                ['wprize.mon.redeemed', n(mon.prizes.redeemed)],
+                ['wprize.mon.issued', n(mon.prizes.issued)],
+                ['wprize.mon.expired', n(mon.prizes.expired)],
+                ['wprize.mon.notWon', n(mon.prizes.notWon)],
+                ['wprize.mon.ineligible', n(mon.prizes.ineligible)],
+                [
+                  'wprize.mon.chance',
+                  `${formatNumber(locale, mon.prizes.winProbabilityBps / 100)}%`,
+                ],
+                ['wprize.mon.liability', formatMoney(locale, mon.prizes.liabilityMinor)],
+              ] as const
+            ).map(([label, value]) => (
+              <div className="dd-kv__row" key={label}>
+                <dt>{t(label)}</dt>
+                <dd className="dd-ltr">{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </Card>
+      ) : null}
       <p className="dd-caption">{t('wmon.disclaimer')}</p>
     </div>
   );

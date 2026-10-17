@@ -22,6 +22,7 @@ import {
 } from './watch-content';
 import { WatchCoreService } from './watch-core.service';
 import { WatchFundingService } from './watch-funding.service';
+import { WatchPrizeService } from './watch-prize.service';
 
 /** The server-side state of one viewing session (stored in WatchView.prompt). The client never sees these thresholds. */
 interface Session {
@@ -79,6 +80,7 @@ export class WatchQualificationService {
     @Inject(ANALYTICS_SINK) private readonly sink: AnalyticsSink,
     @Optional() private readonly loyalty?: LoyaltyIssuanceService,
     @Optional() private readonly usage?: UsageService,
+    @Optional() private readonly prizes?: WatchPrizeService,
   ) {}
 
   private get prisma() {
@@ -442,12 +444,13 @@ export class WatchQualificationService {
     const pending: NotificationInput[] = [];
     const after: Array<() => void> = [];
     // every configuration value is read BEFORE the transaction: nothing inside it needs a second database connection
-    const [q, f, fraud, rule, rewardRules] = await Promise.all([
+    const [q, f, fraud, rule, rewardRules, prizeGuardrails] = await Promise.all([
       this.core.qualifying(),
       this.core.frequency(),
       this.core.fraud(),
       this.core.rewardRule(),
       this.core.rewardsRules(),
+      this.core.prizeGuardrails(),
     ]);
     await this.prisma.$transaction(
       async (tx) => {
@@ -636,6 +639,20 @@ export class WatchQualificationService {
         await tx.watchViewEvent.create({
           data: { viewId, type: 'QUALIFIED', positionSec: pos, serverAt: now },
         });
+        // instant prize (FDR-19): decided by the server in this same transaction, after the points; a held (risk-review) view
+        // is not eligible; once per view (the decision row is unique per view)
+        const draw = await this.prizes?.draw(tx, {
+          campaign: c,
+          content: this.core.content(c),
+          viewId,
+          userId,
+          held,
+          guardrails: prizeGuardrails,
+          now,
+        });
+        // the winner is told only once the prize is allocated (same transaction; delivered after commit, deduplicated per decision)
+        const won = draw ? await this.prizes?.winnerNotice(tx, draw, c) : null;
+        if (won) pending.push(won);
         if (assessment.decision === 'FLAG')
           await this.risk.openFlag(tx, {
             ...assessment,
@@ -738,6 +755,8 @@ export class WatchQualificationService {
           v.rewardPoints > 0 ? { points: v.rewardPoints, status: held ? 'HELD' : 'EARNED' } : null,
         balance,
         link: { type: content.link.type, id: content.link.id },
+        // the instant-prize decision for this view (campaigns with a prize only)
+        prize: content.prize ? ((await this.prizes?.forView(userId, viewId, now)) ?? null) : null,
         serverNow: now.toISOString(),
       };
     }

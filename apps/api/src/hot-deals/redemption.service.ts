@@ -129,10 +129,11 @@ export class RedemptionService {
     return this.core.prisma;
   }
 
-  private extension: StaffCodeExtension | null = null;
-  /** Called once by the vouchers module at startup. */
+  /** Other redeemable products (Stage 5 vouchers; Watch & Earn prizes, FDR-19). The first that claims a code handles it. */
+  private extensions: StaffCodeExtension[] = [];
+  /** Called once by each product module at startup. */
   registerExtension(ext: StaffCodeExtension) {
-    this.extension = ext;
+    if (!this.extensions.includes(ext)) this.extensions.push(ext);
   }
 
   // ================================================================ scope
@@ -353,8 +354,10 @@ export class RedemptionService {
   ) {
     const scope = this.scopeOf(actor);
     await this.guardRate(actor, scope, now);
-    const other = await this.extension?.validate(actor, scope, input, branchId, now);
-    if (other) return other;
+    for (const ext of this.extensions) {
+      const other = await ext.validate(actor, scope, input, branchId, now);
+      if (other) return other;
+    }
     const parsed = parseCode(input.code);
     const row = parsed ? await this.lookup(parsed, this.prisma) : null;
     const result = await this.assess(row, scope, branchId, now);
@@ -378,16 +381,10 @@ export class RedemptionService {
     const scope = this.scopeOf(actor);
     if (!actor.permissions.has('merchant.redemptions.perform')) throw AppError.forbidden();
     await this.guardRate(actor, scope, now);
-    const other = await this.extension?.redeem(
-      actor,
-      scope,
-      input,
-      idempotencyKey,
-      branchId,
-      meta,
-      now,
-    );
-    if (other) return other;
+    for (const ext of this.extensions) {
+      const other = await ext.redeem(actor, scope, input, idempotencyKey, branchId, meta, now);
+      if (other) return other;
+    }
     const parsed = parseCode(input.code);
 
     // Same staff member, same key: the same success again (a retried request after a bad connection).
@@ -711,9 +708,16 @@ export class RedemptionService {
       if (!names.has(r.userId)) names.set(r.userId, await this.firstName(r.userId));
     // Stage 5: attempts that concerned a voucher (same history, same rows)
     const voucherIds = rows.map((r) => r.voucherInstanceId).filter((x): x is string => !!x);
-    const vouchers = this.extension
-      ? await this.extension.historyDetails(voucherIds, scope.organizationId)
-      : new Map();
+    // every product extension contributes the rows it recognises (only vouchers are linked to attempts today)
+    const vouchers = new Map<
+      string,
+      Awaited<ReturnType<StaffCodeExtension['historyDetails']>> extends Map<string, infer V>
+        ? V
+        : never
+    >();
+    for (const ext of this.extensions)
+      for (const [k, v] of await ext.historyDetails(voucherIds, scope.organizationId))
+        vouchers.set(k, v);
     return {
       counts: { redeemed, rejected },
       items: rows.map((a) => {

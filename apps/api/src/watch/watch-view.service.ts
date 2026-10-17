@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { reasonClassOf, type WatchStatus } from '@dealdash/types';
 import { CONFIG_KEYS } from '@dealdash/config';
 import {
+  prizeLiabilityMinor,
   watchIssues,
   watchTranslationStatus,
   type WatchCampaignView,
@@ -15,6 +16,7 @@ import { GuardrailsService } from '../live-deals/guardrails.service';
 import { merchantDisplayName } from '../live-deals/deal-presenter.service';
 import type { EligibilityOutcome } from '../live-deals/eligibility.service';
 import { WatchCoreService, type WatchRowData } from './watch-core.service';
+import { prizeOpportunity } from './watch-prize.service';
 
 export interface CardContext {
   outcome?: EligibilityOutcome;
@@ -22,6 +24,8 @@ export interface CardContext {
   availableAgainAt?: Date | null;
   distanceMeters?: number | null;
   rewardPoints?: number;
+  /** Saved by the signed-in customer (favourites); undefined for guests. */
+  saved?: boolean;
 }
 
 const FRAUD_REASONS = new Set(['RISK_BLOCKED', 'FRAUD_REVERSED', 'TIMELINE_MISMATCH']);
@@ -150,6 +154,7 @@ export class WatchViewService {
       now,
       limits,
       minRepeatWindowHours: f.minRepeatWindowHours,
+      prizeGuardrails: await this.core.prizeGuardrails(),
     });
     const trust = await this.core.merchantTrust(c.organizationId);
     return {
@@ -193,6 +198,8 @@ export class WatchViewService {
       merchantLogoUrl: c.organization.merchant?.logoFileId
         ? (urls.get(c.organization.merchant.logoFileId) ?? null)
         : null,
+      // display only: the merchant's category (a picture for a video without its own thumbnail)
+      merchantCategory: c.organization.merchant?.categoryCode ?? null,
       title: content.title,
       description: content.description,
       thumbnailUrl: c.thumbnailFileId ? (urls.get(c.thumbnailFileId) ?? null) : null,
@@ -208,6 +215,9 @@ export class WatchViewService {
         message: ctx.outcome?.message ?? null,
         unlockAction: ctx.outcome?.unlockAction ?? null,
       },
+      // the instant-prize opportunity, from the campaign's own configuration and remaining stock (FDR-19)
+      instantPrize: prizeOpportunity(c, content),
+      ...(ctx.saved !== undefined ? { saved: ctx.saved } : {}),
       serverNow: now.toISOString(),
     };
     return out;
@@ -340,7 +350,44 @@ export class WatchViewService {
         pointsIssued: (earned?._sum.rewardPoints ?? 0) + (held?._sum.rewardPoints ?? 0),
         heldViews: held?._count._all ?? 0,
       },
+      ...(await this.prizeMonitor(c, now)),
       disclaimerKey: 'views_and_verified_spend_only',
+    };
+  }
+
+  /** Instant-prize stock and decision outcomes for the merchant and DealDash monitors (FDR-19). */
+  private async prizeMonitor(c: WatchRowData, now: Date) {
+    const p = this.core.content(c).prize;
+    if (!p) return {};
+    const where = { campaignId: c.id };
+    const [issued, redeemed, expired, notWon, ineligible] = await Promise.all([
+      this.prisma.watchPrizeDraw.count({
+        where: { ...where, status: 'ISSUED', expiresAt: { gt: now } },
+      }),
+      this.prisma.watchPrizeDraw.count({ where: { ...where, status: 'REDEEMED' } }),
+      this.prisma.watchPrizeDraw.count({
+        where: {
+          ...where,
+          won: true,
+          OR: [{ status: 'EXPIRED' }, { status: 'ISSUED', expiresAt: { lte: now } }],
+        },
+      }),
+      this.prisma.watchPrizeDraw.count({ where: { ...where, won: false, eligible: true } }),
+      this.prisma.watchPrizeDraw.count({ where: { ...where, eligible: false } }),
+    ]);
+    return {
+      prizes: {
+        inventory: c.prizeInventory,
+        awarded: c.prizesAwarded,
+        remaining: Math.max(0, c.prizeInventory - c.prizesAwarded),
+        issued,
+        redeemed,
+        expired,
+        notWon,
+        ineligible,
+        winProbabilityBps: p.winProbabilityBps,
+        liabilityMinor: prizeLiabilityMinor(p),
+      },
     };
   }
 

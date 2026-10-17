@@ -391,7 +391,9 @@ interface NotificationItem {
     | 'CASE_UPDATED'
     | 'ACCOUNT_RESTRICTION'
     | 'BENEFIT_UPDATED'
-    | 'ACCOUNT_WELCOME';
+    | 'ACCOUNT_WELCOME'
+    // FDR-19: an instant Watch & Earn prize was won
+    | 'PRIZE_WON';
   data: Record<string, unknown>;
   createdAt: string;
   readAt: string | null;
@@ -822,38 +824,45 @@ function NotificationRow({ n }: { n: NotificationItem }) {
   const merchant = locale === 'ar' ? d.merchantNameAr : d.merchantNameEn;
   const deal =
     (locale === 'ar' ? d.dealTitleAr || d.voucherTitleAr : d.dealTitleEn || d.voucherTitleEn) ?? '';
-  // Stage 8: case updates open "My requests", account changes the profile, Watch & Earn rewards the rewards page
-  const target = d.caseId
-    ? href('/cases')
-    : n.type === 'ACCOUNT_RESTRICTION'
-      ? href('/profile')
-      : n.type === 'BENEFIT_UPDATED' || n.type === 'ACCOUNT_WELCOME'
-        ? href('/benefits')
-        : n.type.startsWith('REWARD_')
-          ? href('/rewards')
-          : d.instanceId
-            ? href(`/my-vouchers/${d.instanceId}`)
-            : d.orderId
-              ? href(`/orders/${d.orderId}`)
-              : d.reservationId
-                ? href(`/reservations/${d.reservationId}`)
-                : href('/');
+  // Stage 8: case updates open "My requests", account changes the profile, Watch & Earn rewards the rewards page;
+  // a won prize opens that prize (with its code) under Rewards
+  const prize = n.type === 'PRIZE_WON' && d.prizeId ? d.prizeId : null;
+  const target = prize
+    ? href(`/rewards/prizes/${prize}`)
+    : d.caseId
+      ? href('/cases')
+      : n.type === 'ACCOUNT_RESTRICTION'
+        ? href('/profile')
+        : n.type === 'BENEFIT_UPDATED' || n.type === 'ACCOUNT_WELCOME'
+          ? href('/benefits')
+          : n.type.startsWith('REWARD_')
+            ? href('/rewards')
+            : d.instanceId
+              ? href(`/my-vouchers/${d.instanceId}`)
+              : d.orderId
+                ? href(`/orders/${d.orderId}`)
+                : d.reservationId
+                  ? href(`/reservations/${d.reservationId}`)
+                  : href('/');
   return (
     <Link
       href={target}
       className={`dd-notif ${n.readAt ? '' : 'dd-notif--unread'}`}
       data-testid="notification"
+      data-type={n.type}
     >
       <span className="dd-notif__icon">
         <Icon
           name={
-            n.type === 'REDEMPTION_SUCCESS' ||
-            n.type === 'PURCHASE_SUCCEEDED' ||
-            n.type === 'VOUCHER_REDEEMED'
-              ? 'check'
-              : n.type === 'RESERVATION_EXPIRING' || n.type === 'VOUCHER_EXPIRING'
-                ? 'clock'
-                : 'ticket'
+            prize
+              ? 'gift'
+              : n.type === 'REDEMPTION_SUCCESS' ||
+                  n.type === 'PURCHASE_SUCCEEDED' ||
+                  n.type === 'VOUCHER_REDEEMED'
+                ? 'check'
+                : n.type === 'RESERVATION_EXPIRING' || n.type === 'VOUCHER_EXPIRING'
+                  ? 'clock'
+                  : 'ticket'
           }
           size={18}
         />
@@ -873,6 +882,11 @@ function NotificationRow({ n }: { n: NotificationItem }) {
                 firstName: d.firstName ?? '',
               })}
         </strong>
+        {prize && d.expiresAt ? (
+          <div className="dd-caption" data-testid="notification-prize-cta">
+            {t('notif.prizeValid', { date: formatDateTime(uiLocale, d.expiresAt) })}
+          </div>
+        ) : null}
         <div className="dd-caption">{formatDateTime(uiLocale, n.createdAt)}</div>
       </div>
     </Link>

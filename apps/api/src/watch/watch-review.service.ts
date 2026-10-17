@@ -221,6 +221,7 @@ export class WatchReviewService {
       now,
       limits: await this.core.limits(),
       minRepeatWindowHours: f.minRepeatWindowHours,
+      prizeGuardrails: await this.core.prizeGuardrails(),
     });
     if (issues.length)
       throw new AppError(

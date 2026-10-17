@@ -60,6 +60,11 @@ const BRAND = {
   'hot.card.paid': ['Pay & Reserve', 'ادفع واحجز'],
   'hot.card.free': ['Free reservation', 'حجز مجاني'],
   'wat.prop': ['Watch {sec}s · earn points', 'شاهد {sec} ث · واكسب النقاط'],
+  'wat.watchFor': ['Watch {sec}s', 'شاهد {sec} ث'],
+  'wat.sort.recommended': ['Recommended', 'مقترح'],
+  'wat.sort.near': ['Near you', 'قريب منك'],
+  'wat.sort.reward': ['Highest reward', 'أعلى مكافأة'],
+  'wat.sort.ending': ['Ending soon', 'تنتهي قريباً'],
 } as const satisfies Record<string, readonly [string, string]>;
 
 type BrandPairs = typeof BRAND;

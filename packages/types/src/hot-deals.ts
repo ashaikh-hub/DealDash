@@ -248,6 +248,8 @@ export const NOTIFICATION_TYPES = [
   /** Phase 3: a card hold was released (nothing charged) / captured (charged under the accepted terms). */
   'RESERVATION_HOLD_RELEASED',
   'RESERVATION_HOLD_CAPTURED',
+  /** FDR-19: the server allocated an instant Watch & Earn prize to the customer (sent once per prize decision). */
+  'PRIZE_WON',
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
@@ -290,6 +292,7 @@ export const NOTIFICATION_CATEGORY_OF: Partial<
   REWARD_RELEASED: 'REWARDS',
   REWARD_REVERSED: 'REWARDS',
   REWARD_EXPIRING: 'REWARDS',
+  PRIZE_WON: 'REWARDS',
   BENEFIT_UPDATED: 'BENEFITS',
 };
 

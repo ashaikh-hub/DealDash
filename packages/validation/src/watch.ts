@@ -13,6 +13,8 @@ import {
   WATCH_FUNDING_SOURCES,
   WATCH_LINK_TYPES,
   WATCH_OUTCOMES,
+  WATCH_PRIZE_KINDS,
+  WATCH_PRIZE_STATUSES,
   WATCH_REASON_CLASSES,
   WATCH_STATUSES,
   WATCH_VIEW_STATUSES,
@@ -79,8 +81,57 @@ export const watchContentSchema = z.object({
     .default({ repeatWindowHours: null }),
   /** Number of PAID qualifying views the merchant buys. The budget is this x the DealDash rate card. */
   paidViews: z.number().int().min(0).max(1_000_000).default(0),
+  /**
+   * Optional merchant / sponsor-funded INSTANT PRIZE (WE-05, WE-44; FDR-19 decided 2026-10-16: instant probabilistic allocation).
+   * Every qualified view still earns DealDash's points; in addition, right after a qualified view the SERVER decides whether that
+   * customer wins one prize, from the win probability, the per-customer limit, eligibility and the remaining inventory. The merchant
+   * funds and fulfils the prizes (redeemed at its branches within the validity); DealDash guardrails bound the configuration.
+   */
+  prize: z
+    .object({
+      title: bi(60),
+      kind: z.enum(WATCH_PRIZE_KINDS).default('FREE_ITEM'),
+      /** Number of prizes the merchant provides for this campaign. */
+      inventory: z.number().int().min(1).max(100_000).default(10),
+      /** Chance that one qualified view wins, in basis points (10000 = every qualified view wins while stock lasts). */
+      winProbabilityBps: z.number().int().min(1).max(10_000).default(1_000),
+      /** Prizes one customer can win in this campaign. */
+      perCustomerLimit: z.number().int().min(1).max(10).default(1),
+      /** Days a won prize can be redeemed. */
+      validityDays: z.number().int().min(1).max(365).default(14),
+      /** Branches where the prize is redeemed; empty = every active branch of the merchant. */
+      branchIds: z.array(uuid).max(50).default([]),
+      /** The merchant's own value of one prize (maximum liability = inventory x this), minor units of the campaign currency. */
+      unitValueMinor: z.number().int().min(0).max(100_000_000).default(0),
+      /** The merchant confirms it funds and fulfils the prizes (commercial acknowledgement). */
+      acknowledged: z.boolean().default(false),
+    })
+    .nullable()
+    .default(null),
 });
 export type WatchContent = z.infer<typeof watchContentSchema>;
+export type WatchPrizeConfig = NonNullable<WatchContent['prize']>;
+
+/** DealDash guardrails on instant prizes (governed config `watch.prize.guardrails`). */
+export const watchPrizeGuardrailsSchema = z.object({
+  enabled: z.boolean(),
+  maxWinProbabilityBps: z.number().int().min(1).max(10_000),
+  maxInventory: z.number().int().min(1).max(100_000),
+  maxPerCustomer: z.number().int().min(1).max(10),
+  maxValidityDays: z.number().int().min(1).max(365),
+  /** Maximum liability (inventory x unit value) per campaign, minor units. */
+  maxLiabilityMinor: z.number().int().min(0),
+});
+export type WatchPrizeGuardrails = z.infer<typeof watchPrizeGuardrailsSchema>;
+export const DEFAULT_WATCH_PRIZE_GUARDRAILS: WatchPrizeGuardrails = {
+  enabled: true,
+  maxWinProbabilityBps: 5_000,
+  maxInventory: 1_000,
+  maxPerCustomer: 3,
+  maxValidityDays: 60,
+  maxLiabilityMinor: 1_000_000,
+};
+export const prizeLiabilityMinor = (p: WatchPrizeConfig) => p.inventory * p.unitValueMinor;
 export const emptyWatchContent = (): WatchContent => watchContentSchema.parse({});
 
 export interface WatchLimits {
@@ -112,13 +163,21 @@ export interface WatchIssue {
     | 'DURATION_RANGE'
     | 'VIEWS_RANGE'
     | 'FREQUENCY_LOOSER'
-    | 'PERIOD_TOO_LONG';
+    | 'PERIOD_TOO_LONG'
+    | 'PRIZES_DISABLED'
+    | 'PRIZE_ABOVE_GUARDRAIL'
+    | 'ACKNOWLEDGEMENT_REQUIRED';
 }
 
 /** Completeness and platform limits. Pure and shared: the builder shows these live; the API refuses to submit with any. */
 export function watchIssues(
   c: WatchContent,
-  o: { now?: Date; limits?: WatchLimits; minRepeatWindowHours?: number } = {},
+  o: {
+    now?: Date;
+    limits?: WatchLimits;
+    minRepeatWindowHours?: number;
+    prizeGuardrails?: WatchPrizeGuardrails;
+  } = {},
 ): WatchIssue[] {
   const limits = o.limits ?? DEFAULT_WATCH_LIMITS;
   const out: WatchIssue[] = [];
@@ -155,6 +214,24 @@ export function watchIssues(
     c.frequency.repeatWindowHours < o.minRepeatWindowHours
   )
     out.push({ field: 'frequency.repeatWindowHours', code: 'FREQUENCY_LOOSER' });
+  if (c.prize) {
+    const p = c.prize;
+    const g = o.prizeGuardrails ?? DEFAULT_WATCH_PRIZE_GUARDRAILS;
+    bilingual('prize.title', p.title);
+    if (!g.enabled) out.push({ field: 'prize', code: 'PRIZES_DISABLED' });
+    if (p.winProbabilityBps > g.maxWinProbabilityBps)
+      out.push({ field: 'prize.winProbabilityBps', code: 'PRIZE_ABOVE_GUARDRAIL' });
+    if (p.inventory > g.maxInventory)
+      out.push({ field: 'prize.inventory', code: 'PRIZE_ABOVE_GUARDRAIL' });
+    if (p.perCustomerLimit > g.maxPerCustomer)
+      out.push({ field: 'prize.perCustomerLimit', code: 'PRIZE_ABOVE_GUARDRAIL' });
+    if (p.validityDays > g.maxValidityDays)
+      out.push({ field: 'prize.validityDays', code: 'PRIZE_ABOVE_GUARDRAIL' });
+    if (prizeLiabilityMinor(p) > g.maxLiabilityMinor)
+      out.push({ field: 'prize.unitValueMinor', code: 'PRIZE_ABOVE_GUARDRAIL' });
+    if (!p.acknowledged)
+      out.push({ field: 'prize.acknowledged', code: 'ACKNOWLEDGEMENT_REQUIRED' });
+  }
   return out;
 }
 
@@ -178,6 +255,8 @@ export function watchMaterialChanges(before: WatchContent, after: WatchContent):
   diff('endAt', before.endAt, after.endAt);
   diff('frequency', before.frequency, after.frequency);
   diff('paidViews', before.paidViews, after.paidViews);
+  // the prize is a commercial promise to customers: any change after approval is reviewed again
+  diff('prize', before.prize, after.prize);
   return out;
 }
 
@@ -223,6 +302,9 @@ export const adminCreditSchema = z.object({
 export const watchHubQuerySchema = z.object({
   city: z.string().trim().max(40).optional(),
   limit: z.coerce.number().int().min(1).max(50).default(20),
+  /** The customer's position (optional): each card then shows the distance to the merchant's nearest branch. */
+  lat: z.coerce.number().min(-90).max(90).optional(),
+  lng: z.coerce.number().min(-180).max(180).optional(),
 });
 export const watchViewStartSchema = z.object({
   campaignId: uuid,
@@ -444,6 +526,21 @@ export const watchMonitorSchema = z.object({
     pointsIssued: z.number().int(),
     heldViews: z.number().int(),
   }),
+  /** Instant prizes (FDR-19): stock and every decision's outcome; absent for campaigns without a prize. */
+  prizes: z
+    .object({
+      inventory: z.number().int(),
+      awarded: z.number().int(),
+      remaining: z.number().int(),
+      issued: z.number().int(),
+      redeemed: z.number().int(),
+      expired: z.number().int(),
+      notWon: z.number().int(),
+      ineligible: z.number().int(),
+      winProbabilityBps: z.number().int(),
+      liabilityMinor: z.number().int(),
+    })
+    .optional(),
   disclaimerKey: z.literal('views_and_verified_spend_only'),
 });
 export type WatchMonitor = z.infer<typeof watchMonitorSchema>;
@@ -469,6 +566,8 @@ export const watchOptionsSchema = z.object({
   minRepeatWindowHours: z.number().int(),
   cities: z.array(z.string()),
   unusedBudgetTreatment: z.string(),
+  /** DealDash's instant-prize guardrails (FDR-19), so the builder shows the limits as the merchant types. */
+  prizeGuardrails: watchPrizeGuardrailsSchema.optional(),
 });
 
 // ---- customer
@@ -477,6 +576,8 @@ export const watchCardSchema = z.object({
   merchantId: uuid,
   merchantName: biText,
   merchantLogoUrl: z.string().nullable(),
+  /** Display only: the merchant's category code (picture for a video without its own thumbnail). */
+  merchantCategory: z.string().nullable().optional(),
   title: biText,
   description: biText,
   thumbnailUrl: z.string().nullable(),
@@ -497,6 +598,21 @@ export const watchCardSchema = z.object({
   endsAt: z.string().nullable(),
   distanceMeters: z.number().nullable(),
   eligibility: eligibilityViewSchema,
+  /**
+   * The campaign's instant-prize OPPORTUNITY (FDR-19): null when the campaign has no prize or none is left. `guaranteed` only when
+   * every qualified view wins while stock lasts (the card never implies a guaranteed prize otherwise).
+   */
+  instantPrize: z
+    .object({
+      title: biText,
+      kind: z.enum(WATCH_PRIZE_KINDS),
+      remaining: z.number().int(),
+      guaranteed: z.boolean(),
+    })
+    .nullable()
+    .optional(),
+  /** Saved by this customer (favourites); absent for guests. */
+  saved: z.boolean().optional(),
   serverNow: z.string(),
 });
 export type WatchCard = z.infer<typeof watchCardSchema>;
@@ -545,9 +661,35 @@ export const watchOutcomeSchema = z.object({
     .nullable(),
   /** After a qualified view: where the campaign link leads (own merchant offers only). */
   link: z.object({ type: z.enum(WATCH_LINK_TYPES), id: uuid.nullable() }).nullable(),
+  /** The instant-prize decision for this view (campaigns with a prize only): won with its code, or not won. */
+  prize: z
+    .object({
+      won: z.boolean(),
+      prize: z.lazy(() => wonPrizeSchema).nullable(),
+    })
+    .nullable()
+    .optional(),
   serverNow: z.string(),
 });
 export type WatchOutcomeView = z.infer<typeof watchOutcomeSchema>;
+
+/** A prize the customer won: shown once on the outcome and kept under Rewards → Your prizes until redeemed or expired. */
+export const wonPrizeSchema = z.object({
+  id: uuid,
+  reference: z.string(),
+  title: biText,
+  kind: z.enum(WATCH_PRIZE_KINDS),
+  merchantName: biText,
+  campaignTitle: biText,
+  status: z.enum(WATCH_PRIZE_STATUSES),
+  /** For staff at the branch: QR text and the manual code. Null once redeemed or expired. */
+  code: z.object({ qr: z.string(), manual: z.string() }).nullable(),
+  branches: z.array(biText),
+  wonAt: z.string(),
+  expiresAt: z.string(),
+  redeemedAt: z.string().nullable(),
+});
+export type WonPrize = z.infer<typeof wonPrizeSchema>;
 
 export const rewardSummarySchema = z.object({
   availableBalance: z.number().int(),

@@ -20,6 +20,8 @@ export function denormalizeWatch(c: WatchContent) {
     cities: c.targeting.cities,
     eligibilityKind: c.targeting.eligibility.kind,
     paidViews: c.paidViews,
+    // instant prizes (FDR-19): the inventory in force; prizes already awarded are never touched here
+    prizeInventory: c.prize ? c.prize.inventory : 0,
   };
 }
 

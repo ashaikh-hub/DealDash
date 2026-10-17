@@ -347,6 +347,7 @@ export const DEFAULT_OPERATIONS_CONFIG: OperationsConfig = {
       REWARD_HELD: { version: 1, channels: ['IN_APP', 'PUSH'] },
       REWARD_RELEASED: { version: 1, channels: ['IN_APP', 'PUSH'] },
       REWARD_REVERSED: { version: 1, channels: ['IN_APP', 'PUSH'] },
+      PRIZE_WON: { version: 1, channels: ['IN_APP', 'PUSH'] },
       REWARD_EXPIRING: { version: 1, channels: ['IN_APP', 'PUSH'] },
       CAMPAIGN_COMPLETED: { version: 1, channels: ['IN_APP', 'PUSH'] },
       ALERT: { version: 1, channels: ['IN_APP', 'EMAIL', 'PUSH', 'SMS'] },

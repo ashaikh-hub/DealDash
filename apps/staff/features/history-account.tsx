@@ -38,7 +38,7 @@ interface Row {
   quantity: number | null;
   customerFirstName: string | null;
   source: 'QR' | 'MANUAL';
-  kind?: 'RESERVATION' | 'VOUCHER';
+  kind?: 'RESERVATION' | 'VOUCHER' | 'PRIZE';
 }
 interface History {
   counts: { redeemed: number; rejected: number };

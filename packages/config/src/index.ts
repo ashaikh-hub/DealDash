@@ -373,6 +373,8 @@ export const CONFIG_KEYS = {
   WATCH_QUALIFYING_POLICY: 'watch.qualifying_policy',
   WATCH_FREQUENCY: 'watch.frequency',
   WATCH_GUARDRAILS: 'watch.guardrails',
+  /** Instant prizes (FDR-19): DealDash limits on probability, inventory, per-customer, validity and liability. */
+  WATCH_PRIZE_GUARDRAILS: 'watch.prize_guardrails',
   WATCH_AUTO_PUBLISH: 'watch.auto_publish',
   WATCH_FRAUD: 'watch.fraud',
   WATCH_UNUSED_BUDGET_TREATMENT: 'watch.unused_budget_treatment',
@@ -635,6 +637,15 @@ export const CONFIG_DEFAULTS: Record<ConfigKey, unknown> = {
     maxConcurrentSessions: 1,
   },
   'watch.guardrails': { reviewAbovePaidViews: 5000 },
+  // Instant prizes (FDR-19, 2026-10-16): MOCK defaults for development; DealDash sets the real limits per market policy.
+  'watch.prize_guardrails': {
+    enabled: true,
+    maxWinProbabilityBps: 5000,
+    maxInventory: 1000,
+    maxPerCustomer: 3,
+    maxValidityDays: 60,
+    maxLiabilityMinor: 1000000,
+  },
   'watch.auto_publish': { enabled: false, minTrustLevel: 'TRUSTED' },
   'watch.fraud': {
     holdHours: 24,

@@ -69,6 +69,24 @@ export type WatchAction = (typeof WATCH_ACTIONS)[number];
 export const WATCH_LINK_TYPES = ['NONE', 'MERCHANT', 'LIVE_DEAL', 'HOT_DEAL', 'VOUCHER'] as const;
 export type WatchLinkType = (typeof WATCH_LINK_TYPES)[number];
 
+// ---------------------------------------------------------------- instant prizes (WE-05, WE-44, FDR-19)
+/** What the merchant gives: an item free, a discount, or an experience (all fulfilled by the merchant at its branches). */
+export const WATCH_PRIZE_KINDS = ['FREE_ITEM', 'DISCOUNT', 'EXPERIENCE'] as const;
+export type WatchPrizeKind = (typeof WATCH_PRIZE_KINDS)[number];
+/** A prize decision's state: NOT_WON (the draw ran, no prize), ISSUED (won, redeemable), REDEEMED, EXPIRED. */
+export const WATCH_PRIZE_STATUSES = ['NOT_WON', 'ISSUED', 'REDEEMED', 'EXPIRED'] as const;
+export type WatchPrizeStatus = (typeof WATCH_PRIZE_STATUSES)[number];
+/** Why a qualified view was not eligible to win (recorded with every decision). */
+export const WATCH_PRIZE_INELIGIBLE = [
+  'RISK_REVIEW',
+  'CUSTOMER_LIMIT',
+  'OUT_OF_STOCK',
+  'GUARDRAILS_DISABLED',
+] as const;
+export type WatchPrizeIneligible = (typeof WATCH_PRIZE_INELIGIBLE)[number];
+/** The QR text of a won prize is `DDW1.` + token (vouchers and reservations have their own prefixes). */
+export const PRIZE_QR_PREFIX = 'DDW1.';
+
 // ---------------------------------------------------------------- views (qualifying-view pipeline)
 export const WATCH_VIEW_STATUSES = [
   'STARTED',

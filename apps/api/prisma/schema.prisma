@@ -1437,6 +1437,8 @@ enum NotificationType {
   /// Phase 3: a card hold was released / captured
   RESERVATION_HOLD_RELEASED
   RESERVATION_HOLD_CAPTURED
+  /// FDR-19: an instant Watch & Earn prize was allocated to the customer
+  PRIZE_WON
 }
 
 /// Hot Deal: urgent, limited by time and/or quantity. Reservation is optional (default off) and, when on, carries a commitment
@@ -2475,6 +2477,10 @@ model WatchCampaign {
   spentHalalas           Int             @default(0)
   /// Budget released at close-out (separately identifiable; treatment is configurable / VALIDATE-KSA).
   unusedHalalas          Int             @default(0)
+  /// Instant prizes (FDR-19): the inventory in force and the prizes awarded so far. Awarding is ONE conditional update
+  /// (`prizesAwarded < prizeInventory`), so the inventory can never be oversold.
+  prizeInventory         Int             @default(0)
+  prizesAwarded          Int             @default(0)
   closedOutAt            DateTime?
   submittedAt            DateTime?
   publishedAt            DateTime?
@@ -2574,6 +2580,7 @@ model WatchView {
 
   campaign        WatchCampaign    @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   events          WatchViewEvent[]
+  prizeDraw       WatchPrizeDraw?
   /// The campaign version in force when this happened (CampaignVersion.version).
   campaignVersion Int?
 
@@ -2581,6 +2588,54 @@ model WatchView {
   @@index([userId, startedAt])
   @@index([deviceHash, startedAt])
   @@index([userId, campaignId, qualifiedAt])
+}
+
+/// One instant-prize decision per qualified view of a campaign with a prize (FDR-19). It is the audit record (eligibility, the
+/// probability, the server's roll, inventory before / after) AND, when won, the customer's redeemable entitlement. `viewId` is
+/// unique: a repeated completion or callback can never create a second decision or a second prize.
+model WatchPrizeDraw {
+  id                String           @id @default(uuid(7)) @db.Uuid
+  campaignId        String           @db.Uuid
+  viewId            String           @unique @db.Uuid
+  userId            String           @db.Uuid
+  organizationId    String           @db.Uuid
+  /// Eligible to win (false: RISK_REVIEW | CUSTOMER_LIMIT | OUT_OF_STOCK | GUARDRAILS_DISABLED in `ineligibleReason`).
+  eligible          Boolean
+  ineligibleReason  String?
+  probabilityBps    Int
+  /// The server's random draw in [0, 10000): won when roll < probabilityBps. Null when not eligible.
+  roll              Int?
+  won               Boolean
+  inventoryBefore   Int
+  inventoryAfter    Int
+  status            WatchPrizeStatus @default(NOT_WON)
+  prizeTitleEn      String           @default("")
+  prizeTitleAr      String           @default("")
+  prizeKind         String?
+  reference         String?          @unique
+  qrToken           String?          @unique
+  manualCode        String?          @unique
+  /// Branches where it is redeemed (empty = every active branch of the merchant).
+  branchIds         String[]         @default([])
+  expiresAt         DateTime?
+  redeemedAt        DateTime?
+  redeemedBranchId  String?          @db.Uuid
+  redeemedByUserId  String?          @db.Uuid
+  redeemIdempotencyKey String?
+  createdAt         DateTime         @default(now())
+
+  view WatchView @relation(fields: [viewId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId, won])
+  @@index([userId, campaignId])
+  @@index([organizationId, status])
+}
+
+enum WatchPrizeStatus {
+  NOT_WON
+  ISSUED
+  REDEEMED
+  EXPIRED
 }
 
 /// Append-only timeline (database trigger). Client positions are recorded but the server clock is the one that counts.

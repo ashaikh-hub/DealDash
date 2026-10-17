@@ -251,9 +251,11 @@ function Inner() {
             open={sheetOpen}
             onClose={() => setSheetOpen(false)}
             title={
-              phase.res.reservation?.kind === 'VOUCHER'
-                ? t('st.confirmSheet.titleVoucher')
-                : t('st.confirmSheet.title')
+              phase.res.reservation?.kind === 'PRIZE'
+                ? t('st.confirmSheet.titlePrize')
+                : phase.res.reservation?.kind === 'VOUCHER'
+                  ? t('st.confirmSheet.titleVoucher')
+                  : t('st.confirmSheet.title')
             }
             closeLabel={t('st.close')}
             testId="redeem-sheet"
@@ -307,9 +309,11 @@ function Inner() {
               </dl>
             ) : null}
             <Alert tone="warning">
-              {phase.res.reservation?.kind === 'VOUCHER'
-                ? t('st.confirmSheet.warnVoucher')
-                : t('st.confirmSheet.warn')}
+              {phase.res.reservation?.kind === 'PRIZE'
+                ? t('st.confirmSheet.warnPrize')
+                : phase.res.reservation?.kind === 'VOUCHER'
+                  ? t('st.confirmSheet.warnVoucher')
+                  : t('st.confirmSheet.warn')}
             </Alert>
           </BottomSheet>
         </>
@@ -451,6 +455,8 @@ export function ResultView({
   const tone = toneOf(res.result);
   const r = res.reservation;
   const voucher = r?.kind === 'VOUCHER';
+  // a won Watch & Earn prize (FDR-19) goes through the same flow with its own wording
+  const prize = r?.kind === 'PRIZE';
   const title =
     res.result === 'VALID'
       ? t('st.valid')
@@ -459,9 +465,9 @@ export function ResultView({
         : t(`st.result.${res.result}` as DictionaryKey);
   const body =
     res.result === 'VALID'
-      ? t(voucher ? 'st.validBodyVoucher' : 'st.validBody')
+      ? t(prize ? 'st.validBodyPrize' : voucher ? 'st.validBodyVoucher' : 'st.validBody')
       : res.result === 'REDEEMED'
-        ? t(voucher ? 'st.doneVoucher' : 'st.doneBody')
+        ? t(prize ? 'st.doneBodyPrize' : voucher ? 'st.doneVoucher' : 'st.doneBody')
         : res.result === 'WRONG_BRANCH'
           ? t('st.result.WRONG_BRANCH.body', {
               branch: r?.validBranchName ? pickText(r.validBranchName, locale) : '',
@@ -486,7 +492,7 @@ export function ResultView({
       {r ? (
         <dl className={`dd-result__facts ${voucher ? 'dd-staff-voucher' : ''}`}>
           <div>
-            <dt>{voucher ? t('st.voucher') : t('st.offer')}</dt>
+            <dt>{prize ? t('st.prize') : voucher ? t('st.voucher') : t('st.offer')}</dt>
             <dd>{pickText(r.dealTitle, locale)}</dd>
           </div>
           {voucher && r.faceValueHalalas !== null ? (

@@ -24,6 +24,7 @@ import { WatchCoreService } from './watch-core.service';
 import { WatchDiscoveryService } from './watch-discovery.service';
 import { WatchFundingService } from './watch-funding.service';
 import { WatchLifecycleService } from './watch-lifecycle.service';
+import { WatchPrizeService } from './watch-prize.service';
 import { WatchQualificationService } from './watch-qualification.service';
 import { WatchReviewService } from './watch-review.service';
 import { WatchViewService } from './watch-view.service';
@@ -63,8 +64,11 @@ import { WatchViewService } from './watch-view.service';
     WatchReviewService,
     RewardsAdminService,
     WatchLifecycleService,
+    // instant prizes (FDR-19): the server-side draw, the customer's prizes and staff redemption of prize codes
+    WatchPrizeService,
   ],
   exports: [
+    WatchPrizeService,
     WatchLifecycleService,
     RewardsLedgerService,
     WatchQualificationService,

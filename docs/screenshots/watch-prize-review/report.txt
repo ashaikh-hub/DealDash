@@ -1,0 +1,31 @@
+prize campaign: Win a free pastry with your coffee (01a14691-c75a-733b-bf13-5d7554320894) remaining=34 guaranteed=false
+en 390px watch card: ok pill="Instant reward chance" fits=yes
+en 320px watch card: ok pill="Instant reward chance" fits=yes
+en view 1: outcome=QUALIFIED prize=not won pageErrors=0
+en 02-not-won: ok
+en non-winner notifications: REWARD_EARNED, ACCOUNT_WELCOME (PRIZE_WON present: no)
+en view 2: outcome=QUALIFIED prize=WON pageErrors=0
+en 03-win: ok
+en 03b-win-code: ok
+en 04a-header-bell: ok unreadBadge="3"
+en 04-notification: ok prizeNotifications=1 text="You won Free pastry from Daily Dose Juice Valid until 31 Oct 2026, 09:06 · View prize 17 Oct 2026, 09:06"
+en notification opens: /en/rewards/prizes/01a14877-e3a3-73c8-b879-9b2ba2bcc903
+en 06-prize-credential: ok
+en 05-your-prizes: ok
+en checks: win overflow=0 dir=ltr; prize overflow=0; rewards overflow=0; pageErrors=0
+en notification payload exposes probability/roll/stock/code: no
+ar 390px watch card: ok pill="فرصة مكافأة فورية" fits=yes
+ar 320px watch card: ok pill="فرصة مكافأة فورية" fits=yes
+ar view 1: outcome=QUALIFIED prize=not won pageErrors=0
+ar 02-not-won: ok
+ar non-winner notifications: REWARD_EARNED, ACCOUNT_WELCOME (PRIZE_WON present: no)
+ar view 2: outcome=QUALIFIED prize=WON pageErrors=0
+ar 03-win: ok
+ar 03b-win-code: ok
+ar 04a-header-bell: ok unreadBadge="3"
+ar 04-notification: ok prizeNotifications=1 text="فزت بجائزة معجنات مجانية من ديلي دوز جوس صالحة حتى 31‏/10‏/2026، 9:07 ص · عرض الجائزة 17‏/10‏/2026، 9:07 ص"
+ar notification opens: /ar/rewards/prizes/01a14878-a0bc-75cc-b0fd-809bfd2f9e45
+ar 06-prize-credential: ok
+ar 05-your-prizes: ok
+ar checks: win overflow=0 dir=rtl; prize overflow=0; rewards overflow=0; pageErrors=0
+ar notification payload exposes probability/roll/stock/code: no

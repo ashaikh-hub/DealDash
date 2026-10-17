@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Headers,
   HttpCode,
@@ -31,6 +32,9 @@ import {
   RewardRedeemDto,
   RewardRedeemedResponse,
   RewardSummaryResponse,
+  WatchCardsResponse,
+  WonPrizeResponse,
+  WonPrizesResponse,
   WatchCompleteDto,
   WatchDetailResponse,
   WatchEventsDto,
@@ -44,6 +48,8 @@ import {
 import { RewardsLedgerService } from './rewards-ledger.service';
 import { WatchDiscoveryService } from './watch-discovery.service';
 import { WatchQualificationService } from './watch-qualification.service';
+import { WatchPrizeService } from './watch-prize.service';
+import { SavedStateResponse } from '../live-deals/dto';
 
 const customerId = (actor?: Actor) => (actor?.userType === 'CUSTOMER' ? actor.userId : null);
 
@@ -59,6 +65,7 @@ export class CustomerWatchController {
     private readonly discovery: WatchDiscoveryService,
     private readonly qualification: WatchQualificationService,
     private readonly rewards: RewardsLedgerService,
+    private readonly prizeService: WatchPrizeService,
   ) {}
 
   @Get('watch')
@@ -121,6 +128,45 @@ export class CustomerWatchController {
   @ApiOkResponse({ type: WatchOutcomeResponse })
   outcome(@Param('id', ParseUUIDPipe) id: string, @CurrentActor() actor: Actor) {
     return this.qualification.outcome(actor.userId, id);
+  }
+
+  // ---------------------------------------------------------------- favourites
+  @Get('saved/watch')
+  @RequirePermissions('customer.saved.manage')
+  @ApiOkResponse({ type: WatchCardsResponse })
+  savedWatch(@Query() q: WatchHubQueryDto, @CurrentActor() actor: Actor) {
+    return this.discovery.saved(actor.userId, q);
+  }
+
+  @Post('saved/watch/:id')
+  @HttpCode(200)
+  @RequirePermissions('customer.saved.manage')
+  @ApiOkResponse({ type: SavedStateResponse })
+  saveWatch(@Param('id', ParseUUIDPipe) id: string, @CurrentActor() actor: Actor) {
+    return this.discovery.save(actor.userId, id);
+  }
+
+  @Delete('saved/watch/:id')
+  @RequirePermissions('customer.saved.manage')
+  @ApiOkResponse({ type: SavedStateResponse })
+  unsaveWatch(@Param('id', ParseUUIDPipe) id: string, @CurrentActor() actor: Actor) {
+    return this.discovery.unsave(actor.userId, id);
+  }
+
+  // ---------------------------------------------------------------- instant prizes (FDR-19)
+  @Get('watch/prizes')
+  @RequirePermissions('customer.rewards.manage')
+  @ApiOkResponse({ type: WonPrizesResponse })
+  prizes(@CurrentActor() actor: Actor) {
+    return this.prizeService.mine(actor.userId);
+  }
+
+  /** One of the customer's prizes (the winner notification opens it): the credential while it can be used. */
+  @Get('watch/prizes/:id')
+  @RequirePermissions('customer.rewards.manage')
+  @ApiOkResponse({ type: WonPrizeResponse })
+  prize(@Param('id', ParseUUIDPipe) id: string, @CurrentActor() actor: Actor) {
+    return this.prizeService.one(actor.userId, id);
   }
 
   // ---------------------------------------------------------------- rewards

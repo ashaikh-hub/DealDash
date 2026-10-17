@@ -3,7 +3,8 @@
  * customer Home carousels to show their real density, using the seeded fictional demo merchants only:
  *  - Exclusive Deals: a PAID_RESERVATION deposit deal (credited to the bill), a PAID_RESERVATION full-prepayment deal (fixed price),
  *    a booking-fee deposit deal, and two FREE_RESERVATION deals (percentage off, free benefit) with generous limited stock;
- *  - Watch & Earn: three live, funded campaigns (mock funding, the same ledger journal the Stage 6 seed writes).
+ *  - Watch & Earn: live, funded campaigns (mock funding, the same ledger journal the Stage 6 seed writes), one of them with a real
+ *    instant prize (FDR-19: 30 % win chance, 40 prizes, redeemed at the merchant) that the server draws against like any campaign.
  * Same patterns as the development seed (src/seed/stage4-seed.ts, stage6-seed.ts). Idempotent: an existing demo item (matched by
  * title) only has its end time extended. Every item is marked as development data (terms / description "Development demo", seed
  * placeholder media, history reason). It never creates, changes or resets a user, a password or any other business data, and it
@@ -187,8 +188,35 @@ interface WatchDemo {
   description: { en: string; ar: string };
   cta: { en: string; ar: string };
   palette: [Rgb, Rgb];
+  /** Optional instant prize (FDR-19): a real configuration the server draws against (development demo stock). */
+  prize?: Record<string, unknown>;
 }
 const WATCH: WatchDemo[] = [
+  {
+    key: 'demo-dose-pastry-prize',
+    branch: 'Daily Dose KAFD',
+    title: bi('Win a free pastry with your coffee', 'اربح معجنات مجانية مع قهوتك'),
+    description: bi(
+      'Development demo. Watch to earn your points; each qualified view also has a chance to win a free pastry.',
+      'عرض تجريبي للتطوير. شاهد لتكسب نقاطك؛ ولكل مشاهدة مؤهلة فرصة للفوز بمعجنات مجانية.',
+    ),
+    cta: bi('Visit us', 'زرنا'),
+    palette: [
+      [226, 170, 104],
+      [74, 44, 32],
+    ],
+    prize: {
+      title: bi('Free pastry', 'معجنات مجانية'),
+      kind: 'FREE_ITEM',
+      inventory: 40,
+      winProbabilityBps: 3_000,
+      perCustomerLimit: 1,
+      validityDays: 14,
+      branchIds: [],
+      unitValueMinor: 1_200,
+      acknowledged: true,
+    },
+  },
   {
     key: 'demo-najd-kabsa',
     branch: 'Najd Kitchen Al Nakheel',
@@ -384,6 +412,63 @@ async function main() {
       console.log(`exclusive deal created: ${d.title.en}`);
     }
 
+    /**
+     * Mock funding: the same balanced journal the Stage 6 seed writes (no real money). Idempotent per campaign: a campaign that
+     * already has its funding is left alone; the reference is unique per campaign.
+     */
+    async function ensureFunded(campaignId: string, orgId: string, owner: string, funded: number) {
+      if (funded <= 0) return;
+      if (await prisma.watchFunding.count({ where: { campaignId } })) return;
+      const fundKey = `dev-demo:fund:${campaignId}`;
+      await prisma.$transaction(async (tx) => {
+        const account = async (family: string, org: string | null) =>
+          (await tx.ledgerAccount.findFirst({
+            where: { family: family as never, organizationId: org, currency: WATCH_CURRENCY },
+          })) ??
+          tx.ledgerAccount.create({
+            data: { family: family as never, organizationId: org, currency: WATCH_CURRENCY },
+          });
+        const j = await tx.ledgerJournal.create({
+          data: {
+            type: 'CAMPAIGN_FUNDING',
+            currency: WATCH_CURRENCY,
+            sourceType: 'WatchCampaign',
+            sourceId: campaignId,
+            idempotencyKey: fundKey,
+            postedByRole: 'SEED',
+          },
+        });
+        await tx.ledgerEntry.create({
+          data: {
+            journalId: j.id,
+            accountId: (await account('PSP_CLEARING', null)).id,
+            amountHalalas: funded,
+          },
+        });
+        await tx.ledgerEntry.create({
+          data: {
+            journalId: j.id,
+            accountId: (await account('CAMPAIGN_BUDGET', orgId)).id,
+            amountHalalas: -funded,
+          },
+        });
+        await tx.watchFunding.create({
+          data: {
+            campaignId,
+            organizationId: orgId,
+            currency: WATCH_CURRENCY,
+            amountHalalas: funded,
+            source: 'MOCK_PAYMENT',
+            reference: `WF-DEMO-${campaignId.slice(-8).toUpperCase()}`,
+            idempotencyKey: fundKey,
+            journalId: j.id,
+            createdByUserId: owner,
+            createdByName: 'Development demo',
+          },
+        });
+      });
+    }
+
     // ---------------------------------------------------------------- Watch & Earn (live, funded with mock funding)
     const video = await prisma.storedFile.findFirst({
       where: { kind: 'WATCH_VIDEO', storageKey: { endsWith: '/seed-harbour-live.webm' } },
@@ -395,6 +480,8 @@ async function main() {
       const existing = await prisma.watchCampaign.findFirst({
         where: { organizationId: orgId, titleEn: w.title.en },
       });
+      const owner = await ownerOf(orgId);
+      if (!owner) throw new Error(`no merchant owner for "${w.branch}"`);
       if (existing) {
         const content = watchContentSchema.parse(existing.content);
         await prisma.watchCampaign.update({
@@ -404,11 +491,11 @@ async function main() {
             endAt,
           },
         });
+        // a campaign left without its mock funding by an interrupted earlier run is funded now (once)
+        await ensureFunded(existing.id, orgId, owner, existing.fundedHalalas);
         console.log(`watch campaign present, end time extended: ${w.title.en}`);
         continue;
       }
-      const owner = await ownerOf(orgId);
-      if (!owner) throw new Error(`no merchant owner for "${w.branch}"`);
       const thumb = await image(orgId, 'DEAL_IMAGE', w.key, w.palette, 140 + i * 13);
       const paidViews = 100;
       const funded = paidViews * CHARGE;
@@ -424,6 +511,7 @@ async function main() {
         endAt: endAt.toISOString(),
         targeting: { cities: ['Riyadh'], eligibility: { kind: 'PUBLIC', valueRefs: [] } },
         paidViews,
+        prize: w.prize ?? null,
       });
       const campaign = await prisma.watchCampaign.create({
         data: {
@@ -458,55 +546,7 @@ async function main() {
           byDealDash: true,
         },
       });
-      // mock funding: the same balanced journal the Stage 6 seed writes (no real money)
-      const fundKey = `dev-demo:fund:${campaign.id}`;
-      await prisma.$transaction(async (tx) => {
-        const account = async (family: string, org: string | null) =>
-          (await tx.ledgerAccount.findFirst({
-            where: { family: family as never, organizationId: org, currency: WATCH_CURRENCY },
-          })) ??
-          tx.ledgerAccount.create({
-            data: { family: family as never, organizationId: org, currency: WATCH_CURRENCY },
-          });
-        const j = await tx.ledgerJournal.create({
-          data: {
-            type: 'CAMPAIGN_FUNDING',
-            currency: WATCH_CURRENCY,
-            sourceType: 'WatchCampaign',
-            sourceId: campaign.id,
-            idempotencyKey: fundKey,
-            postedByRole: 'SEED',
-          },
-        });
-        await tx.ledgerEntry.create({
-          data: {
-            journalId: j.id,
-            accountId: (await account('PSP_CLEARING', null)).id,
-            amountHalalas: funded,
-          },
-        });
-        await tx.ledgerEntry.create({
-          data: {
-            journalId: j.id,
-            accountId: (await account('CAMPAIGN_BUDGET', orgId)).id,
-            amountHalalas: -funded,
-          },
-        });
-        await tx.watchFunding.create({
-          data: {
-            campaignId: campaign.id,
-            organizationId: orgId,
-            currency: WATCH_CURRENCY,
-            amountHalalas: funded,
-            source: 'MOCK_PAYMENT',
-            reference: `WF-DEMO${String(i + 1).padStart(2, '0')}`,
-            idempotencyKey: fundKey,
-            journalId: j.id,
-            createdByUserId: owner,
-            createdByName: 'Development demo',
-          },
-        });
-      });
+      await ensureFunded(campaign.id, orgId, owner, funded);
       console.log(`watch campaign created: ${w.title.en}`);
     }
   } finally {

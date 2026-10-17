@@ -12,6 +12,7 @@ import {
   type LaunchAction,
   type LaunchControls,
 } from '@dealdash/config';
+import { watchPrizeGuardrailsSchema } from '@dealdash/validation';
 import { Prisma } from '../generated/prisma/client';
 import { AuditService } from '../audit/audit.service';
 import { AppError } from '../common/errors';
@@ -41,6 +42,8 @@ function schemaFor(key: string): z.ZodTypeAny | null {
   if (key === CONFIG_KEYS.RESERVATION_POLICY) return reservationPolicySchema;
   // RC-52 strike values (no-shows before new reservations are blocked), edited from the reservation policy screen
   if (key === CONFIG_KEYS.RESERVATION_NOSHOW) return reservationNoShowSchema;
+  // FDR-19: DealDash's instant-prize guardrails (probability, inventory, per-customer, validity, liability)
+  if (key === CONFIG_KEYS.WATCH_PRIZE_GUARDRAILS) return watchPrizeGuardrailsSchema;
   const s = (GOVERNED_SCALARS as Record<string, { min: number; max: number }>)[key];
   return s ? z.number().int().min(s.min).max(s.max) : null;
 }
@@ -50,6 +53,7 @@ export const GOVERNED_KEYS = [
   CONFIG_KEYS.REWARDS_RULES,
   CONFIG_KEYS.RESERVATION_POLICY,
   CONFIG_KEYS.RESERVATION_NOSHOW,
+  CONFIG_KEYS.WATCH_PRIZE_GUARDRAILS,
   ...Object.keys(GOVERNED_SCALARS),
 ];
 

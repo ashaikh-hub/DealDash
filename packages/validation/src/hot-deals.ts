@@ -898,8 +898,8 @@ export const adminRestrictionRowSchema = restrictionViewSchema.extend({
 
 // ---- Staff
 export const staffReservationSummarySchema = z.object({
-  /** What is being redeemed: a free Exclusive Deal reservation or a purchased voucher (Stage 5). */
-  kind: z.enum(['RESERVATION', 'VOUCHER']).default('RESERVATION'),
+  /** What is being redeemed: an Exclusive Deal reservation, a purchased voucher (Stage 5) or a won Watch & Earn prize (FDR-19). */
+  kind: z.enum(['RESERVATION', 'VOUCHER', 'PRIZE']).default('RESERVATION'),
   /**
    * Reservation commitment (2026-10-15, RC-60): what the customer already paid or holds, read-only for staff (staff never change
    * financial rules). Null for FREE reservations and vouchers.
@@ -967,7 +967,7 @@ export const staffHistoryRowSchema = z.object({
   quantity: z.number().int().nullable(),
   customerFirstName: z.string().nullable(),
   source: z.enum(['QR', 'MANUAL']),
-  kind: z.enum(['RESERVATION', 'VOUCHER']).default('RESERVATION'),
+  kind: z.enum(['RESERVATION', 'VOUCHER', 'PRIZE']).default('RESERVATION'),
 });
 export const staffHistorySchema = z.object({
   counts: z.object({ redeemed: z.number().int(), rejected: z.number().int() }),

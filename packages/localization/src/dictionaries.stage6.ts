@@ -90,10 +90,7 @@ const S6 = {
   ],
   'wat.badge': ['Watch & Earn', 'شاهد واكسب'],
   'wat.rail': ['Watch & Earn', 'شاهد واكسب'],
-  'wat.railSub': [
-    'Watch a short video · earn points · unlock rewards',
-    'شاهد مقطعاً قصيراً · اكسب النقاط · احصل على المكافآت',
-  ],
+  'wat.railSub': ['Watch. Earn points. Unlock rewards.', 'شاهد. اكسب النقاط. افتح المكافآت.'],
   'wat.secShort': ['s', 'ث'],
   'wat.length': ['{n} seconds', '{n} ثانية'],
   'wat.ends': ['Until {date}', 'حتى {date}'],

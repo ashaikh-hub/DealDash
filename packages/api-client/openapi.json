@@ -18220,6 +18220,26 @@
               "default": 20,
               "type": "integer"
             }
+          },
+          {
+            "name": "lat",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": -90,
+              "maximum": 90,
+              "type": "number"
+            }
+          },
+          {
+            "name": "lng",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": -180,
+              "maximum": 180,
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -18429,6 +18449,177 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/WatchOutcomeResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-watch"
+        ]
+      }
+    },
+    "/v1/app/saved/watch": {
+      "get": {
+        "operationId": "CustomerWatchController_savedWatch_v1",
+        "parameters": [
+          {
+            "name": "city",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 40,
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "lat",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": -90,
+              "maximum": 90,
+              "type": "number"
+            }
+          },
+          {
+            "name": "lng",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": -180,
+              "maximum": 180,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchCardsResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-watch"
+        ]
+      }
+    },
+    "/v1/app/saved/watch/{id}": {
+      "post": {
+        "operationId": "CustomerWatchController_saveWatch_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedStateResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-watch"
+        ]
+      },
+      "delete": {
+        "operationId": "CustomerWatchController_unsaveWatch_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedStateResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-watch"
+        ]
+      }
+    },
+    "/v1/app/watch/prizes": {
+      "get": {
+        "operationId": "CustomerWatchController_prizes_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WonPrizesResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-watch"
+        ]
+      }
+    },
+    "/v1/app/watch/prizes/{id}": {
+      "get": {
+        "operationId": "CustomerWatchController_prize_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WonPrizeResponse"
                 }
               }
             }
@@ -59699,7 +59890,8 @@
                         "RESERVATION_REFUND_UPDATED",
                         "RESERVATION_FORFEITED",
                         "RESERVATION_HOLD_RELEASED",
-                        "RESERVATION_HOLD_CAPTURED"
+                        "RESERVATION_HOLD_CAPTURED",
+                        "PRIZE_WON"
                       ]
                     },
                     "data": {
@@ -59990,7 +60182,8 @@
                     "type": "string",
                     "enum": [
                       "RESERVATION",
-                      "VOUCHER"
+                      "VOUCHER",
+                      "PRIZE"
                     ]
                   },
                   "money": {
@@ -60323,7 +60516,8 @@
                     "type": "string",
                     "enum": [
                       "RESERVATION",
-                      "VOUCHER"
+                      "VOUCHER",
+                      "PRIZE"
                     ]
                   },
                   "money": {
@@ -60716,7 +60910,8 @@
                       "type": "string",
                       "enum": [
                         "RESERVATION",
-                        "VOUCHER"
+                        "VOUCHER",
+                        "PRIZE"
                       ]
                     }
                   },
@@ -80296,6 +80491,47 @@
               },
               "unusedBudgetTreatment": {
                 "type": "string"
+              },
+              "prizeGuardrails": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "maxWinProbabilityBps": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10000
+                  },
+                  "maxInventory": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100000
+                  },
+                  "maxPerCustomer": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10
+                  },
+                  "maxValidityDays": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 365
+                  },
+                  "maxLiabilityMinor": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "enabled",
+                  "maxWinProbabilityBps",
+                  "maxInventory",
+                  "maxPerCustomer",
+                  "maxValidityDays",
+                  "maxLiabilityMinor"
+                ]
               }
             },
             "required": [
@@ -80875,6 +81111,85 @@
                 "type": "integer",
                 "minimum": 0,
                 "maximum": 1000000
+              },
+              "prize": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "default": {
+                      "en": "",
+                      "ar": ""
+                    },
+                    "type": "object",
+                    "properties": {
+                      "en": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 60
+                      },
+                      "ar": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 60
+                      }
+                    }
+                  },
+                  "kind": {
+                    "default": "FREE_ITEM",
+                    "type": "string",
+                    "enum": [
+                      "FREE_ITEM",
+                      "DISCOUNT",
+                      "EXPERIENCE"
+                    ]
+                  },
+                  "inventory": {
+                    "default": 10,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100000
+                  },
+                  "winProbabilityBps": {
+                    "default": 1000,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10000
+                  },
+                  "perCustomerLimit": {
+                    "default": 1,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10
+                  },
+                  "validityDays": {
+                    "default": 14,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 365
+                  },
+                  "branchIds": {
+                    "default": [],
+                    "maxItems": 50,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    }
+                  },
+                  "unitValueMinor": {
+                    "default": 0,
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100000000
+                  },
+                  "acknowledged": {
+                    "default": false,
+                    "type": "boolean"
+                  }
+                },
+                "default": null,
+                "nullable": true
               }
             }
           }
@@ -81255,6 +81570,85 @@
                     "type": "integer",
                     "minimum": 0,
                     "maximum": 1000000
+                  },
+                  "prize": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "default": {
+                          "en": "",
+                          "ar": ""
+                        },
+                        "type": "object",
+                        "properties": {
+                          "en": {
+                            "default": "",
+                            "type": "string",
+                            "maxLength": 60
+                          },
+                          "ar": {
+                            "default": "",
+                            "type": "string",
+                            "maxLength": 60
+                          }
+                        }
+                      },
+                      "kind": {
+                        "default": "FREE_ITEM",
+                        "type": "string",
+                        "enum": [
+                          "FREE_ITEM",
+                          "DISCOUNT",
+                          "EXPERIENCE"
+                        ]
+                      },
+                      "inventory": {
+                        "default": 10,
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100000
+                      },
+                      "winProbabilityBps": {
+                        "default": 1000,
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 10000
+                      },
+                      "perCustomerLimit": {
+                        "default": 1,
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 10
+                      },
+                      "validityDays": {
+                        "default": 14,
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 365
+                      },
+                      "branchIds": {
+                        "default": [],
+                        "maxItems": 50,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        }
+                      },
+                      "unitValueMinor": {
+                        "default": 0,
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 100000000
+                      },
+                      "acknowledged": {
+                        "default": false,
+                        "type": "boolean"
+                      }
+                    },
+                    "default": null,
+                    "nullable": true
                   }
                 }
               },
@@ -81921,6 +82315,85 @@
                 "type": "integer",
                 "minimum": 0,
                 "maximum": 1000000
+              },
+              "prize": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "default": {
+                      "en": "",
+                      "ar": ""
+                    },
+                    "type": "object",
+                    "properties": {
+                      "en": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 60
+                      },
+                      "ar": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 60
+                      }
+                    }
+                  },
+                  "kind": {
+                    "default": "FREE_ITEM",
+                    "type": "string",
+                    "enum": [
+                      "FREE_ITEM",
+                      "DISCOUNT",
+                      "EXPERIENCE"
+                    ]
+                  },
+                  "inventory": {
+                    "default": 10,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100000
+                  },
+                  "winProbabilityBps": {
+                    "default": 1000,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10000
+                  },
+                  "perCustomerLimit": {
+                    "default": 1,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10
+                  },
+                  "validityDays": {
+                    "default": 14,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 365
+                  },
+                  "branchIds": {
+                    "default": [],
+                    "maxItems": 50,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    }
+                  },
+                  "unitValueMinor": {
+                    "default": 0,
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100000000
+                  },
+                  "acknowledged": {
+                    "default": false,
+                    "type": "boolean"
+                  }
+                },
+                "default": null,
+                "nullable": true
               }
             }
           },
@@ -82309,6 +82782,85 @@
                         "type": "integer",
                         "minimum": 0,
                         "maximum": 1000000
+                      },
+                      "prize": {
+                        "type": "object",
+                        "properties": {
+                          "title": {
+                            "default": {
+                              "en": "",
+                              "ar": ""
+                            },
+                            "type": "object",
+                            "properties": {
+                              "en": {
+                                "default": "",
+                                "type": "string",
+                                "maxLength": 60
+                              },
+                              "ar": {
+                                "default": "",
+                                "type": "string",
+                                "maxLength": 60
+                              }
+                            }
+                          },
+                          "kind": {
+                            "default": "FREE_ITEM",
+                            "type": "string",
+                            "enum": [
+                              "FREE_ITEM",
+                              "DISCOUNT",
+                              "EXPERIENCE"
+                            ]
+                          },
+                          "inventory": {
+                            "default": 10,
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100000
+                          },
+                          "winProbabilityBps": {
+                            "default": 1000,
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 10000
+                          },
+                          "perCustomerLimit": {
+                            "default": 1,
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 10
+                          },
+                          "validityDays": {
+                            "default": 14,
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 365
+                          },
+                          "branchIds": {
+                            "default": [],
+                            "maxItems": 50,
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            }
+                          },
+                          "unitValueMinor": {
+                            "default": 0,
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 100000000
+                          },
+                          "acknowledged": {
+                            "default": false,
+                            "type": "boolean"
+                          }
+                        },
+                        "default": null,
+                        "nullable": true
                       }
                     }
                   },
@@ -83038,6 +83590,85 @@
                         "type": "integer",
                         "minimum": 0,
                         "maximum": 1000000
+                      },
+                      "prize": {
+                        "type": "object",
+                        "properties": {
+                          "title": {
+                            "default": {
+                              "en": "",
+                              "ar": ""
+                            },
+                            "type": "object",
+                            "properties": {
+                              "en": {
+                                "default": "",
+                                "type": "string",
+                                "maxLength": 60
+                              },
+                              "ar": {
+                                "default": "",
+                                "type": "string",
+                                "maxLength": 60
+                              }
+                            }
+                          },
+                          "kind": {
+                            "default": "FREE_ITEM",
+                            "type": "string",
+                            "enum": [
+                              "FREE_ITEM",
+                              "DISCOUNT",
+                              "EXPERIENCE"
+                            ]
+                          },
+                          "inventory": {
+                            "default": 10,
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100000
+                          },
+                          "winProbabilityBps": {
+                            "default": 1000,
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 10000
+                          },
+                          "perCustomerLimit": {
+                            "default": 1,
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 10
+                          },
+                          "validityDays": {
+                            "default": 14,
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 365
+                          },
+                          "branchIds": {
+                            "default": [],
+                            "maxItems": 50,
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            }
+                          },
+                          "unitValueMinor": {
+                            "default": 0,
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 100000000
+                          },
+                          "acknowledged": {
+                            "default": false,
+                            "type": "boolean"
+                          }
+                        },
+                        "default": null,
+                        "nullable": true
                       }
                     }
                   },
@@ -83547,6 +84178,12 @@
                   "null"
                 ]
               },
+              "merchantCategory": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
               "title": {
                 "type": "object",
                 "properties": {
@@ -83679,6 +84316,52 @@
                   "message",
                   "unlockAction"
                 ]
+              },
+              "instantPrize": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "object",
+                    "properties": {
+                      "en": {
+                        "type": "string"
+                      },
+                      "ar": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "en",
+                      "ar"
+                    ]
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "FREE_ITEM",
+                      "DISCOUNT",
+                      "EXPERIENCE"
+                    ]
+                  },
+                  "remaining": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "guaranteed": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "title",
+                  "kind",
+                  "remaining",
+                  "guaranteed"
+                ],
+                "nullable": true
+              },
+              "saved": {
+                "type": "boolean"
               },
               "serverNow": {
                 "type": "string"
@@ -84053,6 +84736,73 @@
                   "rewardedViews",
                   "pointsIssued",
                   "heldViews"
+                ]
+              },
+              "prizes": {
+                "type": "object",
+                "properties": {
+                  "inventory": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "awarded": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "remaining": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "issued": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "redeemed": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "expired": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "notWon": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "ineligible": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "winProbabilityBps": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "liabilityMinor": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "inventory",
+                  "awarded",
+                  "remaining",
+                  "issued",
+                  "redeemed",
+                  "expired",
+                  "notWon",
+                  "ineligible",
+                  "winProbabilityBps",
+                  "liabilityMinor"
                 ]
               },
               "disclaimerKey": {
@@ -85159,6 +85909,85 @@
                     "type": "integer",
                     "minimum": 0,
                     "maximum": 1000000
+                  },
+                  "prize": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "default": {
+                          "en": "",
+                          "ar": ""
+                        },
+                        "type": "object",
+                        "properties": {
+                          "en": {
+                            "default": "",
+                            "type": "string",
+                            "maxLength": 60
+                          },
+                          "ar": {
+                            "default": "",
+                            "type": "string",
+                            "maxLength": 60
+                          }
+                        }
+                      },
+                      "kind": {
+                        "default": "FREE_ITEM",
+                        "type": "string",
+                        "enum": [
+                          "FREE_ITEM",
+                          "DISCOUNT",
+                          "EXPERIENCE"
+                        ]
+                      },
+                      "inventory": {
+                        "default": 10,
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100000
+                      },
+                      "winProbabilityBps": {
+                        "default": 1000,
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 10000
+                      },
+                      "perCustomerLimit": {
+                        "default": 1,
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 10
+                      },
+                      "validityDays": {
+                        "default": 14,
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 365
+                      },
+                      "branchIds": {
+                        "default": [],
+                        "maxItems": 50,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        }
+                      },
+                      "unitValueMinor": {
+                        "default": 0,
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 100000000
+                      },
+                      "acknowledged": {
+                        "default": false,
+                        "type": "boolean"
+                      }
+                    },
+                    "default": null,
+                    "nullable": true
                   }
                 }
               },
@@ -85638,6 +86467,12 @@
                       "null"
                     ]
                   },
+                  "merchantCategory": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
                   "title": {
                     "type": "object",
                     "properties": {
@@ -85770,6 +86605,52 @@
                       "message",
                       "unlockAction"
                     ]
+                  },
+                  "instantPrize": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "object",
+                        "properties": {
+                          "en": {
+                            "type": "string"
+                          },
+                          "ar": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "en",
+                          "ar"
+                        ]
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "FREE_ITEM",
+                          "DISCOUNT",
+                          "EXPERIENCE"
+                        ]
+                      },
+                      "remaining": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "guaranteed": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "title",
+                      "kind",
+                      "remaining",
+                      "guaranteed"
+                    ],
+                    "nullable": true
+                  },
+                  "saved": {
+                    "type": "boolean"
                   },
                   "serverNow": {
                     "type": "string"
@@ -87503,6 +88384,12 @@
                         "null"
                       ]
                     },
+                    "merchantCategory": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
                     "title": {
                       "type": "object",
                       "properties": {
@@ -87635,6 +88522,52 @@
                         "message",
                         "unlockAction"
                       ]
+                    },
+                    "instantPrize": {
+                      "type": "object",
+                      "properties": {
+                        "title": {
+                          "type": "object",
+                          "properties": {
+                            "en": {
+                              "type": "string"
+                            },
+                            "ar": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "en",
+                            "ar"
+                          ]
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "FREE_ITEM",
+                            "DISCOUNT",
+                            "EXPERIENCE"
+                          ]
+                        },
+                        "remaining": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "guaranteed": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "title",
+                        "kind",
+                        "remaining",
+                        "guaranteed"
+                      ],
+                      "nullable": true
+                    },
+                    "saved": {
+                      "type": "boolean"
                     },
                     "serverNow": {
                       "type": "string"
@@ -87776,6 +88709,12 @@
                   "null"
                 ]
               },
+              "merchantCategory": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
               "title": {
                 "type": "object",
                 "properties": {
@@ -87908,6 +88847,52 @@
                   "message",
                   "unlockAction"
                 ]
+              },
+              "instantPrize": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "object",
+                    "properties": {
+                      "en": {
+                        "type": "string"
+                      },
+                      "ar": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "en",
+                      "ar"
+                    ]
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "FREE_ITEM",
+                      "DISCOUNT",
+                      "EXPERIENCE"
+                    ]
+                  },
+                  "remaining": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "guaranteed": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "title",
+                  "kind",
+                  "remaining",
+                  "guaranteed"
+                ],
+                "nullable": true
+              },
+              "saved": {
+                "type": "boolean"
               },
               "serverNow": {
                 "type": "string"
@@ -88373,6 +89358,155 @@
                 ],
                 "nullable": true
               },
+              "prize": {
+                "type": "object",
+                "properties": {
+                  "won": {
+                    "type": "boolean"
+                  },
+                  "prize": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "reference": {
+                        "type": "string"
+                      },
+                      "title": {
+                        "type": "object",
+                        "properties": {
+                          "en": {
+                            "type": "string"
+                          },
+                          "ar": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "en",
+                          "ar"
+                        ]
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "FREE_ITEM",
+                          "DISCOUNT",
+                          "EXPERIENCE"
+                        ]
+                      },
+                      "merchantName": {
+                        "type": "object",
+                        "properties": {
+                          "en": {
+                            "type": "string"
+                          },
+                          "ar": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "en",
+                          "ar"
+                        ]
+                      },
+                      "campaignTitle": {
+                        "type": "object",
+                        "properties": {
+                          "en": {
+                            "type": "string"
+                          },
+                          "ar": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "en",
+                          "ar"
+                        ]
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "NOT_WON",
+                          "ISSUED",
+                          "REDEEMED",
+                          "EXPIRED"
+                        ]
+                      },
+                      "code": {
+                        "type": "object",
+                        "properties": {
+                          "qr": {
+                            "type": "string"
+                          },
+                          "manual": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "qr",
+                          "manual"
+                        ],
+                        "nullable": true
+                      },
+                      "branches": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "en": {
+                              "type": "string"
+                            },
+                            "ar": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "en",
+                            "ar"
+                          ]
+                        }
+                      },
+                      "wonAt": {
+                        "type": "string"
+                      },
+                      "expiresAt": {
+                        "type": "string"
+                      },
+                      "redeemedAt": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "reference",
+                      "title",
+                      "kind",
+                      "merchantName",
+                      "campaignTitle",
+                      "status",
+                      "code",
+                      "branches",
+                      "wonAt",
+                      "expiresAt",
+                      "redeemedAt"
+                    ],
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "won",
+                  "prize"
+                ],
+                "nullable": true
+              },
               "serverNow": {
                 "type": "string"
               }
@@ -88386,6 +89520,613 @@
               "balance",
               "link",
               "serverNow"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string"
+              },
+              "locale": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "ar"
+                ]
+              },
+              "nextCursor": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "WatchCardsResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "merchantId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "merchantName": {
+                  "type": "object",
+                  "properties": {
+                    "en": {
+                      "type": "string"
+                    },
+                    "ar": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "en",
+                    "ar"
+                  ]
+                },
+                "merchantLogoUrl": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "merchantCategory": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "title": {
+                  "type": "object",
+                  "properties": {
+                    "en": {
+                      "type": "string"
+                    },
+                    "ar": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "en",
+                    "ar"
+                  ]
+                },
+                "description": {
+                  "type": "object",
+                  "properties": {
+                    "en": {
+                      "type": "string"
+                    },
+                    "ar": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "en",
+                    "ar"
+                  ]
+                },
+                "thumbnailUrl": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "durationSec": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "rewardPoints": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "availability": {
+                  "type": "string",
+                  "enum": [
+                    "AVAILABLE",
+                    "ALREADY_EARNED",
+                    "DAILY_CAP",
+                    "BUDGET_EXHAUSTED",
+                    "ENDED",
+                    "NOT_ELIGIBLE",
+                    "UNAVAILABLE"
+                  ]
+                },
+                "availableAgainAt": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "endsAt": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "distanceMeters": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "eligibility": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "string",
+                      "enum": [
+                        "ELIGIBLE",
+                        "LOCKED_UNLOCKABLE",
+                        "HIDDEN"
+                      ]
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "PUBLIC",
+                        "GEOGRAPHY",
+                        "EMPLOYER",
+                        "BANK_CARD",
+                        "SCHEME",
+                        "COMPOSITE"
+                      ]
+                    },
+                    "message": {
+                      "type": "object",
+                      "properties": {
+                        "en": {
+                          "type": "string"
+                        },
+                        "ar": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "en",
+                        "ar"
+                      ],
+                      "nullable": true
+                    },
+                    "unlockAction": {
+                      "type": "string",
+                      "enum": [
+                        "SIGN_IN",
+                        "VERIFY_EMPLOYER",
+                        "ADD_BANK_BENEFIT",
+                        "JOIN_SCHEME",
+                        null
+                      ],
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "result",
+                    "kind",
+                    "message",
+                    "unlockAction"
+                  ]
+                },
+                "instantPrize": {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "object",
+                      "properties": {
+                        "en": {
+                          "type": "string"
+                        },
+                        "ar": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "en",
+                        "ar"
+                      ]
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "FREE_ITEM",
+                        "DISCOUNT",
+                        "EXPERIENCE"
+                      ]
+                    },
+                    "remaining": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "guaranteed": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "kind",
+                    "remaining",
+                    "guaranteed"
+                  ],
+                  "nullable": true
+                },
+                "saved": {
+                  "type": "boolean"
+                },
+                "serverNow": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "merchantId",
+                "merchantName",
+                "merchantLogoUrl",
+                "title",
+                "description",
+                "thumbnailUrl",
+                "durationSec",
+                "rewardPoints",
+                "availability",
+                "availableAgainAt",
+                "endsAt",
+                "distanceMeters",
+                "eligibility",
+                "serverNow"
+              ]
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string"
+              },
+              "locale": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "ar"
+                ]
+              },
+              "nextCursor": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "WonPrizesResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "reference": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "object",
+                  "properties": {
+                    "en": {
+                      "type": "string"
+                    },
+                    "ar": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "en",
+                    "ar"
+                  ]
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "FREE_ITEM",
+                    "DISCOUNT",
+                    "EXPERIENCE"
+                  ]
+                },
+                "merchantName": {
+                  "type": "object",
+                  "properties": {
+                    "en": {
+                      "type": "string"
+                    },
+                    "ar": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "en",
+                    "ar"
+                  ]
+                },
+                "campaignTitle": {
+                  "type": "object",
+                  "properties": {
+                    "en": {
+                      "type": "string"
+                    },
+                    "ar": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "en",
+                    "ar"
+                  ]
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "NOT_WON",
+                    "ISSUED",
+                    "REDEEMED",
+                    "EXPIRED"
+                  ]
+                },
+                "code": {
+                  "type": "object",
+                  "properties": {
+                    "qr": {
+                      "type": "string"
+                    },
+                    "manual": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "qr",
+                    "manual"
+                  ],
+                  "nullable": true
+                },
+                "branches": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "en": {
+                        "type": "string"
+                      },
+                      "ar": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "en",
+                      "ar"
+                    ]
+                  }
+                },
+                "wonAt": {
+                  "type": "string"
+                },
+                "expiresAt": {
+                  "type": "string"
+                },
+                "redeemedAt": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "reference",
+                "title",
+                "kind",
+                "merchantName",
+                "campaignTitle",
+                "status",
+                "code",
+                "branches",
+                "wonAt",
+                "expiresAt",
+                "redeemedAt"
+              ]
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string"
+              },
+              "locale": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "ar"
+                ]
+              },
+              "nextCursor": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "WonPrizeResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "reference": {
+                "type": "string"
+              },
+              "title": {
+                "type": "object",
+                "properties": {
+                  "en": {
+                    "type": "string"
+                  },
+                  "ar": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "en",
+                  "ar"
+                ]
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "FREE_ITEM",
+                  "DISCOUNT",
+                  "EXPERIENCE"
+                ]
+              },
+              "merchantName": {
+                "type": "object",
+                "properties": {
+                  "en": {
+                    "type": "string"
+                  },
+                  "ar": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "en",
+                  "ar"
+                ]
+              },
+              "campaignTitle": {
+                "type": "object",
+                "properties": {
+                  "en": {
+                    "type": "string"
+                  },
+                  "ar": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "en",
+                  "ar"
+                ]
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "NOT_WON",
+                  "ISSUED",
+                  "REDEEMED",
+                  "EXPIRED"
+                ]
+              },
+              "code": {
+                "type": "object",
+                "properties": {
+                  "qr": {
+                    "type": "string"
+                  },
+                  "manual": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "qr",
+                  "manual"
+                ],
+                "nullable": true
+              },
+              "branches": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "en": {
+                      "type": "string"
+                    },
+                    "ar": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "en",
+                    "ar"
+                  ]
+                }
+              },
+              "wonAt": {
+                "type": "string"
+              },
+              "expiresAt": {
+                "type": "string"
+              },
+              "redeemedAt": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "reference",
+              "title",
+              "kind",
+              "merchantName",
+              "campaignTitle",
+              "status",
+              "code",
+              "branches",
+              "wonAt",
+              "expiresAt",
+              "redeemedAt"
             ]
           },
           "meta": {

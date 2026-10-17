@@ -5428,6 +5428,254 @@ button.dd-rewardcard__cta {
   font-size: 11px;
   padding: 4px 8px;
 }
+/* ---- Watch & Earn immersive card (founder-approved style 2026-10-16): full-bleed campaign image, dark lower gradient for
+   legibility, white overlay copy, bright reward pill, thin divider with the merchant and distance */
+.dd-wcard {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #120e3a;
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(15, 12, 66, 0.22);
+}
+.dd-rail > .dd-wcard {
+  inline-size: clamp(150px, 42vw, 176px);
+}
+.dd-wcard__link {
+  display: flex;
+  flex-direction: column;
+  color: inherit;
+  text-decoration: none;
+}
+.dd-wcard__link:focus-visible {
+  outline: none;
+  box-shadow: var(--dd-focus);
+  border-radius: 20px;
+}
+.dd-wcard__media {
+  position: relative;
+  block-size: 212px;
+  overflow: hidden;
+}
+.dd-wcard__img {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+.dd-wcard__shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(18, 14, 58, 0.25) 0%,
+    rgba(18, 14, 58, 0) 26%,
+    rgba(18, 14, 58, 0.35) 52%,
+    rgba(18, 14, 58, 0.92) 86%,
+    #120e3a 100%
+  );
+}
+.dd-wcard__logo {
+  position: absolute;
+  inset-block-start: 8px;
+  inset-inline-start: 8px;
+  inline-size: 30px;
+  block-size: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #fff;
+  border: 2px solid #fff;
+}
+.dd-wcard__badge,
+.dd-wcard__state {
+  position: absolute;
+  inset-block-start: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 14px;
+}
+.dd-wcard__badge {
+  inset-inline-start: 8px;
+  background: rgba(15, 12, 66, 0.72);
+  color: #fff;
+  backdrop-filter: blur(4px);
+}
+.dd-wcard__state {
+  inset-inline-start: 8px;
+  max-inline-size: calc(100% - 52px);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--dd-navy);
+}
+.dd-wcard__save {
+  position: absolute;
+  inset-block-start: 6px;
+  inset-inline-end: 6px;
+  inline-size: 32px;
+  block-size: 32px;
+  z-index: 1;
+}
+/* with an instant prize the points become the quieter secondary pill */
+.dd-wcard__points {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  backdrop-filter: blur(4px);
+}
+.dd-wcard__points * {
+  color: inherit;
+}
+/* ---- instant prize: detail note, the win on the outcome, the customer's prizes */
+.dd-prize {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #fff7e0, #ffe8c2);
+  color: #3b2300;
+}
+.dd-prize__icon {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 40px;
+  block-size: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ffd23f, #ff9f1c);
+  color: #3b2300;
+}
+.dd-prize__code {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 14px;
+  border-radius: 16px;
+  background: #fff;
+  color: var(--dd-navy);
+}
+.dd-prize__manual {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+.dd-wcard__over {
+  position: absolute;
+  inset-inline: 10px;
+  inset-block-end: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+}
+/* the instant pill and the points pill sit together when a campaign has both; pills stay on one line */
+.dd-wcard__over > .dd-wcard__reward + .dd-wcard__points {
+  margin-block-start: -1px;
+}
+.dd-wcard__reward,
+.dd-wcard__points {
+  max-inline-size: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dd-rail > .dd-wcard .dd-wcard__reward,
+.dd-wgrid .dd-wcard__reward {
+  padding: 4px 9px;
+  font-size: 11px;
+}
+/* the two-column page grid is narrower than a rail card: a long pill wraps inside the card instead of being cut */
+.dd-wgrid .dd-wcard__reward {
+  white-space: normal;
+  line-height: 14px;
+  border-radius: 14px;
+}
+.dd-wcard__title {
+  margin: 0;
+  color: #fff;
+  font-size: 15px;
+  line-height: 19px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
+}
+.dd-wcard__watch {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
+}
+.dd-wcard__reward {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: linear-gradient(135deg, #ffd23f, #ff9f1c);
+  color: #3b2300;
+  font-size: 12px;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(255, 159, 28, 0.35);
+}
+.dd-wcard__reward .dd-points,
+.dd-wcard__reward * {
+  color: inherit;
+}
+.dd-wcard__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-inline: 10px;
+  padding-block: 8px 10px;
+  border-block-start: 1px solid rgba(255, 255, 255, 0.16);
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.78);
+  min-inline-size: 0;
+}
+.dd-wcard__merchant {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dd-wcard__dist {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.dd-wcard--off .dd-wcard__img {
+  filter: grayscale(0.7);
+  opacity: 0.75;
+}
+/* the full Watch & Earn page: the same cards, two per row */
+.dd-wgrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
 /* Watch & Earn reward proposition and the paid-reservation chip */
 .dd-watch-prop {
   font-size: 12px;

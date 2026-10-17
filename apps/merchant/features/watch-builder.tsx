@@ -41,6 +41,10 @@ import {
 } from '@dealdash/ui';
 import {
   DEFAULT_WATCH_LIMITS,
+  DEFAULT_WATCH_PRIZE_GUARDRAILS,
+  prizeLiabilityMinor,
+  type WatchPrizeConfig,
+  type WatchPrizeGuardrails,
   emptyWatchContent,
   watchIssues,
   watchMaterialChanges,
@@ -66,6 +70,13 @@ interface WatchOptions {
   minRepeatWindowHours: number;
   cities: string[];
   unusedBudgetTreatment: string;
+  prizeGuardrails?: WatchPrizeGuardrails;
+}
+interface BranchRow {
+  id: string;
+  nameEn: string;
+  nameAr: string;
+  status: string;
 }
 interface OfferRow {
   id: string;
@@ -86,7 +97,7 @@ export function stepOfWatchField(field: string): number {
   if (['title', 'description', 'ctaLabel'].includes(field)) return 1;
   if (field.startsWith('targeting') || field === 'link') return 2;
   if (['startAt', 'endAt'].includes(field) || field.startsWith('frequency')) return 3;
-  if (field === 'paidViews') return 4;
+  if (field === 'paidViews' || field.startsWith('prize')) return 4;
   return 0;
 }
 
@@ -219,10 +230,25 @@ function BuilderInner({ campaignId }: { campaignId?: string }) {
   const minRepeat = wopts?.minRepeatWindowHours ?? 24;
   const charge = wopts?.rateCard.chargePerViewHalalas ?? view?.budget.chargePerViewHalalas ?? 0;
 
+  const prizeLimits = wopts?.prizeGuardrails ?? DEFAULT_WATCH_PRIZE_GUARDRAILS;
   const issues = useMemo(
-    () => watchIssues(content, { now: new Date(), limits, minRepeatWindowHours: minRepeat }),
-    [content, limits, minRepeat],
+    () =>
+      watchIssues(content, {
+        now: new Date(),
+        limits,
+        minRepeatWindowHours: minRepeat,
+        prizeGuardrails: prizeLimits,
+      }),
+    [content, limits, minRepeat, prizeLimits],
   );
+  // the merchant's branches (where an instant prize is redeemed)
+  const [branches, setBranches] = useState<BranchRow[]>([]);
+  useEffect(() => {
+    if (!orgId) return;
+    void call<BranchRow[]>('GET', `/v1/merchants/${orgId}/branches`).then((r) =>
+      setBranches(r.ok && Array.isArray(r.data) ? r.data.filter((b) => b.status === 'ACTIVE') : []),
+    );
+  }, [call, orgId]);
   const translation = useMemo(() => watchTranslationStatus(content), [content]);
   const required = content.paidViews * charge;
 
@@ -929,6 +955,237 @@ function BuilderInner({ campaignId }: { campaignId?: string }) {
     </div>
   );
 
+  // ---- instant prize (FDR-19): optional, merchant-funded, bounded by DealDash guardrails; the server decides every prize
+  const prize = content.prize;
+  const setPrize = (patch: Partial<WatchPrizeConfig>) =>
+    edit({ prize: prize ? { ...prize, ...patch } : null });
+  const prizeSection = (
+    <Card flat>
+      <div className="dd-stack" style={{ gap: 12 }} data-testid="prize-editor">
+        <h3 className="dd-title-sm" style={{ margin: 0 }}>
+          {t('mprize.title')}
+        </h3>
+        <p className="dd-help" style={{ margin: 0 }}>
+          {t('mprize.help')}
+        </p>
+        {!prize ? (
+          <div>
+            <Button
+              variant="outline"
+              disabled={live || !prizeLimits.enabled}
+              onClick={() =>
+                edit({
+                  prize: {
+                    title: { en: '', ar: '' },
+                    kind: 'FREE_ITEM',
+                    inventory: Math.min(20, prizeLimits.maxInventory),
+                    winProbabilityBps: Math.min(1000, prizeLimits.maxWinProbabilityBps),
+                    perCustomerLimit: 1,
+                    validityDays: Math.min(14, prizeLimits.maxValidityDays),
+                    branchIds: [],
+                    unitValueMinor: 0,
+                    acknowledged: false,
+                  },
+                })
+              }
+              data-testid="prize-add"
+            >
+              {t('mprize.add')}
+            </Button>
+          </div>
+        ) : (
+          <>
+            <Bi
+              id="prize-title"
+              label={t('mprize.name')}
+              value={prize.title}
+              onChange={(title) => setPrize({ title })}
+              max={60}
+              hasError={hasReq('prize.title')}
+            />
+            <div
+              style={{
+                display: 'grid',
+                gap: 12,
+                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+              }}
+            >
+              <Field label={t('mprize.kind')} htmlFor="prize-kind">
+                <Select
+                  id="prize-kind"
+                  value={prize.kind}
+                  disabled={live}
+                  onChange={(e) => setPrize({ kind: e.target.value as WatchPrizeConfig['kind'] })}
+                >
+                  {(['FREE_ITEM', 'DISCOUNT', 'EXPERIENCE'] as const).map((k) => (
+                    <option key={k} value={k}>
+                      {t(`mprize.kind.${k}` as DictionaryKey)}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <Field
+                label={t('mprize.inventory')}
+                htmlFor="prize-inventory"
+                error={err('prize.inventory') ?? msg('prize.inventory')}
+              >
+                <Input
+                  id="prize-inventory"
+                  type="number"
+                  min={1}
+                  max={prizeLimits.maxInventory}
+                  dir="ltr"
+                  disabled={live}
+                  value={prize.inventory}
+                  onChange={(e) =>
+                    setPrize({ inventory: Math.max(1, Math.floor(Number(e.target.value) || 1)) })
+                  }
+                  data-testid="prize-inventory"
+                />
+              </Field>
+              <Field
+                label={t('mprize.pct')}
+                htmlFor="prize-pct"
+                help={t('mprize.pctHelp', { max: prizeLimits.maxWinProbabilityBps / 100 })}
+                error={err('prize.winProbabilityBps') ?? msg('prize.winProbabilityBps')}
+              >
+                <Input
+                  id="prize-pct"
+                  type="number"
+                  min={0.01}
+                  max={100}
+                  step="any"
+                  dir="ltr"
+                  disabled={live}
+                  value={prize.winProbabilityBps / 100}
+                  onChange={(e) =>
+                    setPrize({
+                      winProbabilityBps: Math.min(
+                        10_000,
+                        Math.max(1, Math.round((Number(e.target.value) || 0) * 100)),
+                      ),
+                    })
+                  }
+                  data-testid="prize-pct"
+                />
+              </Field>
+              <Field
+                label={t('mprize.perCustomer')}
+                htmlFor="prize-per"
+                error={err('prize.perCustomerLimit') ?? msg('prize.perCustomerLimit')}
+              >
+                <Input
+                  id="prize-per"
+                  type="number"
+                  min={1}
+                  max={prizeLimits.maxPerCustomer}
+                  dir="ltr"
+                  disabled={live}
+                  value={prize.perCustomerLimit}
+                  onChange={(e) =>
+                    setPrize({
+                      perCustomerLimit: Math.max(1, Math.floor(Number(e.target.value) || 1)),
+                    })
+                  }
+                />
+              </Field>
+              <Field
+                label={t('mprize.validity')}
+                htmlFor="prize-validity"
+                error={err('prize.validityDays') ?? msg('prize.validityDays')}
+              >
+                <Input
+                  id="prize-validity"
+                  type="number"
+                  min={1}
+                  max={prizeLimits.maxValidityDays}
+                  dir="ltr"
+                  disabled={live}
+                  value={prize.validityDays}
+                  onChange={(e) =>
+                    setPrize({ validityDays: Math.max(1, Math.floor(Number(e.target.value) || 1)) })
+                  }
+                />
+              </Field>
+              <Field
+                label={t('mprize.unitValue')}
+                htmlFor="prize-value"
+                error={err('prize.unitValueMinor') ?? msg('prize.unitValueMinor')}
+              >
+                <Input
+                  id="prize-value"
+                  type="number"
+                  min={0}
+                  step="any"
+                  dir="ltr"
+                  disabled={live}
+                  value={prize.unitValueMinor / 100}
+                  onChange={(e) =>
+                    setPrize({
+                      unitValueMinor: Math.max(0, Math.round((Number(e.target.value) || 0) * 100)),
+                    })
+                  }
+                />
+              </Field>
+            </div>
+            <fieldset className="dd-stack" style={{ border: 0, padding: 0, margin: 0, gap: 6 }}>
+              <legend className="dd-label">{t('mprize.branches')}</legend>
+              <Checkbox
+                label={t('mprize.allBranches')}
+                checked={prize.branchIds.length === 0}
+                disabled={live}
+                onChange={(e) =>
+                  setPrize({
+                    branchIds: e.target.checked ? [] : branches.slice(0, 1).map((b) => b.id),
+                  })
+                }
+              />
+              {prize.branchIds.length
+                ? branches.map((b) => (
+                    <Checkbox
+                      key={b.id}
+                      label={locale === 'ar' ? b.nameAr : b.nameEn}
+                      checked={prize.branchIds.includes(b.id)}
+                      disabled={live}
+                      onChange={(e) =>
+                        setPrize({
+                          branchIds: e.target.checked
+                            ? [...prize.branchIds, b.id]
+                            : prize.branchIds.filter((x) => x !== b.id),
+                        })
+                      }
+                    />
+                  ))
+                : null}
+            </fieldset>
+            <p className="dd-caption" style={{ margin: 0 }} data-testid="prize-liability">
+              {t('mprize.liability', { amount: formatMoney(locale, prizeLiabilityMinor(prize)) })}
+            </p>
+            <Checkbox
+              label={t('mprize.ack')}
+              checked={prize.acknowledged}
+              disabled={live}
+              onChange={(e) => setPrize({ acknowledged: e.target.checked })}
+              data-testid="prize-ack"
+            />
+            {(err('prize.acknowledged') ?? msg('prize.acknowledged')) ? (
+              <span className="dd-error" role="alert">
+                {err('prize.acknowledged') ?? msg('prize.acknowledged')}
+              </span>
+            ) : null}
+            {!live ? (
+              <div>
+                <Button variant="ghost" size="sm" onClick={() => edit({ prize: null })}>
+                  {t('mprize.remove')}
+                </Button>
+              </div>
+            ) : null}
+          </>
+        )}
+      </div>
+    </Card>
+  );
+
   const funded = view?.budget.fundedHalalas ?? 0;
   const remainingToFund = Math.max(0, required - funded);
   const budgetStep = (
@@ -1000,6 +1257,7 @@ function BuilderInner({ campaignId }: { campaignId?: string }) {
         </Alert>
       ) : null}
       <p className="dd-caption">{t('mw.unusedNote')}</p>
+      {prizeSection}
     </div>
   );
 
